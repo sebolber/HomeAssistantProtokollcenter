@@ -676,16 +676,34 @@ def _async_register_retention(hass: HomeAssistant, entry: ConfigEntry, database:
     state["retention_unsub"] = async_track_time_change(hass, _job, hour=3, minute=30, second=0)
 
 
+def _bundle_cache_buster(bundle_path: Path) -> str:
+    """Liefert eine kurze Cache-Buster-Zeichenkette aus der Bundle-mtime.
+
+    Hintergrund: HA serviert das Panel-JS unter einem festen Pfad ohne
+    eingebauten Hash. Ohne Cache-Buster zeigt der Browser nach einem
+    Frontend-Rebuild das alte Bundle aus dem HTTP-Cache.
+    """
+    try:
+        mtime = int(bundle_path.stat().st_mtime)
+    except OSError:
+        return "0"
+    return str(mtime)
+
+
 async def _async_register_panel(hass: HomeAssistant) -> None:
     """Registriert das Sidebar-Panel (Iter 16)."""
     from homeassistant.components import frontend, panel_custom  # noqa: PLC0415
 
-    panel_url = "/messagehub-panel/messagehub-panel.js"
     frontend_path = Path(__file__).parent / "frontend_dist"
+    bundle_path = frontend_path / "messagehub-panel.js"
     # exists() ist blockierende I/O -> Executor
     exists = await hass.async_add_executor_job(frontend_path.exists)
     if not exists:
         _LOGGER.warning("frontend_dist/ fehlt — Panel wird ohne Build registriert")
+    # mtime-basierter Cache-Buster, damit der Browser nach jedem Rebuild
+    # das neue Bundle laedt statt aus dem HTTP-Cache zu servieren.
+    buster = await hass.async_add_executor_job(_bundle_cache_buster, bundle_path)
+    panel_url = f"/messagehub-panel/messagehub-panel.js?v={buster}"
     # register_static_path ist intern blockierend (path stat).
     # Neuere HA-Versionen haben async_register_static_paths.
     if hasattr(hass.http, "async_register_static_paths"):
