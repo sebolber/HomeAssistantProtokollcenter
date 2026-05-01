@@ -24,6 +24,8 @@ export class StatsView extends LitElement {
 
   @state() private _stats: StatsDto | null = null;
   @state() private _sources: string[] = [];
+  @state() private _heatmap: Array<{ hour: number; weekday: number; count: number }> = [];
+  @state() private _topSources: Array<{ source: string; count: number }> = [];
   @state() private _loading = false;
 
   override async firstUpdated(): Promise<void> {
@@ -34,15 +36,61 @@ export class StatsView extends LitElement {
     if (!this.api) return;
     this._loading = true;
     try {
-      const [stats, sources] = await Promise.all([
+      const [stats, sources, ext] = await Promise.all([
         this.api.getStats(),
         this.api.listSources(),
+        this.api.getStatsExtended(30),
       ]);
       this._stats = stats;
       this._sources = sources;
+      this._heatmap = ext.heatmap;
+      this._topSources = ext.top_sources;
     } finally {
       this._loading = false;
     }
+  }
+
+  private _renderHeatmap(): TemplateResult {
+    const grid: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0));
+    let max = 0;
+    for (const cell of this._heatmap) {
+      if (cell.weekday >= 0 && cell.weekday < 7 && cell.hour >= 0 && cell.hour < 24) {
+        grid[cell.weekday][cell.hour] = cell.count;
+        if (cell.count > max) max = cell.count;
+      }
+    }
+    if (max === 0) {
+      return html`<p class="muted">Keine Daten in den letzten 30 Tagen.</p>`;
+    }
+    const labelDays = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+    return html`
+      <div class="heatmap">
+        <div class="heatmap-header">
+          <span></span>
+          ${Array.from({ length: 24 }, (_, h) =>
+            html`<span class="hour-label">${h % 3 === 0 ? h : ""}</span>`
+          )}
+        </div>
+        ${grid.map(
+          (row, dayIdx) => html`
+            <div class="heatmap-row">
+              <span class="day-label">${labelDays[dayIdx]}</span>
+              ${row.map((count) => {
+                const intensity = count === 0 ? 0 : Math.max(0.1, count / max);
+                return html`
+                  <div
+                    class="heatmap-cell"
+                    style=${`background: rgba(3, 169, 244, ${intensity})`}
+                    title=${`${labelDays[dayIdx]} ${row.indexOf(count)}:00 — ${count} msg`}
+                  ></div>
+                `;
+              })}
+            </div>
+          `
+        )}
+      </div>
+      <p class="muted small">Helligkeit ∝ Nachrichtenanzahl (max: ${max}).</p>
+    `;
   }
 
   private _renderSeverityBars(): TemplateResult {
@@ -133,14 +181,28 @@ export class StatsView extends LitElement {
         </section>
 
         <section>
-          <h2>Heatmap, MTTR, Top-10</h2>
-          <div class="placeholder">
-            <p>
-              Detaillierte Visualisierungen (Heatmap Stunde × Wochentag, MTTR pro Source,
-              Top-10-Quellen mit Trend) folgen in v0.2. Backend-Endpoints sind bereits
-              vorhanden (<code>/api/messagehub/stats</code>,
-              <code>heatmap_hour_weekday</code>, <code>top_sources</code>).
-            </p>
+          <h2>Heatmap (Stunde × Wochentag, letzte 30 Tage)</h2>
+          <div class="card">${this._renderHeatmap()}</div>
+        </section>
+
+        <section>
+          <h2>Top-10 Quellen (30 Tage)</h2>
+          <div class="card">
+            ${this._topSources.length === 0
+              ? html`<p class="muted">Keine Daten.</p>`
+              : html`<table class="top">
+                  <thead>
+                    <tr><th>Source</th><th>Nachrichten</th></tr>
+                  </thead>
+                  <tbody>
+                    ${this._topSources.map(
+                      (t) => html`<tr>
+                        <td><code>${t.source}</code></td>
+                        <td>${t.count.toLocaleString("de-DE")}</td>
+                      </tr>`
+                    )}
+                  </tbody>
+                </table>`}
           </div>
         </section>
       </div>
@@ -267,17 +329,51 @@ export class StatsView extends LitElement {
       font-family: var(--ha-font-family-code, monospace);
       font-size: 0.85em;
     }
-    .placeholder {
-      background: var(--card-background-color, white);
-      border: 1px dashed var(--divider-color, #ccc);
-      border-radius: 8px;
-      padding: 16px;
-      color: var(--secondary-text-color, #666);
+    .heatmap {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow-x: auto;
+    }
+    .heatmap-header,
+    .heatmap-row {
+      display: grid;
+      grid-template-columns: 30px repeat(24, 1fr);
+      gap: 2px;
+      align-items: center;
+      min-width: 540px;
+    }
+    .day-label,
+    .hour-label {
+      font-size: 0.7em;
+      color: var(--secondary-text-color, #888);
+      text-align: center;
+    }
+    .heatmap-cell {
+      aspect-ratio: 1;
+      border-radius: 2px;
+      background: var(--secondary-background-color, #f3f3f3);
+      min-height: 14px;
+    }
+    .top {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .top th,
+    .top td {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--divider-color, #eee);
       font-size: 0.9em;
     }
-    .placeholder p {
-      margin: 0;
-      max-width: 600px;
+    .top th {
+      font-size: 0.78em;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--secondary-text-color, #666);
+    }
+    .small {
+      font-size: 0.78em;
     }
     .status {
       color: var(--secondary-text-color, #666);

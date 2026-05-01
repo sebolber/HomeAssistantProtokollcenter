@@ -127,6 +127,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
     domain_data[entry.entry_id] = state
 
+    # Iter 30/31: Notification-Dispatch
+    from .notifications.dispatch import DispatchManager  # noqa: PLC0415
+    from .notifications.repository import ChannelRepository  # noqa: PLC0415
+
+    channel_repo = ChannelRepository(database)
+    dispatch = DispatchManager(hass, channel_repo)
+    await dispatch.reload()
+    state["channel_repository"] = channel_repo
+    state["dispatch"] = dispatch
+
     await _async_register_services(hass, repository)
     async_register_views(hass)
     await _async_register_panel(hass)
@@ -135,6 +145,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     state["unsub_eventbus"] = _async_register_eventbus_listeners(hass, repository)
     state["unsub_knx"] = _async_register_knx_listener(hass, database, repository)
     state["unsub_periodic"] = _async_register_periodic_jobs(hass, database, repository)
+    state["unsub_dispatch"] = _async_register_dispatch_listener(hass, dispatch)
+    state["unsub_remediation"] = _async_register_remediation_listener(hass, database)
+    state["unsub_mqtt"] = await _async_register_mqtt_subscriptions(hass, database, repository)
+    state["weekly_report_unsub"] = _async_register_weekly_report(hass, entry, database)
+    state["unsub_syslog"] = await _async_register_syslog_listener(hass, entry, repository)
 
     # Options-Update-Listener (Review #5): Aenderungen aktivieren ohne Restart.
     state["unsub_options"] = entry.add_update_listener(_async_options_updated)
@@ -190,6 +205,222 @@ def _async_register_eventbus_listeners(hass: HomeAssistant, repository: Any) -> 
     def _unsub() -> None:
         unsub_log()
         unsub_state()
+
+    return _unsub
+
+
+def _async_register_dispatch_listener(hass: HomeAssistant, dispatch: Any) -> Any:
+    """Iter 30/31: lauscht auf messagehub_message_added und feuert konfigurierte Channels."""
+
+    async def _on_added(event: Any) -> None:
+        try:
+            data = dict(event.data)
+            from .storage import Message, Severity  # noqa: PLC0415
+
+            msg = Message(
+                severity=Severity.normalise(data.get("severity")),
+                source=str(data.get("source", "?")),
+                text=str(data.get("text", "")),
+                metadata=data.get("metadata"),
+            )
+            msg.id = data.get("id")
+            await dispatch.dispatch(msg)
+        except (ValueError, RuntimeError) as err:
+            _LOGGER.debug("dispatch skipped: %s", err)
+
+    return hass.bus.async_listen(EVENT_MESSAGE_ADDED, _on_added)
+
+
+def _async_register_remediation_listener(hass: HomeAssistant, database: Any) -> Any:
+    """Iter 47: lauscht auf message_added, matched gegen Hooks, fuehrt
+    auto-Modus aus oder setzt eine Vorschlag-Notiz."""
+    from .processing.remediation import matches as hook_matches  # noqa: PLC0415
+    from .processing.remediation_repo import RemediationHookRepository  # noqa: PLC0415
+
+    repo = RemediationHookRepository(database)
+    cache: dict[str, Any] = {"hooks": None, "ts": 0.0}
+    cache_ttl = 30.0
+
+    async def _hooks() -> list[Any]:
+        from time import monotonic  # noqa: PLC0415
+
+        now = monotonic()
+        if cache["hooks"] is None or now - cache["ts"] > cache_ttl:
+            cache["hooks"] = await repo.list_enabled()
+            cache["ts"] = now
+        return cache["hooks"]
+
+    async def _on_added(event: Any) -> None:
+        try:
+            data = dict(event.data)
+            source = str(data.get("source", ""))
+            # Auto-Vermeidung: keine Remediation auf eigene Meta-Sources.
+            if source.startswith("messagehub."):
+                return
+            for hook in await _hooks():
+                if not hook_matches(hook, source, None):
+                    continue
+                if hook.confirm_required:
+                    _LOGGER.info(
+                        "remediation suggestion: %s -> %s (manual confirm)",
+                        source,
+                        hook.automation_id,
+                    )
+                    continue
+                domain, _, name = hook.automation_id.partition(".")
+                if not domain or not name:
+                    continue
+                try:
+                    await hass.services.async_call(
+                        domain, "turn_on", {"entity_id": hook.automation_id}, blocking=False
+                    )
+                    _LOGGER.info("remediation auto-executed: %s -> %s", source, hook.automation_id)
+                except (ValueError, RuntimeError) as err:
+                    _LOGGER.warning("remediation %s failed: %s", hook.automation_id, err)
+        except (ValueError, RuntimeError) as err:
+            _LOGGER.debug("remediation listener skipped: %s", err)
+
+    return hass.bus.async_listen(EVENT_MESSAGE_ADDED, _on_added)
+
+
+async def _async_register_mqtt_subscriptions(
+    hass: HomeAssistant, database: Any, repository: Any
+) -> Any:
+    """Iter 37: registriert MQTT-Subscriptions fuer alle aktivierten topic_patterns."""
+    from .ingestion.mqtt_repo import MqttTopicRepository  # noqa: PLC0415
+    from .storage import Message, Severity  # noqa: PLC0415
+
+    if "mqtt" not in hass.config.components:
+        _LOGGER.debug("mqtt not loaded — skipping MQTT subscriptions")
+        return None
+
+    try:
+        from homeassistant.components import mqtt  # noqa: PLC0415
+    except ImportError:
+        return None
+
+    repo = MqttTopicRepository(database)
+    topics = await repo.list_all()
+    unsubs: list[Any] = []
+
+    for topic in topics:
+        if not topic.enabled:
+            continue
+        sev = Severity.normalise(topic.severity)
+        captured_topic = topic
+
+        async def _handler(message: Any, _t: Any = captured_topic, _s: Any = sev) -> None:
+            try:
+                payload = (
+                    message.payload.decode("utf-8", errors="replace")
+                    if isinstance(message.payload, bytes | bytearray)
+                    else str(message.payload)
+                )
+                msg = Message(
+                    severity=_s,
+                    source=_t.source,
+                    text=f"[{message.topic}] {payload}"[:8000],
+                    metadata={"mqtt_topic": message.topic},
+                )
+                await repository.insert_or_aggregate(msg, window_minutes=10)
+                _fire_added(hass, msg)
+            except (ValueError, TypeError) as err:
+                _LOGGER.debug("MQTT ingest skipped: %s", err)
+
+        try:
+            unsub = await mqtt.async_subscribe(hass, topic.topic_pattern, _handler)
+            unsubs.append(unsub)
+            _LOGGER.info("subscribed to MQTT %s -> %s", topic.topic_pattern, topic.source)
+        except (ValueError, RuntimeError) as err:
+            _LOGGER.warning("MQTT subscribe %s failed: %s", topic.topic_pattern, err)
+
+    def _unsub_all() -> None:
+        import contextlib  # noqa: PLC0415
+
+        for u in unsubs:
+            with contextlib.suppress(ValueError, RuntimeError):
+                u()
+
+    return _unsub_all
+
+
+def _async_register_weekly_report(hass: HomeAssistant, entry: ConfigEntry, database: Any) -> Any:
+    """Iter 46: sonntags 23:00 erzeugt einen Markdown-Report und schickt ihn
+    via notify-Service (Empfaenger aus Options)."""
+    from homeassistant.helpers.event import async_track_time_change  # noqa: PLC0415
+
+    from .processing.reports import generate_weekly_report  # noqa: PLC0415
+
+    async def _job(now: Any) -> None:
+        weekday_sunday = 6
+        if now.weekday() != weekday_sunday:
+            return
+        opts = entry.options
+        notify_service = opts.get("weekly_notify_service")
+        if not notify_service:
+            return
+        try:
+            md = await generate_weekly_report(database)
+            await hass.services.async_call(
+                "notify",
+                notify_service,
+                {
+                    "title": "messagehub Wochenreport",
+                    "message": md,
+                },
+                blocking=False,
+            )
+            _LOGGER.info("weekly report dispatched via notify.%s", notify_service)
+        except (ValueError, RuntimeError) as err:
+            _LOGGER.warning("weekly report failed: %s", err)
+
+    return async_track_time_change(hass, _job, hour=23, minute=0, second=0)
+
+
+async def _async_register_syslog_listener(
+    hass: HomeAssistant, entry: ConfigEntry, repository: Any
+) -> Any:
+    """Iter 39: optionaler Syslog-UDP-Listener (Default off)."""
+    import asyncio  # noqa: PLC0415
+
+    from .ingestion.syslog import parse_rfc3164  # noqa: PLC0415
+    from .storage import Message  # noqa: PLC0415
+
+    if not entry.options.get("syslog_enabled", False):
+        return None
+    port = int(entry.options.get("syslog_port", 5514))
+    min_port, max_port = 1024, 65535
+    if not (min_port <= port <= max_port):
+        _LOGGER.warning("syslog_port %d ungueltig (%d-%d), skip", port, min_port, max_port)
+        return None
+
+    class _SyslogProtocol(asyncio.DatagramProtocol):
+        def datagram_received(self, data: bytes, addr: Any) -> None:
+            try:
+                line = data.decode("utf-8", errors="replace").strip()
+                parsed = parse_rfc3164(line)
+                msg = Message(
+                    severity=parsed.severity,
+                    source=f"syslog.{parsed.hostname.lower()}"[:64].replace(" ", "-"),
+                    text=parsed.text[:8000] if parsed.text else line[:8000],
+                    metadata={"syslog_facility": parsed.facility, "remote": str(addr)},
+                )
+                hass.async_create_task(repository.insert_or_aggregate(msg, window_minutes=10))
+                hass.async_create_task(_fire_added_async(hass, msg))
+            except (ValueError, UnicodeDecodeError):
+                pass
+
+    async def _fire_added_async(h: Any, m: Any) -> None:
+        _fire_added(h, m)
+
+    loop = asyncio.get_event_loop()
+    transport, _ = await loop.create_datagram_endpoint(
+        _SyslogProtocol, local_addr=("0.0.0.0", port)
+    )
+    _LOGGER.info("syslog UDP listener active on :%d", port)
+
+    def _unsub() -> None:
+        transport.close()
 
     return _unsub
 
@@ -463,8 +694,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "unsub_eventbus",
             "unsub_knx",
             "unsub_periodic",
+            "unsub_dispatch",
+            "unsub_remediation",
+            "unsub_mqtt",
+            "unsub_syslog",
             "unsub_options",
             "retention_unsub",
+            "weekly_report_unsub",
         ):
             unsub = state.get(key)
             if callable(unsub):

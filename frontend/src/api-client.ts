@@ -18,6 +18,45 @@ export interface ListResponse {
   offset: number;
 }
 
+export interface ChannelDto {
+  id: number | null;
+  name: string;
+  channel_type: "telegram" | "pushover" | "ntfy" | "signal" | "notify";
+  enabled: boolean;
+  severity_threshold: "debug" | "info" | "warning" | "error";
+  quiet_start: string | null;
+  quiet_end: string | null;
+  quiet_bypass_error: boolean;
+  throttle_seconds: number;
+  config: Record<string, unknown> | null;
+}
+
+export interface MqttTopicDto {
+  id: number | null;
+  topic_pattern: string;
+  source: string;
+  severity: "debug" | "info" | "warning" | "error";
+  enabled: boolean;
+}
+
+export interface RemediationHookDto {
+  id: number | null;
+  name: string;
+  source_pattern: string;
+  fingerprint: string | null;
+  automation_id: string;
+  confirm_required: boolean;
+  enabled: boolean;
+}
+
+export interface HeartbeatDto {
+  source: string;
+  expected_interval_seconds: number;
+  last_seen: string | null;
+  silent_alert_active: boolean;
+  enabled: boolean;
+}
+
 export interface KnxAddressDto {
   address: string;
   label: string;
@@ -183,6 +222,122 @@ export class ApiClient {
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async listChannels(): Promise<ChannelDto[]> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/channels`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return ((await res.json()) as { items: ChannelDto[] }).items;
+  }
+
+  async createChannel(payload: Partial<ChannelDto>): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/channels`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async updateChannel(id: number, payload: Partial<ChannelDto>): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/channels/${id}`, {
+      method: "PUT",
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async deleteChannel(id: number): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/channels/${id}`, {
+      method: "DELETE",
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  }
+
+  async listMqttTopics(): Promise<MqttTopicDto[]> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return ((await res.json()) as { items: MqttTopicDto[] }).items;
+  }
+
+  async createMqttTopic(payload: Partial<MqttTopicDto>): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async deleteMqttTopic(id: number): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics/${id}`, {
+      method: "DELETE",
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  }
+
+  async listRemediationHooks(): Promise<RemediationHookDto[]> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return ((await res.json()) as { items: RemediationHookDto[] }).items;
+  }
+
+  async createRemediationHook(payload: Partial<RemediationHookDto>): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async deleteRemediationHook(id: number): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks/${id}`, {
+      method: "DELETE",
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  }
+
+  async listHeartbeats(): Promise<HeartbeatDto[]> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return ((await res.json()) as { items: HeartbeatDto[] }).items;
+  }
+
+  async upsertHeartbeat(source: string, expectedIntervalSeconds: number): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ source, expected_interval_seconds: expectedIntervalSeconds }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  }
+
+  async getStatsExtended(days = 30): Promise<{
+    heatmap: Array<{ hour: number; weekday: number; count: number }>;
+    top_sources: Array<{ source: string; count: number }>;
+  }> {
+    const res = await fetch(
+      `${this.baseUrl}/api/messagehub/stats-extended?days=${days}`,
+      { headers: this.headers() }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return (await res.json()) as {
+      heatmap: Array<{ hour: number; weekday: number; count: number }>;
+      top_sources: Array<{ source: string; count: number }>;
+    };
   }
 
   async deleteKnxAddress(address: string): Promise<void> {

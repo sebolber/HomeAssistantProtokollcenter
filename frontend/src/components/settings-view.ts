@@ -5,6 +5,8 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { ApiClient, WebhookDto } from "../api-client.js";
 import "./webhook-form.js";
 import "./knx-addresses-view.js";
+import "./channels-view.js";
+import "./simple-list-view.js";
 
 @customElement("settings-view")
 export class SettingsView extends LitElement {
@@ -176,10 +178,18 @@ export class SettingsView extends LitElement {
 
         <knx-addresses-view .api=${this.api}></knx-addresses-view>
 
-        <section>
+        <channels-view .api=${this.api}></channels-view>
+
+        <mqtt-topics-view .api=${this.api}></mqtt-topics-view>
+
+        <heartbeats-view .api=${this.api}></heartbeats-view>
+
+        <remediation-view .api=${this.api}></remediation-view>
+
+        <section style="display:none;">
           <header class="section-head">
             <div>
-              <h2>Notification-Channels</h2>
+              <h2>Alt-Notification-Channels</h2>
               <p class="hint">
                 Telegram, Pushover, ntfy, Signal — mit Quiet Hours und Throttling.
               </p>

@@ -718,6 +718,344 @@ class KnxAddressDetailView(_RequireAdminView):
         return self.json_message("deleted")
 
 
+class ChannelsView(_RequireAdminView):
+    """Iter 30/31: Notification-Channels CRUD."""
+
+    url = "/api/messagehub/channels"
+    name = "api:messagehub:channels"
+
+    async def get(self, request: web.Request) -> web.Response:
+        from ..notifications.repository import (  # noqa: PLC0415
+            ChannelRepository,
+            channel_to_dict,
+        )
+
+        self._check_admin(request)
+        db = _get_database(request.app["hass"])
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        items = await ChannelRepository(db).list_all()
+        return self.json({"items": [channel_to_dict(it) for it in items]})
+
+    async def post(self, request: web.Request) -> web.Response:
+        from ..notifications.repository import (  # noqa: PLC0415
+            Channel,
+            ChannelRepository,
+            channel_to_dict,
+        )
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        try:
+            data = await request.json()
+            ch = Channel(
+                id=None,
+                name=str(data["name"]),
+                channel_type=str(data["channel_type"]),
+                enabled=bool(data.get("enabled", True)),
+                severity_threshold=str(data.get("severity_threshold", "warning")),
+                quiet_start=data.get("quiet_start"),
+                quiet_end=data.get("quiet_end"),
+                quiet_bypass_error=bool(data.get("quiet_bypass_error", True)),
+                throttle_seconds=int(data.get("throttle_seconds", 600)),
+                config=data.get("config"),
+            )
+            await ChannelRepository(db).add(ch)
+        except (KeyError, ValueError, TypeError) as err:
+            return self.json_message(f"invalid: {err}", status_code=400)
+        await _reload_dispatch(hass)
+        await _audit(
+            hass, request, action="channel_create", target_type="channel", target_id=str(ch.id)
+        )
+        return self.json(channel_to_dict(ch))
+
+
+class ChannelDetailView(_RequireAdminView):
+    url = "/api/messagehub/channels/{channel_id}"
+    name = "api:messagehub:channel-detail"
+
+    async def put(self, request: web.Request, channel_id: str) -> web.Response:
+        from ..notifications.repository import (  # noqa: PLC0415
+            Channel,
+            ChannelRepository,
+            channel_to_dict,
+        )
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        try:
+            data = await request.json()
+            ch = Channel(
+                id=int(channel_id),
+                name=str(data["name"]),
+                channel_type=str(data["channel_type"]),
+                enabled=bool(data.get("enabled", True)),
+                severity_threshold=str(data.get("severity_threshold", "warning")),
+                quiet_start=data.get("quiet_start"),
+                quiet_end=data.get("quiet_end"),
+                quiet_bypass_error=bool(data.get("quiet_bypass_error", True)),
+                throttle_seconds=int(data.get("throttle_seconds", 600)),
+                config=data.get("config"),
+            )
+            await ChannelRepository(db).update(ch)
+        except (KeyError, ValueError, TypeError) as err:
+            return self.json_message(f"invalid: {err}", status_code=400)
+        await _reload_dispatch(hass)
+        await _audit(
+            hass, request, action="channel_update", target_type="channel", target_id=channel_id
+        )
+        return self.json(channel_to_dict(ch))
+
+    async def delete(self, request: web.Request, channel_id: str) -> web.Response:
+        from ..notifications.repository import ChannelRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        try:
+            cid = int(channel_id)
+        except ValueError:
+            return self.json_message("invalid id", status_code=400)
+        if not await ChannelRepository(db).delete(cid):
+            return self.json_message("not found", status_code=404)
+        await _reload_dispatch(hass)
+        await _audit(
+            hass, request, action="channel_delete", target_type="channel", target_id=channel_id
+        )
+        return self.json_message("deleted")
+
+
+async def _reload_dispatch(hass: HomeAssistant) -> None:
+    domain_data = hass.data.get(DOMAIN, {})
+    if not domain_data:
+        return
+    state = next(iter(domain_data.values()))
+    dispatch = state.get("dispatch")
+    if dispatch is not None:
+        await dispatch.reload()
+
+
+class MqttTopicsView(_RequireAdminView):
+    """Iter 37: MQTT-Topic-Subscriptions CRUD."""
+
+    url = "/api/messagehub/mqtt-topics"
+    name = "api:messagehub:mqtt-topics"
+
+    async def get(self, request: web.Request) -> web.Response:
+        from ..ingestion.mqtt_repo import MqttTopicRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        db = _get_database(request.app["hass"])
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        items = await MqttTopicRepository(db).list_all()
+        return self.json(
+            {
+                "items": [
+                    {
+                        "id": it.id,
+                        "topic_pattern": it.topic_pattern,
+                        "source": it.source,
+                        "severity": it.severity,
+                        "enabled": it.enabled,
+                    }
+                    for it in items
+                ]
+            }
+        )
+
+    async def post(self, request: web.Request) -> web.Response:
+        from ..ingestion.mqtt_repo import MqttTopic, MqttTopicRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        try:
+            data = await request.json()
+            t = MqttTopic(
+                id=None,
+                topic_pattern=str(data["topic_pattern"]),
+                source=str(data["source"]),
+                severity=str(data.get("severity", "info")),
+                enabled=bool(data.get("enabled", True)),
+            )
+            await MqttTopicRepository(db).add(t)
+        except (KeyError, ValueError, TypeError) as err:
+            return self.json_message(f"invalid: {err}", status_code=400)
+        await _audit(
+            hass,
+            request,
+            action="mqtt_topic_create",
+            target_type="mqtt_topic",
+            target_id=t.topic_pattern,
+        )
+        return self.json(
+            {
+                "id": t.id,
+                "topic_pattern": t.topic_pattern,
+                "source": t.source,
+                "severity": t.severity,
+                "enabled": t.enabled,
+            }
+        )
+
+
+class MqttTopicDetailView(_RequireAdminView):
+    url = "/api/messagehub/mqtt-topics/{topic_id}"
+    name = "api:messagehub:mqtt-topic-detail"
+
+    async def delete(self, request: web.Request, topic_id: str) -> web.Response:
+        from ..ingestion.mqtt_repo import MqttTopicRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        try:
+            tid = int(topic_id)
+        except ValueError:
+            return self.json_message("invalid id", status_code=400)
+        if not await MqttTopicRepository(db).delete(tid):
+            return self.json_message("not found", status_code=404)
+        await _audit(
+            hass,
+            request,
+            action="mqtt_topic_delete",
+            target_type="mqtt_topic",
+            target_id=topic_id,
+        )
+        return self.json_message("deleted")
+
+
+class RemediationHooksView(_RequireAdminView):
+    """Iter 47: Auto-Remediation-Hooks CRUD."""
+
+    url = "/api/messagehub/remediation-hooks"
+    name = "api:messagehub:remediation-hooks"
+
+    async def get(self, request: web.Request) -> web.Response:
+        from ..processing.remediation_repo import RemediationHookRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        db = _get_database(request.app["hass"])
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        items = await RemediationHookRepository(db).list_all()
+        return self.json(
+            {
+                "items": [
+                    {
+                        "id": it.id,
+                        "name": it.name,
+                        "source_pattern": it.source_pattern,
+                        "fingerprint": it.fingerprint,
+                        "automation_id": it.automation_id,
+                        "confirm_required": it.confirm_required,
+                        "enabled": it.enabled,
+                    }
+                    for it in items
+                ]
+            }
+        )
+
+    async def post(self, request: web.Request) -> web.Response:
+        from ..processing.remediation_repo import (  # noqa: PLC0415
+            RemediationHook,
+            RemediationHookRepository,
+        )
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        try:
+            data = await request.json()
+            h = RemediationHook(
+                id=None,
+                name=str(data["name"]),
+                source_pattern=str(data["source_pattern"]),
+                fingerprint=data.get("fingerprint"),
+                automation_id=str(data["automation_id"]),
+                confirm_required=bool(data.get("confirm_required", True)),
+                enabled=bool(data.get("enabled", True)),
+            )
+            await RemediationHookRepository(db).add(h)
+        except (KeyError, ValueError, TypeError) as err:
+            return self.json_message(f"invalid: {err}", status_code=400)
+        await _audit(
+            hass,
+            request,
+            action="remediation_create",
+            target_type="remediation_hook",
+            target_id=str(h.id),
+        )
+        return self.json({"id": h.id, "name": h.name})
+
+
+class RemediationHookDetailView(_RequireAdminView):
+    url = "/api/messagehub/remediation-hooks/{hook_id}"
+    name = "api:messagehub:remediation-hook-detail"
+
+    async def delete(self, request: web.Request, hook_id: str) -> web.Response:
+        from ..processing.remediation_repo import RemediationHookRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        try:
+            hid = int(hook_id)
+        except ValueError:
+            return self.json_message("invalid id", status_code=400)
+        if not await RemediationHookRepository(db).delete(hid):
+            return self.json_message("not found", status_code=404)
+        await _audit(
+            hass,
+            request,
+            action="remediation_delete",
+            target_type="remediation_hook",
+            target_id=hook_id,
+        )
+        return self.json_message("deleted")
+
+
+class StatsExtendedView(_RequireAdminView):
+    """Iter 41: erweiterte Stats fuer Heatmap und Top-Sources."""
+
+    url = "/api/messagehub/stats-extended"
+    name = "api:messagehub:stats-extended"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        repos = _get_repos(request.app["hass"])
+        if repos is None:
+            return self.json_message("not initialised", status_code=503)
+        msg_repo, _ = repos
+        try:
+            days = min(int(request.query.get("days", 30)), 365)
+        except ValueError:
+            days = 30
+        return self.json(
+            {
+                "heatmap": await msg_repo.heatmap_hour_weekday(days=days),
+                "top_sources": await msg_repo.top_sources(limit=10, days=days),
+            }
+        )
+
+
 def async_register_views(hass: HomeAssistant) -> None:
     """Registriert alle API-Views (idempotent)."""
     for view_cls in (
@@ -735,6 +1073,13 @@ def async_register_views(hass: HomeAssistant) -> None:
         WebhookDetailView,
         KnxAddressesView,
         KnxAddressDetailView,
+        ChannelsView,
+        ChannelDetailView,
+        MqttTopicsView,
+        MqttTopicDetailView,
+        RemediationHooksView,
+        RemediationHookDetailView,
+        StatsExtendedView,
     ):
         view = view_cls()
         # HA-internes Doppel-Register vermeiden

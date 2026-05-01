@@ -96,6 +96,18 @@ class MessageHubOptionsFlow(OptionsFlow):
                     OPT_LOG_LEVEL,
                     default=opts.get(OPT_LOG_LEVEL, DEFAULT_LOG_LEVEL),
                 ): vol.In(LOG_LEVELS),
+                vol.Optional(
+                    "weekly_notify_service",
+                    default=opts.get("weekly_notify_service", ""),
+                ): str,
+                vol.Optional(
+                    "syslog_enabled",
+                    default=opts.get("syslog_enabled", False),
+                ): bool,
+                vol.Optional(
+                    "syslog_port",
+                    default=opts.get("syslog_port", 5514),
+                ): vol.All(vol.Coerce(int), vol.Range(min=1024, max=65535)),
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)
