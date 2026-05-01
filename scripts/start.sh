@@ -2,12 +2,20 @@
 # scripts/start.sh
 #
 # One-Stop-Start fuer die messagehub-Entwicklung:
+#   0. (optional) holt einen Branch aus origin und checkt ihn aus
 #   1. prueft Voraussetzungen (Python 3.12+, Docker, docker compose)
 #   2. legt eine venv .venv/ an, falls nicht vorhanden
 #   3. installiert Test- und Tooling-Dependencies (idempotent)
 #   4. fuehrt optional die Unit-Tests als Smoke-Test aus
 #   5. startet die Dev-HA auf http://localhost:8124
 #   6. wartet auf den healthy-Status und gibt die naechsten Schritte aus
+#
+# Usage:
+#   bash scripts/start.sh [BRANCH] [Optionen]
+#
+# Positional:
+#   BRANCH        optional. Wenn angegeben: vor dem Start aus origin/<BRANCH>
+#                 fetchen, auschecken und pullen. Working tree muss sauber sein.
 #
 # Optionen:
 #   --no-tests    Smoke-Tests ueberspringen
@@ -17,8 +25,9 @@
 #
 # Beispiele:
 #   bash scripts/start.sh
-#   bash scripts/start.sh --reset --logs
-#   bash scripts/start.sh --no-tests
+#   bash scripts/start.sh main
+#   bash scripts/start.sh main --reset --logs
+#   bash scripts/start.sh claude/extract-zip-implement-566cR --no-tests
 
 set -euo pipefail
 
@@ -36,7 +45,7 @@ warn() { echo -e "${YELLOW}!${NC}  $*"; }
 fail() { echo -e "${RED}✗${NC}  $*" >&2; exit 1; }
 
 usage() {
-  sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'
   exit 0
 }
 
@@ -44,13 +53,22 @@ usage() {
 RUN_TESTS=1
 RESET_HA=0
 TAIL_LOGS=0
+BRANCH=""
 for arg in "$@"; do
   case "$arg" in
     --no-tests) RUN_TESTS=0 ;;
     --reset)    RESET_HA=1 ;;
     --logs)     TAIL_LOGS=1 ;;
     -h|--help)  usage ;;
-    *)          fail "Unbekannte Option: $arg (--help fuer Hilfe)" ;;
+    --*)        fail "Unbekannte Option: $arg (--help fuer Hilfe)" ;;
+    -*)         fail "Unbekannte Option: $arg (--help fuer Hilfe)" ;;
+    *)
+      if [ -z "$BRANCH" ]; then
+        BRANCH="$arg"
+      else
+        fail "Mehrere Branches angegeben: '$BRANCH' und '$arg'"
+      fi
+      ;;
   esac
 done
 
@@ -63,7 +81,48 @@ COMPOSE_FILE="docker-compose.dev.yml"
 
 echo
 echo -e "${BOLD}messagehub Dev-Start${NC}  (${REPO_ROOT})"
+[ -n "$BRANCH" ] && echo -e "Branch:               ${BOLD}${BRANCH}${NC}"
 echo
+
+# ── 0. Git-Update (optional) ───────────────────────────────────────────────────
+if [ -n "$BRANCH" ]; then
+  command -v git >/dev/null 2>&1 || fail "git nicht gefunden, aber Branch '$BRANCH' angefordert"
+  [ -d .git ] || fail "kein git-Repo in $REPO_ROOT"
+
+  step "aktualisiere aus origin (Branch: $BRANCH)"
+
+  # Sicherheitsnetz: working tree muss sauber sein, sonst gehen Aenderungen verloren.
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    git status --short
+    fail "working tree ist nicht sauber — bitte erst commiten oder stashen, dann erneut starten"
+  fi
+
+  # Mit Retries, falls das Netz wackelt.
+  fetch_ok=0
+  for delay in 0 2 4 8; do
+    [ "$delay" -gt 0 ] && { warn "git fetch fehlgeschlagen, retry in ${delay}s"; sleep "$delay"; }
+    if git fetch origin "$BRANCH" 2>&1; then
+      fetch_ok=1
+      break
+    fi
+  done
+  [ "$fetch_ok" -eq 1 ] || fail "git fetch origin $BRANCH wiederholt fehlgeschlagen"
+
+  # Existiert der Branch lokal? Wenn nein, neu von origin/<BRANCH> auschecken.
+  if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+    git checkout "$BRANCH"
+  else
+    info "lokaler Branch '$BRANCH' existiert nicht — checke aus origin aus"
+    git checkout -B "$BRANCH" "origin/$BRANCH"
+  fi
+
+  # Fast-forward auf den remote Stand. Bricht ab, wenn lokale Commits divergieren.
+  if ! git merge --ff-only "origin/$BRANCH"; then
+    fail "lokaler Branch '$BRANCH' divergiert von origin/$BRANCH — bitte manuell aufloesen"
+  fi
+
+  info "auf $BRANCH @ $(git rev-parse --short HEAD)"
+fi
 
 # ── 1. Prerequisites ───────────────────────────────────────────────────────────
 step "pruefe Voraussetzungen"
@@ -143,7 +202,7 @@ $COMPOSE -f "$COMPOSE_FILE" up -d
 # ── 7. auf healthy warten ──────────────────────────────────────────────────────
 step "warte auf healthy-Status (max 90 s)"
 ready=0
-for i in $(seq 1 45); do
+for _ in $(seq 1 45); do
   status=$(docker inspect --format='{{.State.Health.Status}}' ha-messagehub-dev 2>/dev/null || echo "starting")
   if [ "$status" = "healthy" ]; then
     ready=1
@@ -168,6 +227,13 @@ ${GREEN}${BOLD}✓ Setup abgeschlossen${NC}
   Dev-HA:     ${BOLD}http://localhost:8124${NC}
   Container:  ha-messagehub-dev   ($COMPOSE -f $COMPOSE_FILE ps)
   DB-Pfad:    .dev/ha-config/messagehub/messages.db (nach erstem Start)
+EOF
+
+if [ -n "$BRANCH" ]; then
+  echo "  Branch:     $BRANCH @ $(git rev-parse --short HEAD)"
+fi
+
+cat <<EOF
 
 Naechste Schritte:
   1. http://localhost:8124 oeffnen, HA-Onboarding durchlaufen
