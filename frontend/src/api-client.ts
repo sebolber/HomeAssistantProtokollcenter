@@ -198,16 +198,18 @@ export class ApiClient {
     return ((await res.json()) as { items: Array<Record<string, unknown>> }).items;
   }
 
-  async discoverKnxFromProject(): Promise<
-    Array<{ address: string; name: string; dpt: string | null }>
-  > {
+  async discoverKnxFromProject(): Promise<{
+    items: Array<{ address: string; name: string; dpt: string | null }>;
+    status: string;
+  }> {
     const res = await fetch(`${this.baseUrl}/api/messagehub/knx-discovery`, {
       headers: this.headers(),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return ((await res.json()) as {
+    return (await res.json()) as {
       items: Array<{ address: string; name: string; dpt: string | null }>;
-    }).items;
+      status: string;
+    };
   }
 
   async listKnxAddresses(): Promise<KnxAddressDto[]> {

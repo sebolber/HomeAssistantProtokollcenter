@@ -23,6 +23,7 @@ export class KnxAddressesView extends LitElement {
   @state() private _newLabel = "";
   @state() private _newDpt = "";
   @state() private _discovery: Array<{ address: string; name: string; dpt: string | null }> = [];
+  @state() private _discoveryStatus = "loading";
   @state() private _editing: KnxAddressDto | null = null;
   @state() private _toast = "";
   @state() private _error = "";
@@ -45,10 +46,30 @@ export class KnxAddressesView extends LitElement {
   private async _loadDiscovery(): Promise<void> {
     if (!this.api) return;
     try {
-      this._discovery = await this.api.discoverKnxFromProject();
-    } catch {
+      const res = await this.api.discoverKnxFromProject();
+      this._discovery = res.items;
+      this._discoveryStatus = res.status;
+    } catch (err) {
       this._discovery = [];
+      this._discoveryStatus = `error: ${(err as Error).message}`;
     }
+  }
+
+  private _renderDiscoveryStatus(): TemplateResult | null {
+    if (this._discoveryStatus === "ok" && this._discovery.length > 0) return null;
+    const messages: Record<string, string> = {
+      loading: "🔄 Lade KNX-Projekt-Daten…",
+      no_knx_integration:
+        "ℹ️ Keine KNX-Integration in HA gefunden. Lege erst die KNX-Integration unter " +
+        "Einstellungen → Geräte & Dienste an, dann erscheinen die GAs hier automatisch.",
+      no_project_loaded:
+        "ℹ️ KNX-Integration ist da, aber kein ETS-Projekt hochgeladen. " +
+        "Lade dein .knxproj in der KNX-Integration unter Konfigurieren → Projekt hoch.",
+      project_empty:
+        "ℹ️ ETS-Projekt enthält keine Gruppenadressen — pruefe den Export.",
+    };
+    const text = messages[this._discoveryStatus] ?? `Status: ${this._discoveryStatus}`;
+    return html`<div class="discovery-status">${text}</div>`;
   }
 
   private _onAddressInput(e: InputEvent): void {
@@ -406,6 +427,7 @@ export class KnxAddressesView extends LitElement {
               ETS-Projekt — Label und DPT werden dann automatisch vorbefuellt.
             </p>`
           : null}
+        ${this._renderDiscoveryStatus()}
         ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
 
         <div class="filter-bar">
@@ -542,6 +564,15 @@ export class KnxAddressesView extends LitElement {
     }
     .from-project:hover {
       filter: brightness(0.95);
+    }
+    .discovery-status {
+      padding: 8px 12px;
+      background: rgba(255, 235, 59, 0.12);
+      border-left: 3px solid var(--warning-color, #ff9800);
+      border-radius: 3px;
+      font-size: 0.85em;
+      color: var(--primary-text-color, #222);
+      line-height: 1.5;
     }
     .csv-upload {
       cursor: pointer;
