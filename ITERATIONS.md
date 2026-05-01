@@ -12,7 +12,7 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 7 — Config-Flow (Erstinstallation + Options)
 
 ## Phase B — Webhook-Eingang
-- [ ] Iteration 8 — Webhook-Handler-Skelett
+- [x] Iteration 8 — Webhook-Handler-Skelett
 - [ ] Iteration 9 — Webhook-Konfiguration in DB
 - [ ] Iteration 10 — JSONPath-Field-Mapping
 - [ ] Iteration 11 — Rate-Limiting & Body-Limits
