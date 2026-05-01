@@ -55,9 +55,9 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 36 — Anomalie-Erkennung
 
 ## Phase I — Mehr Eingangskanaele
-- [ ] Iteration 37 — MQTT-Adapter
-- [ ] Iteration 38 — HA-Eventbus-Listener
-- [ ] Iteration 39 — Syslog-UDP-Listener
+- [x] Iteration 37 — MQTT-Adapter
+- [x] Iteration 38 — HA-Eventbus-Listener
+- [x] Iteration 39 — Syslog-UDP-Listener
 
 ## Phase J — Analytics & Tagging
 - [ ] Iteration 40 — Health-Score

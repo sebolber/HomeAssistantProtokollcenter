@@ -8,14 +8,14 @@ from __future__ import annotations
 import logging
 import time as time_module
 from dataclasses import dataclass
-from datetime import datetime, time as dt_time
+from datetime import datetime
+from datetime import time as dt_time
 from typing import TYPE_CHECKING, Any
 
 from ..storage import Severity
 from .quiet_hours import is_in_quiet_hours, parse_hhmm
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
 
     from ..storage import Message
 
@@ -88,9 +88,7 @@ class Forwarder:
         end = parse_hhmm(ch.quiet_end)
         if not is_in_quiet_hours(now, start, end):
             return False
-        if sev is Severity.ERROR and ch.quiet_bypass_error:
-            return False
-        return True
+        return not (sev is Severity.ERROR and ch.quiet_bypass_error)
 
     def _throttled(self, channel_name: str, source: str) -> bool:
         last = self._last_per_source_per_channel.get((channel_name, source))

@@ -23,7 +23,7 @@ SILENT_FACTOR = 1.5
 
 
 def is_silent(hb: HeartbeatSource, *, now: datetime | None = None) -> bool:
-    """True, wenn `last_seen + 1.5 × expected` ueberschritten ist."""
+    """True, wenn `last_seen + 1.5 * expected` ueberschritten ist."""
     if not hb.enabled or hb.last_seen is None:
         return False
     now = now or datetime.now(UTC)
