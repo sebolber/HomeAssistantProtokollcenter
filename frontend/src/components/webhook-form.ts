@@ -17,6 +17,22 @@ const EXAMPLE_MAPPING = JSON.stringify(
   2
 );
 
+const SOURCE_PATTERN = /^[a-z0-9._-]{1,64}$/;
+
+/** Konvertiert beliebige User-Eingaben in eine valide Source. */
+function sanitizeSource(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[äÄ]/g, "ae")
+    .replace(/[öÖ]/g, "oe")
+    .replace(/[üÜ]/g, "ue")
+    .replace(/ß/g, "ss")
+    .replace(/[\s/\\]+/g, "-")
+    .replace(/[^a-z0-9._-]/g, "")
+    .slice(0, 64);
+}
+
 @customElement("webhook-form")
 export class WebhookForm extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
@@ -62,8 +78,8 @@ export class WebhookForm extends LitElement {
     try {
       const mapping = this._validateMapping();
       if (!this._name.trim()) throw new Error("Name darf nicht leer sein");
-      if (!/^[a-z0-9._-]{1,64}$/.test(this._source)) {
-        throw new Error("Source: nur a-z, 0-9, . _ - (max 64 Zeichen)");
+      if (!SOURCE_PATTERN.test(this._source)) {
+        throw new Error("Source ist leer oder ungueltig.");
       }
 
       let result: WebhookDto;
@@ -126,16 +142,32 @@ export class WebhookForm extends LitElement {
 
         <div class="row-2">
           <label>
-            <span>Default-Source</span>
+            <span>
+              Default-Source
+              ${this._source && SOURCE_PATTERN.test(this._source)
+                ? html`<span class="ok-badge" title="ok">✓</span>`
+                : null}
+            </span>
             <input
               type="text"
+              class=${this._source && !SOURCE_PATTERN.test(this._source)
+                ? "invalid"
+                : ""}
               .value=${this._source}
-              @input=${(e: InputEvent) =>
-                (this._source = (e.target as HTMLInputElement).value)}
+              @input=${(e: InputEvent) => {
+                const raw = (e.target as HTMLInputElement).value;
+                this._source = sanitizeSource(raw);
+              }}
               placeholder="z. B. pihole"
-              pattern="[a-z0-9._-]{1,64}"
+              autocomplete="off"
+              spellcheck="false"
             />
-            <small>nur a–z, 0–9, „.", „_", „-" (max 64)</small>
+            <small>
+              Wird automatisch in <code>kebab-case</code> umgewandelt
+              (Beispiele: <code>pihole</code>, <code>knx-bus</code>,
+              <code>backup.job</code>, <code>nas-1</code>).
+              Erlaubt: a–z, 0–9, „.", „_", „-" — max 64 Zeichen.
+            </small>
           </label>
 
           <label>
@@ -251,6 +283,23 @@ export class WebhookForm extends LitElement {
     textarea:focus-visible {
       outline: 2px solid var(--primary-color, #03a9f4);
       outline-offset: 1px;
+    }
+    input.invalid {
+      border-color: var(--error-color, #db4437);
+    }
+    .ok-badge {
+      display: inline-block;
+      margin-left: 6px;
+      color: var(--success-color, #2e7d32);
+      font-size: 0.85em;
+      font-weight: 700;
+    }
+    small code {
+      background: var(--secondary-background-color, #f5f5f5);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: var(--ha-font-family-code, monospace);
+      font-size: 0.95em;
     }
     small {
       font-size: 0.78em;
