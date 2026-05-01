@@ -10,5 +10,34 @@
     "abort": {
       "single_instance_allowed": "Only a single instance of this integration is allowed."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "description": "Retention, hard cap and log level of the integration.",
+        "data": {
+          "retention_debug_days": "Retention debug (days)",
+          "retention_info_days": "Retention info (days)",
+          "retention_warning_days": "Retention warning (days)",
+          "retention_error_days": "Retention error (days)",
+          "hard_cap_total": "Maximum number of messages",
+          "aggregation_window_minutes": "Aggregation window (minutes)",
+          "log_level": "Log level"
+        }
+      }
+    }
+  },
+  "services": {
+    "add_message": {
+      "name": "Add message",
+      "description": "Manually adds a message to the message hub.",
+      "fields": {
+        "severity": { "name": "Severity", "description": "Severity level" },
+        "source": { "name": "Source", "description": "Logical origin" },
+        "text": { "name": "Text", "description": "Message text" },
+        "metadata": { "name": "Metadata", "description": "Optional extra fields" }
+      }
+    }
   }
 }

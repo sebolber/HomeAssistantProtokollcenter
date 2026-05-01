@@ -10,5 +10,34 @@
     "abort": {
       "single_instance_allowed": "Es ist nur eine Instanz dieser Integration erlaubt."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optionen",
+        "description": "Retention, Hard-Cap und Log-Level der Integration.",
+        "data": {
+          "retention_debug_days": "Retention Debug (Tage)",
+          "retention_info_days": "Retention Info (Tage)",
+          "retention_warning_days": "Retention Warning (Tage)",
+          "retention_error_days": "Retention Error (Tage)",
+          "hard_cap_total": "Maximale Anzahl Nachrichten",
+          "aggregation_window_minutes": "Aggregations-Fenster (Minuten)",
+          "log_level": "Log-Level"
+        }
+      }
+    }
+  },
+  "services": {
+    "add_message": {
+      "name": "Nachricht hinzufuegen",
+      "description": "Fuegt manuell eine Nachricht in den Message Hub ein.",
+      "fields": {
+        "severity": { "name": "Severity", "description": "Schweregrad" },
+        "source": { "name": "Quelle", "description": "Logische Herkunft" },
+        "text": { "name": "Text", "description": "Nachrichtentext" },
+        "metadata": { "name": "Metadata", "description": "Optionale Zusatzfelder" }
+      }
+    }
   }
 }

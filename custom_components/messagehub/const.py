@@ -33,3 +33,20 @@ SOURCE_PATTERN: Final = r"^[a-z0-9._-]{1,64}$"
 EVENT_MESSAGE_ADDED: Final = "messagehub_message_added"
 EVENT_MESSAGE_DELETED: Final = "messagehub_message_deleted"
 EVENT_THRESHOLD_EXCEEDED: Final = "messagehub_threshold_exceeded"
+
+# Options (Iteration 7)
+OPT_RETENTION_DEBUG_DAYS: Final = "retention_debug_days"
+OPT_RETENTION_INFO_DAYS: Final = "retention_info_days"
+OPT_RETENTION_WARNING_DAYS: Final = "retention_warning_days"
+OPT_RETENTION_ERROR_DAYS: Final = "retention_error_days"
+OPT_HARD_CAP_TOTAL: Final = "hard_cap_total"
+OPT_LOG_LEVEL: Final = "log_level"
+OPT_AGGREGATION_WINDOW_MINUTES: Final = "aggregation_window_minutes"
+
+DEFAULT_RETENTION_DEBUG_DAYS: Final = 7
+DEFAULT_RETENTION_INFO_DAYS: Final = 30
+DEFAULT_RETENTION_WARNING_DAYS: Final = 90
+DEFAULT_RETENTION_ERROR_DAYS: Final = 365
+DEFAULT_HARD_CAP_TOTAL: Final = 100_000
+DEFAULT_LOG_LEVEL: Final = "INFO"
+DEFAULT_AGGREGATION_WINDOW_MINUTES: Final = 10
