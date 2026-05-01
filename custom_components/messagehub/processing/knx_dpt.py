@@ -114,9 +114,17 @@ def format_value(dpt: str | None, value: Any) -> str:  # noqa: PLR0911, PLR0912
             return f"RGB({r}, {g}, {b})"
         return str(value)
 
-    # 19.x — Datum/Zeit
+    # 10.x — TimeOfDay (3 Byte: dow|hour, min, sec)
+    if dpt.startswith("10."):
+        return _format_time_of_day(value)
+
+    # 11.x — Date (3 Byte: day, month, year-2-stellig)
+    if dpt.startswith("11."):
+        return _format_date(value)
+
+    # 19.x — DateTime (8 Byte)
     if dpt.startswith("19."):
-        return str(value)
+        return _format_datetime(value)
 
     # Numerisch mit Einheit
     unit = _UNIT_BY_DPT.get(dpt, "")
@@ -127,6 +135,50 @@ def format_value(dpt: str | None, value: Any) -> str:  # noqa: PLR0911, PLR0912
     if isinstance(value, int):
         return f"{value} {unit}".strip()
     return f"{value}{(' ' + unit) if unit else ''}"
+
+
+_DOW_LABELS = ["", "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+
+
+def _format_time_of_day(value: Any) -> str:
+    """DPT 10.001: (byte0, min, sec) — byte0 = (dow<<5) | hour."""
+    if isinstance(value, tuple) and len(value) == 3:
+        try:
+            b0, mins, secs = (int(v) for v in value)
+        except (TypeError, ValueError):
+            return str(value)
+        dow = (b0 >> 5) & 0x07
+        hours = b0 & 0x1F
+        prefix = f"{_DOW_LABELS[dow]} " if 1 <= dow <= 7 else ""
+        return f"{prefix}{hours:02d}:{mins:02d}:{secs:02d}"
+    return str(value)
+
+
+def _format_date(value: Any) -> str:
+    """DPT 11.001: (day, month, year_2digit)."""
+    if isinstance(value, tuple) and len(value) == 3:
+        try:
+            day, month, year = (int(v) for v in value)
+        except (TypeError, ValueError):
+            return str(value)
+        full_year = 2000 + year if year < 90 else 1900 + year
+        return f"{day:02d}.{month:02d}.{full_year}"
+    return str(value)
+
+
+def _format_datetime(value: Any) -> str:
+    """DPT 19.001: 8 Byte (year-1900, month, day, dow|hour, min, sec, flags1, flags2)."""
+    if isinstance(value, tuple) and len(value) >= 6:
+        try:
+            year_off, month, day, b3, mins, secs = (int(v) for v in value[:6])
+        except (TypeError, ValueError):
+            return str(value)
+        full_year = 1900 + year_off
+        dow = (b3 >> 5) & 0x07
+        hours = b3 & 0x1F
+        prefix = f"{_DOW_LABELS[dow]} " if 1 <= dow <= 7 else ""
+        return f"{prefix}{day:02d}.{month:02d}.{full_year} {hours:02d}:{mins:02d}:{secs:02d}"
+    return str(value)
 
 
 def is_alarm_active(dpt: str | None, value: Any) -> bool | None:

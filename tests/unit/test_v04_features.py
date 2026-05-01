@@ -82,6 +82,37 @@ def test_alarm_detection() -> None:
     assert is_alarm_active(None, True) is None
 
 
+def test_dpt_date_11_001() -> None:
+    # (day, month, year-2-stellig) → 01.05.2026
+    assert format_value("11.001", (1, 5, 26)) == "01.05.2026"
+    # year >= 90 = 19xx
+    assert format_value("11.001", (15, 12, 99)) == "15.12.1999"
+    # Garbage faellt durch zu str()
+    assert format_value("11.001", "kein-tuple") == "kein-tuple"
+
+
+def test_dpt_time_10_001() -> None:
+    # byte0 = (dow=5 Fr) << 5 | hour=21 = 181
+    assert format_value("10.001", (181, 59, 0)) == "Fr 21:59:00"
+    # dow=0 → kein Wochentag-Praefix
+    assert format_value("10.001", (8, 30, 15)) == "08:30:15"
+    # Mo
+    assert format_value("10.001", ((1 << 5) | 9, 0, 0)) == "Mo 09:00:00"
+
+
+def test_dpt_datetime_19_001() -> None:
+    # (126, 5, 1, 181, 59, 0, ...) → Fr 01.05.2026 21:59:00
+    assert (
+        format_value("19.001", (126, 5, 1, 181, 59, 0, 33, 0))
+        == "Fr 01.05.2026 21:59:00"
+    )
+    # ohne dow
+    assert (
+        format_value("19.001", (126, 5, 1, 21, 59, 0))
+        == "01.05.2026 21:59:00"
+    )
+
+
 # ─── MTTR / Severity-Time-Series ─────────────────────────────────────────────
 
 
