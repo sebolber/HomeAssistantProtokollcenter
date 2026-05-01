@@ -174,6 +174,35 @@ export class MessageHubPanel extends LitElement {
     this._selected = e.detail.msg;
   };
 
+  private _onSeverityChangeMessage = async (
+    e: CustomEvent<{ id: number; severity: string; previous: string }>
+  ): Promise<void> => {
+    const { id, severity, previous } = e.detail;
+    // Optimistic update
+    this._items = this._items.map((m) =>
+      m.id === id ? { ...m, severity: severity as MessageDto["severity"] } : m
+    );
+    if (this._selected?.id === id) {
+      this._selected = { ...this._selected, severity: severity as MessageDto["severity"] };
+    }
+    try {
+      await this._api.setMessageSeverity(id, severity);
+      this._showToast(`Severity geändert: ${previous} → ${severity}`);
+    } catch (err) {
+      // Rollback
+      this._items = this._items.map((m) =>
+        m.id === id ? { ...m, severity: previous as MessageDto["severity"] } : m
+      );
+      if (this._selected?.id === id) {
+        this._selected = {
+          ...this._selected,
+          severity: previous as MessageDto["severity"],
+        };
+      }
+      this._showToast(`Änderung fehlgeschlagen: ${(err as Error).message}`);
+    }
+  };
+
   private _onDelete = async (e: CustomEvent<{ id: number }>): Promise<void> => {
     try {
       await this._api.deleteMessage(e.detail.id);
@@ -430,6 +459,7 @@ export class MessageHubPanel extends LitElement {
         : html`<message-table
             .items=${this._items}
             @select=${this._onSelect}
+            @severity-change=${this._onSeverityChangeMessage}
           ></message-table>`}
 
       ${this._selected

@@ -127,51 +127,50 @@ export class SettingsView extends LitElement {
               ${item.enabled ? "Aktiv" : "Deaktiviert"}
             </span>
           </div>
-          <div class="overflow" @click=${(e: Event) => e.stopPropagation()}>
+          <div class="card-actions" @click=${(e: Event) => e.stopPropagation()}>
             <button
-              class="mh-btn mh-btn--icon mh-btn--ghost"
-              aria-label="Webhook-Aktionen"
-              aria-haspopup="menu"
-              aria-expanded=${menuOpen}
-              @click=${() => this._toggleMenu(item.webhook_id)}
+              class="mh-btn mh-btn--sm"
+              title="Webhook bearbeiten"
+              @click=${() => this._edit(item)}
             >
-              ⋮
+              <span aria-hidden="true">✎</span> Bearbeiten
             </button>
-            ${menuOpen
-              ? html`<div class="overflow-menu" role="menu">
-                  <button
-                    role="menuitem"
-                    class="overflow-item"
-                    @click=${() => {
-                      this._menuOpenId = null;
-                      void this._toggle(item);
-                    }}
-                  >
-                    ${item.enabled ? "Deaktivieren" : "Aktivieren"}
-                  </button>
-                  <button
-                    role="menuitem"
-                    class="overflow-item"
-                    @click=${() => {
-                      this._menuOpenId = null;
-                      this._edit(item);
-                    }}
-                  >
-                    Bearbeiten…
-                  </button>
-                  <hr />
-                  <button
-                    role="menuitem"
-                    class="overflow-item danger"
-                    @click=${() => {
-                      this._menuOpenId = null;
-                      void this._delete(item);
-                    }}
-                  >
-                    Löschen
-                  </button>
-                </div>`
-              : null}
+            <div class="overflow">
+              <button
+                class="mh-btn mh-btn--icon mh-btn--ghost"
+                aria-label="Weitere Aktionen"
+                aria-haspopup="menu"
+                aria-expanded=${menuOpen}
+                @click=${() => this._toggleMenu(item.webhook_id)}
+              >
+                ⋮
+              </button>
+              ${menuOpen
+                ? html`<div class="overflow-menu" role="menu">
+                    <button
+                      role="menuitem"
+                      class="overflow-item"
+                      @click=${() => {
+                        this._menuOpenId = null;
+                        void this._toggle(item);
+                      }}
+                    >
+                      ${item.enabled ? "Deaktivieren" : "Aktivieren"}
+                    </button>
+                    <hr />
+                    <button
+                      role="menuitem"
+                      class="overflow-item danger"
+                      @click=${() => {
+                        this._menuOpenId = null;
+                        void this._delete(item);
+                      }}
+                    >
+                      Löschen
+                    </button>
+                  </div>`
+                : null}
+            </div>
           </div>
         </header>
 
@@ -355,6 +354,11 @@ export class SettingsView extends LitElement {
       .card-header {
         display: flex;
         justify-content: space-between;
+        align-items: center;
+        gap: var(--mh-space-2);
+      }
+      .card-actions {
+        display: flex;
         align-items: center;
         gap: var(--mh-space-2);
       }

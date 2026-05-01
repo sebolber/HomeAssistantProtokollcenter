@@ -418,6 +418,41 @@ class MessageStatusView(_RequireAdminView):
         return self.json({"id": mid, "status": new_status})
 
 
+class MessageSeverityView(_RequireAdminView):
+    """Inline-Edit: Severity einer einzelnen Nachricht aendern."""
+
+    url = "/api/messagehub/messages/{message_id}/severity"
+    name = "api:messagehub:message-severity"
+
+    async def post(self, request: web.Request, message_id: str) -> web.Response:
+        self._check_admin(request)
+        repos = _get_repos(request.app["hass"])
+        if repos is None:
+            return self.json_message("not initialised", status_code=503)
+        msg_repo, _ = repos
+        try:
+            mid = int(message_id)
+            data = await request.json()
+            new_severity = str(data.get("severity", "")).strip().lower()
+        except (ValueError, TypeError):
+            return self.json_message("invalid request", status_code=400)
+        try:
+            ok = await msg_repo.set_severity(mid, new_severity)
+        except ValueError as err:
+            return self.json_message(str(err), status_code=400)
+        if not ok:
+            return self.json_message("not found", status_code=404)
+        await _audit(
+            request.app["hass"],
+            request,
+            action="severity_change",
+            target_type="message",
+            target_id=str(mid),
+            details={"severity": new_severity},
+        )
+        return self.json({"id": mid, "severity": new_severity})
+
+
 class MessageTagsView(_RequireAdminView):
     """Iter 42: Tag-Verwaltung pro Nachricht."""
 
@@ -1308,6 +1343,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         MessagesListView,
         MessageDetailView,
         MessageStatusView,
+        MessageSeverityView,
         MessageTagsView,
         RunbookForView,
         AuditLogView,

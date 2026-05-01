@@ -145,3 +145,27 @@ async def test_repository_is_sql_injection_safe(repo: MessageRepository) -> None
     assert loaded.text == payload
     # Tabelle existiert noch:
     assert await repo.count_total() == 1
+
+
+@pytest.mark.asyncio
+async def test_set_severity_updates_existing_message(repo: MessageRepository) -> None:
+    new_id = await repo.insert(_msg(severity=Severity.INFO))
+
+    ok = await repo.set_severity(new_id, "warning")
+
+    assert ok is True
+    loaded = await repo.get_by_id(new_id)
+    assert loaded is not None
+    assert loaded.severity == Severity.WARNING
+
+
+@pytest.mark.asyncio
+async def test_set_severity_returns_false_for_unknown_id(repo: MessageRepository) -> None:
+    assert await repo.set_severity(99_999, "error") is False
+
+
+@pytest.mark.asyncio
+async def test_set_severity_rejects_invalid_value(repo: MessageRepository) -> None:
+    new_id = await repo.insert(_msg())
+    with pytest.raises(ValueError):
+        await repo.set_severity(new_id, "fatal")

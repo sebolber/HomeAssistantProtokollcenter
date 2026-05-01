@@ -161,6 +161,19 @@ class MessageRepository:
         await cursor.close()
         return ok
 
+    async def set_severity(self, message_id: int, severity: str) -> bool:
+        """UI-Inline-Edit: Severity einer einzelnen Nachricht aendern."""
+        if severity not in {"debug", "info", "warning", "error"}:
+            raise ValueError(f"invalid severity {severity!r}")
+        cursor = await self._db.connection.execute(
+            "UPDATE messages SET severity = ? WHERE id = ?",
+            (severity, message_id),
+        )
+        await self._db.connection.commit()
+        ok = cursor.rowcount > 0
+        await cursor.close()
+        return ok
+
     async def delete_filtered(
         self,
         *,

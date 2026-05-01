@@ -151,6 +151,15 @@ export class ApiClient {
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
   }
 
+  async setMessageSeverity(id: number, severity: string): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/messages/${id}/severity`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ severity }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
   async getMessageTags(id: number): Promise<string[]> {
     const res = await fetch(`${this.baseUrl}/api/messagehub/messages/${id}/tags`, {
       headers: this.headers(),
