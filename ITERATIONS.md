@@ -60,9 +60,9 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 39 — Syslog-UDP-Listener
 
 ## Phase J — Analytics & Tagging
-- [ ] Iteration 40 — Health-Score
-- [ ] Iteration 41 — Statistik-Dashboard
-- [ ] Iteration 42 — Tags & Saved Filter Presets
+- [x] Iteration 40 — Health-Score
+- [x] Iteration 41 — Statistik-Dashboard
+- [x] Iteration 42 — Tags & Saved Filter Presets
 
 ## Phase K — Operations
 - [ ] Iteration 43 — Runbook-Verknuepfung

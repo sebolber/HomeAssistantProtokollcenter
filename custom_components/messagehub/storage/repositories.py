@@ -119,6 +119,62 @@ class MessageRepository:
         )
         return int(row["cnt"]) if row is not None else 0
 
+    async def add_tag(self, message_id: int, tag: str) -> None:
+        """Iter 42: Tag setzen (idempotent)."""
+        await self._db.execute(
+            "INSERT OR IGNORE INTO message_tags (message_id, tag) VALUES (?, ?)",
+            (message_id, tag),
+        )
+
+    async def remove_tag(self, message_id: int, tag: str) -> None:
+        await self._db.execute(
+            "DELETE FROM message_tags WHERE message_id = ? AND tag = ?",
+            (message_id, tag),
+        )
+
+    async def get_tags(self, message_id: int) -> list[str]:
+        rows = await self._db.fetch_all(
+            "SELECT tag FROM message_tags WHERE message_id = ? ORDER BY tag",
+            (message_id,),
+        )
+        return [str(row["tag"]) for row in rows]
+
+    async def heatmap_hour_weekday(self, days: int = 30) -> list[dict[str, int]]:
+        """Iter 41: Heatmap (hour x weekday) ueber die letzten N Tage."""
+        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
+
+        cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat(timespec="seconds")
+        rows = await self._db.fetch_all(
+            """
+            SELECT strftime('%H', timestamp) AS hour,
+                   strftime('%w', timestamp) AS weekday,
+                   COUNT(*) AS cnt
+              FROM messages
+             WHERE timestamp >= ?
+             GROUP BY hour, weekday
+            """,
+            (cutoff,),
+        )
+        return [
+            {
+                "hour": int(row["hour"]),
+                "weekday": int(row["weekday"]),
+                "count": int(row["cnt"]),
+            }
+            for row in rows
+        ]
+
+    async def top_sources(self, *, limit: int = 10, days: int = 30) -> list[dict[str, object]]:
+        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
+
+        cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat(timespec="seconds")
+        rows = await self._db.fetch_all(
+            "SELECT source, COUNT(*) AS cnt FROM messages "
+            "WHERE timestamp >= ? GROUP BY source ORDER BY cnt DESC LIMIT ?",
+            (cutoff, limit),
+        )
+        return [{"source": str(row["source"]), "count": int(row["cnt"])} for row in rows]
+
     async def get_by_id(self, message_id: int) -> Message | None:
         """Liefert eine Nachricht per ID oder None."""
         row = await self._db.fetch_one(

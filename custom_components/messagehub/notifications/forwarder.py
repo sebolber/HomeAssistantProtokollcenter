@@ -16,7 +16,6 @@ from ..storage import Severity
 from .quiet_hours import is_in_quiet_hours, parse_hhmm
 
 if TYPE_CHECKING:
-
     from ..storage import Message
 
 _LOGGER = logging.getLogger(__name__)
