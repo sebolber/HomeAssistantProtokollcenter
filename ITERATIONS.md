@@ -65,9 +65,9 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 42 — Tags & Saved Filter Presets
 
 ## Phase K — Operations
-- [ ] Iteration 43 — Runbook-Verknuepfung
-- [ ] Iteration 44 — Audit-Log
-- [ ] Iteration 45 — Export & Forensik-Bundle
+- [x] Iteration 43 — Runbook-Verknuepfung
+- [x] Iteration 44 — Audit-Log
+- [x] Iteration 45 — Export & Forensik-Bundle
 
 ## Phase L — Reports & Auto-Remediation
 - [ ] Iteration 46 — Wochenreport per Mail

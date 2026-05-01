@@ -1,0 +1,106 @@
+"""Tests fuer Runbooks, Audit-Log, Export (Iter 43-45)."""
+
+from __future__ import annotations
+
+import io
+import zipfile
+from pathlib import Path
+
+import pytest
+
+from custom_components.messagehub.api.audit import AuditRepository
+from custom_components.messagehub.api.export import (
+    build_forensic_bundle,
+    messages_to_csv,
+    messages_to_jsonl,
+)
+from custom_components.messagehub.processing.runbooks import Runbook, RunbookRepository
+from custom_components.messagehub.storage import (
+    Database,
+    Message,
+    MessageRepository,
+    MigrationRunner,
+    Severity,
+)
+
+
+@pytest.fixture
+async def db_repo(tmp_path: Path):  # type: ignore[no-untyped-def]
+    db = Database(tmp_path / "m.db")
+    await db.open()
+    await MigrationRunner(db).run()
+    try:
+        yield db, MessageRepository(db)
+    finally:
+        await db.close()
+
+
+@pytest.mark.asyncio
+async def test_runbook_matched_by_source(db_repo) -> None:  # type: ignore[no-untyped-def]
+    db, _ = db_repo
+    repo = RunbookRepository(db)
+    await repo.add(
+        Runbook(
+            id=None,
+            source_pattern="pihole",
+            fingerprint=None,
+            title="DNS",
+            markdown="check pi-hole",
+        )
+    )
+    rb = await repo.find_for("pihole", fingerprint=None)
+    assert rb is not None
+    assert rb.title == "DNS"
+
+
+@pytest.mark.asyncio
+async def test_runbook_specific_fingerprint_overrides_generic(db_repo) -> None:  # type: ignore[no-untyped-def]
+    db, _ = db_repo
+    repo = RunbookRepository(db)
+    await repo.add(
+        Runbook(id=None, source_pattern="pihole", fingerprint=None, title="GEN", markdown="g")
+    )
+    await repo.add(
+        Runbook(id=None, source_pattern="pihole", fingerprint="abc123", title="SPEC", markdown="s")
+    )
+    rb = await repo.find_for("pihole", fingerprint="abc123")
+    assert rb is not None
+    assert rb.title == "SPEC"
+
+
+@pytest.mark.asyncio
+async def test_audit_log_persists_actions(db_repo) -> None:  # type: ignore[no-untyped-def]
+    db, _ = db_repo
+    audit = AuditRepository(db)
+    await audit.record(actor="user1", action="delete", target_type="message", target_id="42")
+    await audit.record(actor="user1", action="ack", target_type="message", target_id="42")
+    items = await audit.list_recent()
+    assert len(items) == 2
+    assert items[0]["target_id"] == "42"
+
+
+@pytest.mark.asyncio
+async def test_export_jsonl_streams_chunked() -> None:
+    msgs = [Message(severity=Severity.INFO, source="x", text=f"#{i}") for i in range(3)]
+    out = messages_to_jsonl(msgs)
+    assert out.count("\n") == 3
+    assert "#0" in out
+    assert "#1" in out
+    assert "#2" in out
+
+
+@pytest.mark.asyncio
+async def test_export_csv_has_header_and_rows() -> None:
+    msgs = [Message(severity=Severity.WARNING, source="x", text="hi")]
+    csv_text = messages_to_csv(msgs)
+    lines = csv_text.strip().splitlines()
+    assert lines[0].startswith("id,timestamp,severity")
+    assert "warning" in lines[1]
+
+
+def test_forensic_bundle_contains_all_artifacts() -> None:
+    msgs = [Message(severity=Severity.ERROR, source="x", text="hi")]
+    payload = build_forensic_bundle(msgs, config={"version": "1"})
+    with zipfile.ZipFile(io.BytesIO(payload)) as zf:
+        names = set(zf.namelist())
+        assert {"messages.jsonl", "config.json"} == names
