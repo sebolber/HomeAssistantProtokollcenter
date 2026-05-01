@@ -807,6 +807,10 @@ class KnxAddressesView(_RequireAdminView):
                         "label": it.label,
                         "dpt": it.dpt,
                         "description": it.description,
+                        "log_enabled": bool(it.log_enabled),
+                        "log_severity": it.log_severity,
+                        "severity_on_true": it.severity_on_true,
+                        "severity_on_false": it.severity_on_false,
                     }
                     for it in items
                 ]
