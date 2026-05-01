@@ -212,6 +212,41 @@ run_install() {
   $SUDO $PKG_INSTALL "$@"
 }
 
+ensure_brew() {
+  # Nur auf macOS relevant.
+  if [ "$OS_FAMILY" != "macos" ]; then
+    return 0
+  fi
+  if command -v brew >/dev/null 2>&1; then
+    return 0
+  fi
+
+  warn "Homebrew nicht gefunden"
+  if [ "$AUTO_INSTALL" -eq 0 ]; then
+    fail "Homebrew benoetigt — Installation: https://brew.sh"
+  fi
+  if ! confirm "Homebrew installieren? (offizielles Install-Skript von brew.sh)"; then
+    fail "Homebrew-Install abgebrochen"
+  fi
+
+  local brew_install_url="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+  if [ "$ASSUME_YES" -eq 1 ]; then
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL "$brew_install_url")"
+  else
+    /bin/bash -c "$(curl -fsSL "$brew_install_url")"
+  fi
+
+  # PATH-Setup je nach Architektur (Apple Silicon vs Intel).
+  if [ -x /opt/homebrew/bin/brew ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [ -x /usr/local/bin/brew ]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+  fi
+
+  command -v brew >/dev/null 2>&1 || fail "Homebrew-Install schien zu klappen, aber 'brew' nicht im PATH"
+  info "Homebrew:      $(brew --version | head -1)"
+}
+
 ensure_python() {
   PYTHON_BIN=""
   for cand in python3.13 python3.12 python3; do
@@ -265,11 +300,11 @@ ensure_python() {
       fi
       ;;
     macos)
-      if ! command -v brew >/dev/null 2>&1; then
-        fail "Homebrew nicht gefunden. Installiere via https://brew.sh und starte erneut"
-      fi
+      ensure_brew
       if confirm "Python 3.12 via Homebrew installieren?"; then
         brew install python@3.12
+        # Symlink in PATH bringen
+        brew link --overwrite --force python@3.12 >/dev/null 2>&1 || true
       else
         fail "Python-Install abgebrochen"
       fi
@@ -316,7 +351,14 @@ ensure_docker() {
       fi
       ;;
     macos)
-      fail "Bitte Docker Desktop fuer Mac installieren: https://www.docker.com/products/docker-desktop"
+      ensure_brew
+      if confirm "Docker Desktop via Homebrew Cask installieren?"; then
+        brew install --cask docker
+        warn "Bitte Docker Desktop EINMAL manuell aus /Applications starten und Setup abschliessen, dann start.sh erneut starten"
+        exit 0
+      else
+        fail "Docker-Install abgebrochen — siehe https://www.docker.com/products/docker-desktop"
+      fi
       ;;
     *)
       fail "automatischer Docker-Install fuer OS '$OS_FAMILY' nicht unterstuetzt"
