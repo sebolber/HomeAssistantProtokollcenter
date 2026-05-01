@@ -160,7 +160,7 @@ async def _async_register_panel(hass: HomeAssistant) -> None:
     if "messagehub" in hass.data.get("frontend_panels", {}):
         return
     try:
-        panel_custom.async_register_panel(  # type: ignore[attr-defined]
+        await panel_custom.async_register_panel(  # type: ignore[attr-defined]
             hass,
             webcomponent_name="messagehub-panel",
             frontend_url_path="messagehub",

@@ -62,14 +62,11 @@ class _BaseMessageSensor(SensorEntity):
         self._unsub_listeners: list[Callable[[], None]] = []
 
     async def async_added_to_hass(self) -> None:
-        @self.hass.bus.async_listen(EVENT_MESSAGE_ADDED)  # type: ignore[misc]
-        async def _on_added(_event: Event) -> None:
+        async def _refresh(_event: Event | None = None) -> None:
             await self.async_update_ha_state(force_refresh=True)
 
-        @self.hass.bus.async_listen(EVENT_MESSAGE_DELETED)  # type: ignore[misc]
-        async def _on_deleted(_event: Event) -> None:
-            await self.async_update_ha_state(force_refresh=True)
-
+        self._unsub_listeners.append(self.hass.bus.async_listen(EVENT_MESSAGE_ADDED, _refresh))
+        self._unsub_listeners.append(self.hass.bus.async_listen(EVENT_MESSAGE_DELETED, _refresh))
         self._unsub_listeners.append(
             async_track_time_interval(self.hass, self._tick, REFRESH_INTERVAL)
         )
