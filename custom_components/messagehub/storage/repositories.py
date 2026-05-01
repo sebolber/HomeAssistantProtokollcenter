@@ -160,11 +160,12 @@ class MessageRepository:
         search: str | None = None,
         from_iso: str | None = None,
         to_iso: str | None = None,
+        trace_id: str | None = None,
         limit: int = 100,
         offset: int = 0,
         order: str = "desc",
     ) -> list[Message]:
-        """Filter-Query (Iter 14). Volltext nutzt LIKE; FTS5 kommt in Iter 33."""
+        """Filter-Query. search nutzt FTS5 (Iter 33), wenn vorhanden — sonst LIKE."""
         clauses: list[str] = []
         params: list[object] = []
         if severities:
@@ -179,7 +180,11 @@ class MessageRepository:
                 clauses.append("source = ?")
                 params.append(source)
         if search:
-            clauses.append("text LIKE ?")
+            # FTS5: rowid-IN-Subquery, Fallback LIKE.
+            clauses.append(
+                "(id IN (SELECT rowid FROM messages_fts WHERE messages_fts MATCH ?) OR text LIKE ?)"
+            )
+            params.append(search)
             params.append(f"%{search}%")
         if from_iso:
             clauses.append("timestamp >= ?")
@@ -187,6 +192,9 @@ class MessageRepository:
         if to_iso:
             clauses.append("timestamp <= ?")
             params.append(to_iso)
+        if trace_id:
+            clauses.append("trace_id = ?")
+            params.append(trace_id)
 
         where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
         direction = "DESC" if order.lower() != "asc" else "ASC"

@@ -49,10 +49,10 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 32 — Severity-Eskalation
 
 ## Phase H — Intelligenz
-- [ ] Iteration 33 — SQLite FTS5
-- [ ] Iteration 34 — Korrelations-IDs
-- [ ] Iteration 35 — Heartbeat-Tracking
-- [ ] Iteration 36 — Anomalie-Erkennung
+- [x] Iteration 33 — SQLite FTS5
+- [x] Iteration 34 — Korrelations-IDs
+- [x] Iteration 35 — Heartbeat-Tracking
+- [x] Iteration 36 — Anomalie-Erkennung
 
 ## Phase I — Mehr Eingangskanaele
 - [ ] Iteration 37 — MQTT-Adapter
