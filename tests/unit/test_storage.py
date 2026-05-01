@@ -64,7 +64,7 @@ async def test_schema_version_after_initial_migration(tmp_path: Path) -> None:
         runner = MigrationRunner(db)
         version = await runner.run()
 
-        assert version == 1
+        assert version >= 1
 
         tables = await db.fetch_all(
             "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"

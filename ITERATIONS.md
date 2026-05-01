@@ -13,7 +13,7 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 
 ## Phase B — Webhook-Eingang
 - [x] Iteration 8 — Webhook-Handler-Skelett
-- [ ] Iteration 9 — Webhook-Konfiguration in DB
+- [x] Iteration 9 — Webhook-Konfiguration in DB
 - [ ] Iteration 10 — JSONPath-Field-Mapping
 - [ ] Iteration 11 — Rate-Limiting & Body-Limits
 - [ ] Iteration 12 — Severity-Mapping-Tabelle
