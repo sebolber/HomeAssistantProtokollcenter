@@ -1,0 +1,36 @@
+name: ha-messagehub-dev
+
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: ha-messagehub-dev
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Berlin
+    ports:
+      - "8124:8123"
+    volumes:
+      # Persistente Dev-Konfiguration (lokal, git-ignored)
+      - ./.dev/ha-config:/config
+      # Live-Mount der Custom Integration ins HA-Config-Verzeichnis
+      - ./custom_components/messagehub:/config/custom_components/messagehub
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8123/manifest.json"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  # Optional: Mosquitto MQTT-Broker für Iteration 37 (MQTT-Adapter).
+  # Standardmäßig auskommentiert. Aktivieren, wenn benötigt.
+  #
+  # mosquitto:
+  #   image: eclipse-mosquitto:2
+  #   container_name: ha-messagehub-mqtt
+  #   restart: unless-stopped
+  #   ports:
+  #     - "1884:1883"   # 1884 statt 1883, falls produktiver Broker existiert
+  #   volumes:
+  #     - ./.dev/mosquitto/config:/mosquitto/config
+  #     - ./.dev/mosquitto/data:/mosquitto/data
+  #     - ./.dev/mosquitto/log:/mosquitto/log
