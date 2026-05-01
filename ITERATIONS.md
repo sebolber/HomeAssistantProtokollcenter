@@ -70,6 +70,6 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 45 — Export & Forensik-Bundle
 
 ## Phase L — Reports & Auto-Remediation
-- [ ] Iteration 46 — Wochenreport per Mail
-- [ ] Iteration 47 — Auto-Remediation-Hooks
-- [ ] Iteration 48 — KNX-Anreicherung & Final Polish
+- [x] Iteration 46 — Wochenreport per Mail
+- [x] Iteration 47 — Auto-Remediation-Hooks
+- [x] Iteration 48 — KNX-Anreicherung & Final Polish
