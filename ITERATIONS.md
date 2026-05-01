@@ -8,7 +8,7 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 3 — Models & Validierung
 - [x] Iteration 4 — Message-Repository (CRUD)
 - [x] Iteration 5 — Service add_message + Eventbus
-- [ ] Iteration 6 — Sensoren (Counter)
+- [x] Iteration 6 — Sensoren (Counter)
 - [ ] Iteration 7 — Config-Flow (Erstinstallation + Options)
 
 ## Phase B — Webhook-Eingang

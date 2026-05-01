@@ -86,6 +86,14 @@ class MessageRepository:
             return 0
         return int(row["cnt"])
 
+    async def count_by_severity_since(self, severity: str, since_iso: str) -> int:
+        """Counter pro Severity ab `since_iso` (inklusiv)."""
+        row = await self._db.fetch_one(
+            "SELECT COUNT(*) AS cnt FROM messages WHERE severity = ? AND timestamp >= ?",
+            (severity, since_iso),
+        )
+        return int(row["cnt"]) if row is not None else 0
+
 
 def _row_to_message(row: object) -> Message:
     """Konvertiert eine aiosqlite.Row in ein Message-Dataclass."""

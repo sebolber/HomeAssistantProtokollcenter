@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[str] = ["binary_sensor"]
+PLATFORMS: list[str] = ["binary_sensor", "sensor"]
 
 SERVICE_ADD_MESSAGE = "add_message"
 
