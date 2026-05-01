@@ -1,11 +1,15 @@
-// Iter 17: scrollbare Tabelle der Nachrichten.
-// Hinweis: lit-virtualizer raus, weil HA-Frontend es schon registriert.
-// Bei <=200 Items reicht plain `.map()` mit CSS-Scrolling problemlos.
+// Iter 17 + UI-Polish: scrollbare Tabelle der Nachrichten.
+// - Severity als farbige Pille mit Icon + Label
+// - Relative Zeit (z. B. "vor 3 Min") als Default, absolute Zeit als Tooltip
+// - Source als dezente Pille
+// - Hover-/Focus-States ueber Design-Tokens
 
 import { LitElement, css, html, type TemplateResult } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 import type { MessageDto } from "../api-client.js";
+import { tokens, pills } from "../styles/tokens.js";
+import { formatRelative, formatAbsolute } from "../utils/time.js";
 
 const SEVERITY_ICON: Record<string, string> = {
   error: "✕",
@@ -16,7 +20,7 @@ const SEVERITY_ICON: Record<string, string> = {
 
 const SEVERITY_LABEL: Record<string, string> = {
   error: "Error",
-  warning: "Warning",
+  warning: "Warn",
   info: "Info",
   debug: "Debug",
 };
@@ -24,6 +28,20 @@ const SEVERITY_LABEL: Record<string, string> = {
 @customElement("message-table")
 export class MessageTable extends LitElement {
   @property({ attribute: false }) items: MessageDto[] = [];
+
+  @state() private _now = new Date();
+  private _tickerId?: number;
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    // Relativzeiten alle 30s aktualisieren
+    this._tickerId = window.setInterval(() => (this._now = new Date()), 30_000);
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    if (this._tickerId) window.clearInterval(this._tickerId);
+  }
 
   private _onClick = (msg: MessageDto): void => {
     this.dispatchEvent(
@@ -41,18 +59,10 @@ export class MessageTable extends LitElement {
   private _renderHeader(): TemplateResult {
     return html`
       <div class="header" role="row">
-        <span class="col-icon" role="columnheader" title="Severity (Schweregrad)">
-          Sev
-        </span>
-        <span class="col-ts" role="columnheader" title="Empfangs-Zeitpunkt (UTC)">
-          Zeit
-        </span>
-        <span class="col-src" role="columnheader" title="Quelle / Herkunft der Nachricht">
-          Quelle
-        </span>
-        <span class="col-text" role="columnheader" title="Nachrichten-Text (Klick: Detail)">
-          Nachricht
-        </span>
+        <span class="col-sev" role="columnheader">Severity</span>
+        <span class="col-ts" role="columnheader">Zeit</span>
+        <span class="col-src" role="columnheader">Quelle</span>
+        <span class="col-text" role="columnheader">Nachricht</span>
       </div>
     `;
   }
@@ -73,136 +83,155 @@ export class MessageTable extends LitElement {
           ${repeat(
             this.items,
             (msg) => msg.id,
-            (msg) => html`
-              <div
-                class=${`row sev-${msg.severity}`}
-                tabindex="0"
-                role="listitem button"
-                @click=${() => this._onClick(msg)}
-                @keydown=${(e: KeyboardEvent) => this._onKey(e, msg)}
-              >
-                <span
-                  class="col-icon icon"
-                  aria-label=${SEVERITY_LABEL[msg.severity] ?? msg.severity}
-                  title=${SEVERITY_LABEL[msg.severity] ?? msg.severity}
+            (msg) => {
+              const sev = msg.severity ?? "info";
+              const sevLabel = SEVERITY_LABEL[sev] ?? sev;
+              const sevIcon = SEVERITY_ICON[sev] ?? "·";
+              const rel = formatRelative(msg.timestamp, this._now);
+              const abs = formatAbsolute(msg.timestamp, this._now);
+              return html`
+                <div
+                  class=${`row sev-${sev}`}
+                  tabindex="0"
+                  role="listitem button"
+                  @click=${() => this._onClick(msg)}
+                  @keydown=${(e: KeyboardEvent) => this._onKey(e, msg)}
                 >
-                  ${SEVERITY_ICON[msg.severity] ?? "·"}
-                </span>
-                <span class="col-ts ts">
-                  ${msg.timestamp.replace("T", " ").replace(/\+00:00$/, "Z")}
-                </span>
-                <span class="col-src src">${msg.source}</span>
-                <span class="col-text text">${msg.text}</span>
-              </div>
-            `
+                  <span class="col-sev">
+                    <span
+                      class=${`mh-pill mh-pill--${sev}`}
+                      title=${sevLabel}
+                    >
+                      <span class="sev-icon" aria-hidden="true">${sevIcon}</span>
+                      ${sevLabel}
+                    </span>
+                  </span>
+                  <span class="col-ts ts" title=${abs}>${rel}</span>
+                  <span class="col-src">
+                    <span class="source-pill">${msg.source}</span>
+                  </span>
+                  <span class="col-text text">${msg.text}</span>
+                </div>
+              `;
+            }
           )}
         </div>
       </div>
     `;
   }
 
-  static override styles = css`
-    :host {
-      display: block;
-      flex: 1;
-      overflow: hidden;
-    }
-    .root {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-    .header,
-    .row {
-      display: grid;
-      grid-template-columns: 40px 180px 160px 1fr;
-      gap: 12px;
-      padding: 6px 16px;
-      align-items: center;
-    }
-    .header {
-      background: var(--secondary-background-color, #f3f3f3);
-      border-bottom: 2px solid var(--divider-color, #ddd);
-      font-size: 0.78em;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--secondary-text-color, #666);
-      padding-top: 8px;
-      padding-bottom: 8px;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      cursor: default;
-    }
-    .header span {
-      cursor: help;
-    }
-    .col-icon {
-      text-align: center;
-    }
-    .col-ts {
-      font-variant-numeric: tabular-nums;
-    }
-    .scroll {
-      flex: 1;
-      overflow: auto;
-    }
-    .row {
-      border-bottom: 1px solid var(--divider-color, #eee);
-      cursor: pointer;
-    }
-    .row:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    .row:focus-visible {
-      background: var(--secondary-background-color, #f3f3f3);
-      outline: 2px solid var(--primary-color, #03a9f4);
-      outline-offset: -2px;
-    }
-    .icon {
-      font-size: 1.2em;
-    }
-    .row.sev-error .icon {
-      color: var(--error-color, #db4437);
-    }
-    .row.sev-warning .icon {
-      color: var(--warning-color, #ff9800);
-    }
-    .row.sev-info .icon {
-      color: var(--info-color, #03a9f4);
-    }
-    .row.sev-debug .icon {
-      color: var(--secondary-text-color, #888);
-    }
-    .ts {
-      font-family: var(--ha-font-family-code, monospace);
-      font-size: 0.85em;
-      color: var(--secondary-text-color, #666);
-    }
-    .src {
-      font-weight: 500;
-    }
-    .text {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .empty {
-      padding: 32px;
-      text-align: center;
-      color: var(--secondary-text-color, #666);
-    }
-    @media (max-width: 600px) {
+  static override styles = [
+    tokens,
+    pills,
+    css`
+      :host {
+        display: block;
+        flex: 1;
+        overflow: hidden;
+      }
+      .root {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: var(--mh-surface);
+      }
       .header,
       .row {
-        grid-template-columns: 28px 120px 1fr;
-        gap: 8px;
-        padding: 6px 8px;
+        display: grid;
+        grid-template-columns: 110px 110px 140px 1fr;
+        gap: var(--mh-space-3);
+        padding: 10px var(--mh-space-5);
+        align-items: center;
       }
-      .col-src {
-        display: none;
+      .header {
+        background: var(--mh-bg);
+        border-bottom: 1px solid var(--mh-divider);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--mh-fg-muted);
+        padding-top: var(--mh-space-2);
+        padding-bottom: var(--mh-space-2);
+        position: sticky;
+        top: 0;
+        z-index: 1;
       }
-    }
-  `;
+      .scroll {
+        flex: 1;
+        overflow: auto;
+      }
+      .row {
+        border-bottom: 1px solid var(--mh-divider);
+        cursor: pointer;
+        transition: background var(--mh-transition-fast);
+      }
+      .row:hover {
+        background: var(--mh-surface-2);
+      }
+      .row:focus-visible {
+        background: var(--mh-surface-2);
+        outline: var(--mh-focus-ring);
+        outline-offset: -2px;
+      }
+      .row:last-child {
+        border-bottom: 0;
+      }
+
+      .sev-icon {
+        display: inline-flex;
+        width: 14px;
+        text-align: center;
+        font-weight: var(--mh-weight-bold);
+      }
+
+      .ts {
+        font-variant-numeric: tabular-nums;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        white-space: nowrap;
+      }
+
+      .source-pill {
+        display: inline-block;
+        padding: 2px 8px;
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-sm);
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-medium);
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+      }
+
+      .text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg);
+      }
+      .empty {
+        padding: var(--mh-space-7);
+        text-align: center;
+        color: var(--mh-fg-muted);
+      }
+
+      @media (max-width: 720px) {
+        .header,
+        .row {
+          grid-template-columns: 90px 90px 1fr;
+          gap: var(--mh-space-2);
+          padding: var(--mh-space-2) var(--mh-space-3);
+        }
+        .col-src {
+          display: none;
+        }
+      }
+    `,
+  ];
 }
