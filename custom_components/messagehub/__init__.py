@@ -79,10 +79,57 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await _async_register_services(hass, repository)
     async_register_views(hass)
+    _async_register_panel(hass)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _LOGGER.debug("messagehub config entry %s set up", entry.entry_id)
     return True
+
+
+def _async_register_panel(hass: HomeAssistant) -> None:
+    """Registriert das Sidebar-Panel (Iter 16)."""
+    from homeassistant.components import frontend, panel_custom  # noqa: PLC0415
+
+    panel_url = "/messagehub-panel/messagehub-panel.js"
+    frontend_path = Path(__file__).parent / "frontend_dist"
+    if not frontend_path.exists():
+        _LOGGER.warning("frontend_dist/ fehlt — Panel wird ohne Build registriert")
+    hass.http.register_static_path(
+        "/messagehub-panel",
+        str(frontend_path),
+        cache_headers=False,
+    )
+    if "messagehub" in hass.data.get("frontend_panels", {}):
+        return
+    try:
+        panel_custom.async_register_panel(  # type: ignore[attr-defined]
+            hass,
+            webcomponent_name="messagehub-panel",
+            frontend_url_path="messagehub",
+            module_url=panel_url,
+            sidebar_title="Messages",
+            sidebar_icon="mdi:message-alert",
+            require_admin=True,
+            embed_iframe=False,
+        )
+    except (RuntimeError, ValueError):
+        # Fallback fuer aeltere/neuere HA: nur statisch + frontend.async_register
+        frontend.async_register_built_in_panel(
+            hass,
+            "custom",
+            "Messages",
+            "mdi:message-alert",
+            "messagehub",
+            config={
+                "_panel_custom": {
+                    "name": "messagehub-panel",
+                    "embed_iframe": False,
+                    "trust_external": False,
+                    "module_url": panel_url,
+                },
+            },
+            require_admin=True,
+        )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

@@ -24,15 +24,15 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 15 — Endpoints delete, sources, stats, webhooks
 
 ## Phase D — Frontend-Panel
-- [ ] Iteration 16 — Panel-Registrierung & Build-Pipeline
-- [ ] Iteration 17 — Tabellen-Komponente
-- [ ] Iteration 18 — Severity-Filter
-- [ ] Iteration 19 — Source-/Volltext-/Zeitraum-Filter
-- [ ] Iteration 20 — Detail-Pane + Loesch-Funktion
-- [ ] Iteration 21 — WebSocket-Subscription Live-Update
+- [x] Iteration 16 — Panel-Registrierung & Build-Pipeline
+- [x] Iteration 17 — Tabellen-Komponente
+- [x] Iteration 18 — Severity-Filter
+- [x] Iteration 19 — Source-/Volltext-/Zeitraum-Filter
+- [x] Iteration 20 — Detail-Pane + Loesch-Funktion
+- [x] Iteration 21 — WebSocket-Subscription Live-Update
 
 ## Phase E — Verwaltung & Lifecycle
-- [ ] Iteration 22 — Settings-Tab Webhook-Liste
+- [x] Iteration 22 — Settings-Tab Webhook-Liste
 - [ ] Iteration 23 — Webhook Add/Edit/Delete UI
 - [ ] Iteration 24 — Retention-Job
 - [ ] Iteration 25 — Translations DE/EN, README, hacs.json
