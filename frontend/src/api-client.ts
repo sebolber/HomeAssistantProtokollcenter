@@ -18,6 +18,17 @@ export interface ListResponse {
   offset: number;
 }
 
+export interface KnxAddressDto {
+  address: string;
+  label: string;
+  dpt: string | null;
+  description: string | null;
+  log_enabled: boolean;
+  log_severity: "debug" | "info" | "warning" | "error" | "auto";
+  severity_on_true: string | null;
+  severity_on_false: string | null;
+}
+
 export interface WebhookDto {
   id: number;
   name: string;
@@ -148,14 +159,12 @@ export class ApiClient {
     return ((await res.json()) as { items: Array<Record<string, unknown>> }).items;
   }
 
-  async listKnxAddresses(): Promise<
-    Array<{ address: string; label: string; dpt: string | null; description: string | null }>
-  > {
+  async listKnxAddresses(): Promise<KnxAddressDto[]> {
     const res = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
       headers: this.headers(),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return ((await res.json()) as { items: Array<{ address: string; label: string; dpt: string | null; description: string | null }> }).items;
+    return ((await res.json()) as { items: KnxAddressDto[] }).items;
   }
 
   async upsertKnxAddress(payload: {
@@ -163,6 +172,10 @@ export class ApiClient {
     label: string;
     dpt?: string | null;
     description?: string | null;
+    log_enabled?: boolean;
+    log_severity?: "debug" | "info" | "warning" | "error" | "auto";
+    severity_on_true?: string | null;
+    severity_on_false?: string | null;
   }): Promise<void> {
     const res = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
       method: "POST",

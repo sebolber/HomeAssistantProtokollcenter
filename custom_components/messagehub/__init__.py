@@ -133,6 +133,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _async_register_retention(hass, entry, database)
     await _async_register_existing_webhooks(hass, webhook_repository)
     state["unsub_eventbus"] = _async_register_eventbus_listeners(hass, repository)
+    state["unsub_knx"] = _async_register_knx_listener(hass, database, repository)
     state["unsub_periodic"] = _async_register_periodic_jobs(hass, database, repository)
 
     # Options-Update-Listener (Review #5): Aenderungen aktivieren ohne Restart.
@@ -191,6 +192,71 @@ def _async_register_eventbus_listeners(hass: HomeAssistant, repository: Any) -> 
         unsub_state()
 
     return _unsub
+
+
+def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository: Any) -> Any:
+    """Iter 48: lauscht auf knx_event und loggt nur GAs, die in
+    knx_group_addresses mit log_enabled=1 hinterlegt sind.
+
+    Voraussetzung: HA-KNX-Integration ist mit IP-Tunneling/Routing
+    konfiguriert. Sie feuert pro Telegramm 'knx_event' mit den Feldern
+    destination (Gruppenadresse), source (Geraete-Adresse), telegramtype,
+    value, data."""
+    from .processing.knx_repo import (  # noqa: PLC0415
+        KnxAddressRepository,
+        build_text,
+        resolve_severity,
+    )
+    from .storage import Message, Severity  # noqa: PLC0415
+
+    knx_repo = KnxAddressRepository(database)
+    cache: dict[str, Any] = {"map": None, "ts": 0.0}
+    cache_ttl_seconds = 30.0
+
+    async def _refresh_cache() -> dict[str, Any]:
+        from time import monotonic  # noqa: PLC0415
+
+        now = monotonic()
+        if cache["map"] is None or now - cache["ts"] > cache_ttl_seconds:
+            cache["map"] = await knx_repo.list_logged()
+            cache["ts"] = now
+        return cache["map"]
+
+    async def _on_knx_event(event: Any) -> None:
+        try:
+            data = dict(event.data)
+            ga = str(data.get("destination") or "").strip()
+            if not ga:
+                return
+            mapping = await _refresh_cache()
+            cfg = mapping.get(ga)
+            if cfg is None:
+                return
+            telegramtype = data.get("telegramtype")
+            value = data.get("value")
+            if value is None:
+                value = data.get("data")
+            severity = Severity.normalise(resolve_severity(cfg, value))
+            text = build_text(cfg, value, telegramtype)
+            msg = Message(
+                severity=severity,
+                source="knx-bus",
+                text=text,
+                metadata={
+                    "knx_ga": ga,
+                    "knx_label": cfg.label,
+                    "knx_dpt": cfg.dpt,
+                    "knx_value": value,
+                    "knx_source": data.get("source"),
+                    "knx_telegramtype": telegramtype,
+                },
+            )
+            await repository.insert_or_aggregate(msg, window_minutes=10)
+            _fire_added(hass, msg)
+        except (ValueError, TypeError, KeyError) as err:
+            _LOGGER.debug("knx_event ingest skipped: %s", err)
+
+    return hass.bus.async_listen("knx_event", _on_knx_event)
 
 
 def _fire_added(hass: HomeAssistant, message: Any) -> None:
@@ -393,7 +459,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if state is not None:
         import contextlib  # noqa: PLC0415
 
-        for key in ("unsub_eventbus", "unsub_periodic", "unsub_options", "retention_unsub"):
+        for key in (
+            "unsub_eventbus",
+            "unsub_knx",
+            "unsub_periodic",
+            "unsub_options",
+            "retention_unsub",
+        ):
             unsub = state.get(key)
             if callable(unsub):
                 with contextlib.suppress(RuntimeError, ValueError):
