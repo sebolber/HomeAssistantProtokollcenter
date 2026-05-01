@@ -157,11 +157,12 @@ export class KnxAddressesView extends LitElement {
         log_enabled: target,
       });
       await this._load();
-      // Verifizieren: was kam tatsaechlich aus der DB zurueck?
+      // Verifizieren: Truthy-Vergleich, weil SQLite int 0/1 oder bool true/false liefern kann.
       const fresh = this._items.find((i) => i.address === item.address);
-      if (fresh && fresh.log_enabled !== target) {
+      const actuallyOn = Boolean(fresh?.log_enabled);
+      if (fresh !== undefined && actuallyOn !== target) {
         this._showToast(
-          `Backend speichert log_enabled nicht — Browser-Cache leeren ` +
+          `Backend hat log_enabled nicht gesetzt — Browser-Cache leeren ` +
             `(Cmd+Shift+R) und HA-Container neu starten`
         );
       } else {
@@ -214,7 +215,7 @@ export class KnxAddressesView extends LitElement {
 
   private _filtered(): KnxAddressDto[] {
     let items = this._items;
-    if (this._onlyEnabled) items = items.filter((i) => i.log_enabled);
+    if (this._onlyEnabled) items = items.filter((i) => Boolean(i.log_enabled));
     const f = this._filter.trim().toLowerCase();
     if (!f) return items;
     return items.filter(

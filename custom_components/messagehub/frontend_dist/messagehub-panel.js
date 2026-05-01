@@ -2225,9 +2225,9 @@ let x = class extends m {
         ...r,
         log_enabled: e
       }), await this._load();
-      const t = this._items.find((a) => a.address === r.address);
-      t && t.log_enabled !== e ? this._showToast(
-        "Backend speichert log_enabled nicht — Browser-Cache leeren (Cmd+Shift+R) und HA-Container neu starten"
+      const t = this._items.find((s) => s.address === r.address), a = !!(t != null && t.log_enabled);
+      t !== void 0 && a !== e ? this._showToast(
+        "Backend hat log_enabled nicht gesetzt — Browser-Cache leeren (Cmd+Shift+R) und HA-Container neu starten"
       ) : this._showToast(
         e ? `${r.address} im Protokoll aktiv` : `${r.address} aus Protokoll entfernt`
       );
@@ -2264,7 +2264,7 @@ let x = class extends m {
   }
   _filtered() {
     let r = this._items;
-    this._onlyEnabled && (r = r.filter((t) => t.log_enabled));
+    this._onlyEnabled && (r = r.filter((t) => !!t.log_enabled));
     const e = this._filter.trim().toLowerCase();
     return e ? r.filter(
       (t) => t.address.includes(e) || t.label.toLowerCase().includes(e) || (t.dpt ?? "").toLowerCase().includes(e)
