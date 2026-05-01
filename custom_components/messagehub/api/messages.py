@@ -213,6 +213,7 @@ class WebhooksView(_RequireAdminView):
         return self.json({"webhooks": [_wh_to_dict(c) for c in await wh_repo.list_all()]})
 
     async def post(self, request: web.Request) -> web.Response:
+        from .. import async_register_webhook  # noqa: PLC0415
         from ..storage import (  # noqa: PLC0415
             Severity,
             WebhookConfig,
@@ -240,6 +241,8 @@ class WebhooksView(_RequireAdminView):
             await wh_repo.add(cfg)
         except (KeyError, ValueError, TypeError) as err:
             return self.json_message(f"invalid: {err}", status_code=400)
+        if cfg.enabled:
+            async_register_webhook(request.app["hass"], cfg)
         return self.json(_wh_to_dict(cfg))
 
 
@@ -259,6 +262,7 @@ class WebhookDetailView(_RequireAdminView):
         return self.json(_wh_to_dict(cfg))
 
     async def put(self, request: web.Request, webhook_id: str) -> web.Response:
+        from .. import async_register_webhook, async_unregister_webhook  # noqa: PLC0415
         from ..storage import Severity  # noqa: PLC0415
 
         self._check_admin(request)
@@ -284,9 +288,15 @@ class WebhookDetailView(_RequireAdminView):
         if "enabled" in data:
             cfg.enabled = bool(data["enabled"])
         await wh_repo.update(cfg)
+        if cfg.enabled:
+            async_register_webhook(request.app["hass"], cfg)
+        else:
+            async_unregister_webhook(request.app["hass"], cfg.webhook_id)
         return self.json(_wh_to_dict(cfg))
 
     async def delete(self, request: web.Request, webhook_id: str) -> web.Response:
+        from .. import async_unregister_webhook  # noqa: PLC0415
+
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
@@ -294,6 +304,7 @@ class WebhookDetailView(_RequireAdminView):
         _, wh_repo = repos
         if not await wh_repo.delete(webhook_id):
             return self.json_message("not found", status_code=404)
+        async_unregister_webhook(request.app["hass"], webhook_id)
         return self.json_message("deleted")
 
 

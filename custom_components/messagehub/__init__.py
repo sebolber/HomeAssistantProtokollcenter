@@ -53,6 +53,51 @@ def _build_add_message_schema() -> Any:
     )
 
 
+async def _async_register_existing_webhooks(hass: HomeAssistant, webhook_repo: Any) -> None:
+    """Liest beim Start alle in der DB hinterlegten Webhooks und registriert
+    sie beim HA-Webhook-System, damit eingehende POSTs an unseren Handler
+    geroutet werden."""
+    configs = await webhook_repo.list_all()
+    for cfg in configs:
+        if not cfg.enabled:
+            continue
+        async_register_webhook(hass, cfg)
+
+
+def async_register_webhook(hass: HomeAssistant, cfg: Any) -> None:
+    """Registriert einen einzelnen Webhook beim HA-Webhook-System (idempotent)."""
+    from homeassistant.components import webhook as ha_webhook  # noqa: PLC0415
+
+    from .ingestion.webhook import async_handle_webhook  # noqa: PLC0415
+
+    async def _handler(hass_: HomeAssistant, webhook_id: str, request: Any) -> Any:
+        return await async_handle_webhook(hass_, webhook_id, request, config=cfg)
+
+    try:
+        ha_webhook.async_unregister(hass, cfg.webhook_id)
+    except (ValueError, KeyError):
+        pass
+    ha_webhook.async_register(
+        hass,
+        DOMAIN,
+        cfg.name,
+        cfg.webhook_id,
+        _handler,
+        local_only=False,
+    )
+    _LOGGER.info("registered webhook %s -> %s", cfg.name, cfg.webhook_id)
+
+
+def async_unregister_webhook(hass: HomeAssistant, webhook_id: str) -> None:
+    from homeassistant.components import webhook as ha_webhook  # noqa: PLC0415
+
+    try:
+        ha_webhook.async_unregister(hass, webhook_id)
+        _LOGGER.info("unregistered webhook %s", webhook_id)
+    except (ValueError, KeyError):
+        pass
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up messagehub: oeffnet die DB, fuehrt Migrationen aus, registriert Services."""
     from .api import async_register_views  # noqa: PLC0415
@@ -85,6 +130,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async_register_views(hass)
     await _async_register_panel(hass)
     _async_register_retention(hass, entry, database)
+    await _async_register_existing_webhooks(hass, webhook_repository)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _LOGGER.debug("messagehub config entry %s set up", entry.entry_id)
