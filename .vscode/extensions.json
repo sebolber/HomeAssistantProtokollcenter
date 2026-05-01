@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "ms-python.mypy-type-checker",
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "runem.lit-plugin",
+    "ms-azuretools.vscode-docker",
+    "github.vscode-github-actions",
+    "anthropic.claude-code"
+  ]
+}

@@ -1,0 +1,36 @@
+# Dev-HA Persistenz (lokale Konfiguration und DB)
+.dev/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Build-Artefakte (NICHT ignorieren: custom_components/messagehub/frontend_dist/)
+# Das wird committet, weil HACS keinen Build-Step hat.
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Smoke-Test-Ausgaben
+tests/smoke/
+
+# Claude Code
+.claude/next-iteration.txt
