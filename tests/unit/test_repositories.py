@@ -1,0 +1,147 @@
+"""Tests fuer MessageRepository (CRUD)."""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+import pytest
+
+from custom_components.messagehub.storage import (
+    Database,
+    Message,
+    MessageRepository,
+    MigrationRunner,
+    Severity,
+)
+
+
+@pytest.fixture
+async def repo(tmp_path: Path):  # type: ignore[no-untyped-def]
+    """Liefert ein offenes Repository auf einer frischen DB."""
+    db = Database(tmp_path / "messages.db")
+    await db.open()
+    await MigrationRunner(db).run()
+    try:
+        yield MessageRepository(db)
+    finally:
+        await db.close()
+
+
+def _msg(**overrides: object) -> Message:
+    """Helper: minimal valide Message mit Override-Optionen."""
+    defaults: dict[str, object] = {
+        "severity": Severity.INFO,
+        "source": "test.source",
+        "text": "hello world",
+    }
+    defaults.update(overrides)
+    return Message(**defaults)  # type: ignore[arg-type]
+
+
+@pytest.mark.asyncio
+async def test_insert_message_returns_id(repo: MessageRepository) -> None:
+    """insert() liefert eine numerische ID > 0 und setzt sie auf der Message."""
+    msg = _msg()
+    new_id = await repo.insert(msg)
+
+    assert new_id > 0
+    assert msg.id == new_id
+
+
+@pytest.mark.asyncio
+async def test_insert_persists_all_fields(repo: MessageRepository) -> None:
+    """get_by_id() liefert die persistierten Felder identisch zurueck."""
+    original = _msg(
+        severity=Severity.ERROR,
+        source="pihole",
+        text="DNS unreachable",
+        metadata={"host": "pi.hole", "code": 42},
+        webhook_id="hook-12345",
+    )
+    new_id = await repo.insert(original)
+
+    loaded = await repo.get_by_id(new_id)
+
+    assert loaded is not None
+    assert loaded.id == new_id
+    assert loaded.severity is Severity.ERROR
+    assert loaded.source == "pihole"
+    assert loaded.text == "DNS unreachable"
+    assert loaded.metadata == {"host": "pi.hole", "code": 42}
+    assert loaded.webhook_id == "hook-12345"
+    assert loaded.timestamp.tzinfo is UTC
+
+
+@pytest.mark.asyncio
+async def test_get_by_id_returns_none_when_missing(repo: MessageRepository) -> None:
+    assert await repo.get_by_id(99999) is None
+
+
+@pytest.mark.asyncio
+async def test_delete_by_id_returns_true_when_deleted(repo: MessageRepository) -> None:
+    new_id = await repo.insert(_msg())
+    assert await repo.delete_by_id(new_id) is True
+    assert await repo.get_by_id(new_id) is None
+
+
+@pytest.mark.asyncio
+async def test_delete_by_id_returns_false_when_missing(repo: MessageRepository) -> None:
+    assert await repo.delete_by_id(99999) is False
+
+
+@pytest.mark.asyncio
+async def test_list_recent_orders_by_timestamp_desc(repo: MessageRepository) -> None:
+    base = datetime(2026, 5, 1, 12, 0, 0, tzinfo=UTC)
+    ids: list[int] = []
+    for i in range(5):
+        msg = _msg(text=f"#{i}", timestamp=base + timedelta(minutes=i))
+        ids.append(await repo.insert(msg))
+
+    recent = await repo.list_recent(limit=10)
+
+    # Erwarte: juengstes zuerst -> ids[4], ids[3], ids[2], ids[1], ids[0]
+    assert [m.id for m in recent] == list(reversed(ids))
+
+
+@pytest.mark.asyncio
+async def test_list_recent_respects_limit(repo: MessageRepository) -> None:
+    for i in range(7):
+        await repo.insert(_msg(text=f"#{i}"))
+
+    assert len(await repo.list_recent(limit=3)) == 3
+    assert len(await repo.list_recent(limit=100)) == 7
+    assert await repo.list_recent(limit=0) == []
+    assert await repo.list_recent(limit=-1) == []
+
+
+@pytest.mark.asyncio
+async def test_count_total_after_inserts(repo: MessageRepository) -> None:
+    assert await repo.count_total() == 0
+    for _ in range(3):
+        await repo.insert(_msg())
+    assert await repo.count_total() == 3
+
+
+@pytest.mark.asyncio
+async def test_metadata_roundtrip_with_unicode(repo: MessageRepository) -> None:
+    msg = _msg(metadata={"name": "Wohnzimmer-Lampe", "ä": "ö"})
+    new_id = await repo.insert(msg)
+
+    loaded = await repo.get_by_id(new_id)
+
+    assert loaded is not None
+    assert loaded.metadata == {"name": "Wohnzimmer-Lampe", "ä": "ö"}
+
+
+@pytest.mark.asyncio
+async def test_repository_is_sql_injection_safe(repo: MessageRepository) -> None:
+    """SQL-Injection-Versuche im Text werden als reine Daten persistiert."""
+    payload = "'; DROP TABLE messages; --"
+    new_id = await repo.insert(_msg(text=payload))
+
+    loaded = await repo.get_by_id(new_id)
+    assert loaded is not None
+    assert loaded.text == payload
+    # Tabelle existiert noch:
+    assert await repo.count_total() == 1

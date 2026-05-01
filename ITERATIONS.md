@@ -6,7 +6,7 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 1 — Repo-Bootstrap
 - [x] Iteration 2 — SQLite-Storage-Schicht
 - [x] Iteration 3 — Models & Validierung
-- [ ] Iteration 4 — Message-Repository (CRUD)
+- [x] Iteration 4 — Message-Repository (CRUD)
 - [ ] Iteration 5 — Service add_message + Eventbus
 - [ ] Iteration 6 — Sensoren (Counter)
 - [ ] Iteration 7 — Config-Flow (Erstinstallation + Options)
