@@ -6,6 +6,7 @@
 import { LitElement, css, html, nothing, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ApiClient, KnxAddressDto } from "../api-client.js";
+import { tokens, buttons, forms, pills } from "../styles/tokens.js";
 
 const GA_PATTERN = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/;
 const SEVERITY_OPTIONS = ["debug", "info", "warning", "error"] as const;
@@ -328,8 +329,8 @@ export class KnxAddressesView extends LitElement {
             : nothing}
 
           <div class="modal-actions">
-            <button @click=${() => (this._editing = null)}>Abbrechen</button>
-            <button class="primary" @click=${() => void this._saveEdit()}>
+            <button class="mh-btn" @click=${() => (this._editing = null)}>Abbrechen</button>
+            <button class="mh-btn mh-btn--primary" @click=${() => void this._saveEdit()}>
               Speichern
             </button>
           </div>
@@ -370,7 +371,7 @@ export class KnxAddressesView extends LitElement {
             <p class="hint">
               ${this._items.length} Adressen,
               <strong>${enabledCount} im Protokoll aktiv</strong>. Voraussetzung
-              fuer die Bus-Erfassung: HA-KNX-Integration mit IP-Tunneling/Routing
+              für die Bus-Erfassung: HA-KNX-Integration mit IP-Tunneling/Routing
               ist eingerichtet — sie feuert das Event <code>knx_event</code>, das
               wir gegen diese Whitelist matchen. Nicht-aktivierte GAs werden
               ignoriert.
@@ -379,14 +380,14 @@ export class KnxAddressesView extends LitElement {
           <div class="header-actions">
             ${this._discovery.length > 0
               ? html`<button
-                  class="from-project"
+                  class="mh-btn mh-btn--primary"
                   title=${`${this._discovery.length} GAs aus dem in HA hinterlegten ETS-Projekt`}
                   @click=${() => void this._bulkImportFromProject()}
                 >
-                  ✨ ${this._discovery.length} aus HA-KNX-Projekt uebernehmen
+                  ✨ ${this._discovery.length} aus HA-KNX-Projekt übernehmen
                 </button>`
               : null}
-            <label class="csv-upload">
+            <label class="mh-btn csv-upload">
               <input type="file" accept=".csv,text/csv" @change=${this._onCsvFile} />
               <span>📂 ETS-CSV importieren</span>
             </label>
@@ -396,9 +397,10 @@ export class KnxAddressesView extends LitElement {
         <div class="add-form">
           <input
             type="text"
+            class="mh-input"
             list="knx-discovery-list"
             placeholder="${this._discovery.length > 0
-              ? `GA aus Projekt waehlen (${this._discovery.length} verfuegbar)`
+              ? `GA aus Projekt wählen (${this._discovery.length} verfügbar)`
               : "GA (z. B. 1/2/3)"}"
             .value=${this._newAddr}
             @input=${this._onAddressInput}
@@ -416,7 +418,8 @@ export class KnxAddressesView extends LitElement {
           </datalist>
           <input
             type="text"
-            placeholder="Label (z. B. Stoerung Heizung Pumpe)"
+            class="mh-input"
+            placeholder="Label (z. B. Störung Heizung Pumpe)"
             .value=${this._newLabel}
             @input=${(e: InputEvent) =>
               (this._newLabel = (e.target as HTMLInputElement).value)}
@@ -426,7 +429,7 @@ export class KnxAddressesView extends LitElement {
           />
           <input
             type="text"
-            class="narrow"
+            class="mh-input narrow"
             placeholder="DPT (z. B. 1.001)"
             .value=${this._newDpt}
             @input=${(e: InputEvent) =>
@@ -435,12 +438,12 @@ export class KnxAddressesView extends LitElement {
               if (e.key === "Enter") void this._add();
             }}
           />
-          <button class="primary" @click=${this._add}>+ Hinzufuegen</button>
+          <button class="mh-btn mh-btn--primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
         ${this._discovery.length > 0
           ? html`<p class="hint">
-              💡 Tipp: Beim Tippen in das GA-Feld erscheinen Vorschlaege aus dem
-              ETS-Projekt — Label und DPT werden dann automatisch vorbefuellt.
+              💡 Tipp: Beim Tippen in das GA-Feld erscheinen Vorschläge aus dem
+              ETS-Projekt — Label und DPT werden dann automatisch vorbefüllt.
             </p>`
           : null}
         ${this._renderDiscoveryStatus()}
@@ -449,6 +452,7 @@ export class KnxAddressesView extends LitElement {
         <div class="filter-bar">
           <input
             type="search"
+            class="mh-input"
             placeholder="Suche (GA / Label / DPT)…"
             .value=${this._filter}
             @input=${(e: InputEvent) =>
@@ -481,9 +485,8 @@ export class KnxAddressesView extends LitElement {
                         </p>
                         <p>
                           So aktivierst du eine: in der Liste den
-                          <strong>OFF</strong>-Knopf einer Adresse klicken (er
-                          wird gruen <strong>✓ ON</strong>) — oder im
-                          Edit-Dialog &bdquo;Im Protokoll erfassen&ldquo;
+                          <strong>Loggen-Switch</strong> einer Adresse umlegen
+                          — oder im Edit-Dialog „Im Protokoll erfassen"
                           anhaken und speichern.
                         </p>
                         <p class="muted small">
@@ -493,67 +496,89 @@ export class KnxAddressesView extends LitElement {
                           mit dem API-Bug vom 2026-05-01 vor 21:14 vor.
                         </p>`
                     : html`<p>
-                        Keine Treffer fuer aktuelle Filter
+                        Keine Treffer für aktuelle Filter
                         (${this._items.length} Adressen total,
                         ${enabledCount} davon aktiv).
                       </p>`}
               </div>`
             : html`
-                <table>
-                  <thead>
-                    <tr>
-                      <th>GA</th>
-                      <th>Label</th>
-                      <th>DPT</th>
-                      <th>Severity</th>
-                      <th class="col-toggle">📝 Loggen</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${items.map(
-                      (it) => html`
-                        <tr class=${it.log_enabled ? "enabled" : ""}>
-                          <td><code>${it.address}</code></td>
-                          <td>${it.label}</td>
-                          <td>${it.dpt ?? html`<span class="muted">—</span>`}</td>
-                          <td>
-                            ${it.log_enabled
-                              ? html`<span class=${`sev sev-${it.log_severity}`}>
-                                  ${it.log_severity}${it.log_severity === "auto"
-                                    ? html`<small>
-                                        T:${it.severity_on_true ?? "warning"}/F:${it.severity_on_false ??
-                                        "info"}
-                                      </small>`
-                                    : nothing}
-                                </span>`
-                              : html`<span class="muted">—</span>`}
-                          </td>
-                          <td class="col-toggle">
-                            <button
-                              class=${`toggle-btn ${it.log_enabled ? "on" : "off"}`}
-                              @click=${() => void this._toggleLog(it)}
-                              title=${it.log_enabled
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>GA</th>
+                        <th>Label</th>
+                        <th>DPT</th>
+                        <th>Severity</th>
+                        <th class="col-toggle">Loggen</th>
+                        <th class="col-actions"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${items.map(
+                        (it) => html`
+                          <tr class=${it.log_enabled ? "enabled" : ""}>
+                            <td><code class="ga">${it.address}</code></td>
+                            <td class="label-cell">${it.label}</td>
+                            <td>
+                              ${it.dpt
+                                ? html`<code class="dpt">${it.dpt}</code>`
+                                : html`<span class="muted">—</span>`}
+                            </td>
+                            <td>
+                              ${it.log_enabled
+                                ? html`<span class=${`mh-pill mh-pill--${
+                                    it.log_severity === "auto" ? "neutral" : it.log_severity
+                                  }`}>
+                                    <span class="mh-pill__dot"></span>
+                                    ${it.log_severity}${it.log_severity === "auto"
+                                      ? html` <small class="auto-detail"
+                                          >T:${it.severity_on_true ?? "warning"}
+                                          / F:${it.severity_on_false ?? "info"}</small
+                                        >`
+                                      : nothing}
+                                  </span>`
+                                : html`<span class="muted">—</span>`}
+                            </td>
+                            <td class="col-toggle">
+                              <label class="switch" title=${it.log_enabled
                                 ? "Loggen deaktivieren"
-                                : "Loggen aktivieren"}
-                            >
-                              ${it.log_enabled ? "✓ ON" : "OFF"}
-                            </button>
-                          </td>
-                          <td class="actions">
-                            <button @click=${() => (this._editing = it)}>Edit</button>
-                            <button
-                              class="danger"
-                              @click=${() => void this._delete(it.address)}
-                            >
-                              Loeschen
-                            </button>
-                          </td>
-                        </tr>
-                      `
-                    )}
-                  </tbody>
-                </table>
+                                : "Loggen aktivieren"}>
+                                <input
+                                  type="checkbox"
+                                  .checked=${it.log_enabled}
+                                  @change=${() => void this._toggleLog(it)}
+                                  aria-label=${it.log_enabled
+                                    ? "Loggen deaktivieren"
+                                    : "Loggen aktivieren"}
+                                />
+                                <span class="slider"></span>
+                              </label>
+                            </td>
+                            <td class="col-actions">
+                              <button
+                                class="icon-btn"
+                                title="Bearbeiten"
+                                aria-label="Bearbeiten"
+                                @click=${() => (this._editing = it)}
+                              >
+                                <span aria-hidden="true">✎</span>
+                              </button>
+                              <button
+                                class="icon-btn danger"
+                                title="Löschen"
+                                aria-label="Löschen"
+                                @click=${() => void this._delete(it.address)}
+                              >
+                                <span aria-hidden="true">🗑</span>
+                              </button>
+                            </td>
+                          </tr>
+                        `
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               `}
 
         ${this._renderEditor()}
@@ -562,314 +587,373 @@ export class KnxAddressesView extends LitElement {
     `;
   }
 
-  static override styles = css`
-    section {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    h2 {
-      margin: 0;
-      font-size: 1.2em;
-    }
-    h3 {
-      margin: 0 0 8px 0;
-    }
-    .hint {
-      margin: 4px 0 0 0;
-      font-size: 0.9em;
-      color: var(--secondary-text-color, #666);
-    }
-    .header-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .from-project {
-      cursor: pointer;
-      padding: 6px 12px;
-      border: 1px solid var(--primary-color, #03a9f4);
-      border-radius: 4px;
-      font-size: 0.85em;
-      background: var(--primary-color, #03a9f4);
-      color: white;
-    }
-    .from-project:hover {
-      filter: brightness(0.95);
-    }
-    .discovery-status {
-      padding: 8px 12px;
-      background: rgba(255, 235, 59, 0.12);
-      border-left: 3px solid var(--warning-color, #ff9800);
-      border-radius: 3px;
-      font-size: 0.85em;
-      color: var(--primary-text-color, #222);
-      line-height: 1.5;
-    }
-    .csv-upload {
-      cursor: pointer;
-      padding: 6px 12px;
-      border: 1px solid var(--divider-color, #ccc);
-      border-radius: 4px;
-      font-size: 0.85em;
-      background: var(--card-background-color, white);
-    }
-    .csv-upload input[type="file"] {
-      display: none;
-    }
-    .csv-upload:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    .add-form {
-      display: grid;
-      grid-template-columns: 130px 1fr 130px auto;
-      gap: 8px;
-      background: var(--card-background-color, white);
-      border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
-      padding: 12px;
-    }
-    @media (max-width: 720px) {
+  static override styles = [
+    tokens,
+    buttons,
+    forms,
+    pills,
+    css`
+      section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-3);
+      }
+      .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: var(--mh-space-4);
+        flex-wrap: wrap;
+      }
+      h2 {
+        margin: 0;
+        font-size: var(--mh-text-xl);
+        font-weight: var(--mh-weight-semibold);
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        margin: 0 0 var(--mh-space-2) 0;
+      }
+      .hint {
+        margin: 4px 0 0 0;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        line-height: 1.5;
+      }
+      .header-actions {
+        display: flex;
+        gap: var(--mh-space-2);
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .csv-upload {
+        cursor: pointer;
+      }
+      .csv-upload input[type="file"] {
+        display: none;
+      }
+      .discovery-status {
+        padding: var(--mh-space-2) var(--mh-space-3);
+        background: var(--mh-warning-soft);
+        border-left: 3px solid var(--mh-warning);
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg);
+        line-height: 1.5;
+      }
+
+      /* Add-Form */
       .add-form {
-        grid-template-columns: 1fr 1fr;
+        display: grid;
+        grid-template-columns: 140px 1fr 130px auto;
+        gap: var(--mh-space-2);
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        padding: var(--mh-space-3);
       }
-    }
-    input[type="text"],
-    input[type="search"],
-    select {
-      padding: 8px 10px;
-      border: 1px solid var(--divider-color, #ccc);
-      border-radius: 4px;
-      font: inherit;
-      background: var(--card-background-color, white);
-      color: var(--primary-text-color, #222);
-    }
-    input.narrow {
-      max-width: 130px;
-    }
-    button {
-      padding: 6px 12px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      cursor: pointer;
-      border-radius: 4px;
-      font: inherit;
-      font-size: 0.85em;
-    }
-    button:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    button.primary {
-      background: var(--primary-color, #03a9f4);
-      color: white;
-      border-color: var(--primary-color, #03a9f4);
-    }
-    button.primary:hover {
-      filter: brightness(0.9);
-    }
-    button.danger {
-      color: var(--error-color, #db4437);
-      border-color: var(--error-color, #db4437);
-    }
-    button.toggle-btn {
-      min-width: 56px;
-      font-weight: 600;
-    }
-    button.toggle-btn.on {
-      background: var(--success-color, #4caf50);
-      color: white;
-      border-color: var(--success-color, #4caf50);
-    }
-    button.toggle-btn.off {
-      color: var(--secondary-text-color, #666);
-    }
-    .filter-bar {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.9em;
-      cursor: pointer;
-    }
-    .muted {
-      color: var(--secondary-text-color, #888);
-      font-size: 0.85em;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--card-background-color, white);
-      border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    th,
-    td {
-      text-align: left;
-      padding: 6px 12px;
-      border-bottom: 1px solid var(--divider-color, #eee);
-      font-size: 0.9em;
-    }
-    th {
-      background: var(--secondary-background-color, #f3f3f3);
-      font-size: 0.78em;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--secondary-text-color, #666);
-    }
-    .col-toggle {
-      text-align: center;
-    }
-    td.actions {
-      text-align: right;
-      white-space: nowrap;
-    }
-    td.actions button + button {
-      margin-left: 4px;
-    }
-    tr.enabled {
-      background: rgba(76, 175, 80, 0.04);
-    }
-    code {
-      font-family: var(--ha-font-family-code, monospace);
-      font-size: 0.9em;
-    }
-    .sev {
-      display: inline-block;
-      padding: 1px 6px;
-      border-radius: 8px;
-      font-size: 0.78em;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    .sev small {
-      display: block;
-      font-size: 0.85em;
-      font-weight: 400;
-      text-transform: none;
-      opacity: 0.85;
-    }
-    .sev-debug {
-      background: rgba(0, 0, 0, 0.06);
-      color: var(--secondary-text-color, #666);
-    }
-    .sev-info {
-      background: rgba(3, 169, 244, 0.12);
-      color: var(--info-color, #03a9f4);
-    }
-    .sev-warning {
-      background: rgba(255, 152, 0, 0.15);
-      color: var(--warning-color, #ff9800);
-    }
-    .sev-error {
-      background: rgba(219, 68, 55, 0.15);
-      color: var(--error-color, #db4437);
-    }
-    .sev-auto {
-      background: rgba(156, 39, 176, 0.12);
-      color: #6a1b9a;
-    }
-    .empty {
-      padding: 24px;
-      text-align: center;
-      color: var(--secondary-text-color, #666);
-      background: var(--card-background-color, white);
-      border: 1px dashed var(--divider-color, #ccc);
-      border-radius: 8px;
-    }
-    .error {
-      color: var(--error-color, #db4437);
-      font-size: 0.9em;
-      padding: 6px 8px;
-      background: rgba(219, 68, 55, 0.08);
-      border-left: 3px solid var(--error-color, #db4437);
-      border-radius: 2px;
-    }
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--primary-text-color, #222);
-      color: var(--primary-background-color, white);
-      padding: 10px 16px;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      font-size: 0.9em;
-      z-index: 100;
-    }
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 60;
-    }
-    .modal {
-      background: var(--card-background-color, white);
-      border-radius: 8px;
-      padding: 20px;
-      width: min(520px, 92vw);
-      max-height: 90vh;
-      overflow: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .modal label {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.9em;
-      color: var(--secondary-text-color, #666);
-    }
-    .modal label > span {
-      font-weight: 500;
-      color: var(--primary-text-color, #222);
-    }
-    .modal label.checkbox {
-      flex-direction: row;
-      align-items: center;
-      gap: 6px;
-    }
-    .modal small {
-      font-size: 0.78em;
-      color: var(--secondary-text-color, #888);
-    }
-    .modal small code {
-      background: var(--secondary-background-color, #f5f5f5);
-      padding: 1px 4px;
-      border-radius: 3px;
-    }
-    .row-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    @media (max-width: 600px) {
+      @media (max-width: 720px) {
+        .add-form {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .narrow {
+        max-width: 130px;
+      }
+
+      /* Filter-Bar */
+      .filter-bar {
+        display: flex;
+        gap: var(--mh-space-3);
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .filter-bar .mh-input {
+        flex: 1;
+        min-width: 200px;
+        max-width: 320px;
+      }
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--mh-space-1);
+        font-size: var(--mh-text-sm);
+        cursor: pointer;
+        color: var(--mh-fg-muted);
+      }
+      .muted {
+        color: var(--mh-fg-muted);
+        font-size: var(--mh-text-sm);
+      }
+
+      /* Tabelle */
+      .table-wrap {
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        overflow: hidden;
+        box-shadow: var(--mh-shadow-1);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px var(--mh-space-3);
+        border-bottom: 1px solid var(--mh-divider);
+        font-size: var(--mh-text-sm);
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      th {
+        background: var(--mh-bg);
+        font-size: var(--mh-text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-semibold);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      tr {
+        transition: background var(--mh-transition-fast);
+      }
+      tbody tr:hover {
+        background: var(--mh-surface-2);
+      }
+      tr.enabled {
+        background: color-mix(in srgb, var(--mh-success) 4%, transparent);
+      }
+      .col-toggle {
+        text-align: center;
+        width: 60px;
+      }
+      .col-actions {
+        text-align: right;
+        white-space: nowrap;
+        width: 80px;
+      }
+      .col-actions button + button {
+        margin-left: 4px;
+      }
+      code.ga {
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-sm);
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg);
+      }
+      code.dpt {
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        background: var(--mh-surface-2);
+        padding: 1px 6px;
+        border-radius: var(--mh-radius-sm);
+      }
+      .label-cell {
+        max-width: 360px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .auto-detail {
+        font-size: 0.78em;
+        font-weight: var(--mh-weight-regular);
+        opacity: 0.75;
+        margin-left: 4px;
+      }
+
+      /* Switch */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 36px;
+        height: 20px;
+        cursor: pointer;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        inset: 0;
+        background: var(--mh-divider);
+        border-radius: var(--mh-radius-pill);
+        transition: background var(--mh-transition-fast);
+      }
+      .slider::before {
+        content: "";
+        position: absolute;
+        height: 14px;
+        width: 14px;
+        left: 3px;
+        top: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: transform var(--mh-transition-fast);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      .switch input:checked + .slider {
+        background: var(--mh-success);
+      }
+      .switch input:checked + .slider::before {
+        transform: translateX(16px);
+      }
+      .switch input:focus-visible + .slider {
+        outline: var(--mh-focus-ring);
+        outline-offset: 2px;
+      }
+
+      /* Icon-Buttons */
+      .icon-btn {
+        appearance: none;
+        background: transparent;
+        border: 1px solid transparent;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--mh-radius-sm);
+        cursor: pointer;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background var(--mh-transition-fast), color var(--mh-transition-fast);
+      }
+      .icon-btn:hover {
+        background: var(--mh-surface-2);
+        color: var(--mh-fg);
+      }
+      .icon-btn.danger:hover {
+        background: var(--mh-error-soft);
+        color: var(--mh-error);
+      }
+      .icon-btn:focus-visible {
+        outline: var(--mh-focus-ring);
+        outline-offset: 2px;
+      }
+
+      /* Empty / Error */
+      .empty {
+        padding: var(--mh-space-5);
+        text-align: center;
+        color: var(--mh-fg-muted);
+        background: var(--mh-surface);
+        border: 1px dashed var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        line-height: 1.5;
+      }
+      .error {
+        color: var(--mh-error);
+        font-size: var(--mh-text-sm);
+        padding: 6px var(--mh-space-2);
+        background: var(--mh-error-soft);
+        border-left: 3px solid var(--mh-error);
+        border-radius: 2px;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: var(--mh-space-5);
+        right: var(--mh-space-5);
+        background: var(--mh-fg);
+        color: var(--mh-bg);
+        padding: var(--mh-space-3) var(--mh-space-4);
+        border-radius: var(--mh-radius-md);
+        box-shadow: var(--mh-shadow-3);
+        font-size: var(--mh-text-sm);
+        z-index: 100;
+      }
+
+      /* Modal */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 60;
+      }
+      .modal {
+        background: var(--mh-surface);
+        border-radius: var(--mh-radius-lg);
+        padding: var(--mh-space-5);
+        width: min(560px, 92vw);
+        max-height: 90vh;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-3);
+        box-shadow: var(--mh-shadow-3);
+      }
+      .modal label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+      }
+      .modal label > span {
+        font-weight: var(--mh-weight-medium);
+        color: var(--mh-fg);
+      }
+      .modal label.checkbox {
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+      }
+      .modal input[type="text"],
+      .modal select {
+        padding: 8px 12px;
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm);
+        font: inherit;
+        font-size: var(--mh-text-sm);
+        background: var(--mh-surface);
+        color: var(--mh-fg);
+      }
+      .modal input[type="text"]:focus-visible,
+      .modal select:focus-visible {
+        outline: none;
+        border-color: var(--mh-accent);
+        box-shadow: 0 0 0 3px var(--mh-accent-soft);
+      }
+      .modal small {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+      }
+      .modal small code {
+        background: var(--mh-surface-2);
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
       .row-2 {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--mh-space-3);
       }
-    }
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 8px;
-    }
-  `;
+      @media (max-width: 600px) {
+        .row-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--mh-space-2);
+        margin-top: var(--mh-space-2);
+      }
+      .modal-actions .mh-btn {
+        font-size: var(--mh-text-sm);
+      }
+    `,
+  ];
 }
