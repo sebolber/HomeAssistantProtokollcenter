@@ -1,0 +1,43 @@
+{
+  "title": "Message Hub",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Message Hub instellen",
+        "description": "Bevestig de installatie. Webhooks en overige opties worden in het paneel beheerd."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Slechts één instantie van deze integratie is toegestaan."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opties",
+        "description": "Bewaartijden, hard-cap en log-niveau van de integratie.",
+        "data": {
+          "retention_debug_days": "Bewaartijd debug (dagen)",
+          "retention_info_days": "Bewaartijd info (dagen)",
+          "retention_warning_days": "Bewaartijd warning (dagen)",
+          "retention_error_days": "Bewaartijd error (dagen)",
+          "hard_cap_total": "Maximaal aantal berichten",
+          "aggregation_window_minutes": "Aggregatie-venster (minuten)",
+          "log_level": "Log-niveau"
+        }
+      }
+    }
+  },
+  "services": {
+    "add_message": {
+      "name": "Bericht toevoegen",
+      "description": "Voegt handmatig een bericht toe aan de message hub.",
+      "fields": {
+        "severity": { "name": "Severity", "description": "Niveau" },
+        "source": { "name": "Bron", "description": "Logische herkomst" },
+        "text": { "name": "Tekst", "description": "Berichttekst" },
+        "metadata": { "name": "Metadata", "description": "Optionele extra velden" }
+      }
+    }
+  }
+}

@@ -773,6 +773,64 @@ class ChannelsView(_RequireAdminView):
         return self.json(channel_to_dict(ch))
 
 
+class ChannelTestView(_RequireAdminView):
+    """v0.4: schickt eine Test-Nachricht ueber den Channel."""
+
+    url = "/api/messagehub/channels/{channel_id}/test"
+    name = "api:messagehub:channel-test"
+
+    async def post(self, request: web.Request, channel_id: str) -> web.Response:
+        from ..notifications.dispatch import build_forwarder_for_channels  # noqa: PLC0415
+        from ..notifications.repository import ChannelRepository  # noqa: PLC0415
+        from ..storage import Message, Severity  # noqa: PLC0415
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        try:
+            cid = int(channel_id)
+        except ValueError:
+            return self.json_message("invalid id", status_code=400)
+        channels = await ChannelRepository(db).list_all()
+        target = next((c for c in channels if c.id == cid), None)
+        if target is None:
+            return self.json_message("not found", status_code=404)
+
+        # Test ignoriert Throttle/Quiet — wir ueberschreiben temporaer die Schwelle
+        # auf 'debug' und Throttle auf 0, damit die Test-Nachricht garantiert
+        # durchkommt.
+        target_copy = type(target)(
+            id=target.id,
+            name=target.name,
+            channel_type=target.channel_type,
+            enabled=True,
+            severity_threshold="debug",
+            quiet_start=None,
+            quiet_end=None,
+            quiet_bypass_error=True,
+            throttle_seconds=0,
+            config=target.config,
+        )
+        forwarder = build_forwarder_for_channels(hass, [target_copy])
+        msg = Message(
+            severity=Severity.INFO,
+            source="messagehub.test",
+            text=f"Test-Nachricht an Channel '{target.name}' — alles funktioniert.",
+        )
+        msg.id = -1
+        delivered = await forwarder.dispatch(msg)
+        await _audit(
+            hass,
+            request,
+            action="channel_test",
+            target_type="channel",
+            target_id=channel_id,
+        )
+        return self.json({"delivered": delivered, "channel": target.name})
+
+
 class ChannelDetailView(_RequireAdminView):
     url = "/api/messagehub/channels/{channel_id}"
     name = "api:messagehub:channel-detail"
@@ -1052,6 +1110,8 @@ class StatsExtendedView(_RequireAdminView):
             {
                 "heatmap": await msg_repo.heatmap_hour_weekday(days=days),
                 "top_sources": await msg_repo.top_sources(limit=10, days=days),
+                "mttr_per_source": await msg_repo.mttr_per_source(days=days),
+                "severity_time_series": await msg_repo.severity_time_series(hours=24),
             }
         )
 
@@ -1075,6 +1135,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         KnxAddressDetailView,
         ChannelsView,
         ChannelDetailView,
+        ChannelTestView,
         MqttTopicsView,
         MqttTopicDetailView,
         RemediationHooksView,

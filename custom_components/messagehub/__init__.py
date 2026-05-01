@@ -479,9 +479,9 @@ def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository:
     konfiguriert. Sie feuert pro Telegramm 'knx_event' mit den Feldern
     destination (Gruppenadresse), source (Geraete-Adresse), telegramtype,
     value, data."""
+    from .processing.knx_dpt import format_value as format_knx_value  # noqa: PLC0415
     from .processing.knx_repo import (  # noqa: PLC0415
         KnxAddressRepository,
-        build_text,
         resolve_severity,
     )
     from .storage import Message, Severity  # noqa: PLC0415
@@ -514,7 +514,11 @@ def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository:
             if value is None:
                 value = data.get("data")
             severity = Severity.normalise(resolve_severity(cfg, value))
-            text = build_text(cfg, value, telegramtype)
+            # v0.4: DPT-Formatter — `1.005 + True` -> 'Alarm', `9.001 + 21.5` -> '21.5 °C'.
+            formatted = format_knx_value(cfg.dpt, value)
+            text = f"{cfg.label} = {formatted}" if formatted else cfg.label
+            if telegramtype and telegramtype != "GroupValueWrite":
+                text = f"{text} ({telegramtype})"
             msg = Message(
                 severity=severity,
                 source="knx-bus",

@@ -22,12 +22,14 @@ export class KnxAddressesView extends LitElement {
   @state() private _newAddr = "";
   @state() private _newLabel = "";
   @state() private _newDpt = "";
+  @state() private _discovery: Array<{ address: string; name: string; dpt: string | null }> = [];
   @state() private _editing: KnxAddressDto | null = null;
   @state() private _toast = "";
   @state() private _error = "";
 
   override async firstUpdated(): Promise<void> {
     await this._load();
+    await this._loadDiscovery();
   }
 
   private async _load(): Promise<void> {
@@ -38,6 +40,61 @@ export class KnxAddressesView extends LitElement {
     } finally {
       this._loading = false;
     }
+  }
+
+  private async _loadDiscovery(): Promise<void> {
+    if (!this.api) return;
+    try {
+      this._discovery = await this.api.discoverKnxFromProject();
+    } catch {
+      this._discovery = [];
+    }
+  }
+
+  private _onAddressInput(e: InputEvent): void {
+    const value = (e.target as HTMLInputElement).value;
+    this._newAddr = value;
+    // Wenn die Eingabe eine vollstaendige GA aus dem Projekt ist,
+    // automatisch Label + DPT vorbefuellen, falls leer.
+    const hit = this._discovery.find((d) => d.address === value);
+    if (hit) {
+      if (!this._newLabel.trim()) this._newLabel = hit.name;
+      if (!this._newDpt.trim() && hit.dpt) this._newDpt = hit.dpt;
+    }
+  }
+
+  private async _bulkImportFromProject(): Promise<void> {
+    if (!this.api || this._discovery.length === 0) return;
+    const existing = new Set(this._items.map((i) => i.address));
+    const fresh = this._discovery.filter((d) => !existing.has(d.address));
+    if (fresh.length === 0) {
+      this._showToast("Alle Projekt-GAs sind bereits angelegt");
+      return;
+    }
+    if (
+      !window.confirm(
+        `${fresh.length} fehlende Projekt-GAs anlegen? (Logging bleibt zunaechst aus, Severity-Mapping kannst du danach pro Adresse setzen.)`
+      )
+    ) {
+      return;
+    }
+    let imported = 0;
+    for (const d of fresh) {
+      try {
+        await this.api.upsertKnxAddress({
+          address: d.address,
+          label: d.name || d.address,
+          dpt: d.dpt,
+          log_enabled: false,
+          log_severity: "info",
+        });
+        imported += 1;
+      } catch {
+        // einzelne Fehler ignorieren, weiter machen
+      }
+    }
+    this._showToast(`${imported} aus ETS-Projekt uebernommen`);
+    await this._load();
   }
 
   private async _add(): Promise<void> {
@@ -282,23 +339,44 @@ export class KnxAddressesView extends LitElement {
               ignoriert.
             </p>
           </div>
-          <label class="csv-upload">
-            <input type="file" accept=".csv,text/csv" @change=${this._onCsvFile} />
-            <span>📂 ETS-CSV importieren</span>
-          </label>
+          <div class="header-actions">
+            ${this._discovery.length > 0
+              ? html`<button
+                  class="from-project"
+                  title=${`${this._discovery.length} GAs aus dem in HA hinterlegten ETS-Projekt`}
+                  @click=${() => void this._bulkImportFromProject()}
+                >
+                  ✨ ${this._discovery.length} aus HA-KNX-Projekt uebernehmen
+                </button>`
+              : null}
+            <label class="csv-upload">
+              <input type="file" accept=".csv,text/csv" @change=${this._onCsvFile} />
+              <span>📂 ETS-CSV importieren</span>
+            </label>
+          </div>
         </header>
 
         <div class="add-form">
           <input
             type="text"
-            placeholder="GA (z. B. 1/2/3)"
+            list="knx-discovery-list"
+            placeholder="${this._discovery.length > 0
+              ? `GA aus Projekt waehlen (${this._discovery.length} verfuegbar)`
+              : "GA (z. B. 1/2/3)"}"
             .value=${this._newAddr}
-            @input=${(e: InputEvent) =>
-              (this._newAddr = (e.target as HTMLInputElement).value)}
+            @input=${this._onAddressInput}
             @keydown=${(e: KeyboardEvent) => {
               if (e.key === "Enter") void this._add();
             }}
           />
+          <datalist id="knx-discovery-list">
+            ${this._discovery.map(
+              (d) =>
+                html`<option value=${d.address}>
+                  ${d.name}${d.dpt ? ` (DPT ${d.dpt})` : ""}
+                </option>`
+            )}
+          </datalist>
           <input
             type="text"
             placeholder="Label (z. B. Stoerung Heizung Pumpe)"
@@ -322,6 +400,12 @@ export class KnxAddressesView extends LitElement {
           />
           <button class="primary" @click=${this._add}>+ Hinzufuegen</button>
         </div>
+        ${this._discovery.length > 0
+          ? html`<p class="hint">
+              💡 Tipp: Beim Tippen in das GA-Feld erscheinen Vorschlaege aus dem
+              ETS-Projekt — Label und DPT werden dann automatisch vorbefuellt.
+            </p>`
+          : null}
         ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
 
         <div class="filter-bar">
@@ -440,6 +524,24 @@ export class KnxAddressesView extends LitElement {
       margin: 4px 0 0 0;
       font-size: 0.9em;
       color: var(--secondary-text-color, #666);
+    }
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .from-project {
+      cursor: pointer;
+      padding: 6px 12px;
+      border: 1px solid var(--primary-color, #03a9f4);
+      border-radius: 4px;
+      font-size: 0.85em;
+      background: var(--primary-color, #03a9f4);
+      color: white;
+    }
+    .from-project:hover {
+      filter: brightness(0.95);
     }
     .csv-upload {
       cursor: pointer;

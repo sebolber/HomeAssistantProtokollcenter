@@ -192,9 +192,9 @@ let J = class extends HTMLElement {
     var i, o;
     const a = this.constructor, s = a._$Eh.get(e);
     if (s !== void 0 && this._$Em !== s) {
-      const c = a.getPropertyOptions(s), l = typeof c.converter == "function" ? { fromAttribute: c.converter } : ((i = c.converter) == null ? void 0 : i.fromAttribute) !== void 0 ? c.converter : ce;
+      const c = a.getPropertyOptions(s), d = typeof c.converter == "function" ? { fromAttribute: c.converter } : ((i = c.converter) == null ? void 0 : i.fromAttribute) !== void 0 ? c.converter : ce;
       this._$Em = s;
-      const p = l.fromAttribute(t, c.type);
+      const p = d.fromAttribute(t, c.type);
       this[s] = p ?? ((o = this._$Ej) == null ? void 0 : o.get(s)) ?? p, this._$Em = null;
     }
   }
@@ -233,8 +233,8 @@ let J = class extends HTMLElement {
       }
       const s = this.constructor.elementProperties;
       if (s.size > 0) for (const [i, o] of s) {
-        const { wrapped: c } = o, l = this[i];
-        c !== !0 || this._$AL.has(i) || l === void 0 || this.C(i, void 0, o, l);
+        const { wrapped: c } = o, d = this[i];
+        c !== !0 || this._$AL.has(i) || d === void 0 || this.C(i, void 0, o, d);
       }
     }
     let e = !1;
@@ -284,22 +284,22 @@ J.elementStyles = [], J.shadowRootOptions = { mode: "open" }, J[te("elementPrope
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const re = globalThis, De = (r) => r, he = re.trustedTypes, Me = he ? he.createPolicy("lit-html", { createHTML: (r) => r }) : void 0, Ye = "$lit$", U = `lit$${Math.random().toFixed(9).slice(2)}$`, Ze = "?" + U, pt = `<${Ze}>`, F = document, se = () => F.createComment(""), ae = (r) => r === null || typeof r != "object" && typeof r != "function", Ee = Array.isArray, ut = (r) => Ee(r) || typeof (r == null ? void 0 : r[Symbol.iterator]) == "function", _e = `[ 	
-\f\r]`, X = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, Le = /-->/g, je = />/g, L = RegExp(`>|${_e}(?:([^\\s"'>=/]+)(${_e}*=${_e}*(?:[^ 	
+const re = globalThis, De = (r) => r, he = re.trustedTypes, je = he ? he.createPolicy("lit-html", { createHTML: (r) => r }) : void 0, Ye = "$lit$", U = `lit$${Math.random().toFixed(9).slice(2)}$`, Ze = "?" + U, pt = `<${Ze}>`, F = document, se = () => F.createComment(""), ae = (r) => r === null || typeof r != "object" && typeof r != "function", Ee = Array.isArray, ut = (r) => Ee(r) || typeof (r == null ? void 0 : r[Symbol.iterator]) == "function", _e = `[ 	
+\f\r]`, X = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, Le = /-->/g, Me = />/g, L = RegExp(`>|${_e}(?:([^\\s"'>=/]+)(${_e}*=${_e}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), Ie = /'/g, Re = /"/g, Xe = /^(?:script|style|textarea|title)$/i, gt = (r) => (e, ...t) => ({ _$litType$: r, strings: e, values: t }), n = gt(1), B = Symbol.for("lit-noChange"), g = Symbol.for("lit-nothing"), Fe = /* @__PURE__ */ new WeakMap(), I = F.createTreeWalker(F, 129);
 function et(r, e) {
   if (!Ee(r) || !r.hasOwnProperty("raw")) throw Error("invalid template strings array");
-  return Me !== void 0 ? Me.createHTML(e) : e;
+  return je !== void 0 ? je.createHTML(e) : e;
 }
 const ft = (r, e) => {
   const t = r.length - 1, a = [];
   let s, i = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", o = X;
   for (let c = 0; c < t; c++) {
-    const l = r[c];
+    const d = r[c];
     let p, m, h = -1, f = 0;
-    for (; f < l.length && (o.lastIndex = f, m = o.exec(l), m !== null); ) f = o.lastIndex, o === X ? m[1] === "!--" ? o = Le : m[1] !== void 0 ? o = je : m[2] !== void 0 ? (Xe.test(m[2]) && (s = RegExp("</" + m[2], "g")), o = L) : m[3] !== void 0 && (o = L) : o === L ? m[0] === ">" ? (o = s ?? X, h = -1) : m[1] === void 0 ? h = -2 : (h = o.lastIndex - m[2].length, p = m[1], o = m[3] === void 0 ? L : m[3] === '"' ? Re : Ie) : o === Re || o === Ie ? o = L : o === Le || o === je ? o = X : (o = L, s = void 0);
+    for (; f < d.length && (o.lastIndex = f, m = o.exec(d), m !== null); ) f = o.lastIndex, o === X ? m[1] === "!--" ? o = Le : m[1] !== void 0 ? o = Me : m[2] !== void 0 ? (Xe.test(m[2]) && (s = RegExp("</" + m[2], "g")), o = L) : m[3] !== void 0 && (o = L) : o === L ? m[0] === ">" ? (o = s ?? X, h = -1) : m[1] === void 0 ? h = -2 : (h = o.lastIndex - m[2].length, p = m[1], o = m[3] === void 0 ? L : m[3] === '"' ? Re : Ie) : o === Re || o === Ie ? o = L : o === Le || o === Me ? o = X : (o = L, s = void 0);
     const u = o === L && r[c + 1].startsWith("/>") ? " " : "";
-    i += o === X ? l + pt : h >= 0 ? (a.push(p), l.slice(0, h) + Ye + l.slice(h) + U + u) : l + U + (h === -2 ? c : u);
+    i += o === X ? d + pt : h >= 0 ? (a.push(p), d.slice(0, h) + Ye + d.slice(h) + U + u) : d + U + (h === -2 ? c : u);
   }
   return [et(r, i + (r[t] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), a];
 };
@@ -308,29 +308,29 @@ class ie {
     let s;
     this.parts = [];
     let i = 0, o = 0;
-    const c = e.length - 1, l = this.parts, [p, m] = ft(e, t);
+    const c = e.length - 1, d = this.parts, [p, m] = ft(e, t);
     if (this.el = ie.createElement(p, a), I.currentNode = this.el.content, t === 2 || t === 3) {
       const h = this.el.content.firstChild;
       h.replaceWith(...h.childNodes);
     }
-    for (; (s = I.nextNode()) !== null && l.length < c; ) {
+    for (; (s = I.nextNode()) !== null && d.length < c; ) {
       if (s.nodeType === 1) {
         if (s.hasAttributes()) for (const h of s.getAttributeNames()) if (h.endsWith(Ye)) {
           const f = m[o++], u = s.getAttribute(h).split(U), _ = /([.?@])?(.*)/.exec(f);
-          l.push({ type: 1, index: i, name: _[2], strings: u, ctor: _[1] === "." ? mt : _[1] === "?" ? vt : _[1] === "@" ? _t : ge }), s.removeAttribute(h);
-        } else h.startsWith(U) && (l.push({ type: 6, index: i }), s.removeAttribute(h));
+          d.push({ type: 1, index: i, name: _[2], strings: u, ctor: _[1] === "." ? mt : _[1] === "?" ? vt : _[1] === "@" ? _t : ge }), s.removeAttribute(h);
+        } else h.startsWith(U) && (d.push({ type: 6, index: i }), s.removeAttribute(h));
         if (Xe.test(s.tagName)) {
           const h = s.textContent.split(U), f = h.length - 1;
           if (f > 0) {
             s.textContent = he ? he.emptyScript : "";
-            for (let u = 0; u < f; u++) s.append(h[u], se()), I.nextNode(), l.push({ type: 2, index: ++i });
+            for (let u = 0; u < f; u++) s.append(h[u], se()), I.nextNode(), d.push({ type: 2, index: ++i });
             s.append(h[f], se());
           }
         }
-      } else if (s.nodeType === 8) if (s.data === Ze) l.push({ type: 2, index: i });
+      } else if (s.nodeType === 8) if (s.data === Ze) d.push({ type: 2, index: i });
       else {
         let h = -1;
-        for (; (h = s.data.indexOf(U, h + 1)) !== -1; ) l.push({ type: 7, index: i }), h += U.length - 1;
+        for (; (h = s.data.indexOf(U, h + 1)) !== -1; ) d.push({ type: 7, index: i }), h += U.length - 1;
       }
       i++;
     }
@@ -360,13 +360,13 @@ class bt {
   u(e) {
     const { el: { content: t }, parts: a } = this._$AD, s = ((e == null ? void 0 : e.creationScope) ?? F).importNode(t, !0);
     I.currentNode = s;
-    let i = I.nextNode(), o = 0, c = 0, l = a[0];
-    for (; l !== void 0; ) {
-      if (o === l.index) {
+    let i = I.nextNode(), o = 0, c = 0, d = a[0];
+    for (; d !== void 0; ) {
+      if (o === d.index) {
         let p;
-        l.type === 2 ? p = new Z(i, i.nextSibling, this, e) : l.type === 1 ? p = new l.ctor(i, l.name, l.strings, this, e) : l.type === 6 && (p = new yt(i, this, e)), this._$AV.push(p), l = a[++c];
+        d.type === 2 ? p = new Z(i, i.nextSibling, this, e) : d.type === 1 ? p = new d.ctor(i, d.name, d.strings, this, e) : d.type === 6 && (p = new yt(i, this, e)), this._$AV.push(p), d = a[++c];
       }
-      o !== (l == null ? void 0 : l.index) && (i = I.nextNode(), o++);
+      o !== (d == null ? void 0 : d.index) && (i = I.nextNode(), o++);
     }
     return I.currentNode = F, s;
   }
@@ -454,8 +454,8 @@ class ge {
     if (i === void 0) e = Q(this, e, t, 0), o = !ae(e) || e !== this._$AH && e !== B, o && (this._$AH = e);
     else {
       const c = e;
-      let l, p;
-      for (e = i[0], l = 0; l < i.length - 1; l++) p = Q(this, c[a + l], t, l), p === B && (p = this._$AH[l]), o || (o = !ae(p) || p !== this._$AH[l]), p === g ? e = g : e !== g && (e += (p ?? "") + i[l + 1]), this._$AH[l] = p;
+      let d, p;
+      for (e = i[0], d = 0; d < i.length - 1; d++) p = Q(this, c[a + d], t, d), p === B && (p = this._$AH[d]), o || (o = !ae(p) || p !== this._$AH[d]), p === g ? e = g : e !== g && (e += (p ?? "") + i[d + 1]), this._$AH[d] = p;
     }
     o && !s && this.j(e);
   }
@@ -556,7 +556,7 @@ xe == null || xe({ LitElement: v });
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const $ = (r) => (e, t) => {
+const w = (r) => (e, t) => {
   t !== void 0 ? t.addInitializer(() => {
     customElements.define(r, e);
   }) : customElements.define(r, e);
@@ -572,8 +572,8 @@ const wt = { attribute: !0, type: String, converter: ce, reflect: !1, hasChanged
   if (i === void 0 && globalThis.litPropertyMetadata.set(s, i = /* @__PURE__ */ new Map()), a === "setter" && ((r = Object.create(r)).wrapped = !0), i.set(t.name, r), a === "accessor") {
     const { name: o } = t;
     return { set(c) {
-      const l = e.get.call(this);
-      e.set.call(this, c), this.requestUpdate(o, l, r, !0, c);
+      const d = e.get.call(this);
+      e.set.call(this, c), this.requestUpdate(o, d, r, !0, c);
     }, init(c) {
       return c !== void 0 && this.C(o, void 0, r, c), c;
     } };
@@ -581,8 +581,8 @@ const wt = { attribute: !0, type: String, converter: ce, reflect: !1, hasChanged
   if (a === "setter") {
     const { name: o } = t;
     return function(c) {
-      const l = this[o];
-      e.call(this, c), this.requestUpdate(o, l, r, !0, c);
+      const d = this[o];
+      e.call(this, c), this.requestUpdate(o, d, r, !0, c);
     };
   }
   throw Error("Unsupported decorator location: " + a);
@@ -598,7 +598,7 @@ function b(r) {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-function d(r) {
+function l(r) {
   return b({ ...r, state: !0, attribute: !1 });
 }
 class St {
@@ -678,6 +678,13 @@ class St {
     });
     if (!t.ok) throw new Error(`HTTP ${t.status}`);
     return (await t.json()).items;
+  }
+  async discoverKnxFromProject() {
+    const e = await fetch(`${this.baseUrl}/api/messagehub/knx-discovery`, {
+      headers: this.headers()
+    });
+    if (!e.ok) throw new Error(`HTTP ${e.status}`);
+    return (await e.json()).items;
   }
   async listKnxAddresses() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
@@ -901,12 +908,12 @@ const { I: Pt } = xt, Be = (r) => r, We = () => document.createComment(""), ee =
     const o = a.insertBefore(We(), s), c = a.insertBefore(We(), s);
     t = new Pt(o, c, r, r.options);
   } else {
-    const o = t._$AB.nextSibling, c = t._$AM, l = c !== r;
-    if (l) {
+    const o = t._$AB.nextSibling, c = t._$AM, d = c !== r;
+    if (d) {
       let p;
       (i = t._$AQ) == null || i.call(t, r), t._$AM = r, t._$AP !== void 0 && (p = r._$AU) !== c._$AU && t._$AP(p);
     }
-    if (o !== s || l) {
+    if (o !== s || d) {
       let p = t._$AA;
       for (; p !== o; ) {
         const m = Be(p).nextSibling;
@@ -915,7 +922,7 @@ const { I: Pt } = xt, Be = (r) => r, We = () => document.createComment(""), ee =
     }
   }
   return t;
-}, j = (r, e, t = r) => (r._$AI(e, t), r), zt = {}, Ct = (r, e = zt) => r._$AH = e, Ot = (r) => r._$AH, $e = (r) => {
+}, M = (r, e, t = r) => (r._$AI(e, t), r), zt = {}, Ct = (r, e = zt) => r._$AH = e, Ot = (r) => r._$AH, $e = (r) => {
   r._$AR(), r._$AA.remove();
 };
 /**
@@ -945,32 +952,32 @@ const qe = (r, e, t) => {
   update(r, [e, t, a]) {
     const s = Ot(r), { values: i, keys: o } = this.dt(e, t, a);
     if (!Array.isArray(s)) return this.ut = o, i;
-    const c = this.ut ?? (this.ut = []), l = [];
+    const c = this.ut ?? (this.ut = []), d = [];
     let p, m, h = 0, f = s.length - 1, u = 0, _ = i.length - 1;
     for (; h <= f && u <= _; ) if (s[h] === null) h++;
     else if (s[f] === null) f--;
-    else if (c[h] === o[u]) l[u] = j(s[h], i[u]), h++, u++;
-    else if (c[f] === o[_]) l[_] = j(s[f], i[_]), f--, _--;
-    else if (c[h] === o[_]) l[_] = j(s[h], i[_]), ee(r, l[_ + 1], s[h]), h++, _--;
-    else if (c[f] === o[u]) l[u] = j(s[f], i[u]), ee(r, s[h], s[f]), f--, u++;
+    else if (c[h] === o[u]) d[u] = M(s[h], i[u]), h++, u++;
+    else if (c[f] === o[_]) d[_] = M(s[f], i[_]), f--, _--;
+    else if (c[h] === o[_]) d[_] = M(s[h], i[_]), ee(r, d[_ + 1], s[h]), h++, _--;
+    else if (c[f] === o[u]) d[u] = M(s[f], i[u]), ee(r, s[h], s[f]), f--, u++;
     else if (p === void 0 && (p = qe(o, u, _), m = qe(c, h, f)), p.has(c[h])) if (p.has(c[f])) {
       const z = m.get(o[u]), me = z !== void 0 ? s[z] : null;
       if (me === null) {
         const Ce = ee(r, s[h]);
-        j(Ce, i[u]), l[u] = Ce;
-      } else l[u] = j(me, i[u]), ee(r, s[h], me), s[z] = null;
+        M(Ce, i[u]), d[u] = Ce;
+      } else d[u] = M(me, i[u]), ee(r, s[h], me), s[z] = null;
       u++;
     } else $e(s[f]), f--;
     else $e(s[h]), h++;
     for (; u <= _; ) {
-      const z = ee(r, l[_ + 1]);
-      j(z, i[u]), l[u++] = z;
+      const z = ee(r, d[_ + 1]);
+      M(z, i[u]), d[u++] = z;
     }
     for (; h <= f; ) {
       const z = s[h++];
       z !== null && $e(z);
     }
-    return this.ut = o, Ct(r, l), B;
+    return this.ut = o, Ct(r, d), B;
   }
 });
 var Ut = Object.defineProperty, Ht = Object.getOwnPropertyDescriptor, tt = (r, e, t, a) => {
@@ -1166,12 +1173,12 @@ tt([
   b({ attribute: !1 })
 ], pe.prototype, "items", 2);
 pe = tt([
-  $("message-table")
+  w("message-table")
 ], pe);
-var Mt = Object.defineProperty, Lt = Object.getOwnPropertyDescriptor, rt = (r, e, t, a) => {
+var jt = Object.defineProperty, Lt = Object.getOwnPropertyDescriptor, rt = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? Lt(e, t) : e, i = r.length - 1, o; i >= 0; i--)
     (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && Mt(e, t, s), s;
+  return a && s && jt(e, t, s), s;
 };
 const Ke = ["error", "warning", "info", "debug"];
 let ue = class extends v {
@@ -1236,12 +1243,12 @@ rt([
   b({ attribute: !1 })
 ], ue.prototype, "selected", 2);
 ue = rt([
-  $("severity-filter")
+  w("severity-filter")
 ], ue);
-var jt = Object.defineProperty, It = Object.getOwnPropertyDescriptor, fe = (r, e, t, a) => {
+var Mt = Object.defineProperty, It = Object.getOwnPropertyDescriptor, fe = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? It(e, t) : e, i = r.length - 1, o; i >= 0; i--)
     (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && jt(e, t, s), s;
+  return a && s && Mt(e, t, s), s;
 };
 let G = class extends v {
   constructor() {
@@ -1290,10 +1297,10 @@ fe([
   b({ attribute: !1 })
 ], G.prototype, "selected", 2);
 fe([
-  d()
+  l()
 ], G.prototype, "_sources", 2);
 G = fe([
-  $("source-filter")
+  w("source-filter")
 ], G);
 var Rt = Object.defineProperty, Ft = Object.getOwnPropertyDescriptor, Pe = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? Ft(e, t) : e, i = r.length - 1, o; i >= 0; i--)
@@ -1343,9 +1350,9 @@ Pe([
   b({ attribute: !1 })
 ], oe.prototype, "toIso", 2);
 oe = Pe([
-  $("time-range-filter")
+  w("time-range-filter")
 ], oe);
-var Bt = Object.defineProperty, Wt = Object.getOwnPropertyDescriptor, M = (r, e, t, a) => {
+var Bt = Object.defineProperty, Wt = Object.getOwnPropertyDescriptor, j = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? Wt(e, t) : e, i = r.length - 1, o; i >= 0; i--)
     (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
   return a && s && Bt(e, t, s), s;
@@ -1743,29 +1750,29 @@ E.styles = k`
       cursor: pointer;
     }
   `;
-M([
+j([
   b({ attribute: !1 })
 ], E.prototype, "msg", 2);
-M([
+j([
   b({ attribute: !1 })
 ], E.prototype, "api", 2);
-M([
-  d()
+j([
+  l()
 ], E.prototype, "_status", 2);
-M([
-  d()
+j([
+  l()
 ], E.prototype, "_tags", 2);
-M([
-  d()
+j([
+  l()
 ], E.prototype, "_newTag", 2);
-M([
-  d()
+j([
+  l()
 ], E.prototype, "_runbook", 2);
-M([
-  d()
+j([
+  l()
 ], E.prototype, "_busy", 2);
-E = M([
-  $("detail-pane")
+E = j([
+  w("detail-pane")
 ], E);
 var qt = Object.defineProperty, Vt = Object.getOwnPropertyDescriptor, P = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? Vt(e, t) : e, i = r.length - 1, o; i >= 0; i--)
@@ -1785,7 +1792,7 @@ const Kt = ["debug", "info", "warning", "error"], Jt = JSON.stringify(
 function Qt(r) {
   return r.toLowerCase().normalize("NFKD").replace(/[äÄ]/g, "ae").replace(/[öÖ]/g, "oe").replace(/[üÜ]/g, "ue").replace(/ß/g, "ss").replace(/[\s/\\]+/g, "-").replace(/[^a-z0-9._-]/g, "").slice(0, 64);
 }
-let T = class extends v {
+let A = class extends v {
   constructor() {
     super(...arguments), this.editing = null, this._name = "", this._source = "", this._severity = "info", this._enabled = !0, this._mappingText = "", this._error = "", this._saving = !1;
   }
@@ -1943,7 +1950,7 @@ let T = class extends v {
     `;
   }
 };
-T.styles = k`
+A.styles = k`
     .card {
       background: var(--card-background-color, white);
       border: 1px solid var(--divider-color, #e0e0e0);
@@ -2086,46 +2093,46 @@ T.styles = k`
   `;
 P([
   b({ attribute: !1 })
-], T.prototype, "api", 2);
+], A.prototype, "api", 2);
 P([
   b({ attribute: !1 })
-], T.prototype, "editing", 2);
+], A.prototype, "editing", 2);
 P([
-  d()
-], T.prototype, "_name", 2);
+  l()
+], A.prototype, "_name", 2);
 P([
-  d()
-], T.prototype, "_source", 2);
+  l()
+], A.prototype, "_source", 2);
 P([
-  d()
-], T.prototype, "_severity", 2);
+  l()
+], A.prototype, "_severity", 2);
 P([
-  d()
-], T.prototype, "_enabled", 2);
+  l()
+], A.prototype, "_enabled", 2);
 P([
-  d()
-], T.prototype, "_mappingText", 2);
+  l()
+], A.prototype, "_mappingText", 2);
 P([
-  d()
-], T.prototype, "_error", 2);
+  l()
+], A.prototype, "_error", 2);
 P([
-  d()
-], T.prototype, "_saving", 2);
-T = P([
-  $("webhook-form")
-], T);
-var Gt = Object.defineProperty, Yt = Object.getOwnPropertyDescriptor, A = (r, e, t, a) => {
+  l()
+], A.prototype, "_saving", 2);
+A = P([
+  w("webhook-form")
+], A);
+var Gt = Object.defineProperty, Yt = Object.getOwnPropertyDescriptor, S = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? Yt(e, t) : e, i = r.length - 1, o; i >= 0; i--)
     (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
   return a && s && Gt(e, t, s), s;
 };
 const Zt = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, ke = ["debug", "info", "warning", "error"], Xt = [...ke, "auto"];
-let w = class extends v {
+let x = class extends v {
   constructor() {
-    super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._onlyEnabled = !1, this._newAddr = "", this._newLabel = "", this._newDpt = "", this._editing = null, this._toast = "", this._error = "";
+    super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._onlyEnabled = !1, this._newAddr = "", this._newLabel = "", this._newDpt = "", this._discovery = [], this._editing = null, this._toast = "", this._error = "";
   }
   async firstUpdated() {
-    await this._load();
+    await this._load(), await this._loadDiscovery();
   }
   async _load() {
     if (this.api) {
@@ -2136,6 +2143,45 @@ let w = class extends v {
         this._loading = !1;
       }
     }
+  }
+  async _loadDiscovery() {
+    if (this.api)
+      try {
+        this._discovery = await this.api.discoverKnxFromProject();
+      } catch {
+        this._discovery = [];
+      }
+  }
+  _onAddressInput(r) {
+    const e = r.target.value;
+    this._newAddr = e;
+    const t = this._discovery.find((a) => a.address === e);
+    t && (this._newLabel.trim() || (this._newLabel = t.name), !this._newDpt.trim() && t.dpt && (this._newDpt = t.dpt));
+  }
+  async _bulkImportFromProject() {
+    if (!this.api || this._discovery.length === 0) return;
+    const r = new Set(this._items.map((a) => a.address)), e = this._discovery.filter((a) => !r.has(a.address));
+    if (e.length === 0) {
+      this._showToast("Alle Projekt-GAs sind bereits angelegt");
+      return;
+    }
+    if (!window.confirm(
+      `${e.length} fehlende Projekt-GAs anlegen? (Logging bleibt zunaechst aus, Severity-Mapping kannst du danach pro Adresse setzen.)`
+    ))
+      return;
+    let t = 0;
+    for (const a of e)
+      try {
+        await this.api.upsertKnxAddress({
+          address: a.address,
+          label: a.name || a.address,
+          dpt: a.dpt,
+          log_enabled: !1,
+          log_severity: "info"
+        }), t += 1;
+      } catch {
+      }
+    this._showToast(`${t} aus ETS-Projekt uebernommen`), await this._load();
   }
   async _add() {
     if (this._error = "", !this.api) return;
@@ -2335,22 +2381,39 @@ let w = class extends v {
               ignoriert.
             </p>
           </div>
-          <label class="csv-upload">
-            <input type="file" accept=".csv,text/csv" @change=${this._onCsvFile} />
-            <span>📂 ETS-CSV importieren</span>
-          </label>
+          <div class="header-actions">
+            ${this._discovery.length > 0 ? n`<button
+                  class="from-project"
+                  title=${`${this._discovery.length} GAs aus dem in HA hinterlegten ETS-Projekt`}
+                  @click=${() => void this._bulkImportFromProject()}
+                >
+                  ✨ ${this._discovery.length} aus HA-KNX-Projekt uebernehmen
+                </button>` : null}
+            <label class="csv-upload">
+              <input type="file" accept=".csv,text/csv" @change=${this._onCsvFile} />
+              <span>📂 ETS-CSV importieren</span>
+            </label>
+          </div>
         </header>
 
         <div class="add-form">
           <input
             type="text"
-            placeholder="GA (z. B. 1/2/3)"
+            list="knx-discovery-list"
+            placeholder="${this._discovery.length > 0 ? `GA aus Projekt waehlen (${this._discovery.length} verfuegbar)` : "GA (z. B. 1/2/3)"}"
             .value=${this._newAddr}
-            @input=${(t) => this._newAddr = t.target.value}
+            @input=${this._onAddressInput}
             @keydown=${(t) => {
       t.key === "Enter" && this._add();
     }}
           />
+          <datalist id="knx-discovery-list">
+            ${this._discovery.map(
+      (t) => n`<option value=${t.address}>
+                  ${t.name}${t.dpt ? ` (DPT ${t.dpt})` : ""}
+                </option>`
+    )}
+          </datalist>
           <input
             type="text"
             placeholder="Label (z. B. Stoerung Heizung Pumpe)"
@@ -2372,6 +2435,10 @@ let w = class extends v {
           />
           <button class="primary" @click=${this._add}>+ Hinzufuegen</button>
         </div>
+        ${this._discovery.length > 0 ? n`<p class="hint">
+              💡 Tipp: Beim Tippen in das GA-Feld erscheinen Vorschlaege aus dem
+              ETS-Projekt — Label und DPT werden dann automatisch vorbefuellt.
+            </p>` : null}
         ${this._error ? n`<div class="error">${this._error}</div>` : g}
 
         <div class="filter-bar">
@@ -2451,7 +2518,7 @@ let w = class extends v {
     `;
   }
 };
-w.styles = k`
+x.styles = k`
     section {
       display: flex;
       flex-direction: column;
@@ -2475,6 +2542,24 @@ w.styles = k`
       margin: 4px 0 0 0;
       font-size: 0.9em;
       color: var(--secondary-text-color, #666);
+    }
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .from-project {
+      cursor: pointer;
+      padding: 6px 12px;
+      border: 1px solid var(--primary-color, #03a9f4);
+      border-radius: 4px;
+      font-size: 0.85em;
+      background: var(--primary-color, #03a9f4);
+      color: white;
+    }
+    .from-project:hover {
+      filter: brightness(0.95);
     }
     .csv-upload {
       cursor: pointer;
@@ -2734,42 +2819,45 @@ w.styles = k`
       margin-top: 8px;
     }
   `;
-A([
+S([
   b({ attribute: !1 })
-], w.prototype, "api", 2);
-A([
-  d()
-], w.prototype, "_items", 2);
-A([
-  d()
-], w.prototype, "_loading", 2);
-A([
-  d()
-], w.prototype, "_filter", 2);
-A([
-  d()
-], w.prototype, "_onlyEnabled", 2);
-A([
-  d()
-], w.prototype, "_newAddr", 2);
-A([
-  d()
-], w.prototype, "_newLabel", 2);
-A([
-  d()
-], w.prototype, "_newDpt", 2);
-A([
-  d()
-], w.prototype, "_editing", 2);
-A([
-  d()
-], w.prototype, "_toast", 2);
-A([
-  d()
-], w.prototype, "_error", 2);
-w = A([
-  $("knx-addresses-view")
-], w);
+], x.prototype, "api", 2);
+S([
+  l()
+], x.prototype, "_items", 2);
+S([
+  l()
+], x.prototype, "_loading", 2);
+S([
+  l()
+], x.prototype, "_filter", 2);
+S([
+  l()
+], x.prototype, "_onlyEnabled", 2);
+S([
+  l()
+], x.prototype, "_newAddr", 2);
+S([
+  l()
+], x.prototype, "_newLabel", 2);
+S([
+  l()
+], x.prototype, "_newDpt", 2);
+S([
+  l()
+], x.prototype, "_discovery", 2);
+S([
+  l()
+], x.prototype, "_editing", 2);
+S([
+  l()
+], x.prototype, "_toast", 2);
+S([
+  l()
+], x.prototype, "_error", 2);
+x = S([
+  w("knx-addresses-view")
+], x);
 var er = Object.defineProperty, tr = Object.getOwnPropertyDescriptor, ne = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? tr(e, t) : e, i = r.length - 1, o; i >= 0; i--)
     (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
@@ -3240,16 +3328,16 @@ ne([
   b({ attribute: !1 })
 ], W.prototype, "api", 2);
 ne([
-  d()
+  l()
 ], W.prototype, "_items", 2);
 ne([
-  d()
+  l()
 ], W.prototype, "_editing", 2);
 ne([
-  d()
+  l()
 ], W.prototype, "_toast", 2);
 W = ne([
-  $("channels-view")
+  w("channels-view")
 ], W);
 var ar = Object.defineProperty, ir = Object.getOwnPropertyDescriptor, y = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? ir(e, t) : e, i = r.length - 1, o; i >= 0; i--)
@@ -3463,19 +3551,19 @@ y([
   b({ attribute: !1 })
 ], D.prototype, "api", 2);
 y([
-  d()
+  l()
 ], D.prototype, "_items", 2);
 y([
-  d()
+  l()
 ], D.prototype, "_newPattern", 2);
 y([
-  d()
+  l()
 ], D.prototype, "_newSource", 2);
 y([
-  d()
+  l()
 ], D.prototype, "_newSeverity", 2);
 D = y([
-  $("mqtt-topics-view")
+  w("mqtt-topics-view")
 ], D);
 let q = class extends v {
   constructor() {
@@ -3548,16 +3636,16 @@ y([
   b({ attribute: !1 })
 ], q.prototype, "api", 2);
 y([
-  d()
+  l()
 ], q.prototype, "_items", 2);
 y([
-  d()
+  l()
 ], q.prototype, "_newSource", 2);
 y([
-  d()
+  l()
 ], q.prototype, "_newInterval", 2);
 q = y([
-  $("heartbeats-view")
+  w("heartbeats-view")
 ], q);
 let C = class extends v {
   constructor() {
@@ -3660,22 +3748,22 @@ y([
   b({ attribute: !1 })
 ], C.prototype, "api", 2);
 y([
-  d()
+  l()
 ], C.prototype, "_items", 2);
 y([
-  d()
+  l()
 ], C.prototype, "_newName", 2);
 y([
-  d()
+  l()
 ], C.prototype, "_newSource", 2);
 y([
-  d()
+  l()
 ], C.prototype, "_newAutomation", 2);
 y([
-  d()
+  l()
 ], C.prototype, "_newAuto", 2);
 C = y([
-  $("remediation-view")
+  w("remediation-view")
 ], C);
 var or = Object.defineProperty, nr = Object.getOwnPropertyDescriptor, V = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? nr(e, t) : e, i = r.length - 1, o; i >= 0; i--)
@@ -4083,22 +4171,22 @@ V([
   b({ attribute: !1 })
 ], O.prototype, "api", 2);
 V([
-  d()
+  l()
 ], O.prototype, "_items", 2);
 V([
-  d()
+  l()
 ], O.prototype, "_loading", 2);
 V([
-  d()
+  l()
 ], O.prototype, "_showForm", 2);
 V([
-  d()
+  l()
 ], O.prototype, "_editing", 2);
 V([
-  d()
+  l()
 ], O.prototype, "_toast", 2);
 O = V([
-  $("settings-view")
+  w("settings-view")
 ], O);
 var lr = Object.defineProperty, dr = Object.getOwnPropertyDescriptor, K = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? dr(e, t) : e, i = r.length - 1, o; i >= 0; i--)
@@ -4455,22 +4543,22 @@ K([
   b({ attribute: !1 })
 ], N.prototype, "api", 2);
 K([
-  d()
+  l()
 ], N.prototype, "_stats", 2);
 K([
-  d()
+  l()
 ], N.prototype, "_sources", 2);
 K([
-  d()
+  l()
 ], N.prototype, "_heatmap", 2);
 K([
-  d()
+  l()
 ], N.prototype, "_topSources", 2);
 K([
-  d()
+  l()
 ], N.prototype, "_loading", 2);
 N = K([
-  $("stats-view")
+  w("stats-view")
 ], N);
 var pr = Object.defineProperty, ur = Object.getOwnPropertyDescriptor, be = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? ur(e, t) : e, i = r.length - 1, o; i >= 0; i--)
@@ -4616,15 +4704,15 @@ be([
   b({ attribute: !1 })
 ], Y.prototype, "api", 2);
 be([
-  d()
+  l()
 ], Y.prototype, "_items", 2);
 be([
-  d()
+  l()
 ], Y.prototype, "_loading", 2);
 Y = be([
-  $("audit-view")
+  w("audit-view")
 ], Y);
-var gr = Object.defineProperty, fr = Object.getOwnPropertyDescriptor, S = (r, e, t, a) => {
+var gr = Object.defineProperty, fr = Object.getOwnPropertyDescriptor, T = (r, e, t, a) => {
   for (var s = a > 1 ? void 0 : a ? fr(e, t) : e, i = r.length - 1, o; i >= 0; i--)
     (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
   return a && s && gr(e, t, s), s;
@@ -4634,7 +4722,7 @@ const Je = "messagehub.filters", le = {
   source: "",
   search: ""
 };
-let x = class extends v {
+let $ = class extends v {
   constructor() {
     super(...arguments), this.narrow = !1, this._tab = "messages", this._items = [], this._total = 0, this._loading = !1, this._selected = null, this._filters = this._loadFilters(), this._newCount = 0, this._testing = !1, this._toast = "", this._api = new St(), this._onSeverityChange = (r) => {
       this._filters = { ...this._filters, severity: r.detail.severities }, this._persistFilters(), this._reload();
@@ -4934,7 +5022,7 @@ let x = class extends v {
     `;
   }
 };
-x.styles = k`
+$.styles = k`
     :host {
       display: block;
       height: 100vh;
@@ -5198,45 +5286,45 @@ x.styles = k`
       }
     }
   `;
-S([
+T([
   b({ attribute: !1 })
-], x.prototype, "hass", 2);
-S([
+], $.prototype, "hass", 2);
+T([
   b({ type: Boolean })
-], x.prototype, "narrow", 2);
-S([
+], $.prototype, "narrow", 2);
+T([
   b({ attribute: !1 })
-], x.prototype, "panel", 2);
-S([
-  d()
-], x.prototype, "_tab", 2);
-S([
-  d()
-], x.prototype, "_items", 2);
-S([
-  d()
-], x.prototype, "_total", 2);
-S([
-  d()
-], x.prototype, "_loading", 2);
-S([
-  d()
-], x.prototype, "_selected", 2);
-S([
-  d()
-], x.prototype, "_filters", 2);
-S([
-  d()
-], x.prototype, "_newCount", 2);
-S([
-  d()
-], x.prototype, "_testing", 2);
-S([
-  d()
-], x.prototype, "_toast", 2);
-x = S([
-  $("messagehub-panel")
-], x);
+], $.prototype, "panel", 2);
+T([
+  l()
+], $.prototype, "_tab", 2);
+T([
+  l()
+], $.prototype, "_items", 2);
+T([
+  l()
+], $.prototype, "_total", 2);
+T([
+  l()
+], $.prototype, "_loading", 2);
+T([
+  l()
+], $.prototype, "_selected", 2);
+T([
+  l()
+], $.prototype, "_filters", 2);
+T([
+  l()
+], $.prototype, "_newCount", 2);
+T([
+  l()
+], $.prototype, "_testing", 2);
+T([
+  l()
+], $.prototype, "_toast", 2);
+$ = T([
+  w("messagehub-panel")
+], $);
 export {
-  x as MessageHubPanel
+  $ as MessageHubPanel
 };

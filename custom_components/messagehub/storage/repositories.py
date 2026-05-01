@@ -10,7 +10,7 @@ import asyncio
 import json
 import secrets
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .models import Message, Severity, WebhookConfig
 
@@ -227,6 +227,56 @@ class MessageRepository:
             (message_id,),
         )
         return [str(row["tag"]) for row in rows]
+
+    async def severity_time_series(self, hours: int = 24) -> list[dict[str, Any]]:
+        """v0.4: stundenweise Severity-Buckets der letzten N Stunden."""
+        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
+
+        cutoff = (datetime.now(UTC) - timedelta(hours=hours)).isoformat(timespec="seconds")
+        rows = await self._db.fetch_all(
+            "SELECT strftime('%Y-%m-%dT%H:00:00', timestamp) AS bucket, "
+            "       severity, COUNT(*) AS cnt "
+            "  FROM messages WHERE timestamp >= ? "
+            " GROUP BY bucket, severity "
+            " ORDER BY bucket ASC",
+            (cutoff,),
+        )
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            out.append(
+                {
+                    "bucket": str(row["bucket"]),
+                    "severity": str(row["severity"]),
+                    "count": int(row["cnt"]),
+                }
+            )
+        return out
+
+    async def mttr_per_source(self, days: int = 30) -> list[dict[str, Any]]:
+        """v0.4: Mean-Time-To-Resolve pro Source — Durchschnitt aus
+        (last_seen - first_seen) fuer resolvte Errors."""
+        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
+
+        cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat(timespec="seconds")
+        rows = await self._db.fetch_all(
+            "SELECT source, "
+            "       AVG((julianday(last_seen) - julianday(first_seen)) * 86400) AS mttr_s, "
+            "       COUNT(*) AS resolved_count "
+            "  FROM messages "
+            " WHERE timestamp >= ? AND status = 'resolved' AND severity = 'error' "
+            " GROUP BY source "
+            " HAVING resolved_count > 0 "
+            " ORDER BY mttr_s DESC",
+            (cutoff,),
+        )
+        return [
+            {
+                "source": str(row["source"]),
+                "mttr_seconds": float(row["mttr_s"] or 0.0),
+                "resolved_count": int(row["resolved_count"]),
+            }
+            for row in rows
+        ]
 
     async def heatmap_hour_weekday(self, days: int = 30) -> list[dict[str, int]]:
         """Iter 41: Heatmap (hour x weekday) ueber die letzten N Tage."""

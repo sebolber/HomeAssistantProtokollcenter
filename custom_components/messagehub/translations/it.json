@@ -1,0 +1,43 @@
+{
+  "title": "Message Hub",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configura Message Hub",
+        "description": "Conferma la configurazione. I webhook e altre opzioni si gestiscono nel pannello."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "È consentita una sola istanza di questa integrazione."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opzioni",
+        "description": "Ritenzione, limite massimo e livello di log dell'integrazione.",
+        "data": {
+          "retention_debug_days": "Ritenzione debug (giorni)",
+          "retention_info_days": "Ritenzione info (giorni)",
+          "retention_warning_days": "Ritenzione warning (giorni)",
+          "retention_error_days": "Ritenzione error (giorni)",
+          "hard_cap_total": "Numero massimo di messaggi",
+          "aggregation_window_minutes": "Finestra di aggregazione (minuti)",
+          "log_level": "Livello log"
+        }
+      }
+    }
+  },
+  "services": {
+    "add_message": {
+      "name": "Aggiungi messaggio",
+      "description": "Aggiunge manualmente un messaggio al message hub.",
+      "fields": {
+        "severity": { "name": "Severità", "description": "Livello" },
+        "source": { "name": "Sorgente", "description": "Origine logica" },
+        "text": { "name": "Testo", "description": "Testo del messaggio" },
+        "metadata": { "name": "Metadata", "description": "Campi aggiuntivi opzionali" }
+      }
+    }
+  }
+}
