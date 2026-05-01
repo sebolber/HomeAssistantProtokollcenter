@@ -6,6 +6,7 @@ also SQL-Injection-sicher.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import secrets
 from datetime import UTC, datetime
@@ -22,6 +23,11 @@ class MessageRepository:
 
     def __init__(self, database: Database) -> None:
         self._db = database
+        # v0.3 / Review #1: asyncio.Lock serialisiert insert_or_aggregate-
+        # Aufrufe pro Repository-Instanz. aiosqlite oeffnet eigene
+        # Auto-Transaktionen, daher BEGIN IMMEDIATE nicht nutzbar — der
+        # Lock garantiert, dass SELECT+INSERT/UPDATE atomar ablaufen.
+        self._aggregate_lock = asyncio.Lock()
 
     async def insert(self, message: Message) -> int:
         """Fuegt eine Nachricht ein und gibt die generierte ID zurueck."""
@@ -62,9 +68,9 @@ class MessageRepository:
         """Iter 27: aggregiert in einem aktiven Eintrag mit gleichem Fingerprint
         innerhalb des Zeitfensters; sonst regulaerer Insert.
 
-        Atomar via BEGIN IMMEDIATE/COMMIT, damit kein paralleler Insert auf
-        denselben Fingerprint die count-Aktualisierung verlieren kann.
-        Review-Befund #1 (CRITICAL).
+        Atomar via asyncio.Lock — aiosqlite verwaltet eigene Auto-Transaktionen,
+        daher serialisieren wir die SELECT+UPDATE/INSERT-Sektion auf
+        Repository-Ebene. Review-Befund #1 (CRITICAL).
 
         Returns (id, was_aggregated).
         """
@@ -80,9 +86,7 @@ class MessageRepository:
             timespec="seconds"
         )
 
-        # BEGIN IMMEDIATE sperrt fuer Schreibzugriffe -> SELECT+UPDATE atomar.
-        await self._db.connection.execute("BEGIN IMMEDIATE")
-        try:
+        async with self._aggregate_lock:
             row = await self._select_active_dup(fp, cutoff)
             if row is None:
                 new_id = await self._insert_in_tx(message, fp)
@@ -97,9 +101,6 @@ class MessageRepository:
             await upd.close()
             await self._db.connection.commit()
             message.id = msg_id
-        except Exception:
-            await self._db.connection.rollback()
-            raise
         return msg_id, True
 
     async def _select_active_dup(self, fp: str, cutoff: str) -> object | None:

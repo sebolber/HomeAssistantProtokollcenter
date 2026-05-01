@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from .forwarder import ChannelConfig, Forwarder
+from .native_adapters import ntfy_send, pushover_send, telegram_send
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -65,10 +66,13 @@ def build_forwarder_for_channels(hass: HomeAssistant, channels: list[Channel]) -
                 config=cfg_with_hass,
             )
         )
-    # Alle Typen werden auf den HA-notify-Pfad gemappt — der konkrete Service
-    # wird per channel.config.service unterschieden.
-    for channel_type in ("telegram", "pushover", "ntfy", "signal", "notify"):
-        fwd.register_handler(channel_type, _ha_notify_handler)
+    # v0.3: native HTTP-Adapter pro Channel-Typ. notify-Channel-Type bleibt
+    # der HA-Wrapper als Fallback fuer alles, was weiterhin ueber notify.* laufen soll.
+    fwd.register_handler("telegram", telegram_send)
+    fwd.register_handler("pushover", pushover_send)
+    fwd.register_handler("ntfy", ntfy_send)
+    fwd.register_handler("signal", _ha_notify_handler)
+    fwd.register_handler("notify", _ha_notify_handler)
     return fwd
 
 

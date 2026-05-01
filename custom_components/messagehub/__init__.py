@@ -137,6 +137,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     state["channel_repository"] = channel_repo
     state["dispatch"] = dispatch
 
+    # v0.3: GeoIP-Resolver (optional)
+    from .processing.geoip import GeoIpResolver  # noqa: PLC0415
+
+    geoip_path = Path(hass.config.path("messagehub")) / "GeoLite2-Country.mmdb"
+    state["geoip"] = GeoIpResolver(geoip_path if geoip_path.is_file() else None)
+
     await _async_register_services(hass, repository)
     async_register_views(hass)
     await _async_register_panel(hass)
@@ -150,6 +156,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     state["unsub_mqtt"] = await _async_register_mqtt_subscriptions(hass, database, repository)
     state["weekly_report_unsub"] = _async_register_weekly_report(hass, entry, database)
     state["unsub_syslog"] = await _async_register_syslog_listener(hass, entry, repository)
+    state["pattern_unsub"] = _async_register_pattern_mining(hass, database, repository)
 
     # Options-Update-Listener (Review #5): Aenderungen aktivieren ohne Restart.
     state["unsub_options"] = entry.add_update_listener(_async_options_updated)
@@ -425,6 +432,45 @@ async def _async_register_syslog_listener(
     return _unsub
 
 
+def _async_register_pattern_mining(hass: HomeAssistant, database: Any, repository: Any) -> Any:
+    """v0.3: nightly um 04:15 — sucht regelmaessige Wiederholungen
+    und erzeugt Meta-Nachrichten 'messagehub.pattern'."""
+    from homeassistant.helpers.event import async_track_time_change  # noqa: PLC0415
+
+    from .processing.patterns import detect_patterns  # noqa: PLC0415
+    from .storage import Message, Severity  # noqa: PLC0415
+
+    async def _job(_now: Any) -> None:
+        try:
+            patterns = await detect_patterns(database, days=30)
+        except (ValueError, RuntimeError) as err:
+            _LOGGER.warning("pattern mining failed: %s", err)
+            return
+        for p in patterns:
+            text = (
+                f"{p.source}: '{p.text_sample[:80]}' tritt {p.period} auf "
+                f"({p.occurrences}x in 30 Tagen, conf={p.confidence})"
+            )
+            msg = Message(
+                severity=Severity.INFO,
+                source="messagehub.pattern",
+                text=text,
+                metadata={
+                    "pattern_period": p.period,
+                    "pattern_fingerprint": p.fingerprint,
+                    "pattern_source": p.source,
+                    "pattern_occurrences": p.occurrences,
+                    "pattern_confidence": p.confidence,
+                },
+            )
+            await repository.insert_or_aggregate(msg, window_minutes=1440)
+            _fire_added(hass, msg)
+        if patterns:
+            _LOGGER.info("Pattern-Mining: %d wiederkehrende Pattern erkannt", len(patterns))
+
+    return async_track_time_change(hass, _job, hour=4, minute=15, second=0)
+
+
 def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository: Any) -> Any:
     """Iter 48: lauscht auf knx_event und loggt nur GAs, die in
     knx_group_addresses mit log_enabled=1 hinterlegt sind.
@@ -690,6 +736,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if state is not None:
         import contextlib  # noqa: PLC0415
 
+        geoip = state.get("geoip")
+        if geoip is not None:
+            with contextlib.suppress(Exception):
+                geoip.close()
         for key in (
             "unsub_eventbus",
             "unsub_knx",
@@ -701,6 +751,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "unsub_options",
             "retention_unsub",
             "weekly_report_unsub",
+            "pattern_unsub",
         ):
             unsub = state.get(key)
             if callable(unsub):

@@ -112,6 +112,8 @@ async def async_handle_webhook(  # noqa: PLR0911
 
     # Iter 48: KNX-Anreicherung aus DB-Tabelle knx_group_addresses.
     metadata = await _enrich_knx(hass, source, text, metadata)
+    # v0.3: GeoIP-Anreicherung (optional, wenn .mmdb vorhanden)
+    metadata = _enrich_geoip(hass, text, metadata)
 
     msg = Message(
         severity=severity,
@@ -152,6 +154,33 @@ async def _self_diagnose(hass: HomeAssistant, webhook_id: str, reason: str) -> N
         await repo.insert(msg)
     except (ValueError, RuntimeError, TypeError) as exc:
         _LOGGER.warning("Self-diagnose-insert fehlgeschlagen: %s", exc)
+
+
+def _enrich_geoip(
+    hass: HomeAssistant,
+    text: str,
+    metadata: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """v0.3: ergaenzt geo-Felder fuer enthaltene oeffentliche IPs."""
+    domain_data = hass.data.get(DOMAIN, {})
+    if not domain_data:
+        return metadata
+    state = next(iter(domain_data.values()))
+    geoip = state.get("geoip")
+    if geoip is None or not getattr(geoip, "enabled", False):
+        return metadata
+
+    from ..processing.geoip import extract_ips  # noqa: PLC0415
+
+    enriched: dict[str, Any] = dict(metadata or {})
+    geo_entries: list[dict[str, str]] = []
+    for ip in extract_ips(text):
+        info = geoip.lookup(ip)
+        if info is not None:
+            geo_entries.append({"ip": ip, **info})
+    if geo_entries:
+        enriched["geo"] = geo_entries
+    return enriched if enriched else metadata
 
 
 def _get_repo(hass: HomeAssistant) -> MessageRepository | None:

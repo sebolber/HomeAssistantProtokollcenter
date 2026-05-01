@@ -1,11 +1,13 @@
 """Migration-Runner fuer messagehub.
 
 Liest SQL-Dateien aus `migrations/`, fuehrt sie idempotent aus und
-trackt den aktuellen Schema-Stand in `schema_version`.
+trackt den aktuellen Schema-Stand in `schema_version`. v0.3 ergaenzt
+SHA-256-Checksums zur Tampering-Detection.
 """
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import re
 from dataclasses import dataclass
@@ -29,6 +31,10 @@ class Migration:
     version: int
     name: str
     sql: str
+
+    @property
+    def sha256(self) -> str:
+        return hashlib.sha256(self.sql.encode("utf-8")).hexdigest()
 
     @classmethod
     def from_path(cls, path: Path) -> Migration:
@@ -74,6 +80,7 @@ class MigrationRunner:
     async def run(self) -> int:
         """Wendet noch nicht angewandte Migrationen an. Gibt aktuelle Version zurueck."""
         await self._ensure_version_table()
+        await self._verify_checksums()
         current = await self.current_version()
         applied = 0
         for migration in self._migrations:
@@ -82,17 +89,40 @@ class MigrationRunner:
             _LOGGER.info("Applying migration %04d_%s", migration.version, migration.name)
             await self._db.executescript(migration.sql)
             await self._db.execute(
-                "INSERT INTO schema_version (version, name, applied_at) VALUES (?, ?, ?)",
+                "INSERT INTO schema_version (version, name, applied_at, sha256) "
+                "VALUES (?, ?, ?, ?)",
                 (
                     migration.version,
                     migration.name,
                     datetime.now(UTC).isoformat(timespec="seconds"),
+                    migration.sha256,
                 ),
             )
             applied += 1
         if applied:
             _LOGGER.info("Applied %d migration(s)", applied)
         return await self.current_version()
+
+    async def _verify_checksums(self) -> None:
+        """v0.3: warnt, wenn eine bereits angewandte Migration sich
+        veraendert hat. Kein Hard-Fail, damit existierende Installationen
+        ohne sha256-Spalte nicht brechen."""
+        rows = await self._db.fetch_all(
+            "SELECT version, sha256 FROM schema_version WHERE sha256 IS NOT NULL"
+        )
+        applied: dict[int, str] = {int(r["version"]): str(r["sha256"]) for r in rows}
+        for migration in self._migrations:
+            recorded = applied.get(migration.version)
+            if recorded is None or recorded == migration.sha256:
+                continue
+            _LOGGER.warning(
+                "Migration %04d_%s checksum mismatch (db=%s..., file=%s...) "
+                "— Inhalt der applied migration weicht vom File ab",
+                migration.version,
+                migration.name,
+                recorded[:8],
+                migration.sha256[:8],
+            )
 
     async def current_version(self) -> int:
         """Liefert die hoechste applied Version oder 0, wenn noch nichts angewandt wurde."""
@@ -113,3 +143,10 @@ class MigrationRunner:
             );
             """
         )
+        # v0.3: optionale Checksum-Spalte (Tampering-Detection, Review #15).
+        # ALTER nur wenn Spalte fehlt — Idempotenz via try/except.
+        # ALTER nur wenn Spalte fehlt — Idempotenz via Exception-Swallow.
+        try:
+            await self._db.execute("ALTER TABLE schema_version ADD COLUMN sha256 TEXT")
+        except Exception as err:
+            _LOGGER.debug("schema_version.sha256 column already exists: %s", err)

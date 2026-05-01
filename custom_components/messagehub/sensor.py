@@ -40,11 +40,15 @@ async def async_setup_entry(
     state = hass.data[DOMAIN][entry.entry_id]
     repo: MessageRepository = state["repository"]
 
+    state = hass.data[DOMAIN][entry.entry_id]
+    db = state["database"]
+
     sensors = [
         TotalMessagesSensor(entry.entry_id, repo),
         ErrorsLast24hSensor(entry.entry_id, repo),
         WarningsLast24hSensor(entry.entry_id, repo),
         LastMessageSensor(entry.entry_id, repo),
+        SourceHealthSensor(entry.entry_id, repo, db),
     ]
     async_add_entities(sensors, update_before_add=True)
 
@@ -121,6 +125,39 @@ class WarningsLast24hSensor(_SeverityWindowSensor):
 
     def __init__(self, entry_id: str, repo: MessageRepository) -> None:
         super().__init__(entry_id, repo, "warnings_24h")
+
+
+class SourceHealthSensor(_BaseMessageSensor):
+    """Iter 40 v0.3: Health-Score 0..100 fuer den schlechtesten Source plus
+    Map aller Source-Scores in den Attributen (`source_scores`)."""
+
+    _attr_name = "Worst source health"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "%"
+
+    def __init__(self, entry_id: str, repo: MessageRepository, database: Any) -> None:
+        super().__init__(entry_id, repo, "source_health")
+        self._db = database
+        self._attr_native_value: int | None = 100
+        self._attr_extra_state_attributes: dict[str, Any] = {"source_scores": {}}
+
+    async def async_update(self) -> None:
+        from .processing.health import compute_health_score  # noqa: PLC0415
+
+        sources = await self._repo.distinct_sources()
+        scores: dict[str, int] = {}
+        worst = 100
+        for src in sources:
+            if src.startswith("messagehub."):
+                continue
+            score = await compute_health_score(self._db, src, window_minutes=60)
+            scores[src] = score
+            worst = min(worst, score)
+        self._attr_native_value = worst if sources else 100
+        self._attr_extra_state_attributes = {
+            "source_scores": scores,
+            "worst_source": min(scores, key=scores.get) if scores else None,
+        }
 
 
 class LastMessageSensor(_BaseMessageSensor):

@@ -66,6 +66,120 @@ export class ChannelsView extends LitElement {
     await this._load();
   }
 
+  private _renderTypeFields(
+    e: ChannelDto,
+    u: (p: Partial<ChannelDto>) => void
+  ): TemplateResult {
+    const cfg = e.config ?? {};
+    const setCfg = (k: string, v: string): void => {
+      u({ config: { ...cfg, [k]: v } });
+    };
+    if (e.channel_type === "telegram") {
+      return html`
+        <div class="row-2">
+          <label>
+            <span>Bot-Token</span>
+            <input
+              type="password"
+              placeholder="123456:ABC..."
+              .value=${(cfg.bot_token as string) ?? ""}
+              @input=${(ev: InputEvent) =>
+                setCfg("bot_token", (ev.target as HTMLInputElement).value)}
+            />
+            <small>Vom @BotFather erhalten.</small>
+          </label>
+          <label>
+            <span>Chat-ID</span>
+            <input
+              placeholder="-100123456789 oder 12345678"
+              .value=${(cfg.chat_id as string) ?? ""}
+              @input=${(ev: InputEvent) =>
+                setCfg("chat_id", (ev.target as HTMLInputElement).value)}
+            />
+            <small>An @userinfobot eine Nachricht senden, dort steht die ID.</small>
+          </label>
+        </div>
+      `;
+    }
+    if (e.channel_type === "pushover") {
+      return html`
+        <div class="row-2">
+          <label>
+            <span>App-Token</span>
+            <input
+              type="password"
+              placeholder="azGDORePK8gMaC0QOYAMyEEuzJnyUi"
+              .value=${(cfg.app_token as string) ?? ""}
+              @input=${(ev: InputEvent) =>
+                setCfg("app_token", (ev.target as HTMLInputElement).value)}
+            />
+          </label>
+          <label>
+            <span>User-Key</span>
+            <input
+              .value=${(cfg.user_key as string) ?? ""}
+              @input=${(ev: InputEvent) =>
+                setCfg("user_key", (ev.target as HTMLInputElement).value)}
+            />
+          </label>
+        </div>
+        <label>
+          <span>Geraet (optional)</span>
+          <input
+            placeholder="iphone, oder leer = alle Geraete"
+            .value=${(cfg.device as string) ?? ""}
+            @input=${(ev: InputEvent) =>
+              setCfg("device", (ev.target as HTMLInputElement).value)}
+          />
+        </label>
+      `;
+    }
+    if (e.channel_type === "ntfy") {
+      return html`
+        <div class="row-2">
+          <label>
+            <span>Server (Default ntfy.sh)</span>
+            <input
+              placeholder="https://ntfy.sh"
+              .value=${(cfg.base_url as string) ?? ""}
+              @input=${(ev: InputEvent) =>
+                setCfg("base_url", (ev.target as HTMLInputElement).value)}
+            />
+          </label>
+          <label>
+            <span>Topic</span>
+            <input
+              placeholder="ha_alerts_dein_topic"
+              .value=${(cfg.topic as string) ?? ""}
+              @input=${(ev: InputEvent) =>
+                setCfg("topic", (ev.target as HTMLInputElement).value)}
+            />
+          </label>
+        </div>
+        <label>
+          <span>Auth-Token (optional, fuer geschuetzte Server)</span>
+          <input
+            type="password"
+            .value=${(cfg.token as string) ?? ""}
+            @input=${(ev: InputEvent) =>
+              setCfg("token", (ev.target as HTMLInputElement).value)}
+          />
+        </label>
+      `;
+    }
+    return html`
+      <label>
+        <span>Notify-Service-Name (ohne <code>notify.</code>)</span>
+        <input
+          placeholder="z. B. mobile_app_iphone, signal_messenger"
+          .value=${(cfg.service as string) ?? ""}
+          @input=${(ev: InputEvent) =>
+            setCfg("service", (ev.target as HTMLInputElement).value)}
+        />
+      </label>
+    `;
+  }
+
   private _renderEditor(): TemplateResult {
     const e = this._editing!;
     const u = (p: Partial<ChannelDto>): void => {
@@ -82,43 +196,36 @@ export class ChannelsView extends LitElement {
               @input=${(ev: InputEvent) =>
                 u({ name: (ev.target as HTMLInputElement).value })}
           /></label>
-          <div class="row-2">
-            <label>
-              <span>Typ</span>
-              <select
-                .value=${e.channel_type}
-                @change=${(ev: Event) => {
-                  const v = (ev.target as HTMLSelectElement).value as
-                    | "telegram"
-                    | "pushover"
-                    | "ntfy"
-                    | "signal"
-                    | "notify";
-                  u({ channel_type: v });
-                }}
-              >
-                ${TYPES.map((t) => html`<option value=${t}>${t}</option>`)}
-              </select>
-              <small>
-                Channel ruft <code>notify.&lt;service&gt;</code> auf —
-                trag den HA-Notify-Service-Namen unten ein.
-              </small>
-            </label>
-            <label>
-              <span>Notify-Service</span>
-              <input
-                placeholder="z. B. telegram, mobile_app_iphone"
-                .value=${(e.config?.service as string) ?? ""}
-                @input=${(ev: InputEvent) =>
-                  u({
-                    config: {
-                      ...(e.config ?? {}),
-                      service: (ev.target as HTMLInputElement).value,
-                    },
-                  })}
-              />
-            </label>
-          </div>
+          <label>
+            <span>Typ</span>
+            <select
+              .value=${e.channel_type}
+              @change=${(ev: Event) => {
+                const v = (ev.target as HTMLSelectElement).value as
+                  | "telegram"
+                  | "pushover"
+                  | "ntfy"
+                  | "signal"
+                  | "notify";
+                u({ channel_type: v, config: {} });
+              }}
+            >
+              ${TYPES.map((t) => html`<option value=${t}>${t}</option>`)}
+            </select>
+            <small>
+              ${e.channel_type === "telegram"
+                ? "Direkt an Telegram-Bot-API. Bot-Token + Chat-ID unten."
+                : e.channel_type === "pushover"
+                  ? "Direkt an Pushover-API. App-Token + User-Key unten."
+                  : e.channel_type === "ntfy"
+                    ? "Direkt an ntfy-Server (ntfy.sh oder selbst-gehostet)."
+                    : e.channel_type === "signal"
+                      ? "Ueber HA-Service notify.<service>. Trag Namen unten ein."
+                      : "Ueber HA-Service notify.<service>."}
+            </small>
+          </label>
+
+          ${this._renderTypeFields(e, u)}
 
           <div class="row-2">
             <label>
@@ -230,9 +337,15 @@ export class ChannelsView extends LitElement {
                     <td>${it.name}</td>
                     <td>
                       <code>${it.channel_type}</code>
-                      ${it.config?.service
-                        ? html` → <code>notify.${it.config.service}</code>`
-                        : html`<span class="muted">— kein Service</span>`}
+                      ${it.channel_type === "telegram"
+                        ? html` → <small>${it.config?.chat_id ?? "?"}</small>`
+                        : it.channel_type === "pushover"
+                          ? html` → <small>${(it.config?.user_key as string)?.slice(0, 8) ?? "?"}…</small>`
+                          : it.channel_type === "ntfy"
+                            ? html` → <small>${it.config?.topic ?? "?"}</small>`
+                            : it.config?.service
+                              ? html` → <code>notify.${it.config.service}</code>`
+                              : html`<span class="muted">— unkonfiguriert</span>`}
                     </td>
                     <td>${it.severity_threshold}</td>
                     <td>
