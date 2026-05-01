@@ -34,24 +34,24 @@ export class MessageTable extends LitElement {
 
   @state() private _now = new Date();
   @state() private _editSeverityFor: number | null = null;
+  @state() private _popoverPos: { top: number; left: number } | null = null;
   private _tickerId?: number;
 
   override connectedCallback(): void {
     super.connectedCallback();
     // Relativzeiten alle 30s aktualisieren
     this._tickerId = window.setInterval(() => (this._now = new Date()), 30_000);
-    document.addEventListener("click", this._onDocumentClick);
   }
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     if (this._tickerId) window.clearInterval(this._tickerId);
-    document.removeEventListener("click", this._onDocumentClick);
   }
 
-  private _onDocumentClick = (): void => {
-    if (this._editSeverityFor !== null) this._editSeverityFor = null;
-  };
+  private _closePopover(): void {
+    this._editSeverityFor = null;
+    this._popoverPos = null;
+  }
 
   private _onClick = (msg: MessageDto): void => {
     this.dispatchEvent(
@@ -67,22 +67,75 @@ export class MessageTable extends LitElement {
   };
 
   private _onSeverityClick = (e: Event, msg: MessageDto): void => {
+    // Verhindert dass die Row den Detail-Dialog oeffnet.
     e.stopPropagation();
-    this._editSeverityFor = this._editSeverityFor === msg.id ? null : msg.id;
+    e.preventDefault();
+    if (this._editSeverityFor === msg.id) {
+      this._closePopover();
+      return;
+    }
+    // Position des Popovers anhand des Trigger-Buttons berechnen.
+    // Wir nutzen position: fixed, damit der overflow:auto-Scrollcontainer
+    // das Popover nicht abschneiden kann.
+    const trigger = e.currentTarget as HTMLElement;
+    const rect = trigger.getBoundingClientRect();
+    const POPOVER_HEIGHT_HINT = 200;
+    const placeBelow = rect.bottom + POPOVER_HEIGHT_HINT < window.innerHeight;
+    this._popoverPos = {
+      top: placeBelow ? rect.bottom + 4 : rect.top - POPOVER_HEIGHT_HINT - 4,
+      left: rect.left,
+    };
+    this._editSeverityFor = msg.id;
   };
 
-  private _onSeverityPick = (e: Event, msg: MessageDto, severity: string): void => {
+  private _onSeverityPick = (e: Event, msgId: number, currentSev: string, severity: string): void => {
     e.stopPropagation();
-    this._editSeverityFor = null;
-    if (severity === msg.severity) return;
+    this._closePopover();
+    if (severity === currentSev) return;
     this.dispatchEvent(
       new CustomEvent("severity-change", {
-        detail: { id: msg.id, severity, previous: msg.severity },
+        detail: { id: msgId, severity, previous: currentSev },
         bubbles: true,
         composed: true,
       })
     );
   };
+
+  private _renderPopover(): TemplateResult {
+    if (this._editSeverityFor === null || this._popoverPos === null) {
+      return html``;
+    }
+    const activeMsg = this.items.find((m) => m.id === this._editSeverityFor);
+    if (!activeMsg) return html``;
+    const currentSev = activeMsg.severity ?? "info";
+    const msgId = activeMsg.id;
+    return html`
+      <div class="popover-backdrop" @click=${() => this._closePopover()}></div>
+      <div
+        class="sev-popover"
+        role="menu"
+        style=${`top: ${this._popoverPos.top}px; left: ${this._popoverPos.left}px`}
+        @click=${(e: Event) => e.stopPropagation()}
+      >
+        ${SEVERITY_OPTIONS.map(
+          (opt) => html`<button
+            role="menuitemradio"
+            aria-checked=${opt === currentSev}
+            class=${`sev-option ${opt === currentSev ? "active" : ""}`}
+            @click=${(e: Event) => this._onSeverityPick(e, msgId, currentSev, opt)}
+          >
+            <span class=${`mh-pill mh-pill--${opt}`}>
+              <span class="sev-icon" aria-hidden="true">${SEVERITY_ICON[opt]}</span>
+              ${SEVERITY_LABEL[opt]}
+            </span>
+            ${opt === currentSev
+              ? html`<span class="check" aria-hidden="true">✓</span>`
+              : nothing}
+          </button>`
+        )}
+      </div>
+    `;
+  }
 
   private _renderHeader(): TemplateResult {
     return html`
@@ -119,7 +172,7 @@ export class MessageTable extends LitElement {
               const abs = formatAbsolute(msg.timestamp, this._now);
               return html`
                 <div
-                  class=${`row sev-${sev}`}
+                  class=${`row sev-${sev} ${this._editSeverityFor === msg.id ? "row-active" : ""}`}
                   tabindex="0"
                   role="listitem button"
                   @click=${() => this._onClick(msg)}
@@ -137,30 +190,6 @@ export class MessageTable extends LitElement {
                       ${sevLabel}
                       <span class="caret" aria-hidden="true">▾</span>
                     </button>
-                    ${this._editSeverityFor === msg.id
-                      ? html`<div
-                          class="sev-popover"
-                          role="menu"
-                          @click=${(e: Event) => e.stopPropagation()}
-                        >
-                          ${SEVERITY_OPTIONS.map(
-                            (opt) => html`<button
-                              role="menuitemradio"
-                              aria-checked=${opt === sev}
-                              class=${`sev-option ${opt === sev ? "active" : ""}`}
-                              @click=${(e: Event) => this._onSeverityPick(e, msg, opt)}
-                            >
-                              <span class=${`mh-pill mh-pill--${opt}`}>
-                                <span class="sev-icon" aria-hidden="true">${SEVERITY_ICON[opt]}</span>
-                                ${SEVERITY_LABEL[opt]}
-                              </span>
-                              ${opt === sev
-                                ? html`<span class="check" aria-hidden="true">✓</span>`
-                                : nothing}
-                            </button>`
-                          )}
-                        </div>`
-                      : nothing}
                   </span>
                   <span class="col-ts ts" title=${abs}>${rel}</span>
                   <span class="col-src">
@@ -172,6 +201,7 @@ export class MessageTable extends LitElement {
             }
           )}
         </div>
+        ${this._renderPopover()}
       </div>
     `;
   }
@@ -240,9 +270,6 @@ export class MessageTable extends LitElement {
         text-align: center;
         font-weight: var(--mh-weight-bold);
       }
-      .col-sev {
-        position: relative;
-      }
       button.sev-trigger {
         appearance: none;
         border: 0;
@@ -250,10 +277,11 @@ export class MessageTable extends LitElement {
         font: inherit;
         padding: 2px 8px;
         gap: 4px;
-        transition: filter var(--mh-transition-fast);
+        transition: filter var(--mh-transition-fast), box-shadow var(--mh-transition-fast);
       }
       button.sev-trigger:hover {
         filter: brightness(0.95);
+        box-shadow: 0 0 0 2px var(--mh-divider);
       }
       button.sev-trigger:focus-visible {
         outline: var(--mh-focus-ring);
@@ -264,12 +292,19 @@ export class MessageTable extends LitElement {
         opacity: 0.65;
         margin-left: 2px;
       }
+      .row.row-active {
+        background: var(--mh-surface-2);
+      }
+      .popover-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: transparent;
+      }
       .sev-popover {
-        position: absolute;
-        top: calc(100% + 4px);
-        left: 0;
-        z-index: 30;
-        min-width: 160px;
+        position: fixed;
+        z-index: 70;
+        min-width: 180px;
         background: var(--mh-surface);
         border: 1px solid var(--mh-divider);
         border-radius: var(--mh-radius-md);
