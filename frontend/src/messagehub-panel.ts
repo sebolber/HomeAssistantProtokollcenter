@@ -183,6 +183,35 @@ export class MessageHubPanel extends LitElement {
     }
   };
 
+  private async _bulkDelete(scope: "filter" | "all"): Promise<void> {
+    if (this._total === 0) return;
+    const count = scope === "all" ? this._total : this._total;
+    const label =
+      scope === "all"
+        ? `ALLE ${count} Nachrichten dauerhaft loeschen?`
+        : `${count} gefilterte Nachrichten dauerhaft loeschen?`;
+    if (!window.confirm(label)) return;
+
+    try {
+      const filters =
+        scope === "all"
+          ? {}
+          : {
+              severity: this._filters.severity,
+              source: this._filters.source || undefined,
+              search: this._filters.search || undefined,
+              from: this._filters.fromIso,
+              to: this._filters.toIso,
+            };
+      const deleted = await this._api.deleteMessages(filters);
+      this._showToast(`${deleted} Nachrichten geloescht`);
+      this._selected = null;
+      await this._reload();
+    } catch (err) {
+      this._showToast(`Loeschen fehlgeschlagen: ${(err as Error).message}`);
+    }
+  }
+
   private async _sendTestMessage(): Promise<void> {
     if (!this.hass?.callService) {
       this._showToast("Test nicht verfuegbar — hass.callService fehlt");
@@ -308,6 +337,16 @@ export class MessageHubPanel extends LitElement {
             : null}
         </span>
         <div class="status-actions">
+          ${this._total > 0 && this._hasActiveFilters()
+            ? html`<button class="danger" @click=${() => this._bulkDelete("filter")}>
+                Gefilterte loeschen
+              </button>`
+            : null}
+          ${this._total > 0
+            ? html`<button class="danger" @click=${() => this._bulkDelete("all")}>
+                Alle loeschen
+              </button>`
+            : null}
           <button ?disabled=${this._testing} @click=${this._sendTestMessage}>
             ${this._testing ? "sende…" : "+ Test"}
           </button>
@@ -538,6 +577,11 @@ export class MessageHubPanel extends LitElement {
         opacity: 1;
       }
     }
+    .status-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
     .status-actions button {
       padding: 4px 10px;
       border: 1px solid var(--divider-color, #ccc);
@@ -550,6 +594,13 @@ export class MessageHubPanel extends LitElement {
     }
     .status-actions button:hover {
       background: var(--secondary-background-color, #f3f3f3);
+    }
+    .status-actions button.danger {
+      color: var(--error-color, #db4437);
+      border-color: var(--error-color, #db4437);
+    }
+    .status-actions button.danger:hover {
+      background: rgba(219, 68, 55, 0.08);
     }
     .empty {
       flex: 1;

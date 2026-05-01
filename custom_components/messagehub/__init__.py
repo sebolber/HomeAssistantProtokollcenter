@@ -66,6 +66,8 @@ async def _async_register_existing_webhooks(hass: HomeAssistant, webhook_repo: A
 
 def async_register_webhook(hass: HomeAssistant, cfg: Any) -> None:
     """Registriert einen einzelnen Webhook beim HA-Webhook-System (idempotent)."""
+    import contextlib  # noqa: PLC0415
+
     from homeassistant.components import webhook as ha_webhook  # noqa: PLC0415
 
     from .ingestion.webhook import async_handle_webhook  # noqa: PLC0415
@@ -73,10 +75,8 @@ def async_register_webhook(hass: HomeAssistant, cfg: Any) -> None:
     async def _handler(hass_: HomeAssistant, webhook_id: str, request: Any) -> Any:
         return await async_handle_webhook(hass_, webhook_id, request, config=cfg)
 
-    try:
+    with contextlib.suppress(ValueError, KeyError):
         ha_webhook.async_unregister(hass, cfg.webhook_id)
-    except (ValueError, KeyError):
-        pass
     ha_webhook.async_register(
         hass,
         DOMAIN,
@@ -89,13 +89,13 @@ def async_register_webhook(hass: HomeAssistant, cfg: Any) -> None:
 
 
 def async_unregister_webhook(hass: HomeAssistant, webhook_id: str) -> None:
+    import contextlib  # noqa: PLC0415
+
     from homeassistant.components import webhook as ha_webhook  # noqa: PLC0415
 
-    try:
+    with contextlib.suppress(ValueError, KeyError):
         ha_webhook.async_unregister(hass, webhook_id)
         _LOGGER.info("unregistered webhook %s", webhook_id)
-    except (ValueError, KeyError):
-        pass
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

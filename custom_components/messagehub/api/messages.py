@@ -78,6 +78,29 @@ class MessagesListView(_RequireAdminView):
     url = "/api/messagehub/messages"
     name = "api:messagehub:messages"
 
+    async def delete(self, request: web.Request) -> web.Response:
+        """Bulk-Delete: alle Nachrichten loeschen, optional gefiltert."""
+        self._check_admin(request)
+        repos = _get_repos(request.app["hass"])
+        if repos is None:
+            return self.json_message("messagehub not initialised", status_code=503)
+        msg_repo, _ = repos
+        params = request.query
+        severities = (
+            [s.strip() for s in params["severity"].split(",") if s.strip()]
+            if "severity" in params
+            else None
+        )
+        deleted = await msg_repo.delete_filtered(
+            severities=severities,
+            source=params.get("source"),
+            search=params.get("search"),
+            from_iso=params.get("from"),
+            to_iso=params.get("to"),
+        )
+        request.app["hass"].bus.async_fire(EVENT_MESSAGE_DELETED, {"bulk": True, "count": deleted})
+        return self.json({"deleted": deleted})
+
     async def get(self, request: web.Request) -> web.Response:
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])

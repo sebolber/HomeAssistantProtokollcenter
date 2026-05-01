@@ -111,6 +111,47 @@ class MessageRepository:
         await cursor.close()
         return ok
 
+    async def delete_filtered(
+        self,
+        *,
+        severities: list[str] | None = None,
+        source: str | None = None,
+        search: str | None = None,
+        from_iso: str | None = None,
+        to_iso: str | None = None,
+    ) -> int:
+        """Loescht alle Nachrichten, die zu den Filtern passen. Liefert die Anzahl."""
+        clauses: list[str] = []
+        params: list[object] = []
+        if severities:
+            placeholders = ",".join("?" * len(severities))
+            clauses.append(f"severity IN ({placeholders})")
+            params.extend(severities)
+        if source:
+            if "*" in source:
+                clauses.append("source LIKE ?")
+                params.append(source.replace("*", "%"))
+            else:
+                clauses.append("source = ?")
+                params.append(source)
+        if search:
+            clauses.append("text LIKE ?")
+            params.append(f"%{search}%")
+        if from_iso:
+            clauses.append("timestamp >= ?")
+            params.append(from_iso)
+        if to_iso:
+            clauses.append("timestamp <= ?")
+            params.append(to_iso)
+        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        cursor = await self._db.connection.execute(
+            f"DELETE FROM messages {where}", params
+        )
+        await self._db.connection.commit()
+        deleted = cursor.rowcount or 0
+        await cursor.close()
+        return int(deleted)
+
     async def count_unacknowledged_errors(self) -> int:
         """Iter 29: Counter fuer den binary_sensor."""
         row = await self._db.fetch_one(

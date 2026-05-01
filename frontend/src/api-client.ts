@@ -92,6 +92,20 @@ export class ApiClient {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }
 
+  async deleteMessages(filters: ListFilters = {}): Promise<number> {
+    const params = new URLSearchParams();
+    if (filters.severity?.length) params.set("severity", filters.severity.join(","));
+    if (filters.source) params.set("source", filters.source);
+    if (filters.search) params.set("search", filters.search);
+    if (filters.from) params.set("from", filters.from);
+    if (filters.to) params.set("to", filters.to);
+    const url = `${this.baseUrl}/api/messagehub/messages?${params.toString()}`;
+    const res = await fetch(url, { method: "DELETE", headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = (await res.json()) as { deleted: number };
+    return body.deleted;
+  }
+
   async listSources(): Promise<string[]> {
     const res = await fetch(`${this.baseUrl}/api/messagehub/sources`, {
       headers: this.headers(),
