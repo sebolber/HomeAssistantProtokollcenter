@@ -12,7 +12,6 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@lit-labs/virtualizer": "^2.0.13",
     "lit": "^3.2.0"
   },
   "devDependencies": {
