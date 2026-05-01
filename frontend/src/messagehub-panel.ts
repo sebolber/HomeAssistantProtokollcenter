@@ -11,6 +11,7 @@ import "./components/time-range-filter.js";
 import "./components/detail-pane.js";
 import "./components/settings-view.js";
 import "./components/stats-view.js";
+import "./components/audit-view.js";
 
 interface HassLike {
   callApi?: (
@@ -54,7 +55,7 @@ export class MessageHubPanel extends LitElement {
   @property({ type: Boolean }) narrow = false;
   @property({ attribute: false }) panel?: unknown;
 
-  @state() private _tab: "messages" | "settings" | "stats" = "messages";
+  @state() private _tab: "messages" | "settings" | "stats" | "audit" = "messages";
   @state() private _items: MessageDto[] = [];
   @state() private _total = 0;
   @state() private _loading = false;
@@ -269,6 +270,18 @@ export class MessageHubPanel extends LitElement {
     );
   }
 
+  private _exportUrl(format: "jsonl" | "csv"): string {
+    return this._api.exportUrl({
+      severity: this._filters.severity,
+      source: this._filters.source || undefined,
+      search: this._filters.search || undefined,
+      from: this._filters.fromIso,
+      to: this._filters.toIso,
+      limit: 10000,
+      format,
+    });
+  }
+
   private _renderEmptyMessages(): TemplateResult {
     return html`
       <div class="empty">
@@ -337,14 +350,23 @@ export class MessageHubPanel extends LitElement {
             : null}
         </span>
         <div class="status-actions">
+          ${this._total > 0
+            ? html`<a
+                  class="export-link"
+                  href=${this._exportUrl("jsonl")}
+                  download="messagehub-export.jsonl"
+                  >⤓ JSONL</a
+                >
+                <a
+                  class="export-link"
+                  href=${this._exportUrl("csv")}
+                  download="messagehub-export.csv"
+                  >⤓ CSV</a
+                >`
+            : null}
           ${this._total > 0 && this._hasActiveFilters()
             ? html`<button class="danger" @click=${() => this._bulkDelete("filter")}>
                 Gefilterte loeschen
-              </button>`
-            : null}
-          ${this._total > 0
-            ? html`<button class="danger" @click=${() => this._bulkDelete("all")}>
-                Alle loeschen
               </button>`
             : null}
           <button ?disabled=${this._testing} @click=${this._sendTestMessage}>
@@ -363,8 +385,12 @@ export class MessageHubPanel extends LitElement {
       ${this._selected
         ? html`<detail-pane
             .msg=${this._selected}
+            .api=${this._api}
             @close=${() => (this._selected = null)}
             @delete=${this._onDelete}
+            @status-change=${() => void this._reload()}
+            @error=${(e: CustomEvent<{ message: string }>) =>
+              this._showToast(e.detail.message)}
           ></detail-pane>`
         : null}
     `;
@@ -403,6 +429,14 @@ export class MessageHubPanel extends LitElement {
             >
               Einstellungen
             </button>
+            <button
+              role="tab"
+              aria-selected=${this._tab === "audit"}
+              class=${this._tab === "audit" ? "active" : ""}
+              @click=${() => (this._tab = "audit")}
+            >
+              Audit
+            </button>
             ${this._tab === "messages"
               ? html`<button
                   class="header-danger"
@@ -432,6 +466,9 @@ export class MessageHubPanel extends LitElement {
             : null}
           ${this._tab === "settings"
             ? html`<settings-view .api=${this._api}></settings-view>`
+            : null}
+          ${this._tab === "audit"
+            ? html`<audit-view .api=${this._api}></audit-view>`
             : null}
         </main>
 
@@ -627,6 +664,17 @@ export class MessageHubPanel extends LitElement {
     }
     .status-actions button.danger:hover {
       background: rgba(219, 68, 55, 0.08);
+    }
+    .status-actions a.export-link {
+      padding: 4px 10px;
+      border: 1px solid var(--divider-color, #ccc);
+      border-radius: 4px;
+      text-decoration: none;
+      color: inherit;
+      font-size: 0.85em;
+    }
+    .status-actions a.export-link:hover {
+      background: var(--secondary-background-color, #f3f3f3);
     }
     .empty {
       flex: 1;

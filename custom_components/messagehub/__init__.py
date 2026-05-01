@@ -46,9 +46,9 @@ def _build_add_message_schema() -> Any:
     return vol.Schema(
         {
             vol.Required(ATTR_SEVERITY): vol.In(SEVERITIES),
-            vol.Required(ATTR_SOURCE): cv.string,
-            vol.Required(ATTR_TEXT): cv.string,
-            vol.Optional(ATTR_METADATA): dict,
+            vol.Required(ATTR_SOURCE): vol.All(cv.string, vol.Length(min=1, max=64)),
+            vol.Required(ATTR_TEXT): vol.All(cv.string, vol.Length(min=1, max=8192)),
+            vol.Optional(ATTR_METADATA): vol.Schema({str: object}),
         }
     )
 
@@ -120,21 +120,170 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     webhook_repository = WebhookConfigRepository(database)
 
     domain_data = hass.data.setdefault(DOMAIN, {})
-    domain_data[entry.entry_id] = {
+    state = {
         "database": database,
         "repository": repository,
         "webhook_repository": webhook_repository,
     }
+    domain_data[entry.entry_id] = state
 
     await _async_register_services(hass, repository)
     async_register_views(hass)
     await _async_register_panel(hass)
     _async_register_retention(hass, entry, database)
     await _async_register_existing_webhooks(hass, webhook_repository)
+    state["unsub_eventbus"] = _async_register_eventbus_listeners(hass, repository)
+    state["unsub_periodic"] = _async_register_periodic_jobs(hass, database, repository)
+
+    # Options-Update-Listener (Review #5): Aenderungen aktivieren ohne Restart.
+    state["unsub_options"] = entry.add_update_listener(_async_options_updated)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _LOGGER.debug("messagehub config entry %s set up", entry.entry_id)
     return True
+
+
+async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Re-load die Integration beim Optionen-Update, damit z. B. Retention-Job
+    mit neuen Werten neu geplant wird (Review #5)."""
+    _LOGGER.debug("messagehub options updated, reloading entry %s", entry.entry_id)
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
+def _async_register_eventbus_listeners(hass: HomeAssistant, repository: Any) -> Any:
+    """Iter 38: HA-Eventbus-Listener fuer system_log_event und state_changed."""
+    from homeassistant.const import EVENT_STATE_CHANGED  # noqa: PLC0415
+
+    from .ingestion.eventbus import (  # noqa: PLC0415
+        map_state_changed_unavailable,
+        map_system_log_event,
+    )
+    from .storage import Message  # noqa: PLC0415
+
+    async def _on_system_log(event: Any) -> None:
+        try:
+            severity, source, text = map_system_log_event(dict(event.data))
+            if not text:
+                return
+            msg = Message(severity=severity, source=source, text=text or "system_log")
+            await repository.insert_or_aggregate(msg, window_minutes=10)
+            _fire_added(hass, msg)
+        except (ValueError, TypeError) as err:
+            _LOGGER.debug("system_log_event ingest skipped: %s", err)
+
+    async def _on_state_change(event: Any) -> None:
+        try:
+            mapped = map_state_changed_unavailable(dict(event.data))
+            if mapped is None:
+                return
+            severity, source, text = mapped
+            msg = Message(severity=severity, source=source, text=text)
+            await repository.insert_or_aggregate(msg, window_minutes=10)
+            _fire_added(hass, msg)
+        except (ValueError, TypeError) as err:
+            _LOGGER.debug("state_changed ingest skipped: %s", err)
+
+    unsub_log = hass.bus.async_listen("system_log_event", _on_system_log)
+    unsub_state = hass.bus.async_listen(EVENT_STATE_CHANGED, _on_state_change)
+
+    def _unsub() -> None:
+        unsub_log()
+        unsub_state()
+
+    return _unsub
+
+
+def _fire_added(hass: HomeAssistant, message: Any) -> None:
+    """Helper: feuert messagehub_message_added konsistent."""
+    hass.bus.async_fire(
+        EVENT_MESSAGE_ADDED,
+        {
+            "id": message.id,
+            "severity": message.severity.value,
+            "source": message.source,
+            "text": message.text,
+            "metadata": message.metadata,
+            "timestamp": message.timestamp_iso,
+        },
+    )
+
+
+def _async_register_periodic_jobs(hass: HomeAssistant, database: Any, repository: Any) -> Any:
+    """Iter 35: Heartbeat-Check, Iter 36: Anomalie-Evaluierung — beides 60s."""
+    from datetime import UTC as _UTC  # noqa: PLC0415
+    from datetime import datetime as _dt  # noqa: PLC0415
+    from datetime import timedelta as _td  # noqa: PLC0415
+
+    from homeassistant.helpers.event import async_track_time_interval  # noqa: PLC0415
+
+    from .processing.anomaly import (  # noqa: PLC0415
+        SourceMetricsRepository,
+        is_anomaly,
+        update,
+    )
+    from .processing.heartbeat import HeartbeatRepository, is_silent  # noqa: PLC0415
+    from .storage import Message, Severity  # noqa: PLC0415
+
+    hb_repo = HeartbeatRepository(database)
+    metrics_repo = SourceMetricsRepository(database)
+
+    async def _heartbeat_tick(_now: _dt) -> None:
+        try:
+            for hb in await hb_repo.list_all():
+                if not hb.enabled or hb.silent_alert_active:
+                    continue
+                if is_silent(hb):
+                    msg = Message(
+                        severity=Severity.WARNING,
+                        source="messagehub.heartbeat",
+                        text=f"silent: {hb.source} (>1.5x interval)",
+                        metadata={"heartbeat_source": hb.source},
+                    )
+                    await repository.insert_or_aggregate(msg)
+                    await hb_repo.set_silent(hb.source, True)
+                    _fire_added(hass, msg)
+        except (ValueError, RuntimeError) as err:
+            _LOGGER.warning("heartbeat tick failed: %s", err)
+
+    async def _anomaly_tick(_now: _dt) -> None:
+        try:
+            cutoff = (_dt.now(_UTC) - _td(minutes=1)).isoformat(timespec="seconds")
+            rows = await database.fetch_all(
+                "SELECT source, COUNT(*) AS cnt FROM messages WHERE timestamp >= ? GROUP BY source",
+                (cutoff,),
+            )
+            now_bucket = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M")
+            for row in rows:
+                source = str(row["source"])
+                if source.startswith("messagehub."):
+                    continue
+                cnt = int(row["cnt"])
+                metric = await metrics_repo.get(source)
+                if metric.last_bucket == now_bucket:
+                    continue
+                if is_anomaly(metric, cnt):
+                    msg = Message(
+                        severity=Severity.WARNING,
+                        source="messagehub.anomaly",
+                        text=f"{source}: {cnt}/min (mean ~{metric.ewma_rate:.1f})",
+                        metadata={"anomaly_source": source, "rate": cnt},
+                    )
+                    await repository.insert_or_aggregate(msg, window_minutes=15)
+                    _fire_added(hass, msg)
+                metric = update(metric, cnt)
+                metric.last_bucket = now_bucket
+                await metrics_repo.save(metric)
+        except (ValueError, RuntimeError) as err:
+            _LOGGER.warning("anomaly tick failed: %s", err)
+
+    unsub_hb = async_track_time_interval(hass, _heartbeat_tick, _td(seconds=60))
+    unsub_an = async_track_time_interval(hass, _anomaly_tick, _td(seconds=60))
+
+    def _unsub() -> None:
+        unsub_hb()
+        unsub_an()
+
+    return _unsub
 
 
 def _async_register_retention(hass: HomeAssistant, entry: ConfigEntry, database: Any) -> None:
@@ -242,6 +391,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     domain_data = hass.data.get(DOMAIN, {})
     state = domain_data.pop(entry.entry_id, None)
     if state is not None:
+        import contextlib  # noqa: PLC0415
+
+        for key in ("unsub_eventbus", "unsub_periodic", "unsub_options", "retention_unsub"):
+            unsub = state.get(key)
+            if callable(unsub):
+                with contextlib.suppress(RuntimeError, ValueError):
+                    unsub()
         database = state["database"]
         await database.close()
     if not domain_data and hass.services.has_service(DOMAIN, SERVICE_ADD_MESSAGE):

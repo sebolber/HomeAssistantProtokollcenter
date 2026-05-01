@@ -62,6 +62,10 @@ class MessageRepository:
         """Iter 27: aggregiert in einem aktiven Eintrag mit gleichem Fingerprint
         innerhalb des Zeitfensters; sonst regulaerer Insert.
 
+        Atomar via BEGIN IMMEDIATE/COMMIT, damit kein paralleler Insert auf
+        denselben Fingerprint die count-Aktualisierung verlieren kann.
+        Review-Befund #1 (CRITICAL).
+
         Returns (id, was_aggregated).
         """
         from datetime import UTC, datetime, timedelta  # noqa: PLC0415
@@ -75,7 +79,31 @@ class MessageRepository:
         cutoff = (datetime.now(UTC) - timedelta(minutes=window_minutes)).isoformat(
             timespec="seconds"
         )
-        row = await self._db.fetch_one(
+
+        # BEGIN IMMEDIATE sperrt fuer Schreibzugriffe -> SELECT+UPDATE atomar.
+        await self._db.connection.execute("BEGIN IMMEDIATE")
+        try:
+            row = await self._select_active_dup(fp, cutoff)
+            if row is None:
+                new_id = await self._insert_in_tx(message, fp)
+                message.id = new_id
+                return new_id, False
+            msg_id = int(row["id"])
+            new_count = int(row["count"]) + 1
+            upd = await self._db.connection.execute(
+                "UPDATE messages SET count = ?, last_seen = ? WHERE id = ?",
+                (new_count, message.timestamp_iso, msg_id),
+            )
+            await upd.close()
+            await self._db.connection.commit()
+            message.id = msg_id
+        except Exception:
+            await self._db.connection.rollback()
+            raise
+        return msg_id, True
+
+    async def _select_active_dup(self, fp: str, cutoff: str) -> object | None:
+        cursor = await self._db.connection.execute(
             """
             SELECT id, count FROM messages
             WHERE fingerprint = ?
@@ -86,17 +114,38 @@ class MessageRepository:
             """,
             (fp, cutoff),
         )
-        if row is None:
-            return await self.insert(message), False
+        try:
+            return await cursor.fetchone()
+        finally:
+            await cursor.close()
 
-        msg_id = int(row["id"])
-        new_count = int(row["count"]) + 1
-        await self._db.execute(
-            "UPDATE messages SET count = ?, last_seen = ? WHERE id = ?",
-            (new_count, message.timestamp_iso, msg_id),
+    async def _insert_in_tx(self, message: Message, fp: str) -> int:
+        ts = message.timestamp_iso
+        cursor = await self._db.connection.execute(
+            """
+            INSERT INTO messages
+                (timestamp, severity, source, text, metadata, webhook_id,
+                 fingerprint, count, first_seen, last_seen, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 'new')
+            """,
+            (
+                ts,
+                message.severity.value,
+                message.source,
+                message.text,
+                message.metadata_json,
+                message.webhook_id,
+                fp,
+                ts,
+                ts,
+            ),
         )
-        message.id = msg_id
-        return msg_id, True
+        new_id = cursor.lastrowid
+        await cursor.close()
+        await self._db.connection.commit()
+        if new_id is None:
+            raise RuntimeError("INSERT did not produce a lastrowid")
+        return int(new_id)
 
     async def set_status(self, message_id: int, status: str) -> bool:
         """Iter 28: Status-Lifecycle setzen."""
@@ -144,9 +193,7 @@ class MessageRepository:
             clauses.append("timestamp <= ?")
             params.append(to_iso)
         where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
-        cursor = await self._db.connection.execute(
-            f"DELETE FROM messages {where}", params
-        )
+        cursor = await self._db.connection.execute(f"DELETE FROM messages {where}", params)
         await self._db.connection.commit()
         deleted = cursor.rowcount or 0
         await cursor.close()
@@ -249,8 +296,8 @@ class MessageRepository:
         )
         return [_row_to_message(row) for row in rows]
 
-    async def list_filtered(
-        self,
+    @staticmethod
+    def _build_filter_where(
         *,
         severities: list[str] | None = None,
         source: str | None = None,
@@ -258,11 +305,8 @@ class MessageRepository:
         from_iso: str | None = None,
         to_iso: str | None = None,
         trace_id: str | None = None,
-        limit: int = 100,
-        offset: int = 0,
-        order: str = "desc",
-    ) -> list[Message]:
-        """Filter-Query. search nutzt FTS5 (Iter 33), wenn vorhanden — sonst LIKE."""
+    ) -> tuple[str, list[object]]:
+        """Gemeinsame Where-Klausel-Konstruktion fuer list/count/delete (Review #2)."""
         clauses: list[str] = []
         params: list[object] = []
         if severities:
@@ -277,7 +321,7 @@ class MessageRepository:
                 clauses.append("source = ?")
                 params.append(source)
         if search:
-            # FTS5: rowid-IN-Subquery, Fallback LIKE.
+            # FTS5 + LIKE-Fallback: einheitlich in list und count.
             clauses.append(
                 "(id IN (SELECT rowid FROM messages_fts WHERE messages_fts MATCH ?) OR text LIKE ?)"
             )
@@ -292,8 +336,31 @@ class MessageRepository:
         if trace_id:
             clauses.append("trace_id = ?")
             params.append(trace_id)
-
         where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        return where, params
+
+    async def list_filtered(
+        self,
+        *,
+        severities: list[str] | None = None,
+        source: str | None = None,
+        search: str | None = None,
+        from_iso: str | None = None,
+        to_iso: str | None = None,
+        trace_id: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+        order: str = "desc",
+    ) -> list[Message]:
+        """Filter-Query. search nutzt FTS5 (Iter 33), Fallback LIKE."""
+        where, params = self._build_filter_where(
+            severities=severities,
+            source=source,
+            search=search,
+            from_iso=from_iso,
+            to_iso=to_iso,
+            trace_id=trace_id,
+        )
         direction = "DESC" if order.lower() != "asc" else "ASC"
         sql = (
             f"SELECT * FROM messages {where} "
@@ -312,29 +379,13 @@ class MessageRepository:
         from_iso: str | None = None,
         to_iso: str | None = None,
     ) -> int:
-        clauses: list[str] = []
-        params: list[object] = []
-        if severities:
-            placeholders = ",".join("?" * len(severities))
-            clauses.append(f"severity IN ({placeholders})")
-            params.extend(severities)
-        if source:
-            if "*" in source:
-                clauses.append("source LIKE ?")
-                params.append(source.replace("*", "%"))
-            else:
-                clauses.append("source = ?")
-                params.append(source)
-        if search:
-            clauses.append("text LIKE ?")
-            params.append(f"%{search}%")
-        if from_iso:
-            clauses.append("timestamp >= ?")
-            params.append(from_iso)
-        if to_iso:
-            clauses.append("timestamp <= ?")
-            params.append(to_iso)
-        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        where, params = self._build_filter_where(
+            severities=severities,
+            source=source,
+            search=search,
+            from_iso=from_iso,
+            to_iso=to_iso,
+        )
         row = await self._db.fetch_one(f"SELECT COUNT(*) AS cnt FROM messages {where}", params)
         return int(row["cnt"]) if row is not None else 0
 
