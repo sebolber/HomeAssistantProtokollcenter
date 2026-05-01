@@ -403,6 +403,18 @@ export class MessageHubPanel extends LitElement {
             >
               Einstellungen
             </button>
+            ${this._tab === "messages"
+              ? html`<button
+                  class="header-danger"
+                  ?disabled=${this._total === 0}
+                  title=${this._total === 0
+                    ? "Keine Nachrichten zum Loeschen"
+                    : `${this._total} Nachrichten loeschen`}
+                  @click=${() => this._bulkDelete("all")}
+                >
+                  🗑 Alle loeschen
+                </button>`
+              : null}
             <button
               class="refresh"
               aria-label="Aktualisieren"
@@ -495,6 +507,20 @@ export class MessageHubPanel extends LitElement {
     nav button.refresh {
       font-size: 1.1em;
       padding: 6px 10px;
+    }
+    nav button.header-danger {
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--error-color, #db4437);
+      border-color: rgba(255, 255, 255, 0.95);
+      font-weight: 500;
+    }
+    nav button.header-danger:hover:not(:disabled) {
+      background: white;
+      filter: brightness(0.95);
+    }
+    nav button.header-danger:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
     main {
       flex: 1;
