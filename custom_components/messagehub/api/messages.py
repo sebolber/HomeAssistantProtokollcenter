@@ -616,6 +616,175 @@ class HeartbeatsView(_RequireAdminView):
         return self.json_message("ok")
 
 
+class KnxProjectDiscoveryView(_RequireAdminView):
+    """v0.4: liefert die GAs aus dem in HA-KNX hinterlegten ETS-Projekt
+    fuer Auto-Vervollstaendigung im Anlege-Formular."""
+
+    url = "/api/messagehub/knx-discovery"
+    name = "api:messagehub:knx-discovery"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        items, status = await _discover_knx_project(request.app["hass"])
+        return self.json({"items": items, "count": len(items), "status": status})
+
+
+async def _discover_knx_project(  # noqa: PLR0911, PLR0912
+    hass: HomeAssistant,
+) -> tuple[list[dict[str, Any]], str]:
+    """Liefert (items, status) aus dem HA-KNX-Projekt, falls vorhanden."""
+    knx_state = hass.data.get("knx")
+    if knx_state is None:
+        for alt in ("xknx", "knx_module"):
+            knx_state = hass.data.get(alt)
+            if knx_state is not None:
+                break
+    if knx_state is None:
+        items = await _load_from_storage_file(hass)
+        if items:
+            return items, "ok"
+        return [], "no_knx_integration"
+
+    candidates: list[Any] = []
+    for attr in ("project", "knx_project", "knxproject"):
+        candidates.append(getattr(knx_state, attr, None))
+    xknx_obj = getattr(knx_state, "xknx", None)
+    if xknx_obj is not None:
+        for attr in ("project", "knx_project", "knxproject"):
+            candidates.append(getattr(xknx_obj, attr, None))
+    if isinstance(knx_state, dict):
+        candidates.append(knx_state.get("project"))
+
+    project = next((p for p in candidates if p is not None), None)
+    if project is None:
+        items = await _load_from_storage_file(hass)
+        if items:
+            return items, "ok"
+        return [], "no_project_loaded"
+
+    raw_groups: Any = None
+    for attr in ("group_addresses", "groupaddresses", "groupranges", "group_ranges"):
+        candidate = getattr(project, attr, None)
+        if candidate:
+            raw_groups = candidate
+            break
+    if raw_groups is None and isinstance(project, dict):
+        raw_groups = (
+            project.get("group_addresses")
+            or project.get("groupaddresses")
+            or project.get("groupranges")
+        )
+    if not raw_groups:
+        items = await _load_from_storage_file(hass)
+        if items:
+            return items, "ok"
+        return [], "project_empty"
+
+    items_list: list[dict[str, Any]] = []
+    if isinstance(raw_groups, dict):
+        for addr, data in raw_groups.items():
+            items_list.append(_extract_group_address_entry(addr, data))
+    elif isinstance(raw_groups, list):
+        for entry in raw_groups:
+            if isinstance(entry, dict):
+                addr = entry.get("address") or entry.get("ga") or entry.get("identifier")
+                if not addr:
+                    continue
+                items_list.append(_extract_group_address_entry(addr, entry))
+
+    items_list = [it for it in items_list if it["address"]]
+    items_list.sort(key=lambda x: _ga_sort_key(x["address"]))
+    return items_list, "ok" if items_list else "project_empty"
+
+
+def _extract_group_address_entry(addr: Any, data: Any) -> dict[str, Any]:
+    addr_str = str(addr)
+    name: Any = None
+    dpt_field: Any = None
+    if isinstance(data, dict):
+        name = data.get("name") or data.get("description") or data.get("label")
+        dpt_field = data.get("dpt") or data.get("datapoint_type") or data.get("data_type")
+    else:
+        name = getattr(data, "name", None) or getattr(data, "description", None)
+        dpt_field = getattr(data, "dpt", None) or getattr(data, "data_type", None)
+    return {
+        "address": addr_str,
+        "name": str(name or addr_str),
+        "dpt": _extract_dpt(dpt_field),
+    }
+
+
+def _extract_dpt(raw: Any) -> str | None:
+    if raw is None:
+        return None
+    if isinstance(raw, str):
+        return raw.strip() or None
+    if isinstance(raw, dict):
+        main = raw.get("main")
+        sub = raw.get("sub")
+        return _format_dpt(main, sub)
+    main = (
+        getattr(raw, "dpt_main_number", None)
+        or getattr(raw, "main", None)
+        or getattr(raw, "value_type", None)
+    )
+    sub = getattr(raw, "dpt_sub_number", None) or getattr(raw, "sub", None)
+    if main is not None:
+        return _format_dpt(main, sub)
+    return None
+
+
+def _format_dpt(main: Any, sub: Any) -> str | None:
+    if main is None:
+        return None
+    try:
+        if sub is None or sub == "":
+            return str(int(main))
+        return f"{int(main)}.{int(sub):03d}"
+    except (TypeError, ValueError):
+        return f"{main}.{sub}" if sub else str(main)
+
+
+def _ga_sort_key(ga: str) -> tuple[int, int, int]:
+    try:
+        a, b, c = (int(p) for p in ga.split("/"))
+    except (ValueError, TypeError):
+        return (999, 999, 999)
+    return (a, b, c)
+
+
+async def _load_from_storage_file(hass: HomeAssistant) -> list[dict[str, Any]]:
+    """Fallback: liest <config>/.storage/knx/* (HA 2024.x speichert dort)."""
+    import json as _json  # noqa: PLC0415
+    from pathlib import Path as _Path  # noqa: PLC0415
+
+    storage_dir = _Path(hass.config.path(".storage"))
+    candidates = [
+        storage_dir / "knx" / "project.json",
+        storage_dir / "knx_project.json",
+        storage_dir / "knx_keyring.json",
+    ]
+
+    def _read_first() -> dict[str, Any] | None:
+        for p in candidates:
+            if p.is_file():
+                try:
+                    return _json.loads(p.read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    continue
+        return None
+
+    raw = await hass.async_add_executor_job(_read_first)
+    if not raw:
+        return []
+    groups = raw.get("data", {}).get("group_addresses") if isinstance(raw, dict) else None
+    if not isinstance(groups, dict):
+        return []
+    items = [_extract_group_address_entry(addr, data) for addr, data in groups.items()]
+    items.sort(key=lambda x: _ga_sort_key(x["address"]))
+    return items
+
+
 class KnxAddressesView(_RequireAdminView):
     """Iter 48 UI: KNX-Gruppenadressen verwalten + ETS-CSV-Import."""
 
@@ -1133,6 +1302,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         WebhookDetailView,
         KnxAddressesView,
         KnxAddressDetailView,
+        KnxProjectDiscoveryView,
         ChannelsView,
         ChannelDetailView,
         ChannelTestView,
