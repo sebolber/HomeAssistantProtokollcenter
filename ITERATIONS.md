@@ -19,9 +19,9 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 12 — Severity-Mapping-Tabelle
 
 ## Phase C — REST-API
-- [ ] Iteration 13 — Endpoints list und get
-- [ ] Iteration 14 — Filter & Pagination
-- [ ] Iteration 15 — Endpoints delete, sources, stats, webhooks
+- [x] Iteration 13 — Endpoints list und get
+- [x] Iteration 14 — Filter & Pagination
+- [x] Iteration 15 — Endpoints delete, sources, stats, webhooks
 
 ## Phase D — Frontend-Panel
 - [ ] Iteration 16 — Panel-Registrierung & Build-Pipeline

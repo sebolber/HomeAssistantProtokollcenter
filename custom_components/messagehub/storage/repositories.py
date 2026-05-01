@@ -80,6 +80,104 @@ class MessageRepository:
         )
         return [_row_to_message(row) for row in rows]
 
+    async def list_filtered(
+        self,
+        *,
+        severities: list[str] | None = None,
+        source: str | None = None,
+        search: str | None = None,
+        from_iso: str | None = None,
+        to_iso: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+        order: str = "desc",
+    ) -> list[Message]:
+        """Filter-Query (Iter 14). Volltext nutzt LIKE; FTS5 kommt in Iter 33."""
+        clauses: list[str] = []
+        params: list[object] = []
+        if severities:
+            placeholders = ",".join("?" * len(severities))
+            clauses.append(f"severity IN ({placeholders})")
+            params.extend(severities)
+        if source:
+            if "*" in source:
+                clauses.append("source LIKE ?")
+                params.append(source.replace("*", "%"))
+            else:
+                clauses.append("source = ?")
+                params.append(source)
+        if search:
+            clauses.append("text LIKE ?")
+            params.append(f"%{search}%")
+        if from_iso:
+            clauses.append("timestamp >= ?")
+            params.append(from_iso)
+        if to_iso:
+            clauses.append("timestamp <= ?")
+            params.append(to_iso)
+
+        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        direction = "DESC" if order.lower() != "asc" else "ASC"
+        sql = (
+            f"SELECT * FROM messages {where} "
+            f"ORDER BY timestamp {direction}, id {direction} LIMIT ? OFFSET ?"
+        )
+        params.extend([max(0, limit), max(0, offset)])
+        rows = await self._db.fetch_all(sql, params)
+        return [_row_to_message(row) for row in rows]
+
+    async def count_filtered(
+        self,
+        *,
+        severities: list[str] | None = None,
+        source: str | None = None,
+        search: str | None = None,
+        from_iso: str | None = None,
+        to_iso: str | None = None,
+    ) -> int:
+        clauses: list[str] = []
+        params: list[object] = []
+        if severities:
+            placeholders = ",".join("?" * len(severities))
+            clauses.append(f"severity IN ({placeholders})")
+            params.extend(severities)
+        if source:
+            if "*" in source:
+                clauses.append("source LIKE ?")
+                params.append(source.replace("*", "%"))
+            else:
+                clauses.append("source = ?")
+                params.append(source)
+        if search:
+            clauses.append("text LIKE ?")
+            params.append(f"%{search}%")
+        if from_iso:
+            clauses.append("timestamp >= ?")
+            params.append(from_iso)
+        if to_iso:
+            clauses.append("timestamp <= ?")
+            params.append(to_iso)
+        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        row = await self._db.fetch_one(f"SELECT COUNT(*) AS cnt FROM messages {where}", params)
+        return int(row["cnt"]) if row is not None else 0
+
+    async def distinct_sources(self) -> list[str]:
+        rows = await self._db.fetch_all("SELECT DISTINCT source FROM messages ORDER BY source ASC")
+        return [str(row["source"]) for row in rows]
+
+    async def stats_severity_last_24h(self) -> dict[str, int]:
+        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
+
+        cutoff = (datetime.now(UTC) - timedelta(hours=24)).isoformat(timespec="seconds")
+        rows = await self._db.fetch_all(
+            "SELECT severity, COUNT(*) AS cnt FROM messages WHERE timestamp >= ? GROUP BY severity",
+            (cutoff,),
+        )
+        counts = {row["severity"]: int(row["cnt"]) for row in rows}
+        for sev in ("debug", "info", "warning", "error"):
+            counts.setdefault(sev, 0)
+        return counts
+
     async def count_total(self) -> int:
         """Liefert die Gesamtanzahl der Nachrichten."""
         row = await self._db.fetch_one("SELECT COUNT(*) AS cnt FROM messages")

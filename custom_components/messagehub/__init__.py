@@ -55,21 +55,30 @@ def _build_add_message_schema() -> Any:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up messagehub: oeffnet die DB, fuehrt Migrationen aus, registriert Services."""
-    from .storage import Database, MessageRepository, MigrationRunner  # noqa: PLC0415
+    from .api import async_register_views  # noqa: PLC0415
+    from .storage import (  # noqa: PLC0415
+        Database,
+        MessageRepository,
+        MigrationRunner,
+        WebhookConfigRepository,
+    )
 
     config_dir = Path(hass.config.path(""))
     database = Database.for_config_dir(config_dir)
     await database.open()
     await MigrationRunner(database).run()
     repository = MessageRepository(database)
+    webhook_repository = WebhookConfigRepository(database)
 
     domain_data = hass.data.setdefault(DOMAIN, {})
     domain_data[entry.entry_id] = {
         "database": database,
         "repository": repository,
+        "webhook_repository": webhook_repository,
     }
 
     await _async_register_services(hass, repository)
+    async_register_views(hass)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _LOGGER.debug("messagehub config entry %s set up", entry.entry_id)
