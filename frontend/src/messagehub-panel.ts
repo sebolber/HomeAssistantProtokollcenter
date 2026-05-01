@@ -4,6 +4,7 @@
 import { LitElement, css, html, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { ApiClient, type MessageDto } from "./api-client.js";
+import { tokens, buttons } from "./styles/tokens.js";
 import "./components/message-table.js";
 import "./components/severity-filter.js";
 import "./components/source-filter.js";
@@ -64,6 +65,7 @@ export class MessageHubPanel extends LitElement {
   @state() private _newCount = 0;
   @state() private _testing = false;
   @state() private _toast = "";
+  @state() private _overflowOpen = false;
 
   private _api = new ApiClient();
   private _unsubLive?: () => void;
@@ -261,6 +263,14 @@ export class MessageHubPanel extends LitElement {
     }, 300);
   }
 
+  private _toggleOverflow = (): void => {
+    this._overflowOpen = !this._overflowOpen;
+  };
+
+  private _closeOverflow = (): void => {
+    if (this._overflowOpen) this._overflowOpen = false;
+  };
+
   private _hasActiveFilters(): boolean {
     return (
       this._filters.severity.length !== DEFAULT_FILTERS.severity.length ||
@@ -333,45 +343,79 @@ export class MessageHubPanel extends LitElement {
         ></time-range-filter>
         ${this._hasActiveFilters()
           ? html`<button class="filter-reset" @click=${this._resetFilters}>
-              Filter loeschen
+              Filter zurücksetzen
             </button>`
           : null}
       </div>
 
       <div class="status-bar">
-        <span>
+        <span class="status-count">
           ${this._loading
             ? "lade…"
-            : `${this._items.length.toLocaleString("de-DE")} von ${this._total.toLocaleString("de-DE")}`}
+            : html`<strong>${this._items.length.toLocaleString("de-DE")}</strong>
+                <span class="muted">von ${this._total.toLocaleString("de-DE")}</span>`}
           ${this._newCount > 0
-            ? html`<span class="new-badge"
-                >+${this._newCount} neue</span
-              >`
+            ? html`<span class="new-badge">+${this._newCount} neu</span>`
             : null}
         </span>
         <div class="status-actions">
           ${this._total > 0
             ? html`<a
-                  class="export-link"
+                  class="mh-btn mh-btn--sm"
                   href=${this._exportUrl("jsonl")}
                   download="messagehub-export.jsonl"
-                  >⤓ JSONL</a
+                  title="Als JSONL exportieren"
+                  >↓ JSONL</a
                 >
                 <a
-                  class="export-link"
+                  class="mh-btn mh-btn--sm"
                   href=${this._exportUrl("csv")}
                   download="messagehub-export.csv"
-                  >⤓ CSV</a
+                  title="Als CSV exportieren"
+                  >↓ CSV</a
                 >`
             : null}
           ${this._total > 0 && this._hasActiveFilters()
-            ? html`<button class="danger" @click=${() => this._bulkDelete("filter")}>
-                Gefilterte loeschen
+            ? html`<button
+                class="mh-btn mh-btn--sm mh-btn--danger"
+                @click=${() => this._bulkDelete("filter")}
+              >
+                Gefilterte löschen
               </button>`
             : null}
-          <button ?disabled=${this._testing} @click=${this._sendTestMessage}>
-            ${this._testing ? "sende…" : "+ Test"}
+          <button
+            class="mh-btn mh-btn--sm"
+            ?disabled=${this._testing}
+            @click=${this._sendTestMessage}
+          >
+            ${this._testing ? "sende…" : "+ Testnachricht"}
           </button>
+          <div class="overflow" @click=${(e: Event) => e.stopPropagation()}>
+            <button
+              class="mh-btn mh-btn--sm mh-btn--icon mh-btn--ghost"
+              aria-label="Weitere Aktionen"
+              aria-haspopup="menu"
+              aria-expanded=${this._overflowOpen}
+              @click=${this._toggleOverflow}
+            >
+              ⋯
+            </button>
+            ${this._overflowOpen
+              ? html`<div class="overflow-menu" role="menu">
+                  <button
+                    role="menuitem"
+                    class="overflow-item danger"
+                    ?disabled=${this._total === 0}
+                    @click=${() => {
+                      this._overflowOpen = false;
+                      void this._bulkDelete("all");
+                    }}
+                  >
+                    🗑 Alle ${this._total} Nachrichten löschen
+                  </button>
+                </div>`
+              : null}
+          </div>
         </div>
       </div>
 
@@ -397,66 +441,42 @@ export class MessageHubPanel extends LitElement {
   }
 
   override render(): TemplateResult {
+    type TabId = "messages" | "settings" | "stats" | "audit";
+    const tabs: Array<{ id: TabId; label: string }> = [
+      { id: "messages", label: "Nachrichten" },
+      { id: "stats", label: "Statistik" },
+      { id: "settings", label: "Einstellungen" },
+      { id: "audit", label: "Audit" },
+    ];
     return html`
-      <div class="root">
+      <div class="root" @click=${this._closeOverflow}>
         <header>
           <div class="brand">
             <span class="logo" aria-hidden="true">📨</span>
             <h1>Message Hub</h1>
           </div>
-          <nav role="tablist">
+          <nav role="tablist" class="tabs">
+            ${tabs.map(
+              (t) => html`<button
+                role="tab"
+                aria-selected=${this._tab === t.id}
+                class=${`tab ${this._tab === t.id ? "active" : ""}`}
+                @click=${() => (this._tab = t.id)}
+              >
+                ${t.label}
+              </button>`
+            )}
+          </nav>
+          <div class="header-actions">
             <button
-              role="tab"
-              aria-selected=${this._tab === "messages"}
-              class=${this._tab === "messages" ? "active" : ""}
-              @click=${() => (this._tab = "messages")}
-            >
-              Nachrichten
-            </button>
-            <button
-              role="tab"
-              aria-selected=${this._tab === "stats"}
-              class=${this._tab === "stats" ? "active" : ""}
-              @click=${() => (this._tab = "stats")}
-            >
-              Statistik
-            </button>
-            <button
-              role="tab"
-              aria-selected=${this._tab === "settings"}
-              class=${this._tab === "settings" ? "active" : ""}
-              @click=${() => (this._tab = "settings")}
-            >
-              Einstellungen
-            </button>
-            <button
-              role="tab"
-              aria-selected=${this._tab === "audit"}
-              class=${this._tab === "audit" ? "active" : ""}
-              @click=${() => (this._tab = "audit")}
-            >
-              Audit
-            </button>
-            ${this._tab === "messages"
-              ? html`<button
-                  class="header-danger"
-                  ?disabled=${this._total === 0}
-                  title=${this._total === 0
-                    ? "Keine Nachrichten zum Loeschen"
-                    : `${this._total} Nachrichten loeschen`}
-                  @click=${() => this._bulkDelete("all")}
-                >
-                  🗑 Alle loeschen
-                </button>`
-              : null}
-            <button
-              class="refresh"
+              class="mh-btn mh-btn--icon mh-btn--ghost"
               aria-label="Aktualisieren"
+              title="Aktualisieren"
               @click=${() => void this._reload()}
             >
-              ↻
+              <span aria-hidden="true">↻</span>
             </button>
-          </nav>
+          </div>
         </header>
 
         <main>
@@ -477,268 +497,320 @@ export class MessageHubPanel extends LitElement {
     `;
   }
 
-  static override styles = css`
-    :host {
-      display: block;
-      height: 100vh;
-      background: var(--primary-background-color, #fafafa);
-      color: var(--primary-text-color, #222);
-      font-family: var(--ha-font-family-body, system-ui, sans-serif);
-    }
-    .root {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--divider-color, #ddd);
-      background: var(--app-header-background-color, var(--primary-color, #03a9f4));
-      color: var(--app-header-text-color, white);
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .logo {
-      font-size: 1.3em;
-    }
-    h1 {
-      font-size: 1.1em;
-      margin: 0;
-      font-weight: 600;
-    }
-    nav {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-    nav button {
-      background: transparent;
-      color: inherit;
-      border: 1px solid currentColor;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font: inherit;
-      font-size: 0.9em;
-    }
-    nav button:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-    nav button:focus-visible {
-      outline: 2px solid white;
-      outline-offset: 2px;
-    }
-    nav button.active {
-      background: white;
-      color: var(--app-header-background-color, var(--primary-color, #03a9f4));
-      font-weight: 600;
-    }
-    nav button.refresh {
-      font-size: 1.1em;
-      padding: 6px 10px;
-    }
-    nav button.header-danger {
-      background: rgba(255, 255, 255, 0.95);
-      color: var(--error-color, #db4437);
-      border-color: rgba(255, 255, 255, 0.95);
-      font-weight: 500;
-    }
-    nav button.header-danger:hover:not(:disabled) {
-      background: white;
-      filter: brightness(0.95);
-    }
-    nav button.header-danger:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    main {
-      flex: 1;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      background: var(--primary-background-color, #fafafa);
-    }
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--divider-color, #ddd);
-      background: var(--card-background-color, white);
-      align-items: center;
-    }
-    @media (max-width: 600px) {
+  static override styles = [
+    tokens,
+    buttons,
+    css`
+      :host {
+        display: block;
+        height: 100vh;
+        background: var(--mh-bg);
+        color: var(--mh-fg);
+        font-family: var(--ha-font-family-body, "Inter", system-ui, -apple-system, "Segoe UI",
+          Roboto, sans-serif);
+        font-size: var(--mh-text-md);
+      }
+      .root {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      /* Top-Header: ruhig, neutral, mit dezenter Bottom-Border */
+      header {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: var(--mh-space-4);
+        padding: var(--mh-space-3) var(--mh-space-5);
+        background: var(--mh-surface);
+        border-bottom: 1px solid var(--mh-divider);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-2);
+      }
+      .logo {
+        font-size: 1.4em;
+      }
+      h1 {
+        font-size: var(--mh-text-lg);
+        margin: 0;
+        font-weight: var(--mh-weight-semibold);
+        letter-spacing: -0.01em;
+      }
+
+      /* Segmented Tabs: ein gemeinsamer Container, klare aktiv/inaktiv-States */
+      .tabs {
+        display: inline-flex;
+        gap: 2px;
+        background: var(--mh-surface-2);
+        padding: 4px;
+        border-radius: var(--mh-radius-md);
+        justify-self: center;
+      }
+      .tab {
+        appearance: none;
+        background: transparent;
+        border: 0;
+        padding: 6px 14px;
+        font: inherit;
+        font-size: var(--mh-text-sm);
+        font-weight: var(--mh-weight-medium);
+        color: var(--mh-fg-muted);
+        cursor: pointer;
+        border-radius: var(--mh-radius-sm);
+        transition: background var(--mh-transition-fast), color var(--mh-transition-fast);
+      }
+      .tab:hover {
+        color: var(--mh-fg);
+      }
+      .tab:focus-visible {
+        outline: var(--mh-focus-ring);
+        outline-offset: var(--mh-focus-offset);
+      }
+      .tab.active {
+        background: var(--mh-surface);
+        color: var(--mh-fg);
+        font-weight: var(--mh-weight-semibold);
+        box-shadow: var(--mh-shadow-1);
+      }
+      .header-actions {
+        display: flex;
+        gap: var(--mh-space-2);
+        align-items: center;
+        justify-self: end;
+      }
+      @media (max-width: 720px) {
+        header {
+          grid-template-columns: 1fr auto;
+          row-gap: var(--mh-space-2);
+        }
+        .tabs {
+          grid-column: 1 / -1;
+          justify-self: stretch;
+          overflow-x: auto;
+        }
+      }
+
+      main {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Filter-Bar */
       .filter-bar {
-        padding: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--mh-space-2);
+        padding: var(--mh-space-3) var(--mh-space-5);
+        border-bottom: 1px solid var(--mh-divider);
+        background: var(--mh-surface);
+        align-items: center;
       }
-      .filter-bar > * {
-        flex: 1 1 auto;
+      @media (max-width: 600px) {
+        .filter-bar {
+          padding: var(--mh-space-2);
+        }
+        .filter-bar > * {
+          flex: 1 1 auto;
+        }
       }
-    }
-    input.search {
-      padding: 6px 10px;
-      border: 1px solid var(--divider-color, #ccc);
-      border-radius: 4px;
-      min-width: 200px;
-      flex: 1;
-      max-width: 320px;
-      font: inherit;
-      background: var(--card-background-color, white);
-      color: var(--primary-text-color, #222);
-    }
-    input.search:focus-visible {
-      outline: 2px solid var(--primary-color, #03a9f4);
-      outline-offset: 1px;
-    }
-    .filter-reset {
-      padding: 6px 12px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      cursor: pointer;
-      border-radius: 4px;
-      color: var(--secondary-text-color, #666);
-      font: inherit;
-      font-size: 0.85em;
-    }
-    .filter-reset:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    .status-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 16px;
-      font-size: 0.85em;
-      color: var(--secondary-text-color, #666);
-      background: var(--primary-background-color, #fafafa);
-      border-bottom: 1px solid var(--divider-color, #eee);
-    }
-    .new-badge {
-      display: inline-block;
-      margin-left: 8px;
-      padding: 1px 8px;
-      background: var(--primary-color, #03a9f4);
-      color: white;
-      border-radius: 10px;
-      font-size: 0.78em;
-      font-weight: 500;
-      animation: pulse 1s ease-in-out infinite alternate;
-    }
-    @keyframes pulse {
-      from {
-        opacity: 0.7;
+      input.search {
+        padding: 7px 12px;
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm);
+        min-width: 200px;
+        flex: 1;
+        max-width: 320px;
+        font: inherit;
+        font-size: var(--mh-text-sm);
+        background: var(--mh-surface);
+        color: var(--mh-fg);
+        transition: border-color var(--mh-transition-fast), box-shadow var(--mh-transition-fast);
       }
-      to {
-        opacity: 1;
+      input.search:focus-visible {
+        outline: none;
+        border-color: var(--mh-accent);
+        box-shadow: 0 0 0 3px var(--mh-accent-soft);
       }
-    }
-    .status-actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .status-actions button {
-      padding: 4px 10px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      cursor: pointer;
-      border-radius: 4px;
-      color: inherit;
-      font: inherit;
-      font-size: 0.85em;
-    }
-    .status-actions button:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    .status-actions button.danger {
-      color: var(--error-color, #db4437);
-      border-color: var(--error-color, #db4437);
-    }
-    .status-actions button.danger:hover {
-      background: rgba(219, 68, 55, 0.08);
-    }
-    .status-actions a.export-link {
-      padding: 4px 10px;
-      border: 1px solid var(--divider-color, #ccc);
-      border-radius: 4px;
-      text-decoration: none;
-      color: inherit;
-      font-size: 0.85em;
-    }
-    .status-actions a.export-link:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    .empty {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
-      text-align: center;
-      color: var(--secondary-text-color, #666);
-    }
-    .empty h3 {
-      margin: 0 0 8px 0;
-      color: var(--primary-text-color, #222);
-    }
-    .empty p {
-      margin: 0 0 20px 0;
-      max-width: 460px;
-    }
-    .empty-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .empty button {
-      padding: 8px 16px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      cursor: pointer;
-      border-radius: 4px;
-      color: inherit;
-      font: inherit;
-    }
-    .empty button.primary {
-      background: var(--primary-color, #03a9f4);
-      color: white;
-      border-color: var(--primary-color, #03a9f4);
-    }
-    .empty button.primary:hover {
-      filter: brightness(0.9);
-    }
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--primary-text-color, #222);
-      color: var(--primary-background-color, white);
-      padding: 10px 16px;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      font-size: 0.9em;
-      z-index: 100;
-      animation: slidein 0.2s ease-out;
-    }
-    @keyframes slidein {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
+      .filter-reset {
+        padding: 6px 12px;
+        border: 1px solid var(--mh-divider);
+        background: transparent;
+        cursor: pointer;
+        border-radius: var(--mh-radius-sm);
+        color: var(--mh-fg-muted);
+        font: inherit;
+        font-size: var(--mh-text-xs);
       }
-      to {
-        transform: translateY(0);
-        opacity: 1;
+      .filter-reset:hover {
+        background: var(--mh-surface-2);
+        color: var(--mh-fg);
       }
-    }
-  `;
+
+      /* Status-Bar */
+      .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--mh-space-2) var(--mh-space-5);
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        background: var(--mh-bg);
+        border-bottom: 1px solid var(--mh-divider);
+      }
+      .status-count {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--mh-space-2);
+      }
+      .status-count strong {
+        color: var(--mh-fg);
+        font-variant-numeric: tabular-nums;
+      }
+      .status-count .muted {
+        color: var(--mh-fg-muted);
+      }
+      .new-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        background: var(--mh-accent);
+        color: var(--mh-accent-fg);
+        border-radius: var(--mh-radius-pill);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
+        animation: pulse 1.4s ease-in-out infinite alternate;
+      }
+      @keyframes pulse {
+        from {
+          opacity: 0.65;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .status-actions {
+        display: flex;
+        gap: var(--mh-space-2);
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      a.mh-btn {
+        text-decoration: none;
+      }
+
+      /* Overflow-Menu */
+      .overflow {
+        position: relative;
+      }
+      .overflow-menu {
+        position: absolute;
+        top: calc(100% + 4px);
+        right: 0;
+        z-index: 50;
+        min-width: 240px;
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        box-shadow: var(--mh-shadow-3);
+        padding: 4px;
+        animation: menu-in 120ms ease-out;
+      }
+      @keyframes menu-in {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .overflow-item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        border: 0;
+        padding: 8px 12px;
+        border-radius: var(--mh-radius-sm);
+        font: inherit;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg);
+        cursor: pointer;
+      }
+      .overflow-item:hover:not(:disabled) {
+        background: var(--mh-surface-2);
+      }
+      .overflow-item:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .overflow-item.danger {
+        color: var(--mh-error);
+      }
+      .overflow-item.danger:hover:not(:disabled) {
+        background: var(--mh-error-soft);
+      }
+
+      /* Empty-State */
+      .empty {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--mh-space-7) var(--mh-space-5);
+        text-align: center;
+        color: var(--mh-fg-muted);
+      }
+      .empty h3 {
+        margin: 0 0 var(--mh-space-2) 0;
+        color: var(--mh-fg);
+        font-size: var(--mh-text-lg);
+      }
+      .empty p {
+        margin: 0 0 var(--mh-space-5) 0;
+        max-width: 460px;
+        line-height: 1.5;
+      }
+      .empty-actions {
+        display: flex;
+        gap: var(--mh-space-2);
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: var(--mh-space-5);
+        right: var(--mh-space-5);
+        background: var(--mh-fg);
+        color: var(--mh-bg);
+        padding: var(--mh-space-3) var(--mh-space-4);
+        border-radius: var(--mh-radius-md);
+        box-shadow: var(--mh-shadow-3);
+        font-size: var(--mh-text-sm);
+        z-index: 100;
+        animation: slidein 200ms ease-out;
+      }
+      @keyframes slidein {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+    `,
+  ];
 }
