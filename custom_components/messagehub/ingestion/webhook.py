@@ -110,9 +110,8 @@ async def async_handle_webhook(  # noqa: PLR0911
     if repo is None:
         return Response(status=503, text="messagehub not initialised")
 
-    # Iter 48: KNX-Anreicherung — wenn source-Pattern auf knx-bus matcht und
-    # eine Gruppenadresse im Text gefunden wird, mit ETS-Label anreichern.
-    metadata = _enrich_knx(hass, source, text, metadata)
+    # Iter 48: KNX-Anreicherung aus DB-Tabelle knx_group_addresses.
+    metadata = await _enrich_knx(hass, source, text, metadata)
 
     msg = Message(
         severity=severity,
@@ -163,56 +162,40 @@ def _get_repo(hass: HomeAssistant) -> MessageRepository | None:
     return state.get("repository")
 
 
-_KNX_LABEL_CACHE: dict[str, str] = {}
-_KNX_CACHE_LOADED = False
-
-
-def _enrich_knx(
+async def _enrich_knx(  # noqa: PLR0911
     hass: HomeAssistant,
     source: str,
     text: str,
     metadata: dict[str, Any] | None,
 ) -> dict[str, Any] | None:
-    """Iter 48: ergaenzt metadata.knx_label, falls source=knx* und CSV vorhanden.
-
-    Lazy-Loading der ETS-CSV beim ersten knx-Treffer. Cache lebt im Modul.
-    """
-    global _KNX_CACHE_LOADED  # noqa: PLW0603
+    """Iter 48 (UI-Variante): ergaenzt metadata.knx_label aus der DB-Tabelle
+    knx_group_addresses, falls source=knx* und eine GA im Text vorkommt."""
     if not source.startswith("knx"):
         return metadata
 
-    from pathlib import Path  # noqa: PLC0415
-
-    from ..processing.knx import (  # noqa: PLC0415
-        extract_group_address,
-        load_ets_csv_file,
-    )
-
-    if not _KNX_CACHE_LOADED:
-        _KNX_CACHE_LOADED = True
-        try:
-            csv_path = Path(hass.config.path("messagehub/knx_groupaddresses.csv"))
-            if csv_path.is_file():
-                _KNX_LABEL_CACHE.update(load_ets_csv_file(csv_path))
-                _LOGGER.info(
-                    "loaded %d KNX group address labels from %s",
-                    len(_KNX_LABEL_CACHE),
-                    csv_path,
-                )
-        except (OSError, ValueError) as err:
-            _LOGGER.debug("KNX-CSV not loaded: %s", err)
-
-    if not _KNX_LABEL_CACHE:
-        return metadata
+    from ..processing.knx import extract_group_address  # noqa: PLC0415
+    from ..processing.knx_repo import KnxAddressRepository  # noqa: PLC0415
 
     ga = extract_group_address(text)
     if ga is None:
         return metadata
 
-    label = _KNX_LABEL_CACHE.get(ga)
-    if label is None:
+    domain_data = hass.data.get(DOMAIN, {})
+    if not domain_data:
+        return metadata
+    state = next(iter(domain_data.values()))
+    db = state.get("database")
+    if db is None:
         return metadata
 
+    try:
+        label = await KnxAddressRepository(db).lookup(ga)
+    except (ValueError, RuntimeError) as err:
+        _LOGGER.debug("KNX lookup failed: %s", err)
+        return metadata
+
+    if label is None:
+        return metadata
     enriched = dict(metadata or {})
     enriched["knx_ga"] = ga
     enriched["knx_label"] = label

@@ -4,6 +4,7 @@ import { LitElement, css, html, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ApiClient, WebhookDto } from "../api-client.js";
 import "./webhook-form.js";
+import "./knx-addresses-view.js";
 
 @customElement("settings-view")
 export class SettingsView extends LitElement {
@@ -173,6 +174,8 @@ export class SettingsView extends LitElement {
               : html`<div class="grid">${this._items.map((item) => this._renderItem(item))}</div>`}
         </section>
 
+        <knx-addresses-view .api=${this.api}></knx-addresses-view>
+
         <section>
           <header class="section-head">
             <div>
@@ -194,12 +197,13 @@ export class SettingsView extends LitElement {
           <header class="section-head">
             <div>
               <h2>Heartbeat-Quellen</h2>
-              <p class="hint">Stille Quellen erkennen und alarmieren.</p>
+              <p class="hint">
+                Stille Quellen erkennen und alarmieren — Backend-Job laeuft 60s,
+                UI-Editor folgt in v0.2 (REST-Endpoint
+                <code>/api/messagehub/heartbeats</code> ist da).
+              </p>
             </div>
           </header>
-          <div class="placeholder">
-            <p>UI fuer Heartbeat-Konfiguration in v0.2.</p>
-          </div>
         </section>
 
         ${this._toast ? html`<div class="toast">${this._toast}</div>` : null}

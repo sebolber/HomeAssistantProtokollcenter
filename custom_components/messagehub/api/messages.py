@@ -616,6 +616,108 @@ class HeartbeatsView(_RequireAdminView):
         return self.json_message("ok")
 
 
+class KnxAddressesView(_RequireAdminView):
+    """Iter 48 UI: KNX-Gruppenadressen verwalten + ETS-CSV-Import."""
+
+    url = "/api/messagehub/knx-addresses"
+    name = "api:messagehub:knx-addresses"
+
+    async def get(self, request: web.Request) -> web.Response:
+        from ..processing.knx_repo import KnxAddressRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        db = _get_database(request.app["hass"])
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        items = await KnxAddressRepository(db).list_all()
+        return self.json(
+            {
+                "items": [
+                    {
+                        "address": it.address,
+                        "label": it.label,
+                        "dpt": it.dpt,
+                        "description": it.description,
+                    }
+                    for it in items
+                ]
+            }
+        )
+
+    async def post(self, request: web.Request) -> web.Response:
+        from ..processing.knx_repo import (  # noqa: PLC0415
+            KnxAddress,
+            KnxAddressRepository,
+        )
+
+        self._check_admin(request)
+        db = _get_database(request.app["hass"])
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        try:
+            data = await request.json()
+        except (ValueError, TypeError):
+            return self.json_message("invalid json", status_code=400)
+
+        repo = KnxAddressRepository(db)
+        # Bulk-Import via {"csv": "..."}
+        csv_content = data.get("csv") if isinstance(data, dict) else None
+        if isinstance(csv_content, str) and csv_content.strip():
+            stats = await repo.bulk_import_csv(csv_content)
+            await _audit(
+                request.app["hass"],
+                request,
+                action="knx_bulk_import",
+                target_type="knx_address",
+                details=stats,
+            )
+            return self.json(stats)
+
+        # Einzel-Upsert
+        try:
+            item = KnxAddress(
+                address=str(data["address"]),
+                label=str(data["label"]),
+                dpt=data.get("dpt"),
+                description=data.get("description"),
+            )
+            await repo.upsert(item)
+        except (KeyError, ValueError, TypeError) as err:
+            return self.json_message(f"invalid: {err}", status_code=400)
+        await _audit(
+            request.app["hass"],
+            request,
+            action="knx_upsert",
+            target_type="knx_address",
+            target_id=item.address,
+            details={"label": item.label},
+        )
+        return self.json({"address": item.address, "label": item.label})
+
+
+class KnxAddressDetailView(_RequireAdminView):
+    url = "/api/messagehub/knx-addresses/{address:[^/]+}"
+    name = "api:messagehub:knx-address-detail"
+
+    async def delete(self, request: web.Request, address: str) -> web.Response:
+        from ..processing.knx_repo import KnxAddressRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        db = _get_database(request.app["hass"])
+        if db is None:
+            return self.json_message("not initialised", status_code=503)
+        if not await KnxAddressRepository(db).delete(address):
+            return self.json_message("not found", status_code=404)
+        await _audit(
+            request.app["hass"],
+            request,
+            action="knx_delete",
+            target_type="knx_address",
+            target_id=address,
+        )
+        return self.json_message("deleted")
+
+
 def async_register_views(hass: HomeAssistant) -> None:
     """Registriert alle API-Views (idempotent)."""
     for view_cls in (
@@ -631,6 +733,8 @@ def async_register_views(hass: HomeAssistant) -> None:
         StatsView,
         WebhooksView,
         WebhookDetailView,
+        KnxAddressesView,
+        KnxAddressDetailView,
     ):
         view = view_cls()
         # HA-internes Doppel-Register vermeiden

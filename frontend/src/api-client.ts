@@ -148,6 +148,48 @@ export class ApiClient {
     return ((await res.json()) as { items: Array<Record<string, unknown>> }).items;
   }
 
+  async listKnxAddresses(): Promise<
+    Array<{ address: string; label: string; dpt: string | null; description: string | null }>
+  > {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return ((await res.json()) as { items: Array<{ address: string; label: string; dpt: string | null; description: string | null }> }).items;
+  }
+
+  async upsertKnxAddress(payload: {
+    address: string;
+    label: string;
+    dpt?: string | null;
+    description?: string | null;
+  }): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async deleteKnxAddress(address: string): Promise<void> {
+    const url = `${this.baseUrl}/api/messagehub/knx-addresses/${encodeURIComponent(address)}`;
+    const res = await fetch(url, { method: "DELETE", headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  }
+
+  async importKnxCsv(
+    csvContent: string
+  ): Promise<{ imported: number; skipped: number; errors: number }> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ csv: csvContent }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return (await res.json()) as { imported: number; skipped: number; errors: number };
+  }
+
   exportUrl(filters: ListFilters & { format?: "jsonl" | "csv" }): string {
     const params = new URLSearchParams();
     if (filters.severity?.length) params.set("severity", filters.severity.join(","));
