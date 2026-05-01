@@ -62,11 +62,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         MigrationRunner,
         WebhookConfigRepository,
     )
+    from .storage.migrations import discover_migrations  # noqa: PLC0415
 
     config_dir = Path(hass.config.path(""))
     database = Database.for_config_dir(config_dir)
-    await database.open()
-    await MigrationRunner(database).run()
+    # Datei-/Ordner-Anlage und Migration-Discovery laufen blockierend —
+    # daher auf den Executor auslagern, damit der Event-Loop frei bleibt.
+    await database.async_open(hass)
+    migrations = await hass.async_add_executor_job(discover_migrations)
+    await MigrationRunner(database, migrations=migrations).run()
     repository = MessageRepository(database)
     webhook_repository = WebhookConfigRepository(database)
 
@@ -79,7 +83,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await _async_register_services(hass, repository)
     async_register_views(hass)
-    _async_register_panel(hass)
+    await _async_register_panel(hass)
     _async_register_retention(hass, entry, database)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -128,19 +132,31 @@ def _async_register_retention(hass: HomeAssistant, entry: ConfigEntry, database:
     state["retention_unsub"] = async_track_time_change(hass, _job, hour=3, minute=30, second=0)
 
 
-def _async_register_panel(hass: HomeAssistant) -> None:
+async def _async_register_panel(hass: HomeAssistant) -> None:
     """Registriert das Sidebar-Panel (Iter 16)."""
     from homeassistant.components import frontend, panel_custom  # noqa: PLC0415
 
     panel_url = "/messagehub-panel/messagehub-panel.js"
     frontend_path = Path(__file__).parent / "frontend_dist"
-    if not frontend_path.exists():
+    # exists() ist blockierende I/O -> Executor
+    exists = await hass.async_add_executor_job(frontend_path.exists)
+    if not exists:
         _LOGGER.warning("frontend_dist/ fehlt — Panel wird ohne Build registriert")
-    hass.http.register_static_path(
-        "/messagehub-panel",
-        str(frontend_path),
-        cache_headers=False,
-    )
+    # register_static_path ist intern blockierend (path stat).
+    # Neuere HA-Versionen haben async_register_static_paths.
+    if hasattr(hass.http, "async_register_static_paths"):
+        from homeassistant.components.http import StaticPathConfig  # noqa: PLC0415
+
+        await hass.http.async_register_static_paths(
+            [StaticPathConfig("/messagehub-panel", str(frontend_path), False)]
+        )
+    else:
+        await hass.async_add_executor_job(
+            hass.http.register_static_path,
+            "/messagehub-panel",
+            str(frontend_path),
+            False,
+        )
     if "messagehub" in hass.data.get("frontend_panels", {}):
         return
     try:

@@ -56,10 +56,33 @@ class Database:
         return self._conn
 
     async def open(self) -> None:
-        """Oeffnet die Verbindung (idempotent) und legt Datei + Ordner an."""
+        """Oeffnet die Verbindung (idempotent) und legt Datei + Ordner an.
+
+        Das `mkdir` ist blockierend — fuer Tests OK, in HA bitte `async_open`
+        nutzen (laeuft im Executor).
+        """
         if self._conn is not None:
             return
         self._path.parent.mkdir(parents=True, exist_ok=True)
+        _LOGGER.debug("Opening messagehub database at %s", self._path)
+        self._conn = await aiosqlite.connect(self._path)
+        self._conn.row_factory = aiosqlite.Row
+        await self._conn.execute("PRAGMA foreign_keys = ON")
+        await self._conn.execute("PRAGMA journal_mode = WAL")
+        await self._conn.execute("PRAGMA synchronous = NORMAL")
+        await self._conn.commit()
+
+    async def async_open(self, hass: object) -> None:
+        """HA-konformes Oeffnen: blockierende mkdir-Operation laeuft im Executor."""
+        if self._conn is not None:
+            return
+        # `hass` ist hier `HomeAssistant`, aber wir vermeiden den Import,
+        # damit der Storage-Layer frei von HA-Deps bleibt.
+        await hass.async_add_executor_job(  # type: ignore[attr-defined]
+            self._path.parent.mkdir,
+            True,
+            True,  # parents=True, exist_ok=True
+        )
         _LOGGER.debug("Opening messagehub database at %s", self._path)
         self._conn = await aiosqlite.connect(self._path)
         self._conn.row_factory = aiosqlite.Row
