@@ -157,7 +157,7 @@ export class MqttTopicsView extends LitElement {
 
   private async _delete(it: MqttTopicDto): Promise<void> {
     if (!this.api || it.id == null) return;
-    if (!window.confirm(`Subscription '${it.topic_pattern}' loeschen?`)) return;
+    if (!window.confirm(`Subscription '${it.topic_pattern}' löschen?`)) return;
     await this.api.deleteMqttTopic(it.id);
     await this._load();
   }
@@ -169,7 +169,7 @@ export class MqttTopicsView extends LitElement {
           <h2>MQTT-Topic-Subscriptions</h2>
           <p class="hint">
             Wildcards <code>+</code> (ein Segment) und <code>#</code>
-            (Subtree) werden direkt von HA-MQTT aufgeloest. Subscriptions
+            (Subtree) werden direkt von HA-MQTT aufgelöst. Subscriptions
             werden nach Restart neu gesetzt.
           </p>
         </header>
@@ -202,7 +202,7 @@ export class MqttTopicsView extends LitElement {
             <option value="warning">warning</option>
             <option value="error">error</option>
           </select>
-          <button class="primary" @click=${this._add}>+ Hinzufuegen</button>
+          <button class="primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
 
         ${this._items.length === 0
@@ -226,7 +226,7 @@ export class MqttTopicsView extends LitElement {
                     <td>${it.enabled ? "✓" : "—"}</td>
                     <td class="actions">
                       <button class="danger" @click=${() => void this._delete(it)}>
-                        Loeschen
+                        Löschen
                       </button>
                     </td>
                   </tr>`
@@ -289,7 +289,7 @@ export class HeartbeatsView extends LitElement {
             @input=${(e: InputEvent) =>
               (this._newInterval = +(e.target as HTMLInputElement).value)}
           />
-          <button class="primary" @click=${this._add}>+ Hinzufuegen</button>
+          <button class="primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
         ${this._items.length === 0
           ? html`<p class="empty">Noch keine Heartbeat-Quellen.</p>`
@@ -358,7 +358,7 @@ export class RemediationView extends LitElement {
 
   private async _delete(it: RemediationHookDto): Promise<void> {
     if (!this.api || it.id == null) return;
-    if (!window.confirm(`Hook '${it.name}' loeschen?`)) return;
+    if (!window.confirm(`Hook '${it.name}' löschen?`)) return;
     await this.api.deleteRemediationHook(it.id);
     await this._load();
   }
@@ -405,7 +405,7 @@ export class RemediationView extends LitElement {
             />
             <span>Auto</span>
           </label>
-          <button class="primary" @click=${this._add}>+ Hinzufuegen</button>
+          <button class="primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
         ${this._items.length === 0
           ? html`<p class="empty">Noch keine Hooks.</p>`
@@ -434,7 +434,7 @@ export class RemediationView extends LitElement {
                     <td>${it.enabled ? "✓" : "—"}</td>
                     <td class="actions">
                       <button class="danger" @click=${() => void this._delete(it)}>
-                        Loeschen
+                        Löschen
                       </button>
                     </td>
                   </tr>`

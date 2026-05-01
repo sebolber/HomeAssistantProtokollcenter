@@ -180,9 +180,9 @@ export class MessageHubPanel extends LitElement {
       this._items = this._items.filter((m) => m.id !== e.detail.id);
       this._total = Math.max(0, this._total - 1);
       this._selected = null;
-      this._showToast("Nachricht geloescht");
+      this._showToast("Nachricht gelöscht");
     } catch (err) {
-      this._showToast(`Loeschen fehlgeschlagen: ${(err as Error).message}`);
+      this._showToast(`Löschen fehlgeschlagen: ${(err as Error).message}`);
     }
   };
 
@@ -191,8 +191,8 @@ export class MessageHubPanel extends LitElement {
     const count = scope === "all" ? this._total : this._total;
     const label =
       scope === "all"
-        ? `ALLE ${count} Nachrichten dauerhaft loeschen?`
-        : `${count} gefilterte Nachrichten dauerhaft loeschen?`;
+        ? `ALLE ${count} Nachrichten dauerhaft löschen?`
+        : `${count} gefilterte Nachrichten dauerhaft löschen?`;
     if (!window.confirm(label)) return;
 
     try {
@@ -207,17 +207,17 @@ export class MessageHubPanel extends LitElement {
               to: this._filters.toIso,
             };
       const deleted = await this._api.deleteMessages(filters);
-      this._showToast(`${deleted} Nachrichten geloescht`);
+      this._showToast(`${deleted} Nachrichten gelöscht`);
       this._selected = null;
       await this._reload();
     } catch (err) {
-      this._showToast(`Loeschen fehlgeschlagen: ${(err as Error).message}`);
+      this._showToast(`Löschen fehlgeschlagen: ${(err as Error).message}`);
     }
   }
 
   private async _sendTestMessage(): Promise<void> {
     if (!this.hass?.callService) {
-      this._showToast("Test nicht verfuegbar — hass.callService fehlt");
+      this._showToast("Test nicht verfügbar — hass.callService fehlt");
       return;
     }
     this._testing = true;
@@ -295,17 +295,23 @@ export class MessageHubPanel extends LitElement {
   private _renderEmptyMessages(): TemplateResult {
     return html`
       <div class="empty">
-        <h3>Noch keine Nachrichten ${this._hasActiveFilters() ? "fuer diese Filter" : ""}</h3>
+        <h3>Noch keine Nachrichten ${this._hasActiveFilters() ? "für diese Filter" : ""}</h3>
         <p>
           ${this._hasActiveFilters()
-            ? "Probiere weniger restriktive Filter oder setze sie zurueck."
-            : "Sobald Nachrichten ueber Webhook, MQTT, Eventbus oder den Service messagehub.add_message reinkommen, erscheinen sie hier."}
+            ? "Probiere weniger restriktive Filter oder setze sie zurück."
+            : "Sobald Nachrichten über Webhook, MQTT, Eventbus oder den Service messagehub.add_message reinkommen, erscheinen sie hier."}
         </p>
         <div class="empty-actions">
           ${this._hasActiveFilters()
-            ? html`<button @click=${this._resetFilters}>Filter zuruecksetzen</button>`
+            ? html`<button class="mh-btn" @click=${this._resetFilters}>
+                Filter zurücksetzen
+              </button>`
             : null}
-          <button class="primary" ?disabled=${this._testing} @click=${this._sendTestMessage}>
+          <button
+            class="mh-btn mh-btn--primary"
+            ?disabled=${this._testing}
+            @click=${this._sendTestMessage}
+          >
             ${this._testing ? "sende…" : "+ Test-Nachricht senden"}
           </button>
         </div>

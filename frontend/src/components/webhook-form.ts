@@ -198,7 +198,7 @@ export class WebhookForm extends LitElement {
           <div class="mapping-head">
             <span>JSONPath-Mapping (optional)</span>
             <button class="link" @click=${this._useExample}>
-              Beispiel einfuegen
+              Beispiel einfügen
             </button>
           </div>
           <textarea
@@ -210,7 +210,7 @@ export class WebhookForm extends LitElement {
             spellcheck="false"
           ></textarea>
           <small>
-            Leer lassen fuer 1:1-Mapping (severity/source/text/metadata in der
+            Leer lassen für 1:1-Mapping (severity/source/text/metadata in der
             Top-Level-Payload).
           </small>
         </div>

@@ -274,7 +274,7 @@ export class SettingsView extends LitElement {
             <div>
               <h2>Heartbeat-Quellen</h2>
               <p class="hint">
-                Stille Quellen erkennen und alarmieren — Backend-Job laeuft 60s,
+                Stille Quellen erkennen und alarmieren — Backend-Job läuft 60s,
                 UI-Editor folgt in v0.2 (REST-Endpoint
                 <code>/api/messagehub/heartbeats</code> ist da).
               </p>

@@ -93,7 +93,7 @@ export class DetailPane extends LitElement {
   }
 
   private async _delete(): Promise<void> {
-    if (!confirm(`Nachricht #${this.msg.id} endgueltig loeschen?`)) return;
+    if (!confirm(`Nachricht #${this.msg.id} endgültig löschen?`)) return;
     this.dispatchEvent(
       new CustomEvent("delete", {
         detail: { id: this.msg.id },

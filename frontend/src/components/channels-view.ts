@@ -61,7 +61,7 @@ export class ChannelsView extends LitElement {
 
   private async _delete(item: ChannelDto): Promise<void> {
     if (!this.api || item.id == null) return;
-    if (!window.confirm(`Channel '${item.name}' loeschen?`)) return;
+    if (!window.confirm(`Channel '${item.name}' löschen?`)) return;
     await this.api.deleteChannel(item.id);
     await this._load();
   }
@@ -124,9 +124,9 @@ export class ChannelsView extends LitElement {
           </label>
         </div>
         <label>
-          <span>Geraet (optional)</span>
+          <span>Gerät (optional)</span>
           <input
-            placeholder="iphone, oder leer = alle Geraete"
+            placeholder="iphone, oder leer = alle Geräte"
             .value=${(cfg.device as string) ?? ""}
             @input=${(ev: InputEvent) =>
               setCfg("device", (ev.target as HTMLInputElement).value)}
@@ -157,7 +157,7 @@ export class ChannelsView extends LitElement {
           </label>
         </div>
         <label>
-          <span>Auth-Token (optional, fuer geschuetzte Server)</span>
+          <span>Auth-Token (optional, für geschützte Server)</span>
           <input
             type="password"
             .value=${(cfg.token as string) ?? ""}
@@ -360,7 +360,7 @@ export class ChannelsView extends LitElement {
                     <td class="actions">
                       <button @click=${() => this._edit(it)}>Edit</button>
                       <button class="danger" @click=${() => void this._delete(it)}>
-                        Loeschen
+                        Löschen
                       </button>
                     </td>
                   </tr>`

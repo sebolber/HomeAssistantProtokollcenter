@@ -95,7 +95,7 @@ export class KnxAddressesView extends LitElement {
     }
     if (
       !window.confirm(
-        `${fresh.length} fehlende Projekt-GAs anlegen? (Logging bleibt zunaechst aus, Severity-Mapping kannst du danach pro Adresse setzen.)`
+        `${fresh.length} fehlende Projekt-GAs anlegen? (Logging bleibt zunächst aus, Severity-Mapping kannst du danach pro Adresse setzen.)`
       )
     ) {
       return;
@@ -115,7 +115,7 @@ export class KnxAddressesView extends LitElement {
         // einzelne Fehler ignorieren, weiter machen
       }
     }
-    this._showToast(`${imported} aus ETS-Projekt uebernommen`);
+    this._showToast(`${imported} aus ETS-Projekt übernommen`);
     await this._load();
   }
 
@@ -180,10 +180,10 @@ export class KnxAddressesView extends LitElement {
 
   private async _delete(addr: string): Promise<void> {
     if (!this.api) return;
-    if (!window.confirm(`KNX-Adresse ${addr} loeschen?`)) return;
+    if (!window.confirm(`KNX-Adresse ${addr} löschen?`)) return;
     try {
       await this.api.deleteKnxAddress(addr);
-      this._showToast(`${addr} geloescht`);
+      this._showToast(`${addr} gelöscht`);
       await this._load();
     } catch (err) {
       this._showToast((err as Error).message);
@@ -288,8 +288,8 @@ export class KnxAddressesView extends LitElement {
                     )}
                   </select>
                   <small>
-                    <code>auto</code> nutzt fuer Boolean-DPTs (1.x) die
-                    Severity-Map unten — z. B. fuer Stoer-Bits, die bei
+                    <code>auto</code> nutzt für Boolean-DPTs (1.x) die
+                    Severity-Map unten — z. B. für Stör-Bits, die bei
                     <code>True</code> einen Fehler bedeuten.
                   </small>
                 </label>
