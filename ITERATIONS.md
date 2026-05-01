@@ -44,9 +44,9 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 29 — Acknowledge-UI
 
 ## Phase G — Notifications
-- [ ] Iteration 30 — Forwarder + Telegram
-- [ ] Iteration 31 — Quiet Hours + Throttling
-- [ ] Iteration 32 — Severity-Eskalation
+- [x] Iteration 30 — Forwarder + Telegram
+- [x] Iteration 31 — Quiet Hours + Throttling
+- [x] Iteration 32 — Severity-Eskalation
 
 ## Phase H — Intelligenz
 - [ ] Iteration 33 — SQLite FTS5

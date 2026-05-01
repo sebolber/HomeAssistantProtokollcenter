@@ -72,9 +72,9 @@ class MessageRepository:
             return await self.insert(message), False
 
         fp = compute_fingerprint(message.source, message.severity.value, message.text)
-        cutoff = (
-            datetime.now(UTC) - timedelta(minutes=window_minutes)
-        ).isoformat(timespec="seconds")
+        cutoff = (datetime.now(UTC) - timedelta(minutes=window_minutes)).isoformat(
+            timespec="seconds"
+        )
         row = await self._db.fetch_one(
             """
             SELECT id, count FROM messages
