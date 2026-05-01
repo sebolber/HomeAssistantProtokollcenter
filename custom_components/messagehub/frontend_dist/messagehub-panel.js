@@ -3,18 +3,18 @@
  * Copyright 2019 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const de = globalThis, Se = de.ShadowRoot && (de.ShadyCSS === void 0 || de.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, Te = Symbol(), Oe = /* @__PURE__ */ new WeakMap();
-let Qe = class {
-  constructor(e, t, a) {
-    if (this._$cssResult$ = !0, a !== Te) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
+const ke = globalThis, Fe = ke.ShadowRoot && (ke.ShadyCSS === void 0 || ke.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, Be = Symbol(), Qe = /* @__PURE__ */ new WeakMap();
+let ft = class {
+  constructor(e, t, s) {
+    if (this._$cssResult$ = !0, s !== Be) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
     this.cssText = e, this.t = t;
   }
   get styleSheet() {
     let e = this.o;
     const t = this.t;
-    if (Se && e === void 0) {
-      const a = t !== void 0 && t.length === 1;
-      a && (e = Oe.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), a && Oe.set(t, e));
+    if (Fe && e === void 0) {
+      const s = t !== void 0 && t.length === 1;
+      s && (e = Qe.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), s && Qe.set(t, e));
     }
     return e;
   }
@@ -22,120 +22,120 @@ let Qe = class {
     return this.cssText;
   }
 };
-const st = (r) => new Qe(typeof r == "string" ? r : r + "", void 0, Te), S = (r, ...e) => {
-  const t = r.length === 1 ? r[0] : e.reduce((a, s, i) => a + ((o) => {
+const Tt = (i) => new ft(typeof i == "string" ? i : i + "", void 0, Be), w = (i, ...e) => {
+  const t = i.length === 1 ? i[0] : e.reduce((s, a, r) => s + ((o) => {
     if (o._$cssResult$ === !0) return o.cssText;
     if (typeof o == "number") return o;
     throw Error("Value passed to 'css' function must be a 'css' function result: " + o + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
-  })(s) + r[i + 1], r[0]);
-  return new Qe(t, r, Te);
-}, at = (r, e) => {
-  if (Se) r.adoptedStyleSheets = e.map((t) => t instanceof CSSStyleSheet ? t : t.styleSheet);
+  })(a) + i[r + 1], i[0]);
+  return new ft(t, i, Be);
+}, At = (i, e) => {
+  if (Fe) i.adoptedStyleSheets = e.map((t) => t instanceof CSSStyleSheet ? t : t.styleSheet);
   else for (const t of e) {
-    const a = document.createElement("style"), s = de.litNonce;
-    s !== void 0 && a.setAttribute("nonce", s), a.textContent = t.cssText, r.appendChild(a);
+    const s = document.createElement("style"), a = ke.litNonce;
+    a !== void 0 && s.setAttribute("nonce", a), s.textContent = t.cssText, i.appendChild(s);
   }
-}, Ne = Se ? (r) => r : (r) => r instanceof CSSStyleSheet ? ((e) => {
+}, Ye = Fe ? (i) => i : (i) => i instanceof CSSStyleSheet ? ((e) => {
   let t = "";
-  for (const a of e.cssRules) t += a.cssText;
-  return st(t);
-})(r) : r;
+  for (const s of e.cssRules) t += s.cssText;
+  return Tt(t);
+})(i) : i;
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: it, defineProperty: ot, getOwnPropertyDescriptor: nt, getOwnPropertyNames: lt, getOwnPropertySymbols: dt, getPrototypeOf: ct } = Object, D = globalThis, Ue = D.trustedTypes, ht = Ue ? Ue.emptyScript : "", me = D.reactiveElementPolyfillSupport, te = (r, e) => r, ce = { toAttribute(r, e) {
+const { is: Et, defineProperty: Pt, getOwnPropertyDescriptor: zt, getOwnPropertyNames: Ot, getOwnPropertySymbols: Ct, getPrototypeOf: Nt } = Object, N = globalThis, Xe = N.trustedTypes, jt = Xe ? Xe.emptyScript : "", je = N.reactiveElementPolyfillSupport, fe = (i, e) => i, Se = { toAttribute(i, e) {
   switch (e) {
     case Boolean:
-      r = r ? ht : null;
+      i = i ? jt : null;
       break;
     case Object:
     case Array:
-      r = r == null ? r : JSON.stringify(r);
+      i = i == null ? i : JSON.stringify(i);
   }
-  return r;
-}, fromAttribute(r, e) {
-  let t = r;
+  return i;
+}, fromAttribute(i, e) {
+  let t = i;
   switch (e) {
     case Boolean:
-      t = r !== null;
+      t = i !== null;
       break;
     case Number:
-      t = r === null ? null : Number(r);
+      t = i === null ? null : Number(i);
       break;
     case Object:
     case Array:
       try {
-        t = JSON.parse(r);
+        t = JSON.parse(i);
       } catch {
         t = null;
       }
   }
   return t;
-} }, Ae = (r, e) => !it(r, e), De = { attribute: !0, type: String, converter: ce, reflect: !1, useDefault: !1, hasChanged: Ae };
-Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), D.litPropertyMetadata ?? (D.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
-let J = class extends HTMLElement {
+} }, We = (i, e) => !Et(i, e), Ze = { attribute: !0, type: String, converter: Se, reflect: !1, useDefault: !1, hasChanged: We };
+Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), N.litPropertyMetadata ?? (N.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
+let G = class extends HTMLElement {
   static addInitializer(e) {
     this._$Ei(), (this.l ?? (this.l = [])).push(e);
   }
   static get observedAttributes() {
     return this.finalize(), this._$Eh && [...this._$Eh.keys()];
   }
-  static createProperty(e, t = De) {
+  static createProperty(e, t = Ze) {
     if (t.state && (t.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((t = Object.create(t)).wrapped = !0), this.elementProperties.set(e, t), !t.noAccessor) {
-      const a = Symbol(), s = this.getPropertyDescriptor(e, a, t);
-      s !== void 0 && ot(this.prototype, e, s);
+      const s = Symbol(), a = this.getPropertyDescriptor(e, s, t);
+      a !== void 0 && Pt(this.prototype, e, a);
     }
   }
-  static getPropertyDescriptor(e, t, a) {
-    const { get: s, set: i } = nt(this.prototype, e) ?? { get() {
+  static getPropertyDescriptor(e, t, s) {
+    const { get: a, set: r } = zt(this.prototype, e) ?? { get() {
       return this[t];
     }, set(o) {
       this[t] = o;
     } };
-    return { get: s, set(o) {
-      const c = s == null ? void 0 : s.call(this);
-      i == null || i.call(this, o), this.requestUpdate(e, c, a);
+    return { get: a, set(o) {
+      const l = a == null ? void 0 : a.call(this);
+      r == null || r.call(this, o), this.requestUpdate(e, l, s);
     }, configurable: !0, enumerable: !0 };
   }
   static getPropertyOptions(e) {
-    return this.elementProperties.get(e) ?? De;
+    return this.elementProperties.get(e) ?? Ze;
   }
   static _$Ei() {
-    if (this.hasOwnProperty(te("elementProperties"))) return;
-    const e = ct(this);
+    if (this.hasOwnProperty(fe("elementProperties"))) return;
+    const e = Nt(this);
     e.finalize(), e.l !== void 0 && (this.l = [...e.l]), this.elementProperties = new Map(e.elementProperties);
   }
   static finalize() {
-    if (this.hasOwnProperty(te("finalized"))) return;
-    if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(te("properties"))) {
-      const t = this.properties, a = [...lt(t), ...dt(t)];
-      for (const s of a) this.createProperty(s, t[s]);
+    if (this.hasOwnProperty(fe("finalized"))) return;
+    if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(fe("properties"))) {
+      const t = this.properties, s = [...Ot(t), ...Ct(t)];
+      for (const a of s) this.createProperty(a, t[a]);
     }
     const e = this[Symbol.metadata];
     if (e !== null) {
       const t = litPropertyMetadata.get(e);
-      if (t !== void 0) for (const [a, s] of t) this.elementProperties.set(a, s);
+      if (t !== void 0) for (const [s, a] of t) this.elementProperties.set(s, a);
     }
     this._$Eh = /* @__PURE__ */ new Map();
-    for (const [t, a] of this.elementProperties) {
-      const s = this._$Eu(t, a);
-      s !== void 0 && this._$Eh.set(s, t);
+    for (const [t, s] of this.elementProperties) {
+      const a = this._$Eu(t, s);
+      a !== void 0 && this._$Eh.set(a, t);
     }
     this.elementStyles = this.finalizeStyles(this.styles);
   }
   static finalizeStyles(e) {
     const t = [];
     if (Array.isArray(e)) {
-      const a = new Set(e.flat(1 / 0).reverse());
-      for (const s of a) t.unshift(Ne(s));
-    } else e !== void 0 && t.push(Ne(e));
+      const s = new Set(e.flat(1 / 0).reverse());
+      for (const a of s) t.unshift(Ye(a));
+    } else e !== void 0 && t.push(Ye(e));
     return t;
   }
   static _$Eu(e, t) {
-    const a = t.attribute;
-    return a === !1 ? void 0 : typeof a == "string" ? a : typeof e == "string" ? e.toLowerCase() : void 0;
+    const s = t.attribute;
+    return s === !1 ? void 0 : typeof s == "string" ? s : typeof e == "string" ? e.toLowerCase() : void 0;
   }
   constructor() {
     super(), this._$Ep = void 0, this.isUpdatePending = !1, this.hasUpdated = !1, this._$Em = null, this._$Ev();
@@ -154,18 +154,18 @@ let J = class extends HTMLElement {
   }
   _$E_() {
     const e = /* @__PURE__ */ new Map(), t = this.constructor.elementProperties;
-    for (const a of t.keys()) this.hasOwnProperty(a) && (e.set(a, this[a]), delete this[a]);
+    for (const s of t.keys()) this.hasOwnProperty(s) && (e.set(s, this[s]), delete this[s]);
     e.size > 0 && (this._$Ep = e);
   }
   createRenderRoot() {
     const e = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-    return at(e, this.constructor.elementStyles), e;
+    return At(e, this.constructor.elementStyles), e;
   }
   connectedCallback() {
     var e;
     this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this.enableUpdating(!0), (e = this._$EO) == null || e.forEach((t) => {
-      var a;
-      return (a = t.hostConnected) == null ? void 0 : a.call(t);
+      var s;
+      return (s = t.hostConnected) == null ? void 0 : s.call(t);
     });
   }
   enableUpdating(e) {
@@ -173,42 +173,42 @@ let J = class extends HTMLElement {
   disconnectedCallback() {
     var e;
     (e = this._$EO) == null || e.forEach((t) => {
-      var a;
-      return (a = t.hostDisconnected) == null ? void 0 : a.call(t);
+      var s;
+      return (s = t.hostDisconnected) == null ? void 0 : s.call(t);
     });
   }
-  attributeChangedCallback(e, t, a) {
-    this._$AK(e, a);
+  attributeChangedCallback(e, t, s) {
+    this._$AK(e, s);
   }
   _$ET(e, t) {
-    var i;
-    const a = this.constructor.elementProperties.get(e), s = this.constructor._$Eu(e, a);
-    if (s !== void 0 && a.reflect === !0) {
-      const o = (((i = a.converter) == null ? void 0 : i.toAttribute) !== void 0 ? a.converter : ce).toAttribute(t, a.type);
-      this._$Em = e, o == null ? this.removeAttribute(s) : this.setAttribute(s, o), this._$Em = null;
+    var r;
+    const s = this.constructor.elementProperties.get(e), a = this.constructor._$Eu(e, s);
+    if (a !== void 0 && s.reflect === !0) {
+      const o = (((r = s.converter) == null ? void 0 : r.toAttribute) !== void 0 ? s.converter : Se).toAttribute(t, s.type);
+      this._$Em = e, o == null ? this.removeAttribute(a) : this.setAttribute(a, o), this._$Em = null;
     }
   }
   _$AK(e, t) {
-    var i, o;
-    const a = this.constructor, s = a._$Eh.get(e);
-    if (s !== void 0 && this._$Em !== s) {
-      const c = a.getPropertyOptions(s), d = typeof c.converter == "function" ? { fromAttribute: c.converter } : ((i = c.converter) == null ? void 0 : i.fromAttribute) !== void 0 ? c.converter : ce;
-      this._$Em = s;
-      const p = d.fromAttribute(t, c.type);
-      this[s] = p ?? ((o = this._$Ej) == null ? void 0 : o.get(s)) ?? p, this._$Em = null;
+    var r, o;
+    const s = this.constructor, a = s._$Eh.get(e);
+    if (a !== void 0 && this._$Em !== a) {
+      const l = s.getPropertyOptions(a), c = typeof l.converter == "function" ? { fromAttribute: l.converter } : ((r = l.converter) == null ? void 0 : r.fromAttribute) !== void 0 ? l.converter : Se;
+      this._$Em = a;
+      const p = c.fromAttribute(t, l.type);
+      this[a] = p ?? ((o = this._$Ej) == null ? void 0 : o.get(a)) ?? p, this._$Em = null;
     }
   }
-  requestUpdate(e, t, a, s = !1, i) {
+  requestUpdate(e, t, s, a = !1, r) {
     var o;
     if (e !== void 0) {
-      const c = this.constructor;
-      if (s === !1 && (i = this[e]), a ?? (a = c.getPropertyOptions(e)), !((a.hasChanged ?? Ae)(i, t) || a.useDefault && a.reflect && i === ((o = this._$Ej) == null ? void 0 : o.get(e)) && !this.hasAttribute(c._$Eu(e, a)))) return;
-      this.C(e, t, a);
+      const l = this.constructor;
+      if (a === !1 && (r = this[e]), s ?? (s = l.getPropertyOptions(e)), !((s.hasChanged ?? We)(r, t) || s.useDefault && s.reflect && r === ((o = this._$Ej) == null ? void 0 : o.get(e)) && !this.hasAttribute(l._$Eu(e, s)))) return;
+      this.C(e, t, s);
     }
     this.isUpdatePending === !1 && (this._$ES = this._$EP());
   }
-  C(e, t, { useDefault: a, reflect: s, wrapped: i }, o) {
-    a && !(this._$Ej ?? (this._$Ej = /* @__PURE__ */ new Map())).has(e) && (this._$Ej.set(e, o ?? t ?? this[e]), i !== !0 || o !== void 0) || (this._$AL.has(e) || (this.hasUpdated || a || (t = void 0), this._$AL.set(e, t)), s === !0 && this._$Em !== e && (this._$Eq ?? (this._$Eq = /* @__PURE__ */ new Set())).add(e));
+  C(e, t, { useDefault: s, reflect: a, wrapped: r }, o) {
+    s && !(this._$Ej ?? (this._$Ej = /* @__PURE__ */ new Map())).has(e) && (this._$Ej.set(e, o ?? t ?? this[e]), r !== !0 || o !== void 0) || (this._$AL.has(e) || (this.hasUpdated || s || (t = void 0), this._$AL.set(e, t)), a === !0 && this._$Em !== e && (this._$Eq ?? (this._$Eq = /* @__PURE__ */ new Set())).add(e));
   }
   async _$EP() {
     this.isUpdatePending = !0;
@@ -224,28 +224,28 @@ let J = class extends HTMLElement {
     return this.performUpdate();
   }
   performUpdate() {
-    var a;
+    var s;
     if (!this.isUpdatePending) return;
     if (!this.hasUpdated) {
       if (this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this._$Ep) {
-        for (const [i, o] of this._$Ep) this[i] = o;
+        for (const [r, o] of this._$Ep) this[r] = o;
         this._$Ep = void 0;
       }
-      const s = this.constructor.elementProperties;
-      if (s.size > 0) for (const [i, o] of s) {
-        const { wrapped: c } = o, d = this[i];
-        c !== !0 || this._$AL.has(i) || d === void 0 || this.C(i, void 0, o, d);
+      const a = this.constructor.elementProperties;
+      if (a.size > 0) for (const [r, o] of a) {
+        const { wrapped: l } = o, c = this[r];
+        l !== !0 || this._$AL.has(r) || c === void 0 || this.C(r, void 0, o, c);
       }
     }
     let e = !1;
     const t = this._$AL;
     try {
-      e = this.shouldUpdate(t), e ? (this.willUpdate(t), (a = this._$EO) == null || a.forEach((s) => {
-        var i;
-        return (i = s.hostUpdate) == null ? void 0 : i.call(s);
+      e = this.shouldUpdate(t), e ? (this.willUpdate(t), (s = this._$EO) == null || s.forEach((a) => {
+        var r;
+        return (r = a.hostUpdate) == null ? void 0 : r.call(a);
       }), this.update(t)) : this._$EM();
-    } catch (s) {
-      throw e = !1, this._$EM(), s;
+    } catch (a) {
+      throw e = !1, this._$EM(), a;
     }
     e && this._$AE(t);
   }
@@ -253,9 +253,9 @@ let J = class extends HTMLElement {
   }
   _$AE(e) {
     var t;
-    (t = this._$EO) == null || t.forEach((a) => {
-      var s;
-      return (s = a.hostUpdated) == null ? void 0 : s.call(a);
+    (t = this._$EO) == null || t.forEach((s) => {
+      var a;
+      return (a = s.hostUpdated) == null ? void 0 : a.call(s);
     }), this.hasUpdated || (this.hasUpdated = !0, this.firstUpdated(e)), this.updated(e);
   }
   _$EM() {
@@ -278,76 +278,76 @@ let J = class extends HTMLElement {
   firstUpdated(e) {
   }
 };
-J.elementStyles = [], J.shadowRootOptions = { mode: "open" }, J[te("elementProperties")] = /* @__PURE__ */ new Map(), J[te("finalized")] = /* @__PURE__ */ new Map(), me == null || me({ ReactiveElement: J }), (D.reactiveElementVersions ?? (D.reactiveElementVersions = [])).push("2.1.2");
+G.elementStyles = [], G.shadowRootOptions = { mode: "open" }, G[fe("elementProperties")] = /* @__PURE__ */ new Map(), G[fe("finalized")] = /* @__PURE__ */ new Map(), je == null || je({ ReactiveElement: G }), (N.reactiveElementVersions ?? (N.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const re = globalThis, He = (r) => r, he = re.trustedTypes, je = he ? he.createPolicy("lit-html", { createHTML: (r) => r }) : void 0, Ye = "$lit$", U = `lit$${Math.random().toFixed(9).slice(2)}$`, Xe = "?" + U, pt = `<${Xe}>`, F = document, se = () => F.createComment(""), ae = (r) => r === null || typeof r != "object" && typeof r != "function", Ee = Array.isArray, ut = (r) => Ee(r) || typeof (r == null ? void 0 : r[Symbol.iterator]) == "function", _e = `[ 	
-\f\r]`, Z = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, Le = /-->/g, Me = />/g, L = RegExp(`>|${_e}(?:([^\\s"'>=/]+)(${_e}*=${_e}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), Ie = /'/g, Re = /"/g, Ze = /^(?:script|style|textarea|title)$/i, gt = (r) => (e, ...t) => ({ _$litType$: r, strings: e, values: t }), n = gt(1), B = Symbol.for("lit-noChange"), g = Symbol.for("lit-nothing"), Fe = /* @__PURE__ */ new WeakMap(), I = F.createTreeWalker(F, 129);
-function et(r, e) {
-  if (!Ee(r) || !r.hasOwnProperty("raw")) throw Error("invalid template strings array");
-  return je !== void 0 ? je.createHTML(e) : e;
+const ve = globalThis, et = (i) => i, Te = ve.trustedTypes, tt = Te ? Te.createPolicy("lit-html", { createHTML: (i) => i }) : void 0, vt = "$lit$", C = `lit$${Math.random().toFixed(9).slice(2)}$`, bt = "?" + C, Dt = `<${bt}>`, B = document, be = () => B.createComment(""), _e = (i) => i === null || typeof i != "object" && typeof i != "function", Ke = Array.isArray, Rt = (i) => Ke(i) || typeof (i == null ? void 0 : i[Symbol.iterator]) == "function", De = `[ 	
+\f\r]`, me = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, st = /-->/g, at = />/g, H = RegExp(`>|${De}(?:([^\\s"'>=/]+)(${De}*=${De}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`, "g"), rt = /'/g, it = /"/g, _t = /^(?:script|style|textarea|title)$/i, Mt = (i) => (e, ...t) => ({ _$litType$: i, strings: e, values: t }), n = Mt(1), W = Symbol.for("lit-noChange"), m = Symbol.for("lit-nothing"), ot = /* @__PURE__ */ new WeakMap(), I = B.createTreeWalker(B, 129);
+function wt(i, e) {
+  if (!Ke(i) || !i.hasOwnProperty("raw")) throw Error("invalid template strings array");
+  return tt !== void 0 ? tt.createHTML(e) : e;
 }
-const ft = (r, e) => {
-  const t = r.length - 1, a = [];
-  let s, i = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", o = Z;
-  for (let c = 0; c < t; c++) {
-    const d = r[c];
-    let p, v, h = -1, f = 0;
-    for (; f < d.length && (o.lastIndex = f, v = o.exec(d), v !== null); ) f = o.lastIndex, o === Z ? v[1] === "!--" ? o = Le : v[1] !== void 0 ? o = Me : v[2] !== void 0 ? (Ze.test(v[2]) && (s = RegExp("</" + v[2], "g")), o = L) : v[3] !== void 0 && (o = L) : o === L ? v[0] === ">" ? (o = s ?? Z, h = -1) : v[1] === void 0 ? h = -2 : (h = o.lastIndex - v[2].length, p = v[1], o = v[3] === void 0 ? L : v[3] === '"' ? Re : Ie) : o === Re || o === Ie ? o = L : o === Le || o === Me ? o = Z : (o = L, s = void 0);
-    const u = o === L && r[c + 1].startsWith("/>") ? " " : "";
-    i += o === Z ? d + pt : h >= 0 ? (a.push(p), d.slice(0, h) + Ye + d.slice(h) + U + u) : d + U + (h === -2 ? c : u);
+const Ut = (i, e) => {
+  const t = i.length - 1, s = [];
+  let a, r = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", o = me;
+  for (let l = 0; l < t; l++) {
+    const c = i[l];
+    let p, f, h = -1, g = 0;
+    for (; g < c.length && (o.lastIndex = g, f = o.exec(c), f !== null); ) g = o.lastIndex, o === me ? f[1] === "!--" ? o = st : f[1] !== void 0 ? o = at : f[2] !== void 0 ? (_t.test(f[2]) && (a = RegExp("</" + f[2], "g")), o = H) : f[3] !== void 0 && (o = H) : o === H ? f[0] === ">" ? (o = a ?? me, h = -1) : f[1] === void 0 ? h = -2 : (h = o.lastIndex - f[2].length, p = f[1], o = f[3] === void 0 ? H : f[3] === '"' ? it : rt) : o === it || o === rt ? o = H : o === st || o === at ? o = me : (o = H, a = void 0);
+    const u = o === H && i[l + 1].startsWith("/>") ? " " : "";
+    r += o === me ? c + Dt : h >= 0 ? (s.push(p), c.slice(0, h) + vt + c.slice(h) + C + u) : c + C + (h === -2 ? l : u);
   }
-  return [et(r, i + (r[t] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), a];
+  return [wt(i, r + (i[t] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), s];
 };
-class ie {
-  constructor({ strings: e, _$litType$: t }, a) {
-    let s;
+class we {
+  constructor({ strings: e, _$litType$: t }, s) {
+    let a;
     this.parts = [];
-    let i = 0, o = 0;
-    const c = e.length - 1, d = this.parts, [p, v] = ft(e, t);
-    if (this.el = ie.createElement(p, a), I.currentNode = this.el.content, t === 2 || t === 3) {
+    let r = 0, o = 0;
+    const l = e.length - 1, c = this.parts, [p, f] = Ut(e, t);
+    if (this.el = we.createElement(p, s), I.currentNode = this.el.content, t === 2 || t === 3) {
       const h = this.el.content.firstChild;
       h.replaceWith(...h.childNodes);
     }
-    for (; (s = I.nextNode()) !== null && d.length < c; ) {
-      if (s.nodeType === 1) {
-        if (s.hasAttributes()) for (const h of s.getAttributeNames()) if (h.endsWith(Ye)) {
-          const f = v[o++], u = s.getAttribute(h).split(U), _ = /([.?@])?(.*)/.exec(f);
-          d.push({ type: 1, index: i, name: _[2], strings: u, ctor: _[1] === "." ? vt : _[1] === "?" ? mt : _[1] === "@" ? _t : ge }), s.removeAttribute(h);
-        } else h.startsWith(U) && (d.push({ type: 6, index: i }), s.removeAttribute(h));
-        if (Ze.test(s.tagName)) {
-          const h = s.textContent.split(U), f = h.length - 1;
-          if (f > 0) {
-            s.textContent = he ? he.emptyScript : "";
-            for (let u = 0; u < f; u++) s.append(h[u], se()), I.nextNode(), d.push({ type: 2, index: ++i });
-            s.append(h[f], se());
+    for (; (a = I.nextNode()) !== null && c.length < l; ) {
+      if (a.nodeType === 1) {
+        if (a.hasAttributes()) for (const h of a.getAttributeNames()) if (h.endsWith(vt)) {
+          const g = f[o++], u = a.getAttribute(h).split(C), _ = /([.?@])?(.*)/.exec(g);
+          c.push({ type: 1, index: r, name: _[2], strings: u, ctor: _[1] === "." ? Lt : _[1] === "?" ? It : _[1] === "@" ? Ft : Pe }), a.removeAttribute(h);
+        } else h.startsWith(C) && (c.push({ type: 6, index: r }), a.removeAttribute(h));
+        if (_t.test(a.tagName)) {
+          const h = a.textContent.split(C), g = h.length - 1;
+          if (g > 0) {
+            a.textContent = Te ? Te.emptyScript : "";
+            for (let u = 0; u < g; u++) a.append(h[u], be()), I.nextNode(), c.push({ type: 2, index: ++r });
+            a.append(h[g], be());
           }
         }
-      } else if (s.nodeType === 8) if (s.data === Xe) d.push({ type: 2, index: i });
+      } else if (a.nodeType === 8) if (a.data === bt) c.push({ type: 2, index: r });
       else {
         let h = -1;
-        for (; (h = s.data.indexOf(U, h + 1)) !== -1; ) d.push({ type: 7, index: i }), h += U.length - 1;
+        for (; (h = a.data.indexOf(C, h + 1)) !== -1; ) c.push({ type: 7, index: r }), h += C.length - 1;
       }
-      i++;
+      r++;
     }
   }
   static createElement(e, t) {
-    const a = F.createElement("template");
-    return a.innerHTML = e, a;
+    const s = B.createElement("template");
+    return s.innerHTML = e, s;
   }
 }
-function G(r, e, t = r, a) {
-  var o, c;
-  if (e === B) return e;
-  let s = a !== void 0 ? (o = t._$Co) == null ? void 0 : o[a] : t._$Cl;
-  const i = ae(e) ? void 0 : e._$litDirective$;
-  return (s == null ? void 0 : s.constructor) !== i && ((c = s == null ? void 0 : s._$AO) == null || c.call(s, !1), i === void 0 ? s = void 0 : (s = new i(r), s._$AT(r, t, a)), a !== void 0 ? (t._$Co ?? (t._$Co = []))[a] = s : t._$Cl = s), s !== void 0 && (e = G(r, s._$AS(r, e.values), s, a)), e;
+function ce(i, e, t = i, s) {
+  var o, l;
+  if (e === W) return e;
+  let a = s !== void 0 ? (o = t._$Co) == null ? void 0 : o[s] : t._$Cl;
+  const r = _e(e) ? void 0 : e._$litDirective$;
+  return (a == null ? void 0 : a.constructor) !== r && ((l = a == null ? void 0 : a._$AO) == null || l.call(a, !1), r === void 0 ? a = void 0 : (a = new r(i), a._$AT(i, t, s)), s !== void 0 ? (t._$Co ?? (t._$Co = []))[s] = a : t._$Cl = a), a !== void 0 && (e = ce(i, a._$AS(i, e.values), a, s)), e;
 }
-class bt {
+class Ht {
   constructor(e, t) {
     this._$AV = [], this._$AN = void 0, this._$AD = e, this._$AM = t;
   }
@@ -358,30 +358,30 @@ class bt {
     return this._$AM._$AU;
   }
   u(e) {
-    const { el: { content: t }, parts: a } = this._$AD, s = ((e == null ? void 0 : e.creationScope) ?? F).importNode(t, !0);
-    I.currentNode = s;
-    let i = I.nextNode(), o = 0, c = 0, d = a[0];
-    for (; d !== void 0; ) {
-      if (o === d.index) {
+    const { el: { content: t }, parts: s } = this._$AD, a = ((e == null ? void 0 : e.creationScope) ?? B).importNode(t, !0);
+    I.currentNode = a;
+    let r = I.nextNode(), o = 0, l = 0, c = s[0];
+    for (; c !== void 0; ) {
+      if (o === c.index) {
         let p;
-        d.type === 2 ? p = new X(i, i.nextSibling, this, e) : d.type === 1 ? p = new d.ctor(i, d.name, d.strings, this, e) : d.type === 6 && (p = new yt(i, this, e)), this._$AV.push(p), d = a[++c];
+        c.type === 2 ? p = new ue(r, r.nextSibling, this, e) : c.type === 1 ? p = new c.ctor(r, c.name, c.strings, this, e) : c.type === 6 && (p = new Bt(r, this, e)), this._$AV.push(p), c = s[++l];
       }
-      o !== (d == null ? void 0 : d.index) && (i = I.nextNode(), o++);
+      o !== (c == null ? void 0 : c.index) && (r = I.nextNode(), o++);
     }
-    return I.currentNode = F, s;
+    return I.currentNode = B, a;
   }
   p(e) {
     let t = 0;
-    for (const a of this._$AV) a !== void 0 && (a.strings !== void 0 ? (a._$AI(e, a, t), t += a.strings.length - 2) : a._$AI(e[t])), t++;
+    for (const s of this._$AV) s !== void 0 && (s.strings !== void 0 ? (s._$AI(e, s, t), t += s.strings.length - 2) : s._$AI(e[t])), t++;
   }
 }
-class X {
+class ue {
   get _$AU() {
     var e;
     return ((e = this._$AM) == null ? void 0 : e._$AU) ?? this._$Cv;
   }
-  constructor(e, t, a, s) {
-    this.type = 2, this._$AH = g, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = a, this.options = s, this._$Cv = (s == null ? void 0 : s.isConnected) ?? !0;
+  constructor(e, t, s, a) {
+    this.type = 2, this._$AH = m, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = s, this.options = a, this._$Cv = (a == null ? void 0 : a.isConnected) ?? !0;
   }
   get parentNode() {
     let e = this._$AA.parentNode;
@@ -395,7 +395,7 @@ class X {
     return this._$AB;
   }
   _$AI(e, t = this) {
-    e = G(this, e, t), ae(e) ? e === g || e == null || e === "" ? (this._$AH !== g && this._$AR(), this._$AH = g) : e !== this._$AH && e !== B && this._(e) : e._$litType$ !== void 0 ? this.$(e) : e.nodeType !== void 0 ? this.T(e) : ut(e) ? this.k(e) : this._(e);
+    e = ce(this, e, t), _e(e) ? e === m || e == null || e === "" ? (this._$AH !== m && this._$AR(), this._$AH = m) : e !== this._$AH && e !== W && this._(e) : e._$litType$ !== void 0 ? this.$(e) : e.nodeType !== void 0 ? this.T(e) : Rt(e) ? this.k(e) : this._(e);
   }
   O(e) {
     return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -404,33 +404,33 @@ class X {
     this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
   }
   _(e) {
-    this._$AH !== g && ae(this._$AH) ? this._$AA.nextSibling.data = e : this.T(F.createTextNode(e)), this._$AH = e;
+    this._$AH !== m && _e(this._$AH) ? this._$AA.nextSibling.data = e : this.T(B.createTextNode(e)), this._$AH = e;
   }
   $(e) {
-    var i;
-    const { values: t, _$litType$: a } = e, s = typeof a == "number" ? this._$AC(e) : (a.el === void 0 && (a.el = ie.createElement(et(a.h, a.h[0]), this.options)), a);
-    if (((i = this._$AH) == null ? void 0 : i._$AD) === s) this._$AH.p(t);
+    var r;
+    const { values: t, _$litType$: s } = e, a = typeof s == "number" ? this._$AC(e) : (s.el === void 0 && (s.el = we.createElement(wt(s.h, s.h[0]), this.options)), s);
+    if (((r = this._$AH) == null ? void 0 : r._$AD) === a) this._$AH.p(t);
     else {
-      const o = new bt(s, this), c = o.u(this.options);
-      o.p(t), this.T(c), this._$AH = o;
+      const o = new Ht(a, this), l = o.u(this.options);
+      o.p(t), this.T(l), this._$AH = o;
     }
   }
   _$AC(e) {
-    let t = Fe.get(e.strings);
-    return t === void 0 && Fe.set(e.strings, t = new ie(e)), t;
+    let t = ot.get(e.strings);
+    return t === void 0 && ot.set(e.strings, t = new we(e)), t;
   }
   k(e) {
-    Ee(this._$AH) || (this._$AH = [], this._$AR());
+    Ke(this._$AH) || (this._$AH = [], this._$AR());
     const t = this._$AH;
-    let a, s = 0;
-    for (const i of e) s === t.length ? t.push(a = new X(this.O(se()), this.O(se()), this, this.options)) : a = t[s], a._$AI(i), s++;
-    s < t.length && (this._$AR(a && a._$AB.nextSibling, s), t.length = s);
+    let s, a = 0;
+    for (const r of e) a === t.length ? t.push(s = new ue(this.O(be()), this.O(be()), this, this.options)) : s = t[a], s._$AI(r), a++;
+    a < t.length && (this._$AR(s && s._$AB.nextSibling, a), t.length = a);
   }
   _$AR(e = this._$AA.nextSibling, t) {
-    var a;
-    for ((a = this._$AP) == null ? void 0 : a.call(this, !1, !0, t); e !== this._$AB; ) {
-      const s = He(e).nextSibling;
-      He(e).remove(), e = s;
+    var s;
+    for ((s = this._$AP) == null ? void 0 : s.call(this, !1, !0, t); e !== this._$AB; ) {
+      const a = et(e).nextSibling;
+      et(e).remove(), e = a;
     }
   }
   setConnected(e) {
@@ -438,90 +438,90 @@ class X {
     this._$AM === void 0 && (this._$Cv = e, (t = this._$AP) == null || t.call(this, e));
   }
 }
-class ge {
+class Pe {
   get tagName() {
     return this.element.tagName;
   }
   get _$AU() {
     return this._$AM._$AU;
   }
-  constructor(e, t, a, s, i) {
-    this.type = 1, this._$AH = g, this._$AN = void 0, this.element = e, this.name = t, this._$AM = s, this.options = i, a.length > 2 || a[0] !== "" || a[1] !== "" ? (this._$AH = Array(a.length - 1).fill(new String()), this.strings = a) : this._$AH = g;
+  constructor(e, t, s, a, r) {
+    this.type = 1, this._$AH = m, this._$AN = void 0, this.element = e, this.name = t, this._$AM = a, this.options = r, s.length > 2 || s[0] !== "" || s[1] !== "" ? (this._$AH = Array(s.length - 1).fill(new String()), this.strings = s) : this._$AH = m;
   }
-  _$AI(e, t = this, a, s) {
-    const i = this.strings;
+  _$AI(e, t = this, s, a) {
+    const r = this.strings;
     let o = !1;
-    if (i === void 0) e = G(this, e, t, 0), o = !ae(e) || e !== this._$AH && e !== B, o && (this._$AH = e);
+    if (r === void 0) e = ce(this, e, t, 0), o = !_e(e) || e !== this._$AH && e !== W, o && (this._$AH = e);
     else {
-      const c = e;
-      let d, p;
-      for (e = i[0], d = 0; d < i.length - 1; d++) p = G(this, c[a + d], t, d), p === B && (p = this._$AH[d]), o || (o = !ae(p) || p !== this._$AH[d]), p === g ? e = g : e !== g && (e += (p ?? "") + i[d + 1]), this._$AH[d] = p;
+      const l = e;
+      let c, p;
+      for (e = r[0], c = 0; c < r.length - 1; c++) p = ce(this, l[s + c], t, c), p === W && (p = this._$AH[c]), o || (o = !_e(p) || p !== this._$AH[c]), p === m ? e = m : e !== m && (e += (p ?? "") + r[c + 1]), this._$AH[c] = p;
     }
-    o && !s && this.j(e);
+    o && !a && this.j(e);
   }
   j(e) {
-    e === g ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
+    e === m ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
   }
 }
-class vt extends ge {
+class Lt extends Pe {
   constructor() {
     super(...arguments), this.type = 3;
   }
   j(e) {
-    this.element[this.name] = e === g ? void 0 : e;
+    this.element[this.name] = e === m ? void 0 : e;
   }
 }
-class mt extends ge {
+class It extends Pe {
   constructor() {
     super(...arguments), this.type = 4;
   }
   j(e) {
-    this.element.toggleAttribute(this.name, !!e && e !== g);
+    this.element.toggleAttribute(this.name, !!e && e !== m);
   }
 }
-class _t extends ge {
-  constructor(e, t, a, s, i) {
-    super(e, t, a, s, i), this.type = 5;
+class Ft extends Pe {
+  constructor(e, t, s, a, r) {
+    super(e, t, s, a, r), this.type = 5;
   }
   _$AI(e, t = this) {
-    if ((e = G(this, e, t, 0) ?? g) === B) return;
-    const a = this._$AH, s = e === g && a !== g || e.capture !== a.capture || e.once !== a.once || e.passive !== a.passive, i = e !== g && (a === g || s);
-    s && this.element.removeEventListener(this.name, this, a), i && this.element.addEventListener(this.name, this, e), this._$AH = e;
+    if ((e = ce(this, e, t, 0) ?? m) === W) return;
+    const s = this._$AH, a = e === m && s !== m || e.capture !== s.capture || e.once !== s.once || e.passive !== s.passive, r = e !== m && (s === m || a);
+    a && this.element.removeEventListener(this.name, this, s), r && this.element.addEventListener(this.name, this, e), this._$AH = e;
   }
   handleEvent(e) {
     var t;
     typeof this._$AH == "function" ? this._$AH.call(((t = this.options) == null ? void 0 : t.host) ?? this.element, e) : this._$AH.handleEvent(e);
   }
 }
-class yt {
-  constructor(e, t, a) {
-    this.element = e, this.type = 6, this._$AN = void 0, this._$AM = t, this.options = a;
+class Bt {
+  constructor(e, t, s) {
+    this.element = e, this.type = 6, this._$AN = void 0, this._$AM = t, this.options = s;
   }
   get _$AU() {
     return this._$AM._$AU;
   }
   _$AI(e) {
-    G(this, e);
+    ce(this, e);
   }
 }
-const xt = { I: X }, ye = re.litHtmlPolyfillSupport;
-ye == null || ye(ie, X), (re.litHtmlVersions ?? (re.litHtmlVersions = [])).push("3.3.2");
-const $t = (r, e, t) => {
-  const a = (t == null ? void 0 : t.renderBefore) ?? e;
-  let s = a._$litPart$;
-  if (s === void 0) {
-    const i = (t == null ? void 0 : t.renderBefore) ?? null;
-    a._$litPart$ = s = new X(e.insertBefore(se(), i), i, void 0, t ?? {});
+const Wt = { I: ue }, Re = ve.litHtmlPolyfillSupport;
+Re == null || Re(we, ue), (ve.litHtmlVersions ?? (ve.litHtmlVersions = [])).push("3.3.2");
+const Kt = (i, e, t) => {
+  const s = (t == null ? void 0 : t.renderBefore) ?? e;
+  let a = s._$litPart$;
+  if (a === void 0) {
+    const r = (t == null ? void 0 : t.renderBefore) ?? null;
+    s._$litPart$ = a = new ue(e.insertBefore(be(), r), r, void 0, t ?? {});
   }
-  return s._$AI(r), s;
+  return a._$AI(i), a;
 };
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const R = globalThis;
-let m = class extends J {
+const F = globalThis;
+let b = class extends G {
   constructor() {
     super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
   }
@@ -532,7 +532,7 @@ let m = class extends J {
   }
   update(e) {
     const t = this.render();
-    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = $t(t, this.renderRoot, this.renderOptions);
+    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = Kt(t, this.renderRoot, this.renderOptions);
   }
   connectedCallback() {
     var e;
@@ -543,65 +543,65 @@ let m = class extends J {
     super.disconnectedCallback(), (e = this._$Do) == null || e.setConnected(!1);
   }
   render() {
-    return B;
+    return W;
   }
 };
-var Ge;
-m._$litElement$ = !0, m.finalized = !0, (Ge = R.litElementHydrateSupport) == null || Ge.call(R, { LitElement: m });
-const xe = R.litElementPolyfillSupport;
-xe == null || xe({ LitElement: m });
-(R.litElementVersions ?? (R.litElementVersions = [])).push("4.2.2");
+var gt;
+b._$litElement$ = !0, b.finalized = !0, (gt = F.litElementHydrateSupport) == null || gt.call(F, { LitElement: b });
+const Me = F.litElementPolyfillSupport;
+Me == null || Me({ LitElement: b });
+(F.litElementVersions ?? (F.litElementVersions = [])).push("4.2.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const w = (r) => (e, t) => {
+const k = (i) => (e, t) => {
   t !== void 0 ? t.addInitializer(() => {
-    customElements.define(r, e);
-  }) : customElements.define(r, e);
+    customElements.define(i, e);
+  }) : customElements.define(i, e);
 };
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const wt = { attribute: !0, type: String, converter: ce, reflect: !1, hasChanged: Ae }, kt = (r = wt, e, t) => {
-  const { kind: a, metadata: s } = t;
-  let i = globalThis.litPropertyMetadata.get(s);
-  if (i === void 0 && globalThis.litPropertyMetadata.set(s, i = /* @__PURE__ */ new Map()), a === "setter" && ((r = Object.create(r)).wrapped = !0), i.set(t.name, r), a === "accessor") {
+const Vt = { attribute: !0, type: String, converter: Se, reflect: !1, hasChanged: We }, qt = (i = Vt, e, t) => {
+  const { kind: s, metadata: a } = t;
+  let r = globalThis.litPropertyMetadata.get(a);
+  if (r === void 0 && globalThis.litPropertyMetadata.set(a, r = /* @__PURE__ */ new Map()), s === "setter" && ((i = Object.create(i)).wrapped = !0), r.set(t.name, i), s === "accessor") {
     const { name: o } = t;
-    return { set(c) {
-      const d = e.get.call(this);
-      e.set.call(this, c), this.requestUpdate(o, d, r, !0, c);
-    }, init(c) {
-      return c !== void 0 && this.C(o, void 0, r, c), c;
+    return { set(l) {
+      const c = e.get.call(this);
+      e.set.call(this, l), this.requestUpdate(o, c, i, !0, l);
+    }, init(l) {
+      return l !== void 0 && this.C(o, void 0, i, l), l;
     } };
   }
-  if (a === "setter") {
+  if (s === "setter") {
     const { name: o } = t;
-    return function(c) {
-      const d = this[o];
-      e.call(this, c), this.requestUpdate(o, d, r, !0, c);
+    return function(l) {
+      const c = this[o];
+      e.call(this, l), this.requestUpdate(o, c, i, !0, l);
     };
   }
-  throw Error("Unsupported decorator location: " + a);
+  throw Error("Unsupported decorator location: " + s);
 };
-function b(r) {
-  return (e, t) => typeof t == "object" ? kt(r, e, t) : ((a, s, i) => {
-    const o = s.hasOwnProperty(i);
-    return s.constructor.createProperty(i, a), o ? Object.getOwnPropertyDescriptor(s, i) : void 0;
-  })(r, e, t);
+function v(i) {
+  return (e, t) => typeof t == "object" ? qt(i, e, t) : ((s, a, r) => {
+    const o = a.hasOwnProperty(r);
+    return a.constructor.createProperty(r, s), o ? Object.getOwnPropertyDescriptor(a, r) : void 0;
+  })(i, e, t);
 }
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-function l(r) {
-  return b({ ...r, state: !0, attribute: !1 });
+function d(i) {
+  return v({ ...i, state: !0, attribute: !1 });
 }
-class St {
+class Jt {
   constructor(e = "") {
     this.baseUrl = e, this.auth = null;
   }
@@ -613,18 +613,20 @@ class St {
     return this.auth && (e.Authorization = `Bearer ${this.auth.token}`), e;
   }
   async listMessages(e = {}) {
-    var i;
+    var r;
     const t = new URLSearchParams();
-    (i = e.severity) != null && i.length && t.set("severity", e.severity.join(",")), e.source && t.set("source", e.source), e.search && t.set("search", e.search), e.from && t.set("from", e.from), e.to && t.set("to", e.to), e.limit !== void 0 && t.set("limit", String(e.limit)), e.offset !== void 0 && t.set("offset", String(e.offset)), e.order && t.set("order", e.order);
-    const a = `${this.baseUrl}/api/messagehub/messages?${t.toString()}`, s = await fetch(a, { headers: this.headers() });
-    if (!s.ok) throw new Error(`HTTP ${s.status}`);
-    return await s.json();
+    (r = e.severity) != null && r.length && t.set("severity", e.severity.join(",")), e.source && t.set("source", e.source), e.search && t.set("search", e.search), e.from && t.set("from", e.from), e.to && t.set("to", e.to), e.limit !== void 0 && t.set("limit", String(e.limit)), e.offset !== void 0 && t.set("offset", String(e.offset)), e.order && t.set("order", e.order);
+    const s = `${this.baseUrl}/api/messagehub/messages?${t.toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok)
+      throw new Error(`HTTP ${a.status}`);
+    return await a.json();
   }
   async getMessage(e) {
     const t = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}`, {
       headers: this.headers()
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}`);
     return await t.json();
   }
   async deleteMessage(e) {
@@ -632,65 +634,72 @@ class St {
       method: "DELETE",
       headers: this.headers()
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}`);
   }
   async setMessageStatus(e, t) {
-    const a = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/status`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/status`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ status: t })
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    if (!s.ok)
+      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
   }
   async getMessageTags(e) {
     const t = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/tags`, {
       headers: this.headers()
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}`);
     return (await t.json()).tags;
   }
   async addMessageTag(e, t) {
-    const a = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/tags`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/tags`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ tag: t })
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}`);
-    return (await a.json()).tags;
-  }
-  async removeMessageTag(e, t) {
-    const a = `${this.baseUrl}/api/messagehub/messages/${e}/tags?tag=${encodeURIComponent(t)}`, s = await fetch(a, { method: "DELETE", headers: this.headers() });
-    if (!s.ok) throw new Error(`HTTP ${s.status}`);
+    if (!s.ok)
+      throw new Error(`HTTP ${s.status}`);
     return (await s.json()).tags;
   }
+  async removeMessageTag(e, t) {
+    const s = `${this.baseUrl}/api/messagehub/messages/${e}/tags?tag=${encodeURIComponent(t)}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
+    if (!a.ok)
+      throw new Error(`HTTP ${a.status}`);
+    return (await a.json()).tags;
+  }
   async getRunbookForSource(e, t) {
-    const a = t ? `?fingerprint=${encodeURIComponent(t)}` : "", s = await fetch(
-      `${this.baseUrl}/api/messagehub/runbook/${encodeURIComponent(e)}${a}`,
-      { headers: this.headers() }
-    );
-    if (s.status === 404) return null;
-    if (!s.ok) throw new Error(`HTTP ${s.status}`);
-    return await s.json();
+    const s = t ? `?fingerprint=${encodeURIComponent(t)}` : "", a = await fetch(`${this.baseUrl}/api/messagehub/runbook/${encodeURIComponent(e)}${s}`, { headers: this.headers() });
+    if (a.status === 404)
+      return null;
+    if (!a.ok)
+      throw new Error(`HTTP ${a.status}`);
+    return await a.json();
   }
   async listAudit(e = 200) {
     const t = await fetch(`${this.baseUrl}/api/messagehub/audit?limit=${e}`, {
       headers: this.headers()
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}`);
     return (await t.json()).items;
   }
   async discoverKnxFromProject() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/knx-discovery`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
+    if (!e.ok)
+      throw new Error(`HTTP ${e.status}`);
     return await e.json();
   }
   async listKnxAddresses() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
+    if (!e.ok)
+      throw new Error(`HTTP ${e.status}`);
     return (await e.json()).items;
   }
   async upsertKnxAddress(e) {
@@ -699,13 +708,15 @@ class St {
       headers: this.headers(),
       body: JSON.stringify(e)
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}: ${await t.text()}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}: ${await t.text()}`);
   }
   async listChannels() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/channels`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
+    if (!e.ok)
+      throw new Error(`HTTP ${e.status}`);
     return (await e.json()).items;
   }
   async createChannel(e) {
@@ -714,28 +725,32 @@ class St {
       headers: this.headers(),
       body: JSON.stringify(e)
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}: ${await t.text()}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}: ${await t.text()}`);
   }
   async updateChannel(e, t) {
-    const a = await fetch(`${this.baseUrl}/api/messagehub/channels/${e}`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/channels/${e}`, {
       method: "PUT",
       headers: this.headers(),
       body: JSON.stringify(t)
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    if (!s.ok)
+      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
   }
   async deleteChannel(e) {
     const t = await fetch(`${this.baseUrl}/api/messagehub/channels/${e}`, {
       method: "DELETE",
       headers: this.headers()
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}`);
   }
   async listMqttTopics() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
+    if (!e.ok)
+      throw new Error(`HTTP ${e.status}`);
     return (await e.json()).items;
   }
   async createMqttTopic(e) {
@@ -744,20 +759,23 @@ class St {
       headers: this.headers(),
       body: JSON.stringify(e)
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}: ${await t.text()}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}: ${await t.text()}`);
   }
   async deleteMqttTopic(e) {
     const t = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics/${e}`, {
       method: "DELETE",
       headers: this.headers()
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}`);
   }
   async listRemediationHooks() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
+    if (!e.ok)
+      throw new Error(`HTTP ${e.status}`);
     return (await e.json()).items;
   }
   async createRemediationHook(e) {
@@ -766,41 +784,44 @@ class St {
       headers: this.headers(),
       body: JSON.stringify(e)
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}: ${await t.text()}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}: ${await t.text()}`);
   }
   async deleteRemediationHook(e) {
     const t = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks/${e}`, {
       method: "DELETE",
       headers: this.headers()
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}`);
   }
   async listHeartbeats() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
+    if (!e.ok)
+      throw new Error(`HTTP ${e.status}`);
     return (await e.json()).items;
   }
   async upsertHeartbeat(e, t) {
-    const a = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ source: e, expected_interval_seconds: t })
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}`);
+    if (!s.ok)
+      throw new Error(`HTTP ${s.status}`);
   }
   async getStatsExtended(e = 30) {
-    const t = await fetch(
-      `${this.baseUrl}/api/messagehub/stats-extended?days=${e}`,
-      { headers: this.headers() }
-    );
-    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    const t = await fetch(`${this.baseUrl}/api/messagehub/stats-extended?days=${e}`, { headers: this.headers() });
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}`);
     return await t.json();
   }
   async deleteKnxAddress(e) {
-    const t = `${this.baseUrl}/api/messagehub/knx-addresses/${encodeURIComponent(e)}`, a = await fetch(t, { method: "DELETE", headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}`);
+    const t = `${this.baseUrl}/api/messagehub/knx-addresses/${encodeURIComponent(e)}`, s = await fetch(t, { method: "DELETE", headers: this.headers() });
+    if (!s.ok)
+      throw new Error(`HTTP ${s.status}`);
   }
   async importKnxCsv(e) {
     const t = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
@@ -808,41 +829,46 @@ class St {
       headers: this.headers(),
       body: JSON.stringify({ csv: e })
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}`);
     return await t.json();
   }
   exportUrl(e) {
-    var a;
+    var s;
     const t = new URLSearchParams();
-    return (a = e.severity) != null && a.length && t.set("severity", e.severity.join(",")), e.source && t.set("source", e.source), e.search && t.set("search", e.search), e.from && t.set("from", e.from), e.to && t.set("to", e.to), t.set("format", e.format ?? "jsonl"), e.limit !== void 0 && t.set("limit", String(e.limit)), `${this.baseUrl}/api/messagehub/export?${t.toString()}`;
+    return (s = e.severity) != null && s.length && t.set("severity", e.severity.join(",")), e.source && t.set("source", e.source), e.search && t.set("search", e.search), e.from && t.set("from", e.from), e.to && t.set("to", e.to), t.set("format", e.format ?? "jsonl"), e.limit !== void 0 && t.set("limit", String(e.limit)), `${this.baseUrl}/api/messagehub/export?${t.toString()}`;
   }
   async deleteMessages(e = {}) {
     var o;
     const t = new URLSearchParams();
     (o = e.severity) != null && o.length && t.set("severity", e.severity.join(",")), e.source && t.set("source", e.source), e.search && t.set("search", e.search), e.from && t.set("from", e.from), e.to && t.set("to", e.to);
-    const a = `${this.baseUrl}/api/messagehub/messages?${t.toString()}`, s = await fetch(a, { method: "DELETE", headers: this.headers() });
-    if (!s.ok) throw new Error(`HTTP ${s.status}`);
-    return (await s.json()).deleted;
+    const s = `${this.baseUrl}/api/messagehub/messages?${t.toString()}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
+    if (!a.ok)
+      throw new Error(`HTTP ${a.status}`);
+    return (await a.json()).deleted;
   }
   async listSources() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/sources`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
+    if (!e.ok)
+      throw new Error(`HTTP ${e.status}`);
     return (await e.json()).sources;
   }
   async getStats() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/stats`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
+    if (!e.ok)
+      throw new Error(`HTTP ${e.status}`);
     return await e.json();
   }
   async listWebhooks() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/webhooks`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
+    if (!e.ok)
+      throw new Error(`HTTP ${e.status}`);
     return (await e.json()).webhooks;
   }
   async createWebhook(e) {
@@ -851,43 +877,276 @@ class St {
       headers: this.headers(),
       body: JSON.stringify(e)
     });
-    if (!t.ok) throw new Error(`HTTP ${t.status}: ${await t.text()}`);
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}: ${await t.text()}`);
     return await t.json();
   }
   async updateWebhook(e, t) {
-    const a = await fetch(
-      `${this.baseUrl}/api/messagehub/webhooks/${e}`,
-      {
-        method: "PUT",
-        headers: this.headers(),
-        body: JSON.stringify(t)
-      }
-    );
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
+    const s = await fetch(`${this.baseUrl}/api/messagehub/webhooks/${e}`, {
+      method: "PUT",
+      headers: this.headers(),
+      body: JSON.stringify(t)
+    });
+    if (!s.ok)
+      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
+    return await s.json();
   }
   async deleteWebhook(e) {
-    const t = await fetch(
-      `${this.baseUrl}/api/messagehub/webhooks/${e}`,
-      { method: "DELETE", headers: this.headers() }
-    );
-    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    const t = await fetch(`${this.baseUrl}/api/messagehub/webhooks/${e}`, { method: "DELETE", headers: this.headers() });
+    if (!t.ok)
+      throw new Error(`HTTP ${t.status}`);
   }
 }
+const V = w`
+  :host {
+    /* Spacing-Skala (4-px-Grid) */
+    --mh-space-1: 4px;
+    --mh-space-2: 8px;
+    --mh-space-3: 12px;
+    --mh-space-4: 16px;
+    --mh-space-5: 24px;
+    --mh-space-6: 32px;
+    --mh-space-7: 48px;
+
+    /* Radius */
+    --mh-radius-sm: 6px;
+    --mh-radius-md: 10px;
+    --mh-radius-lg: 14px;
+    --mh-radius-pill: 999px;
+
+    /* Schatten (subtil) */
+    --mh-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+    --mh-shadow-2: 0 2px 4px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.08);
+    --mh-shadow-3: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+    /* Typo-Skala */
+    --mh-text-xs: 0.72rem;
+    --mh-text-sm: 0.82rem;
+    --mh-text-md: 0.92rem;
+    --mh-text-lg: 1.05rem;
+    --mh-text-xl: 1.25rem;
+    --mh-text-2xl: 1.5rem;
+    --mh-text-3xl: 2rem;
+
+    --mh-weight-regular: 400;
+    --mh-weight-medium: 500;
+    --mh-weight-semibold: 600;
+    --mh-weight-bold: 700;
+
+    /* Farben — alle ueber HA-Theme-Variablen */
+    --mh-bg: var(--primary-background-color, #f6f7f9);
+    --mh-surface: var(--card-background-color, #ffffff);
+    --mh-surface-2: var(--secondary-background-color, #f1f3f5);
+    --mh-fg: var(--primary-text-color, #1f2329);
+    --mh-fg-muted: var(--secondary-text-color, #5f6470);
+    --mh-fg-subtle: color-mix(in srgb, var(--secondary-text-color, #5f6470) 70%, transparent);
+    --mh-divider: var(--divider-color, #e3e6eb);
+    --mh-divider-strong: color-mix(in srgb, var(--divider-color, #e3e6eb) 70%, var(--primary-text-color, #1f2329) 30%);
+
+    --mh-accent: var(--primary-color, #03a9f4);
+    --mh-accent-fg: var(--text-primary-color, #ffffff);
+    --mh-accent-soft: color-mix(in srgb, var(--primary-color, #03a9f4) 12%, transparent);
+
+    /* Semantische Severity-Farben */
+    --mh-error: var(--error-color, #db4437);
+    --mh-error-soft: color-mix(in srgb, var(--error-color, #db4437) 14%, transparent);
+    --mh-warning: var(--warning-color, #f59e0b);
+    --mh-warning-soft: color-mix(in srgb, var(--warning-color, #f59e0b) 16%, transparent);
+    --mh-info: var(--info-color, #03a9f4);
+    --mh-info-soft: color-mix(in srgb, var(--info-color, #03a9f4) 14%, transparent);
+    --mh-success: var(--success-color, #16a34a);
+    --mh-success-soft: color-mix(in srgb, var(--success-color, #16a34a) 14%, transparent);
+    --mh-debug: var(--secondary-text-color, #6b7280);
+    --mh-debug-soft: color-mix(in srgb, var(--secondary-text-color, #6b7280) 12%, transparent);
+
+    /* Aktionen-Farben fuer Audit / Generic */
+    --mh-action-create: var(--success-color, #16a34a);
+    --mh-action-update: var(--info-color, #2563eb);
+    --mh-action-delete: var(--error-color, #db4437);
+    --mh-action-status: var(--warning-color, #f59e0b);
+
+    /* Fokus-Outline */
+    --mh-focus-ring: 2px solid color-mix(in srgb, var(--primary-color, #03a9f4) 70%, transparent);
+    --mh-focus-offset: 2px;
+
+    /* Transitions */
+    --mh-transition-fast: 120ms ease-out;
+    --mh-transition-med: 200ms ease-out;
+  }
+`, ze = w`
+  .mh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mh-space-2);
+    padding: 7px 14px;
+    border: 1px solid var(--mh-divider);
+    border-radius: var(--mh-radius-sm);
+    background: var(--mh-surface);
+    color: var(--mh-fg);
+    font: inherit;
+    font-size: var(--mh-text-sm);
+    font-weight: var(--mh-weight-medium);
+    cursor: pointer;
+    transition: background var(--mh-transition-fast), border-color var(--mh-transition-fast),
+      color var(--mh-transition-fast), transform var(--mh-transition-fast);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .mh-btn:hover:not(:disabled) {
+    background: var(--mh-surface-2);
+    border-color: var(--mh-divider-strong);
+  }
+  .mh-btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .mh-btn:focus-visible {
+    outline: var(--mh-focus-ring);
+    outline-offset: var(--mh-focus-offset);
+  }
+  .mh-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .mh-btn--primary {
+    background: var(--mh-accent);
+    color: var(--mh-accent-fg);
+    border-color: transparent;
+  }
+  .mh-btn--primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--mh-accent) 88%, black);
+    border-color: transparent;
+  }
+  .mh-btn--danger {
+    color: var(--mh-error);
+    border-color: color-mix(in srgb, var(--mh-error) 40%, var(--mh-divider));
+  }
+  .mh-btn--danger:hover:not(:disabled) {
+    background: var(--mh-error-soft);
+    border-color: var(--mh-error);
+  }
+  .mh-btn--ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--mh-fg-muted);
+  }
+  .mh-btn--ghost:hover:not(:disabled) {
+    background: var(--mh-surface-2);
+    color: var(--mh-fg);
+  }
+  .mh-btn--icon {
+    padding: 7px;
+    width: 34px;
+    height: 34px;
+    justify-content: center;
+  }
+  .mh-btn--sm {
+    padding: 4px 10px;
+    font-size: var(--mh-text-xs);
+  }
+`, xt = w`
+  .mh-input,
+  .mh-select {
+    padding: 8px 12px;
+    border: 1px solid var(--mh-divider);
+    border-radius: var(--mh-radius-sm);
+    background: var(--mh-surface);
+    color: var(--mh-fg);
+    font: inherit;
+    font-size: var(--mh-text-sm);
+    line-height: 1.3;
+    transition: border-color var(--mh-transition-fast), box-shadow var(--mh-transition-fast);
+  }
+  .mh-input:focus-visible,
+  .mh-select:focus-visible {
+    outline: none;
+    border-color: var(--mh-accent);
+    box-shadow: 0 0 0 3px var(--mh-accent-soft);
+  }
+  .mh-input::placeholder {
+    color: var(--mh-fg-subtle);
+  }
+`, yt = w`
+  .mh-card {
+    background: var(--mh-surface);
+    border: 1px solid var(--mh-divider);
+    border-radius: var(--mh-radius-md);
+    padding: var(--mh-space-4);
+    box-shadow: var(--mh-shadow-1);
+  }
+  .mh-card--flat {
+    box-shadow: none;
+  }
+  .mh-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--mh-space-3);
+    margin-bottom: var(--mh-space-3);
+  }
+  .mh-card__title {
+    margin: 0;
+    font-size: var(--mh-text-lg);
+    font-weight: var(--mh-weight-semibold);
+    color: var(--mh-fg);
+  }
+`, Oe = w`
+  .mh-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: var(--mh-radius-pill);
+    font-size: var(--mh-text-xs);
+    font-weight: var(--mh-weight-semibold);
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .mh-pill--error {
+    background: var(--mh-error-soft);
+    color: var(--mh-error);
+  }
+  .mh-pill--warning {
+    background: var(--mh-warning-soft);
+    color: var(--mh-warning);
+  }
+  .mh-pill--info {
+    background: var(--mh-info-soft);
+    color: var(--mh-info);
+  }
+  .mh-pill--debug {
+    background: var(--mh-debug-soft);
+    color: var(--mh-debug);
+  }
+  .mh-pill--success {
+    background: var(--mh-success-soft);
+    color: var(--mh-success);
+  }
+  .mh-pill--neutral {
+    background: var(--mh-surface-2);
+    color: var(--mh-fg-muted);
+  }
+  .mh-pill__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+`;
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const Tt = { CHILD: 2 }, At = (r) => (...e) => ({ _$litDirective$: r, values: e });
-let Et = class {
+const Gt = { CHILD: 2 }, Qt = (i) => (...e) => ({ _$litDirective$: i, values: e });
+let Yt = class {
   constructor(e) {
   }
   get _$AU() {
     return this._$AM._$AU;
   }
-  _$AT(e, t, a) {
-    this._$Ct = e, this._$AM = t, this._$Ci = a;
+  _$AT(e, t, s) {
+    this._$Ct = e, this._$AM = t, this._$Ci = s;
   }
   _$AS(e, t) {
     return this.update(e, t);
@@ -901,126 +1160,157 @@ let Et = class {
  * Copyright 2020 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { I: Pt } = xt, Be = (r) => r, We = () => document.createComment(""), ee = (r, e, t) => {
-  var i;
-  const a = r._$AA.parentNode, s = e === void 0 ? r._$AB : e._$AA;
+const { I: Xt } = Wt, nt = (i) => i, lt = () => document.createComment(""), ge = (i, e, t) => {
+  var r;
+  const s = i._$AA.parentNode, a = e === void 0 ? i._$AB : e._$AA;
   if (t === void 0) {
-    const o = a.insertBefore(We(), s), c = a.insertBefore(We(), s);
-    t = new Pt(o, c, r, r.options);
+    const o = s.insertBefore(lt(), a), l = s.insertBefore(lt(), a);
+    t = new Xt(o, l, i, i.options);
   } else {
-    const o = t._$AB.nextSibling, c = t._$AM, d = c !== r;
-    if (d) {
+    const o = t._$AB.nextSibling, l = t._$AM, c = l !== i;
+    if (c) {
       let p;
-      (i = t._$AQ) == null || i.call(t, r), t._$AM = r, t._$AP !== void 0 && (p = r._$AU) !== c._$AU && t._$AP(p);
+      (r = t._$AQ) == null || r.call(t, i), t._$AM = i, t._$AP !== void 0 && (p = i._$AU) !== l._$AU && t._$AP(p);
     }
-    if (o !== s || d) {
+    if (o !== a || c) {
       let p = t._$AA;
       for (; p !== o; ) {
-        const v = Be(p).nextSibling;
-        Be(a).insertBefore(p, s), p = v;
+        const f = nt(p).nextSibling;
+        nt(s).insertBefore(p, a), p = f;
       }
     }
   }
   return t;
-}, M = (r, e, t = r) => (r._$AI(e, t), r), zt = {}, Ct = (r, e = zt) => r._$AH = e, Ot = (r) => r._$AH, $e = (r) => {
-  r._$AR(), r._$AA.remove();
+}, L = (i, e, t = i) => (i._$AI(e, t), i), Zt = {}, es = (i, e = Zt) => i._$AH = e, ts = (i) => i._$AH, Ue = (i) => {
+  i._$AR(), i._$AA.remove();
 };
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const Ke = (r, e, t) => {
-  const a = /* @__PURE__ */ new Map();
-  for (let s = e; s <= t; s++) a.set(r[s], s);
-  return a;
-}, Nt = At(class extends Et {
-  constructor(r) {
-    if (super(r), r.type !== Tt.CHILD) throw Error("repeat() can only be used in text expressions");
+const dt = (i, e, t) => {
+  const s = /* @__PURE__ */ new Map();
+  for (let a = e; a <= t; a++) s.set(i[a], a);
+  return s;
+}, ss = Qt(class extends Yt {
+  constructor(i) {
+    if (super(i), i.type !== Gt.CHILD) throw Error("repeat() can only be used in text expressions");
   }
-  dt(r, e, t) {
-    let a;
-    t === void 0 ? t = e : e !== void 0 && (a = e);
-    const s = [], i = [];
+  dt(i, e, t) {
+    let s;
+    t === void 0 ? t = e : e !== void 0 && (s = e);
+    const a = [], r = [];
     let o = 0;
-    for (const c of r) s[o] = a ? a(c, o) : o, i[o] = t(c, o), o++;
-    return { values: i, keys: s };
+    for (const l of i) a[o] = s ? s(l, o) : o, r[o] = t(l, o), o++;
+    return { values: r, keys: a };
   }
-  render(r, e, t) {
-    return this.dt(r, e, t).values;
+  render(i, e, t) {
+    return this.dt(i, e, t).values;
   }
-  update(r, [e, t, a]) {
-    const s = Ot(r), { values: i, keys: o } = this.dt(e, t, a);
-    if (!Array.isArray(s)) return this.ut = o, i;
-    const c = this.ut ?? (this.ut = []), d = [];
-    let p, v, h = 0, f = s.length - 1, u = 0, _ = i.length - 1;
-    for (; h <= f && u <= _; ) if (s[h] === null) h++;
-    else if (s[f] === null) f--;
-    else if (c[h] === o[u]) d[u] = M(s[h], i[u]), h++, u++;
-    else if (c[f] === o[_]) d[_] = M(s[f], i[_]), f--, _--;
-    else if (c[h] === o[_]) d[_] = M(s[h], i[_]), ee(r, d[_ + 1], s[h]), h++, _--;
-    else if (c[f] === o[u]) d[u] = M(s[f], i[u]), ee(r, s[h], s[f]), f--, u++;
-    else if (p === void 0 && (p = Ke(o, u, _), v = Ke(c, h, f)), p.has(c[h])) if (p.has(c[f])) {
-      const z = v.get(o[u]), ve = z !== void 0 ? s[z] : null;
-      if (ve === null) {
-        const Ce = ee(r, s[h]);
-        M(Ce, i[u]), d[u] = Ce;
-      } else d[u] = M(ve, i[u]), ee(r, s[h], ve), s[z] = null;
+  update(i, [e, t, s]) {
+    const a = ts(i), { values: r, keys: o } = this.dt(e, t, s);
+    if (!Array.isArray(a)) return this.ut = o, r;
+    const l = this.ut ?? (this.ut = []), c = [];
+    let p, f, h = 0, g = a.length - 1, u = 0, _ = r.length - 1;
+    for (; h <= g && u <= _; ) if (a[h] === null) h++;
+    else if (a[g] === null) g--;
+    else if (l[h] === o[u]) c[u] = L(a[h], r[u]), h++, u++;
+    else if (l[g] === o[_]) c[_] = L(a[g], r[_]), g--, _--;
+    else if (l[h] === o[_]) c[_] = L(a[h], r[_]), ge(i, c[_ + 1], a[h]), h++, _--;
+    else if (l[g] === o[u]) c[u] = L(a[g], r[u]), ge(i, a[h], a[g]), g--, u++;
+    else if (p === void 0 && (p = dt(o, u, _), f = dt(l, h, g)), p.has(l[h])) if (p.has(l[g])) {
+      const P = f.get(o[u]), Ne = P !== void 0 ? a[P] : null;
+      if (Ne === null) {
+        const Ge = ge(i, a[h]);
+        L(Ge, r[u]), c[u] = Ge;
+      } else c[u] = L(Ne, r[u]), ge(i, a[h], Ne), a[P] = null;
       u++;
-    } else $e(s[f]), f--;
-    else $e(s[h]), h++;
+    } else Ue(a[g]), g--;
+    else Ue(a[h]), h++;
     for (; u <= _; ) {
-      const z = ee(r, d[_ + 1]);
-      M(z, i[u]), d[u++] = z;
+      const P = ge(i, c[_ + 1]);
+      L(P, r[u]), c[u++] = P;
     }
-    for (; h <= f; ) {
-      const z = s[h++];
-      z !== null && $e(z);
+    for (; h <= g; ) {
+      const P = a[h++];
+      P !== null && Ue(P);
     }
-    return this.ut = o, Ct(r, d), B;
+    return this.ut = o, es(i, c), W;
   }
-});
-var Ut = Object.defineProperty, Dt = Object.getOwnPropertyDescriptor, tt = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? Dt(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && Ut(e, t, s), s;
+}), as = new Intl.RelativeTimeFormat("de", { numeric: "auto" }), rs = [
+  { unit: "year", seconds: 31536e3 },
+  { unit: "month", seconds: 2592e3 },
+  { unit: "week", seconds: 604800 },
+  { unit: "day", seconds: 86400 },
+  { unit: "hour", seconds: 3600 },
+  { unit: "minute", seconds: 60 },
+  { unit: "second", seconds: 1 }
+];
+function $t(i, e = /* @__PURE__ */ new Date()) {
+  const t = new Date(i);
+  if (Number.isNaN(t.getTime()))
+    return "—";
+  const s = Math.round((t.getTime() - e.getTime()) / 1e3), a = Math.abs(s);
+  if (a < 5)
+    return "gerade eben";
+  for (const { unit: r, seconds: o } of rs)
+    if (a >= o) {
+      const l = Math.round(s / o);
+      return as.format(l, r);
+    }
+  return "gerade eben";
+}
+function kt(i, e = /* @__PURE__ */ new Date()) {
+  const t = new Date(i);
+  if (Number.isNaN(t.getTime()))
+    return i;
+  const s = t.getFullYear() === e.getFullYear() && t.getMonth() === e.getMonth() && t.getDate() === e.getDate(), a = t.toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+  return s ? a : `${t.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })} ${a}`;
+}
+var Ve = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
 };
-const Ht = {
+const is = {
   error: "✕",
   warning: "⚠",
   info: "ⓘ",
   debug: "·"
-}, qe = {
+}, os = {
   error: "Error",
-  warning: "Warning",
+  warning: "Warn",
   info: "Info",
   debug: "Debug"
 };
-let pe = class extends m {
+var Q;
+let Ae = (Q = class extends b {
   constructor() {
-    super(...arguments), this.items = [], this._onClick = (r) => {
-      this.dispatchEvent(
-        new CustomEvent("select", { detail: { msg: r }, bubbles: !0, composed: !0 })
-      );
-    }, this._onKey = (r, e) => {
-      (r.key === "Enter" || r.key === " ") && (r.preventDefault(), this._onClick(e));
+    super(...arguments), this.items = [], this._now = /* @__PURE__ */ new Date(), this._onClick = (e) => {
+      this.dispatchEvent(new CustomEvent("select", { detail: { msg: e }, bubbles: !0, composed: !0 }));
+    }, this._onKey = (e, t) => {
+      (e.key === "Enter" || e.key === " ") && (e.preventDefault(), this._onClick(t));
     };
+  }
+  connectedCallback() {
+    super.connectedCallback(), this._tickerId = window.setInterval(() => this._now = /* @__PURE__ */ new Date(), 3e4);
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback(), this._tickerId && window.clearInterval(this._tickerId);
   }
   _renderHeader() {
     return n`
       <div class="header" role="row">
-        <span class="col-icon" role="columnheader" title="Severity (Schweregrad)">
-          Sev
-        </span>
-        <span class="col-ts" role="columnheader" title="Empfangs-Zeitpunkt (UTC)">
-          Zeit
-        </span>
-        <span class="col-src" role="columnheader" title="Quelle / Herkunft der Nachricht">
-          Quelle
-        </span>
-        <span class="col-text" role="columnheader" title="Nachrichten-Text (Klick: Detail)">
-          Nachricht
-        </span>
+        <span class="col-sev" role="columnheader">Severity</span>
+        <span class="col-ts" role="columnheader">Zeit</span>
+        <span class="col-src" role="columnheader">Quelle</span>
+        <span class="col-text" role="columnheader">Nachricht</span>
       </div>
     `;
   }
@@ -1029,32 +1319,33 @@ let pe = class extends m {
       <div class="root">
         ${this._renderHeader()}
         <div class="scroll" role="list">
-          ${Nt(
-      this.items,
-      (r) => r.id,
-      (r) => n`
-              <div
-                class=${`row sev-${r.severity}`}
-                tabindex="0"
-                role="listitem button"
-                @click=${() => this._onClick(r)}
-                @keydown=${(e) => this._onKey(e, r)}
-              >
-                <span
-                  class="col-icon icon"
-                  aria-label=${qe[r.severity] ?? r.severity}
-                  title=${qe[r.severity] ?? r.severity}
+          ${ss(this.items, (e) => e.id, (e) => {
+      const t = e.severity ?? "info", s = os[t] ?? t, a = is[t] ?? "·", r = $t(e.timestamp, this._now), o = kt(e.timestamp, this._now);
+      return n`
+                <div
+                  class=${`row sev-${t}`}
+                  tabindex="0"
+                  role="listitem button"
+                  @click=${() => this._onClick(e)}
+                  @keydown=${(l) => this._onKey(l, e)}
                 >
-                  ${Ht[r.severity] ?? "·"}
-                </span>
-                <span class="col-ts ts">
-                  ${r.timestamp.replace("T", " ").replace(/\+00:00$/, "Z")}
-                </span>
-                <span class="col-src src">${r.source}</span>
-                <span class="col-text text">${r.text}</span>
-              </div>
-            `
-    )}
+                  <span class="col-sev">
+                    <span
+                      class=${`mh-pill mh-pill--${t}`}
+                      title=${s}
+                    >
+                      <span class="sev-icon" aria-hidden="true">${a}</span>
+                      ${s}
+                    </span>
+                  </span>
+                  <span class="col-ts ts" title=${o}>${r}</span>
+                  <span class="col-src">
+                    <span class="source-pill">${e.source}</span>
+                  </span>
+                  <span class="col-text text">${e.text}</span>
+                </div>
+              `;
+    })}
         </div>
       </div>
     ` : n`
@@ -1064,193 +1355,258 @@ let pe = class extends m {
         </div>
       `;
   }
-};
-pe.styles = S`
-    :host {
-      display: block;
-      flex: 1;
-      overflow: hidden;
-    }
-    .root {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-    .header,
-    .row {
-      display: grid;
-      grid-template-columns: 40px 180px 160px 1fr;
-      gap: 12px;
-      padding: 6px 16px;
-      align-items: center;
-    }
-    .header {
-      background: var(--secondary-background-color, #f3f3f3);
-      border-bottom: 2px solid var(--divider-color, #ddd);
-      font-size: 0.78em;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--secondary-text-color, #666);
-      padding-top: 8px;
-      padding-bottom: 8px;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      cursor: default;
-    }
-    .header span {
-      cursor: help;
-    }
-    .col-icon {
-      text-align: center;
-    }
-    .col-ts {
-      font-variant-numeric: tabular-nums;
-    }
-    .scroll {
-      flex: 1;
-      overflow: auto;
-    }
-    .row {
-      border-bottom: 1px solid var(--divider-color, #eee);
-      cursor: pointer;
-    }
-    .row:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    .row:focus-visible {
-      background: var(--secondary-background-color, #f3f3f3);
-      outline: 2px solid var(--primary-color, #03a9f4);
-      outline-offset: -2px;
-    }
-    .icon {
-      font-size: 1.2em;
-    }
-    .row.sev-error .icon {
-      color: var(--error-color, #db4437);
-    }
-    .row.sev-warning .icon {
-      color: var(--warning-color, #ff9800);
-    }
-    .row.sev-info .icon {
-      color: var(--info-color, #03a9f4);
-    }
-    .row.sev-debug .icon {
-      color: var(--secondary-text-color, #888);
-    }
-    .ts {
-      font-family: var(--ha-font-family-code, monospace);
-      font-size: 0.85em;
-      color: var(--secondary-text-color, #666);
-    }
-    .src {
-      font-weight: 500;
-    }
-    .text {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .empty {
-      padding: 32px;
-      text-align: center;
-      color: var(--secondary-text-color, #666);
-    }
-    @media (max-width: 600px) {
+}, Q.styles = [
+  V,
+  Oe,
+  w`
+      :host {
+        display: block;
+        flex: 1;
+        overflow: hidden;
+      }
+      .root {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: var(--mh-surface);
+      }
       .header,
       .row {
-        grid-template-columns: 28px 120px 1fr;
-        gap: 8px;
-        padding: 6px 8px;
+        display: grid;
+        grid-template-columns: 110px 110px 140px 1fr;
+        gap: var(--mh-space-3);
+        padding: 10px var(--mh-space-5);
+        align-items: center;
       }
-      .col-src {
-        display: none;
+      .header {
+        background: var(--mh-bg);
+        border-bottom: 1px solid var(--mh-divider);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--mh-fg-muted);
+        padding-top: var(--mh-space-2);
+        padding-bottom: var(--mh-space-2);
+        position: sticky;
+        top: 0;
+        z-index: 1;
       }
-    }
-  `;
-tt([
-  b({ attribute: !1 })
-], pe.prototype, "items", 2);
-pe = tt([
-  w("message-table")
-], pe);
-var jt = Object.defineProperty, Lt = Object.getOwnPropertyDescriptor, rt = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? Lt(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && jt(e, t, s), s;
+      .scroll {
+        flex: 1;
+        overflow: auto;
+      }
+      .row {
+        border-bottom: 1px solid var(--mh-divider);
+        cursor: pointer;
+        transition: background var(--mh-transition-fast);
+      }
+      .row:hover {
+        background: var(--mh-surface-2);
+      }
+      .row:focus-visible {
+        background: var(--mh-surface-2);
+        outline: var(--mh-focus-ring);
+        outline-offset: -2px;
+      }
+      .row:last-child {
+        border-bottom: 0;
+      }
+
+      .sev-icon {
+        display: inline-flex;
+        width: 14px;
+        text-align: center;
+        font-weight: var(--mh-weight-bold);
+      }
+
+      .ts {
+        font-variant-numeric: tabular-nums;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        white-space: nowrap;
+      }
+
+      .source-pill {
+        display: inline-block;
+        padding: 2px 8px;
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-sm);
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-medium);
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+      }
+
+      .text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg);
+      }
+      .empty {
+        padding: var(--mh-space-7);
+        text-align: center;
+        color: var(--mh-fg-muted);
+      }
+
+      @media (max-width: 720px) {
+        .header,
+        .row {
+          grid-template-columns: 90px 90px 1fr;
+          gap: var(--mh-space-2);
+          padding: var(--mh-space-2) var(--mh-space-3);
+        }
+        .col-src {
+          display: none;
+        }
+      }
+    `
+], Q);
+Ve([
+  v({ attribute: !1 })
+], Ae.prototype, "items", void 0);
+Ve([
+  d()
+], Ae.prototype, "_now", void 0);
+Ae = Ve([
+  k("message-table")
+], Ae);
+var St = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
 };
-const Ve = ["error", "warning", "info", "debug"];
-let ue = class extends m {
+const ct = ["error", "warning", "info", "debug"];
+var Y;
+let Le = (Y = class extends b {
   constructor() {
-    super(...arguments), this.selected = [...Ve];
+    super(...arguments), this.selected = [...ct];
   }
-  _toggle(r) {
-    const e = this.selected.includes(r) ? this.selected.filter((t) => t !== r) : [...this.selected, r];
-    this.dispatchEvent(
-      new CustomEvent("change", {
-        detail: { severities: e },
-        bubbles: !0,
-        composed: !0
-      })
-    );
+  _toggle(e) {
+    const t = this.selected.includes(e) ? this.selected.filter((s) => s !== e) : [...this.selected, e];
+    this.dispatchEvent(new CustomEvent("change", {
+      detail: { severities: t },
+      bubbles: !0,
+      composed: !0
+    }));
   }
   render() {
     return n`
-      <div class="chips">
-        ${Ve.map(
-      (r) => n`<button
-            class=${`chip sev-${r} ${this.selected.includes(r) ? "active" : ""}`}
-            @click=${() => this._toggle(r)}
+      <div class="chips" role="group" aria-label="Severity-Filter">
+        ${ct.map((e) => {
+      const t = this.selected.includes(e);
+      return n`<button
+            class=${`chip sev-${e} ${t ? "active" : ""}`}
+            aria-pressed=${t}
+            @click=${() => this._toggle(e)}
           >
-            ${r}
-          </button>`
-    )}
+            <span class="dot" aria-hidden="true"></span>
+            ${e}
+          </button>`;
+    })}
       </div>
     `;
   }
-};
-ue.styles = S`
-    .chips {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
-    .chip {
-      padding: 4px 10px;
-      border-radius: 14px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      cursor: pointer;
-      font-size: 0.85em;
-      text-transform: capitalize;
-    }
-    .chip.active {
-      background: var(--primary-color, #03a9f4);
-      color: white;
-      border-color: var(--primary-color, #03a9f4);
-    }
-    .chip.sev-error.active {
-      background: var(--error-color, #db4437);
-      border-color: var(--error-color, #db4437);
-    }
-    .chip.sev-warning.active {
-      background: var(--warning-color, #ff9800);
-      border-color: var(--warning-color, #ff9800);
-    }
-  `;
-rt([
-  b({ attribute: !1 })
-], ue.prototype, "selected", 2);
-ue = rt([
-  w("severity-filter")
-], ue);
-var Mt = Object.defineProperty, It = Object.getOwnPropertyDescriptor, fe = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? It(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && Mt(e, t, s), s;
-};
-let Q = class extends m {
+}, Y.styles = [
+  V,
+  w`
+      .chips {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: var(--mh-radius-pill);
+        border: 1px solid var(--mh-divider);
+        background: var(--mh-surface);
+        cursor: pointer;
+        font: inherit;
+        font-size: var(--mh-text-sm);
+        font-weight: var(--mh-weight-medium);
+        color: var(--mh-fg-muted);
+        text-transform: capitalize;
+        transition: background var(--mh-transition-fast), color var(--mh-transition-fast),
+          border-color var(--mh-transition-fast);
+      }
+      .chip:hover {
+        background: var(--mh-surface-2);
+        color: var(--mh-fg);
+      }
+      .chip:focus-visible {
+        outline: var(--mh-focus-ring);
+        outline-offset: var(--mh-focus-offset);
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.6;
+      }
+      .chip.active {
+        color: var(--mh-fg);
+        border-color: transparent;
+        font-weight: var(--mh-weight-semibold);
+      }
+      .chip.sev-error .dot {
+        color: var(--mh-error);
+        opacity: 1;
+      }
+      .chip.sev-error.active {
+        background: var(--mh-error-soft);
+        color: var(--mh-error);
+      }
+      .chip.sev-warning .dot {
+        color: var(--mh-warning);
+        opacity: 1;
+      }
+      .chip.sev-warning.active {
+        background: var(--mh-warning-soft);
+        color: var(--mh-warning);
+      }
+      .chip.sev-info .dot {
+        color: var(--mh-info);
+        opacity: 1;
+      }
+      .chip.sev-info.active {
+        background: var(--mh-info-soft);
+        color: var(--mh-info);
+      }
+      .chip.sev-debug .dot {
+        color: var(--mh-debug);
+        opacity: 1;
+      }
+      .chip.sev-debug.active {
+        background: var(--mh-debug-soft);
+        color: var(--mh-debug);
+      }
+    `
+], Y);
+St([
+  v({ attribute: !1 })
+], Le.prototype, "selected", void 0);
+Le = St([
+  k("severity-filter")
+], Le);
+var Ce = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
+}, X;
+let xe = (X = class extends b {
   constructor() {
     super(...arguments), this.selected = "", this._sources = [];
   }
@@ -1262,26 +1618,23 @@ let Q = class extends m {
         this._sources = [];
       }
   }
-  _onChange(r) {
-    const e = r.target.value;
-    this.dispatchEvent(
-      new CustomEvent("change", {
-        detail: { source: e },
-        bubbles: !0,
-        composed: !0
-      })
-    );
+  _onChange(e) {
+    const t = e.target.value;
+    this.dispatchEvent(new CustomEvent("change", {
+      detail: { source: t },
+      bubbles: !0,
+      composed: !0
+    }));
   }
   render() {
     return n`
       <select @change=${this._onChange} .value=${this.selected}>
         <option value="">Alle Quellen</option>
-        ${this._sources.map((r) => n`<option value=${r}>${r}</option>`)}
+        ${this._sources.map((e) => n`<option value=${e}>${e}</option>`)}
       </select>
     `;
   }
-};
-Q.styles = S`
+}, X.styles = w`
     select {
       padding: 4px 8px;
       border: 1px solid var(--divider-color, #ccc);
@@ -1289,35 +1642,34 @@ Q.styles = S`
       background: var(--card-background-color, white);
       color: inherit;
     }
-  `;
-fe([
-  b({ attribute: !1 })
-], Q.prototype, "api", 2);
-fe([
-  b({ attribute: !1 })
-], Q.prototype, "selected", 2);
-fe([
-  l()
-], Q.prototype, "_sources", 2);
-Q = fe([
-  w("source-filter")
-], Q);
-var Rt = Object.defineProperty, Ft = Object.getOwnPropertyDescriptor, Pe = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? Ft(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && Rt(e, t, s), s;
-};
-let oe = class extends m {
-  _set(r) {
-    let e;
-    const t = /* @__PURE__ */ new Date();
-    r === "1h" ? e = new Date(t.getTime() - 36e5).toISOString() : r === "24h" ? e = new Date(t.getTime() - 864e5).toISOString() : r === "7d" ? e = new Date(t.getTime() - 7 * 864e5).toISOString() : e = void 0, this.dispatchEvent(
-      new CustomEvent("change", {
-        detail: { fromIso: e, toIso: void 0 },
-        bubbles: !0,
-        composed: !0
-      })
-    );
+  `, X);
+Ce([
+  v({ attribute: !1 })
+], xe.prototype, "api", void 0);
+Ce([
+  v({ attribute: !1 })
+], xe.prototype, "selected", void 0);
+Ce([
+  d()
+], xe.prototype, "_sources", void 0);
+xe = Ce([
+  k("source-filter")
+], xe);
+var qe = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
+}, Z;
+let Ee = (Z = class extends b {
+  _set(e) {
+    let t;
+    const s = /* @__PURE__ */ new Date();
+    e === "1h" ? t = new Date(s.getTime() - 36e5).toISOString() : e === "24h" ? t = new Date(s.getTime() - 864e5).toISOString() : e === "7d" ? t = new Date(s.getTime() - 7 * 864e5).toISOString() : t = void 0, this.dispatchEvent(new CustomEvent("change", {
+      detail: { fromIso: t, toIso: void 0 },
+      bubbles: !0,
+      composed: !0
+    }));
   }
   render() {
     return n`
@@ -1329,8 +1681,7 @@ let oe = class extends m {
       </div>
     `;
   }
-};
-oe.styles = S`
+}, Z.styles = w`
     .presets {
       display: flex;
       gap: 4px;
@@ -1342,27 +1693,28 @@ oe.styles = S`
       background: transparent;
       cursor: pointer;
     }
-  `;
-Pe([
-  b({ attribute: !1 })
-], oe.prototype, "fromIso", 2);
-Pe([
-  b({ attribute: !1 })
-], oe.prototype, "toIso", 2);
-oe = Pe([
-  w("time-range-filter")
-], oe);
-var Bt = Object.defineProperty, Wt = Object.getOwnPropertyDescriptor, j = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? Wt(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && Bt(e, t, s), s;
-};
-let E = class extends m {
+  `, Z);
+qe([
+  v({ attribute: !1 })
+], Ee.prototype, "fromIso", void 0);
+qe([
+  v({ attribute: !1 })
+], Ee.prototype, "toIso", void 0);
+Ee = qe([
+  k("time-range-filter")
+], Ee);
+var M = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
+}, ee;
+let z = (ee = class extends b {
   constructor() {
     super(...arguments), this._status = "new", this._tags = [], this._newTag = "", this._runbook = null, this._busy = !1;
   }
-  willUpdate(r) {
-    r.has("msg") && this.msg && (this._status = this.msg.status ?? "new", this._loadTags(), this._loadRunbook());
+  willUpdate(e) {
+    e.has("msg") && this.msg && (this._status = this.msg.status ?? "new", this._loadTags(), this._loadRunbook());
   }
   async _loadTags() {
     if (!(!this.api || !this.msg))
@@ -1383,63 +1735,58 @@ let E = class extends m {
   _close() {
     this.dispatchEvent(new CustomEvent("close", { bubbles: !0, composed: !0 }));
   }
-  async _setStatus(r) {
+  async _setStatus(e) {
     if (this.api) {
       this._busy = !0;
       try {
-        await this.api.setMessageStatus(this.msg.id, r), this._status = r, this.dispatchEvent(
-          new CustomEvent("status-change", {
-            detail: { id: this.msg.id, status: r },
-            bubbles: !0,
-            composed: !0
-          })
-        );
-      } catch (e) {
-        this.dispatchEvent(
-          new CustomEvent("error", {
-            detail: { message: e.message },
-            bubbles: !0,
-            composed: !0
-          })
-        );
+        await this.api.setMessageStatus(this.msg.id, e), this._status = e, this.dispatchEvent(new CustomEvent("status-change", {
+          detail: { id: this.msg.id, status: e },
+          bubbles: !0,
+          composed: !0
+        }));
+      } catch (t) {
+        this.dispatchEvent(new CustomEvent("error", {
+          detail: { message: t.message },
+          bubbles: !0,
+          composed: !0
+        }));
       } finally {
         this._busy = !1;
       }
     }
   }
   async _addTag() {
-    if (!this.api || !this._newTag.trim()) return;
-    const r = this._newTag.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, "-");
+    if (!this.api || !this._newTag.trim())
+      return;
+    const e = this._newTag.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, "-");
     try {
-      this._tags = await this.api.addMessageTag(this.msg.id, r), this._newTag = "";
+      this._tags = await this.api.addMessageTag(this.msg.id, e), this._newTag = "";
     } catch {
     }
   }
-  async _removeTag(r) {
+  async _removeTag(e) {
     if (this.api)
       try {
-        this._tags = await this.api.removeMessageTag(this.msg.id, r);
+        this._tags = await this.api.removeMessageTag(this.msg.id, e);
       } catch {
       }
   }
   async _delete() {
-    confirm(`Nachricht #${this.msg.id} endgueltig loeschen?`) && this.dispatchEvent(
-      new CustomEvent("delete", {
-        detail: { id: this.msg.id },
-        bubbles: !0,
-        composed: !0
-      })
-    );
+    confirm(`Nachricht #${this.msg.id} endgültig löschen?`) && this.dispatchEvent(new CustomEvent("delete", {
+      detail: { id: this.msg.id },
+      bubbles: !0,
+      composed: !0
+    }));
   }
   _statusBadge() {
-    const r = {
+    const e = {
       new: "Neu",
       acknowledged: "Bestätigt",
       resolved: "Gelöst",
       expired: "Abgelaufen"
     };
     return n`<span class=${`status-badge status-${this._status}`}>
-      ${r[this._status] ?? this._status}
+      ${e[this._status] ?? this._status}
     </span>`;
   }
   render() {
@@ -1489,40 +1836,38 @@ let E = class extends m {
         <pre class="text">${this.msg.text}</pre>
 
         ${this.msg.metadata ? n`<h3>Metadata</h3>
-              <pre class="meta">${JSON.stringify(this.msg.metadata, null, 2)}</pre>` : g}
+              <pre class="meta">${JSON.stringify(this.msg.metadata, null, 2)}</pre>` : m}
 
         <h3>Tags</h3>
         <div class="tags">
-          ${this._tags.length === 0 ? n`<span class="hint">keine Tags</span>` : this._tags.map(
-      (r) => n`
+          ${this._tags.length === 0 ? n`<span class="hint">keine Tags</span>` : this._tags.map((e) => n`
                   <span class="tag">
-                    #${r}
+                    #${e}
                     <button
                       class="tag-remove"
-                      aria-label=${`Tag ${r} entfernen`}
-                      @click=${() => this._removeTag(r)}
+                      aria-label=${`Tag ${e} entfernen`}
+                      @click=${() => this._removeTag(e)}
                     >
                       ×
                     </button>
                   </span>
-                `
-    )}
+                `)}
         </div>
         <div class="tag-input">
           <input
             type="text"
             placeholder="neuer Tag"
             .value=${this._newTag}
-            @input=${(r) => this._newTag = r.target.value}
-            @keydown=${(r) => {
-      r.key === "Enter" && this._addTag();
+            @input=${(e) => this._newTag = e.target.value}
+            @keydown=${(e) => {
+      e.key === "Enter" && this._addTag();
     }}
           />
           <button @click=${this._addTag} ?disabled=${!this._newTag.trim()}>+ Hinzufügen</button>
         </div>
 
         ${this._runbook ? n`<h3>Runbook: ${this._runbook.title}</h3>
-              <pre class="runbook">${this._runbook.markdown}</pre>` : g}
+              <pre class="runbook">${this._runbook.markdown}</pre>` : m}
 
         <footer>
           <button class="del" @click=${this._delete}>Löschen</button>
@@ -1530,8 +1875,7 @@ let E = class extends m {
       </aside>
     `;
   }
-};
-E.styles = S`
+}, ee.styles = w`
     :host {
       position: fixed;
       top: 0;
@@ -1749,100 +2093,98 @@ E.styles = S`
       border-radius: 4px;
       cursor: pointer;
     }
-  `;
-j([
-  b({ attribute: !1 })
-], E.prototype, "msg", 2);
-j([
-  b({ attribute: !1 })
-], E.prototype, "api", 2);
-j([
-  l()
-], E.prototype, "_status", 2);
-j([
-  l()
-], E.prototype, "_tags", 2);
-j([
-  l()
-], E.prototype, "_newTag", 2);
-j([
-  l()
-], E.prototype, "_runbook", 2);
-j([
-  l()
-], E.prototype, "_busy", 2);
-E = j([
-  w("detail-pane")
-], E);
-var Kt = Object.defineProperty, qt = Object.getOwnPropertyDescriptor, P = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? qt(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && Kt(e, t, s), s;
+  `, ee);
+M([
+  v({ attribute: !1 })
+], z.prototype, "msg", void 0);
+M([
+  v({ attribute: !1 })
+], z.prototype, "api", void 0);
+M([
+  d()
+], z.prototype, "_status", void 0);
+M([
+  d()
+], z.prototype, "_tags", void 0);
+M([
+  d()
+], z.prototype, "_newTag", void 0);
+M([
+  d()
+], z.prototype, "_runbook", void 0);
+M([
+  d()
+], z.prototype, "_busy", void 0);
+z = M([
+  k("detail-pane")
+], z);
+var E = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
 };
-const Vt = ["debug", "info", "warning", "error"], Jt = JSON.stringify(
-  {
-    severity: "$.level",
-    source: "$.app.name",
-    text: "$.message",
-    metadata: "$.extra"
-  },
-  null,
-  2
-), we = /^[a-z0-9._-]{1,64}$/;
-function Gt(r) {
-  return r.toLowerCase().normalize("NFKD").replace(/[äÄ]/g, "ae").replace(/[öÖ]/g, "oe").replace(/[üÜ]/g, "ue").replace(/ß/g, "ss").replace(/[\s/\\]+/g, "-").replace(/[^a-z0-9._-]/g, "").slice(0, 64);
+const ns = ["debug", "info", "warning", "error"], ls = JSON.stringify({
+  severity: "$.level",
+  source: "$.app.name",
+  text: "$.message",
+  metadata: "$.extra"
+}, null, 2), He = /^[a-z0-9._-]{1,64}$/;
+function ds(i) {
+  return i.toLowerCase().normalize("NFKD").replace(/[äÄ]/g, "ae").replace(/[öÖ]/g, "oe").replace(/[üÜ]/g, "ue").replace(/ß/g, "ss").replace(/[\s/\\]+/g, "-").replace(/[^a-z0-9._-]/g, "").slice(0, 64);
 }
-let A = class extends m {
+var te;
+let A = (te = class extends b {
   constructor() {
     super(...arguments), this.editing = null, this._name = "", this._source = "", this._severity = "info", this._enabled = !0, this._mappingText = "", this._error = "", this._saving = !1;
   }
-  willUpdate(r) {
-    if (r.has("editing")) {
-      const e = this.editing;
-      this._name = (e == null ? void 0 : e.name) ?? "", this._source = (e == null ? void 0 : e.default_source) ?? "", this._severity = (e == null ? void 0 : e.default_severity) ?? "info", this._enabled = (e == null ? void 0 : e.enabled) ?? !0, this._mappingText = e != null && e.field_map ? JSON.stringify(e.field_map, null, 2) : "", this._error = "";
+  willUpdate(e) {
+    if (e.has("editing")) {
+      const t = this.editing;
+      this._name = (t == null ? void 0 : t.name) ?? "", this._source = (t == null ? void 0 : t.default_source) ?? "", this._severity = (t == null ? void 0 : t.default_severity) ?? "info", this._enabled = (t == null ? void 0 : t.enabled) ?? !0, this._mappingText = t != null && t.field_map ? JSON.stringify(t.field_map, null, 2) : "", this._error = "";
     }
   }
   _validateMapping() {
-    if (!this._mappingText.trim()) return null;
+    if (!this._mappingText.trim())
+      return null;
     try {
-      const r = JSON.parse(this._mappingText);
-      if (typeof r != "object" || Array.isArray(r))
+      const e = JSON.parse(this._mappingText);
+      if (typeof e != "object" || Array.isArray(e))
         throw new Error("muss ein JSON-Objekt sein");
-      return r;
-    } catch (r) {
-      throw new Error(`Mapping-JSON ungueltig: ${r.message}`);
+      return e;
+    } catch (e) {
+      throw new Error(`Mapping-JSON ungueltig: ${e.message}`);
     }
   }
   async _save() {
     if (this.api) {
       this._error = "", this._saving = !0;
       try {
-        const r = this._validateMapping();
-        if (!this._name.trim()) throw new Error("Name darf nicht leer sein");
-        if (!we.test(this._source))
+        const e = this._validateMapping();
+        if (!this._name.trim())
+          throw new Error("Name darf nicht leer sein");
+        if (!He.test(this._source))
           throw new Error("Source ist leer oder ungueltig.");
-        let e;
-        this.editing ? e = await this.api.updateWebhook(this.editing.webhook_id, {
+        let t;
+        this.editing ? t = await this.api.updateWebhook(this.editing.webhook_id, {
           name: this._name.trim(),
           default_source: this._source,
           default_severity: this._severity,
-          field_map: r,
+          field_map: e,
           enabled: this._enabled
-        }) : e = await this.api.createWebhook({
+        }) : t = await this.api.createWebhook({
           name: this._name.trim(),
           default_source: this._source,
           default_severity: this._severity,
-          field_map: r,
+          field_map: e,
           enabled: this._enabled
-        }), this.dispatchEvent(
-          new CustomEvent("saved", {
-            detail: { webhook: e },
-            bubbles: !0,
-            composed: !0
-          })
-        );
-      } catch (r) {
-        this._error = r.message;
+        }), this.dispatchEvent(new CustomEvent("saved", {
+          detail: { webhook: t },
+          bubbles: !0,
+          composed: !0
+        }));
+      } catch (e) {
+        this._error = e.message;
       } finally {
         this._saving = !1;
       }
@@ -1852,20 +2194,20 @@ let A = class extends m {
     this.dispatchEvent(new CustomEvent("cancel", { bubbles: !0, composed: !0 }));
   }
   _useExample() {
-    this._mappingText = Jt;
+    this._mappingText = ls;
   }
   render() {
-    const r = this.editing !== null;
+    const e = this.editing !== null;
     return n`
       <div class="card">
-        <h3>${r ? "Webhook bearbeiten" : "Neuen Webhook anlegen"}</h3>
+        <h3>${e ? "Webhook bearbeiten" : "Neuen Webhook anlegen"}</h3>
 
         <label>
           <span>Name</span>
           <input
             type="text"
             .value=${this._name}
-            @input=${(e) => this._name = e.target.value}
+            @input=${(t) => this._name = t.target.value}
             placeholder="z. B. Pi-hole Alerts"
           />
         </label>
@@ -1874,15 +2216,15 @@ let A = class extends m {
           <label>
             <span>
               Default-Source
-              ${this._source && we.test(this._source) ? n`<span class="ok-badge" title="ok">✓</span>` : null}
+              ${this._source && He.test(this._source) ? n`<span class="ok-badge" title="ok">✓</span>` : null}
             </span>
             <input
               type="text"
-              class=${this._source && !we.test(this._source) ? "invalid" : ""}
+              class=${this._source && !He.test(this._source) ? "invalid" : ""}
               .value=${this._source}
-              @input=${(e) => {
-      const t = e.target.value;
-      this._source = Gt(t);
+              @input=${(t) => {
+      const s = t.target.value;
+      this._source = ds(s);
     }}
               placeholder="z. B. pihole"
               autocomplete="off"
@@ -1900,11 +2242,9 @@ let A = class extends m {
             <span>Default-Severity</span>
             <select
               .value=${this._severity}
-              @change=${(e) => this._severity = e.target.value}
+              @change=${(t) => this._severity = t.target.value}
             >
-              ${Vt.map(
-      (e) => n`<option value=${e} ?selected=${this._severity === e}>${e}</option>`
-    )}
+              ${ns.map((t) => n`<option value=${t} ?selected=${this._severity === t}>${t}</option>`)}
             </select>
           </label>
         </div>
@@ -1913,7 +2253,7 @@ let A = class extends m {
           <input
             type="checkbox"
             .checked=${this._enabled}
-            @change=${(e) => this._enabled = e.target.checked}
+            @change=${(t) => this._enabled = t.target.checked}
           />
           <span>aktiv</span>
         </label>
@@ -1922,18 +2262,18 @@ let A = class extends m {
           <div class="mapping-head">
             <span>JSONPath-Mapping (optional)</span>
             <button class="link" @click=${this._useExample}>
-              Beispiel einfuegen
+              Beispiel einfügen
             </button>
           </div>
           <textarea
             .value=${this._mappingText}
-            @input=${(e) => this._mappingText = e.target.value}
+            @input=${(t) => this._mappingText = t.target.value}
             placeholder=${'{"severity": "$.level", "source": "$.app.name", ...}'}
             rows="6"
             spellcheck="false"
           ></textarea>
           <small>
-            Leer lassen fuer 1:1-Mapping (severity/source/text/metadata in der
+            Leer lassen für 1:1-Mapping (severity/source/text/metadata in der
             Top-Level-Payload).
           </small>
         </div>
@@ -1942,15 +2282,14 @@ let A = class extends m {
 
         <div class="actions">
           <button class="primary" ?disabled=${this._saving} @click=${this._save}>
-            ${this._saving ? "speichere…" : r ? "Speichern" : "Anlegen"}
+            ${this._saving ? "speichere…" : e ? "Speichern" : "Anlegen"}
           </button>
           <button @click=${this._cancel}>Abbrechen</button>
         </div>
       </div>
     `;
   }
-};
-A.styles = S`
+}, te.styles = w`
     .card {
       background: var(--card-background-color, white);
       border: 1px solid var(--divider-color, #e0e0e0);
@@ -2090,44 +2429,46 @@ A.styles = S`
       justify-content: flex-end;
       margin-top: 4px;
     }
-  `;
-P([
-  b({ attribute: !1 })
-], A.prototype, "api", 2);
-P([
-  b({ attribute: !1 })
-], A.prototype, "editing", 2);
-P([
-  l()
-], A.prototype, "_name", 2);
-P([
-  l()
-], A.prototype, "_source", 2);
-P([
-  l()
-], A.prototype, "_severity", 2);
-P([
-  l()
-], A.prototype, "_enabled", 2);
-P([
-  l()
-], A.prototype, "_mappingText", 2);
-P([
-  l()
-], A.prototype, "_error", 2);
-P([
-  l()
-], A.prototype, "_saving", 2);
-A = P([
-  w("webhook-form")
+  `, te);
+E([
+  v({ attribute: !1 })
+], A.prototype, "api", void 0);
+E([
+  v({ attribute: !1 })
+], A.prototype, "editing", void 0);
+E([
+  d()
+], A.prototype, "_name", void 0);
+E([
+  d()
+], A.prototype, "_source", void 0);
+E([
+  d()
+], A.prototype, "_severity", void 0);
+E([
+  d()
+], A.prototype, "_enabled", void 0);
+E([
+  d()
+], A.prototype, "_mappingText", void 0);
+E([
+  d()
+], A.prototype, "_error", void 0);
+E([
+  d()
+], A.prototype, "_saving", void 0);
+A = E([
+  k("webhook-form")
 ], A);
-var Qt = Object.defineProperty, Yt = Object.getOwnPropertyDescriptor, k = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? Yt(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && Qt(e, t, s), s;
+var S = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
 };
-const Xt = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, ke = ["debug", "info", "warning", "error"], Zt = [...ke, "auto"];
-let x = class extends m {
+const cs = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, Ie = ["debug", "info", "warning", "error"], hs = [...Ie, "auto"];
+var se;
+let $ = (se = class extends b {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._onlyEnabled = !1, this._newAddr = "", this._newLabel = "", this._newDpt = "", this._discovery = [], this._discoveryStatus = "loading", this._editing = null, this._toast = "", this._error = "";
   }
@@ -2147,41 +2488,41 @@ let x = class extends m {
   async _loadDiscovery() {
     if (this.api)
       try {
-        const r = await this.api.discoverKnxFromProject();
-        this._discovery = r.items, this._discoveryStatus = r.status;
-      } catch (r) {
-        this._discovery = [], this._discoveryStatus = `error: ${r.message}`;
+        const e = await this.api.discoverKnxFromProject();
+        this._discovery = e.items, this._discoveryStatus = e.status;
+      } catch (e) {
+        this._discovery = [], this._discoveryStatus = `error: ${e.message}`;
       }
   }
   _renderDiscoveryStatus() {
-    if (this._discoveryStatus === "ok" && this._discovery.length > 0) return null;
-    const e = {
+    if (this._discoveryStatus === "ok" && this._discovery.length > 0)
+      return null;
+    const t = {
       loading: "🔄 Lade KNX-Projekt-Daten…",
       no_knx_integration: "ℹ️ Keine KNX-Integration in HA gefunden. Lege erst die KNX-Integration unter Einstellungen → Geräte & Dienste an, dann erscheinen die GAs hier automatisch.",
       no_project_loaded: "ℹ️ KNX-Integration ist da, aber kein ETS-Projekt hochgeladen. Lade dein .knxproj in der KNX-Integration unter Konfigurieren → Projekt hoch.",
       project_empty: "ℹ️ ETS-Projekt enthält keine Gruppenadressen — pruefe den Export."
     }[this._discoveryStatus] ?? `Status: ${this._discoveryStatus}`;
-    return n`<div class="discovery-status">${e}</div>`;
+    return n`<div class="discovery-status">${t}</div>`;
   }
-  _onAddressInput(r) {
-    const e = r.target.value;
-    this._newAddr = e;
-    const t = this._discovery.find((a) => a.address === e);
-    t && (this._newLabel.trim() || (this._newLabel = t.name), !this._newDpt.trim() && t.dpt && (this._newDpt = t.dpt));
+  _onAddressInput(e) {
+    const t = e.target.value;
+    this._newAddr = t;
+    const s = this._discovery.find((a) => a.address === t);
+    s && (this._newLabel.trim() || (this._newLabel = s.name), !this._newDpt.trim() && s.dpt && (this._newDpt = s.dpt));
   }
   async _bulkImportFromProject() {
-    if (!this.api || this._discovery.length === 0) return;
-    const r = new Set(this._items.map((a) => a.address)), e = this._discovery.filter((a) => !r.has(a.address));
-    if (e.length === 0) {
+    if (!this.api || this._discovery.length === 0)
+      return;
+    const e = new Set(this._items.map((a) => a.address)), t = this._discovery.filter((a) => !e.has(a.address));
+    if (t.length === 0) {
       this._showToast("Alle Projekt-GAs sind bereits angelegt");
       return;
     }
-    if (!window.confirm(
-      `${e.length} fehlende Projekt-GAs anlegen? (Logging bleibt zunaechst aus, Severity-Mapping kannst du danach pro Adresse setzen.)`
-    ))
+    if (!window.confirm(`${t.length} fehlende Projekt-GAs anlegen? (Logging bleibt zunächst aus, Severity-Mapping kannst du danach pro Adresse setzen.)`))
       return;
-    let t = 0;
-    for (const a of e)
+    let s = 0;
+    for (const a of t)
       try {
         await this.api.upsertKnxAddress({
           address: a.address,
@@ -2189,15 +2530,16 @@ let x = class extends m {
           dpt: a.dpt,
           log_enabled: !1,
           log_severity: "info"
-        }), t += 1;
+        }), s += 1;
       } catch {
       }
-    this._showToast(`${t} aus ETS-Projekt uebernommen`), await this._load();
+    this._showToast(`${s} aus ETS-Projekt übernommen`), await this._load();
   }
   async _add() {
-    if (this._error = "", !this.api) return;
-    const r = this._newAddr.trim();
-    if (!Xt.test(r)) {
+    if (this._error = "", !this.api)
+      return;
+    const e = this._newAddr.trim();
+    if (!cs.test(e)) {
       this._error = "Bitte Format N/N/N (z. B. 1/2/3)";
       return;
     }
@@ -2207,84 +2549,79 @@ let x = class extends m {
     }
     try {
       await this.api.upsertKnxAddress({
-        address: r,
+        address: e,
         label: this._newLabel.trim(),
         dpt: this._newDpt.trim() || null,
         log_enabled: !1,
         log_severity: "info"
-      }), this._newAddr = "", this._newLabel = "", this._newDpt = "", this._showToast(`${r} gespeichert`), await this._load();
-    } catch (e) {
-      this._error = e.message;
+      }), this._newAddr = "", this._newLabel = "", this._newDpt = "", this._showToast(`${e} gespeichert`), await this._load();
+    } catch (t) {
+      this._error = t.message;
     }
   }
-  async _toggleLog(r) {
-    if (!this.api) return;
-    const e = !r.log_enabled;
+  async _toggleLog(e) {
+    if (!this.api)
+      return;
+    const t = !e.log_enabled;
     try {
       await this.api.upsertKnxAddress({
-        ...r,
-        log_enabled: e
+        ...e,
+        log_enabled: t
       }), await this._load();
-      const t = this._items.find((s) => s.address === r.address), a = !!(t != null && t.log_enabled);
-      t !== void 0 && a !== e ? this._showToast(
-        "Backend hat log_enabled nicht gesetzt — Browser-Cache leeren (Cmd+Shift+R) und HA-Container neu starten"
-      ) : this._showToast(
-        e ? `${r.address} im Protokoll aktiv` : `${r.address} aus Protokoll entfernt`
-      );
-    } catch (t) {
-      this._showToast(t.message);
+      const s = this._items.find((r) => r.address === e.address), a = !!(s != null && s.log_enabled);
+      s !== void 0 && a !== t ? this._showToast("Backend hat log_enabled nicht gesetzt — Browser-Cache leeren (Cmd+Shift+R) und HA-Container neu starten") : this._showToast(t ? `${e.address} im Protokoll aktiv` : `${e.address} aus Protokoll entfernt`);
+    } catch (s) {
+      this._showToast(s.message);
     }
   }
-  async _delete(r) {
-    if (this.api && window.confirm(`KNX-Adresse ${r} loeschen?`))
+  async _delete(e) {
+    if (this.api && window.confirm(`KNX-Adresse ${e} löschen?`))
       try {
-        await this.api.deleteKnxAddress(r), this._showToast(`${r} geloescht`), await this._load();
-      } catch (e) {
-        this._showToast(e.message);
+        await this.api.deleteKnxAddress(e), this._showToast(`${e} gelöscht`), await this._load();
+      } catch (t) {
+        this._showToast(t.message);
       }
   }
-  async _onCsvFile(r) {
+  async _onCsvFile(e) {
     var a;
-    const e = (a = r.target.files) == null ? void 0 : a[0];
-    if (!e || !this.api) return;
-    const t = await e.text();
+    const t = (a = e.target.files) == null ? void 0 : a[0];
+    if (!t || !this.api)
+      return;
+    const s = await t.text();
     try {
-      const s = await this.api.importKnxCsv(t);
-      this._showToast(
-        `Import: ${s.imported} angelegt, ${s.skipped} ueberlesen, ${s.errors} Fehler`
-      ), await this._load();
-    } catch (s) {
-      this._showToast(`Import fehlgeschlagen: ${s.message}`);
+      const r = await this.api.importKnxCsv(s);
+      this._showToast(`Import: ${r.imported} angelegt, ${r.skipped} ueberlesen, ${r.errors} Fehler`), await this._load();
+    } catch (r) {
+      this._showToast(`Import fehlgeschlagen: ${r.message}`);
     } finally {
-      r.target.value = "";
+      e.target.value = "";
     }
   }
-  _showToast(r) {
-    this._toast = r, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
+  _showToast(e) {
+    this._toast = e, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
   }
   _filtered() {
-    let r = this._items;
-    this._onlyEnabled && (r = r.filter((t) => !!t.log_enabled));
-    const e = this._filter.trim().toLowerCase();
-    return e ? r.filter(
-      (t) => t.address.includes(e) || t.label.toLowerCase().includes(e) || (t.dpt ?? "").toLowerCase().includes(e)
-    ) : r;
+    let e = this._items;
+    this._onlyEnabled && (e = e.filter((s) => !!s.log_enabled));
+    const t = this._filter.trim().toLowerCase();
+    return t ? e.filter((s) => s.address.includes(t) || s.label.toLowerCase().includes(t) || (s.dpt ?? "").toLowerCase().includes(t)) : e;
   }
   _renderEditor() {
-    if (!this._editing) return g;
-    const r = this._editing, e = (t) => {
-      this._editing = { ...r, ...t };
+    if (!this._editing)
+      return m;
+    const e = this._editing, t = (s) => {
+      this._editing = { ...e, ...s };
     };
     return n`
       <div class="modal-backdrop" @click=${() => this._editing = null}>
-        <div class="modal" @click=${(t) => t.stopPropagation()}>
-          <h3>${r.address} bearbeiten</h3>
+        <div class="modal" @click=${(s) => s.stopPropagation()}>
+          <h3>${e.address} bearbeiten</h3>
           <label>
             <span>Label</span>
             <input
               type="text"
-              .value=${r.label}
-              @input=${(t) => e({ label: t.target.value })}
+              .value=${e.label}
+              @input=${(s) => t({ label: s.target.value })}
             />
           </label>
           <div class="row-2">
@@ -2292,73 +2629,67 @@ let x = class extends m {
               <span>DPT (z. B. 1.001, 5.001, 16.001)</span>
               <input
                 type="text"
-                .value=${r.dpt ?? ""}
-                @input=${(t) => e({ dpt: t.target.value || null })}
+                .value=${e.dpt ?? ""}
+                @input=${(s) => t({ dpt: s.target.value || null })}
               />
             </label>
             <label class="checkbox">
               <input
                 type="checkbox"
-                .checked=${r.log_enabled}
-                @change=${(t) => e({ log_enabled: t.target.checked })}
+                .checked=${e.log_enabled}
+                @change=${(s) => t({ log_enabled: s.target.checked })}
               />
               <span>Im Protokoll erfassen</span>
             </label>
           </div>
 
-          ${r.log_enabled ? n`
+          ${e.log_enabled ? n`
                 <label>
                   <span>Severity</span>
                   <select
-                    .value=${r.log_severity}
-                    @change=${(t) => {
-      const a = t.target.value;
-      e({ log_severity: a });
+                    .value=${e.log_severity}
+                    @change=${(s) => {
+      const a = s.target.value;
+      t({ log_severity: a });
     }}
                   >
-                    ${Zt.map(
-      (t) => n`<option value=${t}>${t}</option>`
-    )}
+                    ${hs.map((s) => n`<option value=${s}>${s}</option>`)}
                   </select>
                   <small>
-                    <code>auto</code> nutzt fuer Boolean-DPTs (1.x) die
-                    Severity-Map unten — z. B. fuer Stoer-Bits, die bei
+                    <code>auto</code> nutzt für Boolean-DPTs (1.x) die
+                    Severity-Map unten — z. B. für Stör-Bits, die bei
                     <code>True</code> einen Fehler bedeuten.
                   </small>
                 </label>
-                ${r.log_severity === "auto" ? n`<div class="row-2">
+                ${e.log_severity === "auto" ? n`<div class="row-2">
                       <label>
                         <span>Severity bei <code>True</code></span>
                         <select
-                          .value=${r.severity_on_true ?? "warning"}
-                          @change=${(t) => e({
-      severity_on_true: t.target.value
+                          .value=${e.severity_on_true ?? "warning"}
+                          @change=${(s) => t({
+      severity_on_true: s.target.value
     })}
                         >
-                          ${ke.map(
-      (t) => n`<option value=${t}>${t}</option>`
-    )}
+                          ${Ie.map((s) => n`<option value=${s}>${s}</option>`)}
                         </select>
                       </label>
                       <label>
                         <span>Severity bei <code>False</code></span>
                         <select
-                          .value=${r.severity_on_false ?? "info"}
-                          @change=${(t) => e({
-      severity_on_false: t.target.value
+                          .value=${e.severity_on_false ?? "info"}
+                          @change=${(s) => t({
+      severity_on_false: s.target.value
     })}
                         >
-                          ${ke.map(
-      (t) => n`<option value=${t}>${t}</option>`
-    )}
+                          ${Ie.map((s) => n`<option value=${s}>${s}</option>`)}
                         </select>
                       </label>
-                    </div>` : g}
-              ` : g}
+                    </div>` : m}
+              ` : m}
 
           <div class="modal-actions">
-            <button @click=${() => this._editing = null}>Abbrechen</button>
-            <button class="primary" @click=${() => void this._saveEdit()}>
+            <button class="mh-btn" @click=${() => this._editing = null}>Abbrechen</button>
+            <button class="mh-btn mh-btn--primary" @click=${() => void this._saveEdit()}>
               Speichern
             </button>
           </div>
@@ -2379,12 +2710,12 @@ let x = class extends m {
           severity_on_true: this._editing.severity_on_true,
           severity_on_false: this._editing.severity_on_false
         }), this._showToast("gespeichert"), this._editing = null, await this._load();
-      } catch (r) {
-        this._showToast(r.message);
+      } catch (e) {
+        this._showToast(e.message);
       }
   }
   render() {
-    const r = this._filtered(), e = this._items.filter((t) => t.log_enabled).length;
+    const e = this._filtered(), t = this._items.filter((s) => s.log_enabled).length;
     return n`
       <section>
         <header class="head">
@@ -2392,8 +2723,8 @@ let x = class extends m {
             <h2>KNX-Gruppenadressen</h2>
             <p class="hint">
               ${this._items.length} Adressen,
-              <strong>${e} im Protokoll aktiv</strong>. Voraussetzung
-              fuer die Bus-Erfassung: HA-KNX-Integration mit IP-Tunneling/Routing
+              <strong>${t} im Protokoll aktiv</strong>. Voraussetzung
+              für die Bus-Erfassung: HA-KNX-Integration mit IP-Tunneling/Routing
               ist eingerichtet — sie feuert das Event <code>knx_event</code>, das
               wir gegen diese Whitelist matchen. Nicht-aktivierte GAs werden
               ignoriert.
@@ -2401,13 +2732,13 @@ let x = class extends m {
           </div>
           <div class="header-actions">
             ${this._discovery.length > 0 ? n`<button
-                  class="from-project"
+                  class="mh-btn mh-btn--primary"
                   title=${`${this._discovery.length} GAs aus dem in HA hinterlegten ETS-Projekt`}
                   @click=${() => void this._bulkImportFromProject()}
                 >
-                  ✨ ${this._discovery.length} aus HA-KNX-Projekt uebernehmen
+                  ✨ ${this._discovery.length} aus HA-KNX-Projekt übernehmen
                 </button>` : null}
-            <label class="csv-upload">
+            <label class="mh-btn csv-upload">
               <input type="file" accept=".csv,text/csv" @change=${this._onCsvFile} />
               <span>📂 ETS-CSV importieren</span>
             </label>
@@ -2417,79 +2748,79 @@ let x = class extends m {
         <div class="add-form">
           <input
             type="text"
+            class="mh-input"
             list="knx-discovery-list"
-            placeholder="${this._discovery.length > 0 ? `GA aus Projekt waehlen (${this._discovery.length} verfuegbar)` : "GA (z. B. 1/2/3)"}"
+            placeholder="${this._discovery.length > 0 ? `GA aus Projekt wählen (${this._discovery.length} verfügbar)` : "GA (z. B. 1/2/3)"}"
             .value=${this._newAddr}
             @input=${this._onAddressInput}
-            @keydown=${(t) => {
-      t.key === "Enter" && this._add();
+            @keydown=${(s) => {
+      s.key === "Enter" && this._add();
     }}
           />
           <datalist id="knx-discovery-list">
-            ${this._discovery.map(
-      (t) => n`<option value=${t.address}>
-                  ${t.name}${t.dpt ? ` (DPT ${t.dpt})` : ""}
-                </option>`
-    )}
+            ${this._discovery.map((s) => n`<option value=${s.address}>
+                  ${s.name}${s.dpt ? ` (DPT ${s.dpt})` : ""}
+                </option>`)}
           </datalist>
           <input
             type="text"
-            placeholder="Label (z. B. Stoerung Heizung Pumpe)"
+            class="mh-input"
+            placeholder="Label (z. B. Störung Heizung Pumpe)"
             .value=${this._newLabel}
-            @input=${(t) => this._newLabel = t.target.value}
-            @keydown=${(t) => {
-      t.key === "Enter" && this._add();
+            @input=${(s) => this._newLabel = s.target.value}
+            @keydown=${(s) => {
+      s.key === "Enter" && this._add();
     }}
           />
           <input
             type="text"
-            class="narrow"
+            class="mh-input narrow"
             placeholder="DPT (z. B. 1.001)"
             .value=${this._newDpt}
-            @input=${(t) => this._newDpt = t.target.value}
-            @keydown=${(t) => {
-      t.key === "Enter" && this._add();
+            @input=${(s) => this._newDpt = s.target.value}
+            @keydown=${(s) => {
+      s.key === "Enter" && this._add();
     }}
           />
-          <button class="primary" @click=${this._add}>+ Hinzufuegen</button>
+          <button class="mh-btn mh-btn--primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
         ${this._discovery.length > 0 ? n`<p class="hint">
-              💡 Tipp: Beim Tippen in das GA-Feld erscheinen Vorschlaege aus dem
-              ETS-Projekt — Label und DPT werden dann automatisch vorbefuellt.
+              💡 Tipp: Beim Tippen in das GA-Feld erscheinen Vorschläge aus dem
+              ETS-Projekt — Label und DPT werden dann automatisch vorbefüllt.
             </p>` : null}
         ${this._renderDiscoveryStatus()}
-        ${this._error ? n`<div class="error">${this._error}</div>` : g}
+        ${this._error ? n`<div class="error">${this._error}</div>` : m}
 
         <div class="filter-bar">
           <input
             type="search"
+            class="mh-input"
             placeholder="Suche (GA / Label / DPT)…"
             .value=${this._filter}
-            @input=${(t) => this._filter = t.target.value}
+            @input=${(s) => this._filter = s.target.value}
           />
           <label class="toggle">
             <input
               type="checkbox"
               .checked=${this._onlyEnabled}
-              @change=${(t) => this._onlyEnabled = t.target.checked}
+              @change=${(s) => this._onlyEnabled = s.target.checked}
             />
             <span>nur aktive</span>
           </label>
-          <span class="muted">${r.length} sichtbar</span>
+          <span class="muted">${e.length} sichtbar</span>
         </div>
 
-        ${this._loading ? n`<p class="muted">lade…</p>` : r.length === 0 ? n`<div class="empty">
+        ${this._loading ? n`<p class="muted">lade…</p>` : e.length === 0 ? n`<div class="empty">
                 ${this._items.length === 0 ? n`<p>
                       Noch keine Adressen. Lege oben den ersten Eintrag an oder
                       importiere eine ETS-CSV.
-                    </p>` : this._onlyEnabled && e === 0 ? n`<p>
+                    </p>` : this._onlyEnabled && t === 0 ? n`<p>
                           <strong>Keine Adresse ist im Protokoll aktiv.</strong>
                         </p>
                         <p>
                           So aktivierst du eine: in der Liste den
-                          <strong>OFF</strong>-Knopf einer Adresse klicken (er
-                          wird gruen <strong>✓ ON</strong>) — oder im
-                          Edit-Dialog &bdquo;Im Protokoll erfassen&ldquo;
+                          <strong>Loggen-Switch</strong> einer Adresse umlegen
+                          — oder im Edit-Dialog „Im Protokoll erfassen"
                           anhaken und speichern.
                         </p>
                         <p class="muted small">
@@ -2498,426 +2829,501 @@ let x = class extends m {
                           (Cmd+Shift+R) — sonst liegt evtl. der alte Bundle
                           mit dem API-Bug vom 2026-05-01 vor 21:14 vor.
                         </p>` : n`<p>
-                        Keine Treffer fuer aktuelle Filter
+                        Keine Treffer für aktuelle Filter
                         (${this._items.length} Adressen total,
-                        ${e} davon aktiv).
+                        ${t} davon aktiv).
                       </p>`}
               </div>` : n`
-                <table>
-                  <thead>
-                    <tr>
-                      <th>GA</th>
-                      <th>Label</th>
-                      <th>DPT</th>
-                      <th>Severity</th>
-                      <th class="col-toggle">📝 Loggen</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${r.map(
-      (t) => n`
-                        <tr class=${t.log_enabled ? "enabled" : ""}>
-                          <td><code>${t.address}</code></td>
-                          <td>${t.label}</td>
-                          <td>${t.dpt ?? n`<span class="muted">—</span>`}</td>
-                          <td>
-                            ${t.log_enabled ? n`<span class=${`sev sev-${t.log_severity}`}>
-                                  ${t.log_severity}${t.log_severity === "auto" ? n`<small>
-                                        T:${t.severity_on_true ?? "warning"}/F:${t.severity_on_false ?? "info"}
-                                      </small>` : g}
-                                </span>` : n`<span class="muted">—</span>`}
-                          </td>
-                          <td class="col-toggle">
-                            <button
-                              class=${`toggle-btn ${t.log_enabled ? "on" : "off"}`}
-                              @click=${() => void this._toggleLog(t)}
-                              title=${t.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}
-                            >
-                              ${t.log_enabled ? "✓ ON" : "OFF"}
-                            </button>
-                          </td>
-                          <td class="actions">
-                            <button @click=${() => this._editing = t}>Edit</button>
-                            <button
-                              class="danger"
-                              @click=${() => void this._delete(t.address)}
-                            >
-                              Loeschen
-                            </button>
-                          </td>
-                        </tr>
-                      `
-    )}
-                  </tbody>
-                </table>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>GA</th>
+                        <th>Label</th>
+                        <th>DPT</th>
+                        <th>Severity</th>
+                        <th class="col-toggle">Loggen</th>
+                        <th class="col-actions"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${e.map((s) => n`
+                          <tr class=${s.log_enabled ? "enabled" : ""}>
+                            <td><code class="ga">${s.address}</code></td>
+                            <td class="label-cell">${s.label}</td>
+                            <td>
+                              ${s.dpt ? n`<code class="dpt">${s.dpt}</code>` : n`<span class="muted">—</span>`}
+                            </td>
+                            <td>
+                              ${s.log_enabled ? n`<span class=${`mh-pill mh-pill--${s.log_severity === "auto" ? "neutral" : s.log_severity}`}>
+                                    <span class="mh-pill__dot"></span>
+                                    ${s.log_severity}${s.log_severity === "auto" ? n` <small class="auto-detail"
+                                          >T:${s.severity_on_true ?? "warning"}
+                                          / F:${s.severity_on_false ?? "info"}</small
+                                        >` : m}
+                                  </span>` : n`<span class="muted">—</span>`}
+                            </td>
+                            <td class="col-toggle">
+                              <label class="switch" title=${s.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}>
+                                <input
+                                  type="checkbox"
+                                  .checked=${s.log_enabled}
+                                  @change=${() => void this._toggleLog(s)}
+                                  aria-label=${s.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}
+                                />
+                                <span class="slider"></span>
+                              </label>
+                            </td>
+                            <td class="col-actions">
+                              <button
+                                class="icon-btn"
+                                title="Bearbeiten"
+                                aria-label="Bearbeiten"
+                                @click=${() => this._editing = s}
+                              >
+                                <span aria-hidden="true">✎</span>
+                              </button>
+                              <button
+                                class="icon-btn danger"
+                                title="Löschen"
+                                aria-label="Löschen"
+                                @click=${() => void this._delete(s.address)}
+                              >
+                                <span aria-hidden="true">🗑</span>
+                              </button>
+                            </td>
+                          </tr>
+                        `)}
+                    </tbody>
+                  </table>
+                </div>
               `}
 
         ${this._renderEditor()}
-        ${this._toast ? n`<div class="toast">${this._toast}</div>` : g}
+        ${this._toast ? n`<div class="toast">${this._toast}</div>` : m}
       </section>
     `;
   }
-};
-x.styles = S`
-    section {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    h2 {
-      margin: 0;
-      font-size: 1.2em;
-    }
-    h3 {
-      margin: 0 0 8px 0;
-    }
-    .hint {
-      margin: 4px 0 0 0;
-      font-size: 0.9em;
-      color: var(--secondary-text-color, #666);
-    }
-    .header-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .from-project {
-      cursor: pointer;
-      padding: 6px 12px;
-      border: 1px solid var(--primary-color, #03a9f4);
-      border-radius: 4px;
-      font-size: 0.85em;
-      background: var(--primary-color, #03a9f4);
-      color: white;
-    }
-    .from-project:hover {
-      filter: brightness(0.95);
-    }
-    .discovery-status {
-      padding: 8px 12px;
-      background: rgba(255, 235, 59, 0.12);
-      border-left: 3px solid var(--warning-color, #ff9800);
-      border-radius: 3px;
-      font-size: 0.85em;
-      color: var(--primary-text-color, #222);
-      line-height: 1.5;
-    }
-    .csv-upload {
-      cursor: pointer;
-      padding: 6px 12px;
-      border: 1px solid var(--divider-color, #ccc);
-      border-radius: 4px;
-      font-size: 0.85em;
-      background: var(--card-background-color, white);
-    }
-    .csv-upload input[type="file"] {
-      display: none;
-    }
-    .csv-upload:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    .add-form {
-      display: grid;
-      grid-template-columns: 130px 1fr 130px auto;
-      gap: 8px;
-      background: var(--card-background-color, white);
-      border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
-      padding: 12px;
-    }
-    @media (max-width: 720px) {
+}, se.styles = [
+  V,
+  ze,
+  xt,
+  Oe,
+  w`
+      section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-3);
+      }
+      .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: var(--mh-space-4);
+        flex-wrap: wrap;
+      }
+      h2 {
+        margin: 0;
+        font-size: var(--mh-text-xl);
+        font-weight: var(--mh-weight-semibold);
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        margin: 0 0 var(--mh-space-2) 0;
+      }
+      .hint {
+        margin: 4px 0 0 0;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        line-height: 1.5;
+      }
+      .header-actions {
+        display: flex;
+        gap: var(--mh-space-2);
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .csv-upload {
+        cursor: pointer;
+      }
+      .csv-upload input[type="file"] {
+        display: none;
+      }
+      .discovery-status {
+        padding: var(--mh-space-2) var(--mh-space-3);
+        background: var(--mh-warning-soft);
+        border-left: 3px solid var(--mh-warning);
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg);
+        line-height: 1.5;
+      }
+
+      /* Add-Form */
       .add-form {
-        grid-template-columns: 1fr 1fr;
+        display: grid;
+        grid-template-columns: 140px 1fr 130px auto;
+        gap: var(--mh-space-2);
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        padding: var(--mh-space-3);
       }
-    }
-    input[type="text"],
-    input[type="search"],
-    select {
-      padding: 8px 10px;
-      border: 1px solid var(--divider-color, #ccc);
-      border-radius: 4px;
-      font: inherit;
-      background: var(--card-background-color, white);
-      color: var(--primary-text-color, #222);
-    }
-    input.narrow {
-      max-width: 130px;
-    }
-    button {
-      padding: 6px 12px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      cursor: pointer;
-      border-radius: 4px;
-      font: inherit;
-      font-size: 0.85em;
-    }
-    button:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    button.primary {
-      background: var(--primary-color, #03a9f4);
-      color: white;
-      border-color: var(--primary-color, #03a9f4);
-    }
-    button.primary:hover {
-      filter: brightness(0.9);
-    }
-    button.danger {
-      color: var(--error-color, #db4437);
-      border-color: var(--error-color, #db4437);
-    }
-    button.toggle-btn {
-      min-width: 56px;
-      font-weight: 600;
-    }
-    button.toggle-btn.on {
-      background: var(--success-color, #4caf50);
-      color: white;
-      border-color: var(--success-color, #4caf50);
-    }
-    button.toggle-btn.off {
-      color: var(--secondary-text-color, #666);
-    }
-    .filter-bar {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.9em;
-      cursor: pointer;
-    }
-    .muted {
-      color: var(--secondary-text-color, #888);
-      font-size: 0.85em;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--card-background-color, white);
-      border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    th,
-    td {
-      text-align: left;
-      padding: 6px 12px;
-      border-bottom: 1px solid var(--divider-color, #eee);
-      font-size: 0.9em;
-    }
-    th {
-      background: var(--secondary-background-color, #f3f3f3);
-      font-size: 0.78em;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--secondary-text-color, #666);
-    }
-    .col-toggle {
-      text-align: center;
-    }
-    td.actions {
-      text-align: right;
-      white-space: nowrap;
-    }
-    td.actions button + button {
-      margin-left: 4px;
-    }
-    tr.enabled {
-      background: rgba(76, 175, 80, 0.04);
-    }
-    code {
-      font-family: var(--ha-font-family-code, monospace);
-      font-size: 0.9em;
-    }
-    .sev {
-      display: inline-block;
-      padding: 1px 6px;
-      border-radius: 8px;
-      font-size: 0.78em;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    .sev small {
-      display: block;
-      font-size: 0.85em;
-      font-weight: 400;
-      text-transform: none;
-      opacity: 0.85;
-    }
-    .sev-debug {
-      background: rgba(0, 0, 0, 0.06);
-      color: var(--secondary-text-color, #666);
-    }
-    .sev-info {
-      background: rgba(3, 169, 244, 0.12);
-      color: var(--info-color, #03a9f4);
-    }
-    .sev-warning {
-      background: rgba(255, 152, 0, 0.15);
-      color: var(--warning-color, #ff9800);
-    }
-    .sev-error {
-      background: rgba(219, 68, 55, 0.15);
-      color: var(--error-color, #db4437);
-    }
-    .sev-auto {
-      background: rgba(156, 39, 176, 0.12);
-      color: #6a1b9a;
-    }
-    .empty {
-      padding: 24px;
-      text-align: center;
-      color: var(--secondary-text-color, #666);
-      background: var(--card-background-color, white);
-      border: 1px dashed var(--divider-color, #ccc);
-      border-radius: 8px;
-    }
-    .error {
-      color: var(--error-color, #db4437);
-      font-size: 0.9em;
-      padding: 6px 8px;
-      background: rgba(219, 68, 55, 0.08);
-      border-left: 3px solid var(--error-color, #db4437);
-      border-radius: 2px;
-    }
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--primary-text-color, #222);
-      color: var(--primary-background-color, white);
-      padding: 10px 16px;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      font-size: 0.9em;
-      z-index: 100;
-    }
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 60;
-    }
-    .modal {
-      background: var(--card-background-color, white);
-      border-radius: 8px;
-      padding: 20px;
-      width: min(520px, 92vw);
-      max-height: 90vh;
-      overflow: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .modal label {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.9em;
-      color: var(--secondary-text-color, #666);
-    }
-    .modal label > span {
-      font-weight: 500;
-      color: var(--primary-text-color, #222);
-    }
-    .modal label.checkbox {
-      flex-direction: row;
-      align-items: center;
-      gap: 6px;
-    }
-    .modal small {
-      font-size: 0.78em;
-      color: var(--secondary-text-color, #888);
-    }
-    .modal small code {
-      background: var(--secondary-background-color, #f5f5f5);
-      padding: 1px 4px;
-      border-radius: 3px;
-    }
-    .row-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    @media (max-width: 600px) {
+      @media (max-width: 720px) {
+        .add-form {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .narrow {
+        max-width: 130px;
+      }
+
+      /* Filter-Bar */
+      .filter-bar {
+        display: flex;
+        gap: var(--mh-space-3);
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .filter-bar .mh-input {
+        flex: 1;
+        min-width: 200px;
+        max-width: 320px;
+      }
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--mh-space-1);
+        font-size: var(--mh-text-sm);
+        cursor: pointer;
+        color: var(--mh-fg-muted);
+      }
+      .muted {
+        color: var(--mh-fg-muted);
+        font-size: var(--mh-text-sm);
+      }
+
+      /* Tabelle */
+      .table-wrap {
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        overflow: hidden;
+        box-shadow: var(--mh-shadow-1);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px var(--mh-space-3);
+        border-bottom: 1px solid var(--mh-divider);
+        font-size: var(--mh-text-sm);
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      th {
+        background: var(--mh-bg);
+        font-size: var(--mh-text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-semibold);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      tr {
+        transition: background var(--mh-transition-fast);
+      }
+      tbody tr:hover {
+        background: var(--mh-surface-2);
+      }
+      tr.enabled {
+        background: color-mix(in srgb, var(--mh-success) 4%, transparent);
+      }
+      .col-toggle {
+        text-align: center;
+        width: 60px;
+      }
+      .col-actions {
+        text-align: right;
+        white-space: nowrap;
+        width: 80px;
+      }
+      .col-actions button + button {
+        margin-left: 4px;
+      }
+      code.ga {
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-sm);
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg);
+      }
+      code.dpt {
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        background: var(--mh-surface-2);
+        padding: 1px 6px;
+        border-radius: var(--mh-radius-sm);
+      }
+      .label-cell {
+        max-width: 360px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .auto-detail {
+        font-size: 0.78em;
+        font-weight: var(--mh-weight-regular);
+        opacity: 0.75;
+        margin-left: 4px;
+      }
+
+      /* Switch */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 36px;
+        height: 20px;
+        cursor: pointer;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        inset: 0;
+        background: var(--mh-divider);
+        border-radius: var(--mh-radius-pill);
+        transition: background var(--mh-transition-fast);
+      }
+      .slider::before {
+        content: "";
+        position: absolute;
+        height: 14px;
+        width: 14px;
+        left: 3px;
+        top: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: transform var(--mh-transition-fast);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      .switch input:checked + .slider {
+        background: var(--mh-success);
+      }
+      .switch input:checked + .slider::before {
+        transform: translateX(16px);
+      }
+      .switch input:focus-visible + .slider {
+        outline: var(--mh-focus-ring);
+        outline-offset: 2px;
+      }
+
+      /* Icon-Buttons */
+      .icon-btn {
+        appearance: none;
+        background: transparent;
+        border: 1px solid transparent;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--mh-radius-sm);
+        cursor: pointer;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background var(--mh-transition-fast), color var(--mh-transition-fast);
+      }
+      .icon-btn:hover {
+        background: var(--mh-surface-2);
+        color: var(--mh-fg);
+      }
+      .icon-btn.danger:hover {
+        background: var(--mh-error-soft);
+        color: var(--mh-error);
+      }
+      .icon-btn:focus-visible {
+        outline: var(--mh-focus-ring);
+        outline-offset: 2px;
+      }
+
+      /* Empty / Error */
+      .empty {
+        padding: var(--mh-space-5);
+        text-align: center;
+        color: var(--mh-fg-muted);
+        background: var(--mh-surface);
+        border: 1px dashed var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        line-height: 1.5;
+      }
+      .error {
+        color: var(--mh-error);
+        font-size: var(--mh-text-sm);
+        padding: 6px var(--mh-space-2);
+        background: var(--mh-error-soft);
+        border-left: 3px solid var(--mh-error);
+        border-radius: 2px;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: var(--mh-space-5);
+        right: var(--mh-space-5);
+        background: var(--mh-fg);
+        color: var(--mh-bg);
+        padding: var(--mh-space-3) var(--mh-space-4);
+        border-radius: var(--mh-radius-md);
+        box-shadow: var(--mh-shadow-3);
+        font-size: var(--mh-text-sm);
+        z-index: 100;
+      }
+
+      /* Modal */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 60;
+      }
+      .modal {
+        background: var(--mh-surface);
+        border-radius: var(--mh-radius-lg);
+        padding: var(--mh-space-5);
+        width: min(560px, 92vw);
+        max-height: 90vh;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-3);
+        box-shadow: var(--mh-shadow-3);
+      }
+      .modal label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+      }
+      .modal label > span {
+        font-weight: var(--mh-weight-medium);
+        color: var(--mh-fg);
+      }
+      .modal label.checkbox {
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+      }
+      .modal input[type="text"],
+      .modal select {
+        padding: 8px 12px;
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm);
+        font: inherit;
+        font-size: var(--mh-text-sm);
+        background: var(--mh-surface);
+        color: var(--mh-fg);
+      }
+      .modal input[type="text"]:focus-visible,
+      .modal select:focus-visible {
+        outline: none;
+        border-color: var(--mh-accent);
+        box-shadow: 0 0 0 3px var(--mh-accent-soft);
+      }
+      .modal small {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+      }
+      .modal small code {
+        background: var(--mh-surface-2);
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
       .row-2 {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--mh-space-3);
       }
-    }
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 8px;
-    }
-  `;
-k([
-  b({ attribute: !1 })
-], x.prototype, "api", 2);
-k([
-  l()
-], x.prototype, "_items", 2);
-k([
-  l()
-], x.prototype, "_loading", 2);
-k([
-  l()
-], x.prototype, "_filter", 2);
-k([
-  l()
-], x.prototype, "_onlyEnabled", 2);
-k([
-  l()
-], x.prototype, "_newAddr", 2);
-k([
-  l()
-], x.prototype, "_newLabel", 2);
-k([
-  l()
-], x.prototype, "_newDpt", 2);
-k([
-  l()
-], x.prototype, "_discovery", 2);
-k([
-  l()
-], x.prototype, "_discoveryStatus", 2);
-k([
-  l()
-], x.prototype, "_editing", 2);
-k([
-  l()
-], x.prototype, "_toast", 2);
-k([
-  l()
-], x.prototype, "_error", 2);
-x = k([
-  w("knx-addresses-view")
-], x);
-var er = Object.defineProperty, tr = Object.getOwnPropertyDescriptor, ne = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? tr(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && er(e, t, s), s;
+      @media (max-width: 600px) {
+        .row-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--mh-space-2);
+        margin-top: var(--mh-space-2);
+      }
+      .modal-actions .mh-btn {
+        font-size: var(--mh-text-sm);
+      }
+    `
+], se);
+S([
+  v({ attribute: !1 })
+], $.prototype, "api", void 0);
+S([
+  d()
+], $.prototype, "_items", void 0);
+S([
+  d()
+], $.prototype, "_loading", void 0);
+S([
+  d()
+], $.prototype, "_filter", void 0);
+S([
+  d()
+], $.prototype, "_onlyEnabled", void 0);
+S([
+  d()
+], $.prototype, "_newAddr", void 0);
+S([
+  d()
+], $.prototype, "_newLabel", void 0);
+S([
+  d()
+], $.prototype, "_newDpt", void 0);
+S([
+  d()
+], $.prototype, "_discovery", void 0);
+S([
+  d()
+], $.prototype, "_discoveryStatus", void 0);
+S([
+  d()
+], $.prototype, "_editing", void 0);
+S([
+  d()
+], $.prototype, "_toast", void 0);
+S([
+  d()
+], $.prototype, "_error", void 0);
+$ = S([
+  k("knx-addresses-view")
+], $);
+var ye = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
 };
-const rr = ["telegram", "pushover", "ntfy", "signal", "notify"], sr = ["debug", "info", "warning", "error"];
-let W = class extends m {
+const ps = ["telegram", "pushover", "ntfy", "signal", "notify"], us = ["debug", "info", "warning", "error"];
+var ae;
+let he = (ae = class extends b {
   constructor() {
     super(...arguments), this._items = [], this._editing = null, this._toast = "";
   }
@@ -2941,35 +3347,35 @@ let W = class extends m {
       config: { service: "" }
     };
   }
-  _edit(r) {
-    this._editing = { ...r };
+  _edit(e) {
+    this._editing = { ...e };
   }
   async _save() {
     if (!(!this.api || !this._editing)) {
       try {
         this._editing.id == null ? await this.api.createChannel(this._editing) : await this.api.updateChannel(this._editing.id, this._editing), this._editing = null, this._toast = "gespeichert", await this._load();
-      } catch (r) {
-        this._toast = r.message;
+      } catch (e) {
+        this._toast = e.message;
       }
       window.setTimeout(() => this._toast = "", 2400);
     }
   }
-  async _delete(r) {
-    !this.api || r.id == null || window.confirm(`Channel '${r.name}' loeschen?`) && (await this.api.deleteChannel(r.id), await this._load());
+  async _delete(e) {
+    !this.api || e.id == null || window.confirm(`Channel '${e.name}' löschen?`) && (await this.api.deleteChannel(e.id), await this._load());
   }
-  _renderTypeFields(r, e) {
-    const t = r.config ?? {}, a = (s, i) => {
-      e({ config: { ...t, [s]: i } });
+  _renderTypeFields(e, t) {
+    const s = e.config ?? {}, a = (r, o) => {
+      t({ config: { ...s, [r]: o } });
     };
-    return r.channel_type === "telegram" ? n`
+    return e.channel_type === "telegram" ? n`
         <div class="row-2">
           <label>
             <span>Bot-Token</span>
             <input
               type="password"
               placeholder="123456:ABC..."
-              .value=${t.bot_token ?? ""}
-              @input=${(s) => a("bot_token", s.target.value)}
+              .value=${s.bot_token ?? ""}
+              @input=${(r) => a("bot_token", r.target.value)}
             />
             <small>Vom @BotFather erhalten.</small>
           </label>
@@ -2977,64 +3383,64 @@ let W = class extends m {
             <span>Chat-ID</span>
             <input
               placeholder="-100123456789 oder 12345678"
-              .value=${t.chat_id ?? ""}
-              @input=${(s) => a("chat_id", s.target.value)}
+              .value=${s.chat_id ?? ""}
+              @input=${(r) => a("chat_id", r.target.value)}
             />
             <small>An @userinfobot eine Nachricht senden, dort steht die ID.</small>
           </label>
         </div>
-      ` : r.channel_type === "pushover" ? n`
+      ` : e.channel_type === "pushover" ? n`
         <div class="row-2">
           <label>
             <span>App-Token</span>
             <input
               type="password"
               placeholder="azGDORePK8gMaC0QOYAMyEEuzJnyUi"
-              .value=${t.app_token ?? ""}
-              @input=${(s) => a("app_token", s.target.value)}
+              .value=${s.app_token ?? ""}
+              @input=${(r) => a("app_token", r.target.value)}
             />
           </label>
           <label>
             <span>User-Key</span>
             <input
-              .value=${t.user_key ?? ""}
-              @input=${(s) => a("user_key", s.target.value)}
+              .value=${s.user_key ?? ""}
+              @input=${(r) => a("user_key", r.target.value)}
             />
           </label>
         </div>
         <label>
-          <span>Geraet (optional)</span>
+          <span>Gerät (optional)</span>
           <input
-            placeholder="iphone, oder leer = alle Geraete"
-            .value=${t.device ?? ""}
-            @input=${(s) => a("device", s.target.value)}
+            placeholder="iphone, oder leer = alle Geräte"
+            .value=${s.device ?? ""}
+            @input=${(r) => a("device", r.target.value)}
           />
         </label>
-      ` : r.channel_type === "ntfy" ? n`
+      ` : e.channel_type === "ntfy" ? n`
         <div class="row-2">
           <label>
             <span>Server (Default ntfy.sh)</span>
             <input
               placeholder="https://ntfy.sh"
-              .value=${t.base_url ?? ""}
-              @input=${(s) => a("base_url", s.target.value)}
+              .value=${s.base_url ?? ""}
+              @input=${(r) => a("base_url", r.target.value)}
             />
           </label>
           <label>
             <span>Topic</span>
             <input
               placeholder="ha_alerts_dein_topic"
-              .value=${t.topic ?? ""}
-              @input=${(s) => a("topic", s.target.value)}
+              .value=${s.topic ?? ""}
+              @input=${(r) => a("topic", r.target.value)}
             />
           </label>
         </div>
         <label>
-          <span>Auth-Token (optional, fuer geschuetzte Server)</span>
+          <span>Auth-Token (optional, für geschützte Server)</span>
           <input
             type="password"
-            .value=${t.token ?? ""}
-            @input=${(s) => a("token", s.target.value)}
+            .value=${s.token ?? ""}
+            @input=${(r) => a("token", r.target.value)}
           />
         </label>
       ` : n`
@@ -3042,55 +3448,55 @@ let W = class extends m {
         <span>Notify-Service-Name (ohne <code>notify.</code>)</span>
         <input
           placeholder="z. B. mobile_app_iphone, signal_messenger"
-          .value=${t.service ?? ""}
-          @input=${(s) => a("service", s.target.value)}
+          .value=${s.service ?? ""}
+          @input=${(r) => a("service", r.target.value)}
         />
       </label>
     `;
   }
   _renderEditor() {
-    const r = this._editing, e = (t) => {
-      this._editing = { ...r, ...t };
+    const e = this._editing, t = (s) => {
+      this._editing = { ...e, ...s };
     };
     return n`
       <div class="modal-bg" @click=${() => this._editing = null}>
-        <div class="modal" @click=${(t) => t.stopPropagation()}>
-          <h3>${r.id == null ? "Neuen Channel anlegen" : `${r.name} bearbeiten`}</h3>
+        <div class="modal" @click=${(s) => s.stopPropagation()}>
+          <h3>${e.id == null ? "Neuen Channel anlegen" : `${e.name} bearbeiten`}</h3>
           <label
             ><span>Name</span
             ><input
-              .value=${r.name}
-              @input=${(t) => e({ name: t.target.value })}
+              .value=${e.name}
+              @input=${(s) => t({ name: s.target.value })}
           /></label>
           <label>
             <span>Typ</span>
             <select
-              .value=${r.channel_type}
-              @change=${(t) => {
-      const a = t.target.value;
-      e({ channel_type: a, config: {} });
+              .value=${e.channel_type}
+              @change=${(s) => {
+      const a = s.target.value;
+      t({ channel_type: a, config: {} });
     }}
             >
-              ${rr.map((t) => n`<option value=${t}>${t}</option>`)}
+              ${ps.map((s) => n`<option value=${s}>${s}</option>`)}
             </select>
             <small>
-              ${r.channel_type === "telegram" ? "Direkt an Telegram-Bot-API. Bot-Token + Chat-ID unten." : r.channel_type === "pushover" ? "Direkt an Pushover-API. App-Token + User-Key unten." : r.channel_type === "ntfy" ? "Direkt an ntfy-Server (ntfy.sh oder selbst-gehostet)." : r.channel_type === "signal" ? "Ueber HA-Service notify.<service>. Trag Namen unten ein." : "Ueber HA-Service notify.<service>."}
+              ${e.channel_type === "telegram" ? "Direkt an Telegram-Bot-API. Bot-Token + Chat-ID unten." : e.channel_type === "pushover" ? "Direkt an Pushover-API. App-Token + User-Key unten." : e.channel_type === "ntfy" ? "Direkt an ntfy-Server (ntfy.sh oder selbst-gehostet)." : e.channel_type === "signal" ? "Ueber HA-Service notify.<service>. Trag Namen unten ein." : "Ueber HA-Service notify.<service>."}
             </small>
           </label>
 
-          ${this._renderTypeFields(r, e)}
+          ${this._renderTypeFields(e, t)}
 
           <div class="row-2">
             <label>
               <span>Severity-Schwelle</span>
               <select
-                .value=${r.severity_threshold}
-                @change=${(t) => {
-      const a = t.target.value;
-      e({ severity_threshold: a });
+                .value=${e.severity_threshold}
+                @change=${(s) => {
+      const a = s.target.value;
+      t({ severity_threshold: a });
     }}
               >
-                ${sr.map((t) => n`<option value=${t}>${t}</option>`)}
+                ${us.map((s) => n`<option value=${s}>${s}</option>`)}
               </select>
             </label>
             <label>
@@ -3098,8 +3504,8 @@ let W = class extends m {
               <input
                 type="number"
                 min="0"
-                .value=${String(r.throttle_seconds)}
-                @input=${(t) => e({ throttle_seconds: +t.target.value })}
+                .value=${String(e.throttle_seconds)}
+                @input=${(s) => t({ throttle_seconds: +s.target.value })}
               />
             </label>
           </div>
@@ -3109,16 +3515,16 @@ let W = class extends m {
               <span>Quiet Hours Start (HH:MM)</span>
               <input
                 placeholder="22:00"
-                .value=${r.quiet_start ?? ""}
-                @input=${(t) => e({ quiet_start: t.target.value || null })}
+                .value=${e.quiet_start ?? ""}
+                @input=${(s) => t({ quiet_start: s.target.value || null })}
               />
             </label>
             <label>
               <span>Quiet Hours Ende (HH:MM)</span>
               <input
                 placeholder="07:00"
-                .value=${r.quiet_end ?? ""}
-                @input=${(t) => e({ quiet_end: t.target.value || null })}
+                .value=${e.quiet_end ?? ""}
+                @input=${(s) => t({ quiet_end: s.target.value || null })}
               />
             </label>
           </div>
@@ -3126,15 +3532,15 @@ let W = class extends m {
           <label class="checkbox">
             <input
               type="checkbox"
-              .checked=${r.quiet_bypass_error}
-              @change=${(t) => e({ quiet_bypass_error: t.target.checked })}
+              .checked=${e.quiet_bypass_error}
+              @change=${(s) => t({ quiet_bypass_error: s.target.checked })}
             /><span>Errors umgehen Quiet Hours</span>
           </label>
           <label class="checkbox">
             <input
               type="checkbox"
-              .checked=${r.enabled}
-              @change=${(t) => e({ enabled: t.target.checked })}
+              .checked=${e.enabled}
+              @change=${(s) => t({ enabled: s.target.checked })}
             /><span>aktiv</span>
           </label>
 
@@ -3173,30 +3579,28 @@ let W = class extends m {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map(
-      (r) => {
-        var e, t, a, s, i;
-        return n`<tr>
-                    <td>${r.name}</td>
+                ${this._items.map((e) => {
+      var t, s, a, r, o;
+      return n`<tr>
+                    <td>${e.name}</td>
                     <td>
-                      <code>${r.channel_type}</code>
-                      ${r.channel_type === "telegram" ? n` → <small>${((e = r.config) == null ? void 0 : e.chat_id) ?? "?"}</small>` : r.channel_type === "pushover" ? n` → <small>${((a = (t = r.config) == null ? void 0 : t.user_key) == null ? void 0 : a.slice(0, 8)) ?? "?"}…</small>` : r.channel_type === "ntfy" ? n` → <small>${((s = r.config) == null ? void 0 : s.topic) ?? "?"}</small>` : (i = r.config) != null && i.service ? n` → <code>notify.${r.config.service}</code>` : n`<span class="muted">— unkonfiguriert</span>`}
+                      <code>${e.channel_type}</code>
+                      ${e.channel_type === "telegram" ? n` → <small>${((t = e.config) == null ? void 0 : t.chat_id) ?? "?"}</small>` : e.channel_type === "pushover" ? n` → <small>${((a = (s = e.config) == null ? void 0 : s.user_key) == null ? void 0 : a.slice(0, 8)) ?? "?"}…</small>` : e.channel_type === "ntfy" ? n` → <small>${((r = e.config) == null ? void 0 : r.topic) ?? "?"}</small>` : (o = e.config) != null && o.service ? n` → <code>notify.${e.config.service}</code>` : n`<span class="muted">— unkonfiguriert</span>`}
                     </td>
-                    <td>${r.severity_threshold}</td>
+                    <td>${e.severity_threshold}</td>
                     <td>
-                      ${r.quiet_start && r.quiet_end ? n`${r.quiet_start}–${r.quiet_end}${r.quiet_bypass_error ? n` <small>(Err bypass)</small>` : ""}` : n`<span class="muted">—</span>`}
+                      ${e.quiet_start && e.quiet_end ? n`${e.quiet_start}–${e.quiet_end}${e.quiet_bypass_error ? n` <small>(Err bypass)</small>` : ""}` : n`<span class="muted">—</span>`}
                     </td>
-                    <td>${r.throttle_seconds}s</td>
-                    <td>${r.enabled ? "✓" : "—"}</td>
+                    <td>${e.throttle_seconds}s</td>
+                    <td>${e.enabled ? "✓" : "—"}</td>
                     <td class="actions">
-                      <button @click=${() => this._edit(r)}>Edit</button>
-                      <button class="danger" @click=${() => void this._delete(r)}>
-                        Loeschen
+                      <button @click=${() => this._edit(e)}>Edit</button>
+                      <button class="danger" @click=${() => void this._delete(e)}>
+                        Löschen
                       </button>
                     </td>
                   </tr>`;
-      }
-    )}
+    })}
               </tbody>
             </table>`}
         ${this._editing ? this._renderEditor() : null}
@@ -3204,8 +3608,7 @@ let W = class extends m {
       </section>
     `;
   }
-};
-W.styles = S`
+}, ae.styles = w`
     section {
       display: flex;
       flex-direction: column;
@@ -3376,28 +3779,29 @@ W.styles = S`
       font-size: 0.9em;
       z-index: 100;
     }
-  `;
-ne([
-  b({ attribute: !1 })
-], W.prototype, "api", 2);
-ne([
-  l()
-], W.prototype, "_items", 2);
-ne([
-  l()
-], W.prototype, "_editing", 2);
-ne([
-  l()
-], W.prototype, "_toast", 2);
-W = ne([
-  w("channels-view")
-], W);
-var ar = Object.defineProperty, ir = Object.getOwnPropertyDescriptor, y = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? ir(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && ar(e, t, s), s;
+  `, ae);
+ye([
+  v({ attribute: !1 })
+], he.prototype, "api", void 0);
+ye([
+  d()
+], he.prototype, "_items", void 0);
+ye([
+  d()
+], he.prototype, "_editing", void 0);
+ye([
+  d()
+], he.prototype, "_toast", void 0);
+he = ye([
+  k("channels-view")
+], he);
+var x = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
 };
-const ze = S`
+const Je = w`
   section {
     display: flex;
     flex-direction: column;
@@ -3511,7 +3915,8 @@ const ze = S`
     color: var(--secondary-text-color, #666);
   }
 `;
-let H = class extends m {
+var re;
+let K = (re = class extends b {
   constructor() {
     super(...arguments), this._items = [], this._newPattern = "", this._newSource = "", this._newSeverity = "info";
   }
@@ -3529,8 +3934,8 @@ let H = class extends m {
       enabled: !0
     }), this._newPattern = "", this._newSource = "", await this._load());
   }
-  async _delete(r) {
-    !this.api || r.id == null || window.confirm(`Subscription '${r.topic_pattern}' loeschen?`) && (await this.api.deleteMqttTopic(r.id), await this._load());
+  async _delete(e) {
+    !this.api || e.id == null || window.confirm(`Subscription '${e.topic_pattern}' löschen?`) && (await this.api.deleteMqttTopic(e.id), await this._load());
   }
   render() {
     return n`
@@ -3539,7 +3944,7 @@ let H = class extends m {
           <h2>MQTT-Topic-Subscriptions</h2>
           <p class="hint">
             Wildcards <code>+</code> (ein Segment) und <code>#</code>
-            (Subtree) werden direkt von HA-MQTT aufgeloest. Subscriptions
+            (Subtree) werden direkt von HA-MQTT aufgelöst. Subscriptions
             werden nach Restart neu gesetzt.
           </p>
         </header>
@@ -3548,17 +3953,17 @@ let H = class extends m {
           <input
             placeholder="Topic-Pattern (z. B. zigbee2mqtt/+/availability)"
             .value=${this._newPattern}
-            @input=${(r) => this._newPattern = r.target.value}
+            @input=${(e) => this._newPattern = e.target.value}
           />
           <input
             placeholder="Source (z. B. zigbee.health)"
             .value=${this._newSource}
-            @input=${(r) => this._newSource = r.target.value}
+            @input=${(e) => this._newSource = e.target.value}
           />
           <select
             .value=${this._newSeverity}
-            @change=${(r) => {
-      this._newSeverity = r.target.value;
+            @change=${(e) => {
+      this._newSeverity = e.target.value;
     }}
           >
             <option value="debug">debug</option>
@@ -3566,7 +3971,7 @@ let H = class extends m {
             <option value="warning">warning</option>
             <option value="error">error</option>
           </select>
-          <button class="primary" @click=${this._add}>+ Hinzufuegen</button>
+          <button class="primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
 
         ${this._items.length === 0 ? n`<p class="empty">Noch keine Topics abonniert.</p>` : n`<table>
@@ -3580,45 +3985,43 @@ let H = class extends m {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map(
-      (r) => n`<tr>
-                    <td><code>${r.topic_pattern}</code></td>
-                    <td>${r.source}</td>
-                    <td>${r.severity}</td>
-                    <td>${r.enabled ? "✓" : "—"}</td>
+                ${this._items.map((e) => n`<tr>
+                    <td><code>${e.topic_pattern}</code></td>
+                    <td>${e.source}</td>
+                    <td>${e.severity}</td>
+                    <td>${e.enabled ? "✓" : "—"}</td>
                     <td class="actions">
-                      <button class="danger" @click=${() => void this._delete(r)}>
-                        Loeschen
+                      <button class="danger" @click=${() => void this._delete(e)}>
+                        Löschen
                       </button>
                     </td>
-                  </tr>`
-    )}
+                  </tr>`)}
               </tbody>
             </table>`}
       </section>
     `;
   }
-};
-H.styles = ze;
-y([
-  b({ attribute: !1 })
-], H.prototype, "api", 2);
-y([
-  l()
-], H.prototype, "_items", 2);
-y([
-  l()
-], H.prototype, "_newPattern", 2);
-y([
-  l()
-], H.prototype, "_newSource", 2);
-y([
-  l()
-], H.prototype, "_newSeverity", 2);
-H = y([
-  w("mqtt-topics-view")
-], H);
-let K = class extends m {
+}, re.styles = Je, re);
+x([
+  v({ attribute: !1 })
+], K.prototype, "api", void 0);
+x([
+  d()
+], K.prototype, "_items", void 0);
+x([
+  d()
+], K.prototype, "_newPattern", void 0);
+x([
+  d()
+], K.prototype, "_newSource", void 0);
+x([
+  d()
+], K.prototype, "_newSeverity", void 0);
+K = x([
+  k("mqtt-topics-view")
+], K);
+var ie;
+let pe = (ie = class extends b {
   constructor() {
     super(...arguments), this._items = [], this._newSource = "", this._newInterval = 3600;
   }
@@ -3647,16 +4050,16 @@ let K = class extends m {
           <input
             placeholder="Source (z. B. raspi-keller)"
             .value=${this._newSource}
-            @input=${(r) => this._newSource = r.target.value}
+            @input=${(e) => this._newSource = e.target.value}
           />
           <input
             type="number"
             min="60"
             placeholder="Intervall (Sek)"
             .value=${String(this._newInterval)}
-            @input=${(r) => this._newInterval = +r.target.value}
+            @input=${(e) => this._newInterval = +e.target.value}
           />
-          <button class="primary" @click=${this._add}>+ Hinzufuegen</button>
+          <button class="primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
         ${this._items.length === 0 ? n`<p class="empty">Noch keine Heartbeat-Quellen.</p>` : n`<table>
               <thead>
@@ -3668,39 +4071,37 @@ let K = class extends m {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map(
-      (r) => n`<tr>
-                    <td><code>${r.source}</code></td>
-                    <td>${r.expected_interval_seconds}</td>
-                    <td>${r.last_seen ?? n`<span class="muted">—</span>`}</td>
+                ${this._items.map((e) => n`<tr>
+                    <td><code>${e.source}</code></td>
+                    <td>${e.expected_interval_seconds}</td>
+                    <td>${e.last_seen ?? n`<span class="muted">—</span>`}</td>
                     <td>
-                      ${r.silent_alert_active ? n`<span class="alert">⚠ silent</span>` : n`<span class="ok">✓ ok</span>`}
+                      ${e.silent_alert_active ? n`<span class="alert">⚠ silent</span>` : n`<span class="ok">✓ ok</span>`}
                     </td>
-                  </tr>`
-    )}
+                  </tr>`)}
               </tbody>
             </table>`}
       </section>
     `;
   }
-};
-K.styles = ze;
-y([
-  b({ attribute: !1 })
-], K.prototype, "api", 2);
-y([
-  l()
-], K.prototype, "_items", 2);
-y([
-  l()
-], K.prototype, "_newSource", 2);
-y([
-  l()
-], K.prototype, "_newInterval", 2);
-K = y([
-  w("heartbeats-view")
-], K);
-let C = class extends m {
+}, ie.styles = Je, ie);
+x([
+  v({ attribute: !1 })
+], pe.prototype, "api", void 0);
+x([
+  d()
+], pe.prototype, "_items", void 0);
+x([
+  d()
+], pe.prototype, "_newSource", void 0);
+x([
+  d()
+], pe.prototype, "_newInterval", void 0);
+pe = x([
+  k("heartbeats-view")
+], pe);
+var oe;
+let j = (oe = class extends b {
   constructor() {
     super(...arguments), this._items = [], this._newName = "", this._newSource = "", this._newAutomation = "", this._newAuto = !1;
   }
@@ -3719,8 +4120,8 @@ let C = class extends m {
       enabled: !0
     }), this._newName = "", this._newSource = "", this._newAutomation = "", await this._load());
   }
-  async _delete(r) {
-    !this.api || r.id == null || window.confirm(`Hook '${r.name}' loeschen?`) && (await this.api.deleteRemediationHook(r.id), await this._load());
+  async _delete(e) {
+    !this.api || e.id == null || window.confirm(`Hook '${e.name}' löschen?`) && (await this.api.deleteRemediationHook(e.id), await this._load());
   }
   render() {
     return n`
@@ -3740,27 +4141,27 @@ let C = class extends m {
           <input
             placeholder="Name (z. B. AP-Restart)"
             .value=${this._newName}
-            @input=${(r) => this._newName = r.target.value}
+            @input=${(e) => this._newName = e.target.value}
           />
           <input
             placeholder="Source-Pattern (% erlaubt)"
             .value=${this._newSource}
-            @input=${(r) => this._newSource = r.target.value}
+            @input=${(e) => this._newSource = e.target.value}
           />
           <input
             placeholder="automation.foo / script.bar"
             .value=${this._newAutomation}
-            @input=${(r) => this._newAutomation = r.target.value}
+            @input=${(e) => this._newAutomation = e.target.value}
           />
           <label class="inline">
             <input
               type="checkbox"
               .checked=${this._newAuto}
-              @change=${(r) => this._newAuto = r.target.checked}
+              @change=${(e) => this._newAuto = e.target.checked}
             />
             <span>Auto</span>
           </label>
-          <button class="primary" @click=${this._add}>+ Hinzufuegen</button>
+          <button class="primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
         ${this._items.length === 0 ? n`<p class="empty">Noch keine Hooks.</p>` : n`<table>
               <thead>
@@ -3774,58 +4175,58 @@ let C = class extends m {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map(
-      (r) => n`<tr>
-                    <td>${r.name}</td>
-                    <td><code>${r.source_pattern}</code></td>
-                    <td><code>${r.automation_id}</code></td>
+                ${this._items.map((e) => n`<tr>
+                    <td>${e.name}</td>
+                    <td><code>${e.source_pattern}</code></td>
+                    <td><code>${e.automation_id}</code></td>
                     <td>
-                      ${r.confirm_required ? n`<span class="muted">Vorschlag</span>` : n`<span class="alert">Auto</span>`}
+                      ${e.confirm_required ? n`<span class="muted">Vorschlag</span>` : n`<span class="alert">Auto</span>`}
                     </td>
-                    <td>${r.enabled ? "✓" : "—"}</td>
+                    <td>${e.enabled ? "✓" : "—"}</td>
                     <td class="actions">
-                      <button class="danger" @click=${() => void this._delete(r)}>
-                        Loeschen
+                      <button class="danger" @click=${() => void this._delete(e)}>
+                        Löschen
                       </button>
                     </td>
-                  </tr>`
-    )}
+                  </tr>`)}
               </tbody>
             </table>`}
       </section>
     `;
   }
-};
-C.styles = ze;
-y([
-  b({ attribute: !1 })
-], C.prototype, "api", 2);
-y([
-  l()
-], C.prototype, "_items", 2);
-y([
-  l()
-], C.prototype, "_newName", 2);
-y([
-  l()
-], C.prototype, "_newSource", 2);
-y([
-  l()
-], C.prototype, "_newAutomation", 2);
-y([
-  l()
-], C.prototype, "_newAuto", 2);
-C = y([
-  w("remediation-view")
-], C);
-var or = Object.defineProperty, nr = Object.getOwnPropertyDescriptor, q = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? nr(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && or(e, t, s), s;
-};
-let O = class extends m {
+}, oe.styles = Je, oe);
+x([
+  v({ attribute: !1 })
+], j.prototype, "api", void 0);
+x([
+  d()
+], j.prototype, "_items", void 0);
+x([
+  d()
+], j.prototype, "_newName", void 0);
+x([
+  d()
+], j.prototype, "_newSource", void 0);
+x([
+  d()
+], j.prototype, "_newAutomation", void 0);
+x([
+  d()
+], j.prototype, "_newAuto", void 0);
+j = x([
+  k("remediation-view")
+], j);
+var U = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
+}, ne;
+let O = (ne = class extends b {
   constructor() {
-    super(...arguments), this._items = [], this._loading = !1, this._showForm = !1, this._editing = null, this._toast = "";
+    super(...arguments), this._items = [], this._loading = !1, this._showForm = !1, this._editing = null, this._toast = "", this._menuOpenId = null, this._closeMenu = () => {
+      this._menuOpenId !== null && (this._menuOpenId = null);
+    };
   }
   async firstUpdated() {
     await this._load();
@@ -3840,21 +4241,24 @@ let O = class extends m {
       }
     }
   }
-  async _copyUrl(r) {
-    const e = `${window.location.origin}/api/webhook/${r}`;
+  async _copyUrl(e) {
+    const t = `${window.location.origin}/api/webhook/${e}`;
     try {
-      await navigator.clipboard.writeText(e), this._showToast("URL kopiert");
+      await navigator.clipboard.writeText(t), this._showToast("URL kopiert");
     } catch {
       this._showToast("Kopieren fehlgeschlagen");
     }
   }
-  async _delete(r) {
-    this.api && window.confirm(`Webhook „${r.name}" wirklich loeschen?`) && (await this.api.deleteWebhook(r.webhook_id), this._showToast(`„${r.name}" geloescht`), await this._load());
+  async _delete(e) {
+    this.api && window.confirm(`Webhook „${e.name}" wirklich löschen?`) && (await this.api.deleteWebhook(e.webhook_id), this._showToast(`„${e.name}" gelöscht`), await this._load());
   }
-  async _toggle(r) {
-    this.api && (await this.api.updateWebhook(r.webhook_id, { enabled: !r.enabled }), await this._load());
+  _toggleMenu(e) {
+    this._menuOpenId = this._menuOpenId === e ? null : e;
   }
-  _onSaved(r) {
+  async _toggle(e) {
+    this.api && (await this.api.updateWebhook(e.webhook_id, { enabled: !e.enabled }), await this._load());
+  }
+  _onSaved(e) {
     this._showForm = !1, this._editing = null, this._showToast("Webhook gespeichert"), this._load();
   }
   _onCancel() {
@@ -3863,11 +4267,11 @@ let O = class extends m {
   _add() {
     this._editing = null, this._showForm = !0;
   }
-  _edit(r) {
-    this._editing = r, this._showForm = !0;
+  _edit(e) {
+    this._editing = e, this._showForm = !0;
   }
-  _showToast(r) {
-    this._toast = r, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2400);
+  _showToast(e) {
+    this._toast = e, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2400);
   }
   _renderEmpty() {
     return n`
@@ -3875,67 +4279,117 @@ let O = class extends m {
         <h3>Noch keine Webhooks</h3>
         <p>
           Lege deinen ersten Webhook an, um Nachrichten von externen Quellen
-          (Pi-hole, Grafana, Skripte, IoT-Geraete) zu empfangen. Jeder Webhook
+          (Pi-hole, Grafana, Skripte, IoT-Geräte) zu empfangen. Jeder Webhook
           bekommt eine eigene Geheim-URL nach
           <code>https://&lt;ha-host&gt;/api/webhook/&lt;id&gt;</code>.
         </p>
-        <button class="primary" @click=${this._add}>+ Webhook anlegen</button>
+        <button class="mh-btn mh-btn--primary" @click=${this._add}>+ Webhook anlegen</button>
       </div>
     `;
   }
-  _renderItem(r) {
-    const e = `${window.location.origin}/api/webhook/${r.webhook_id}`;
+  _renderItem(e) {
+    const t = `${window.location.origin}/api/webhook/${e.webhook_id}`, s = this._menuOpenId === e.webhook_id;
     return n`
-      <div class=${`card ${r.enabled ? "" : "disabled"}`}>
-        <header>
+      <div class=${`webhook-card ${e.enabled ? "" : "disabled"}`}>
+        <header class="card-header">
           <div class="title">
-            <h4>${r.name}</h4>
-            <span class=${`status ${r.enabled ? "ok" : "off"}`}>
-              ${r.enabled ? "aktiv" : "deaktiviert"}
+            <span
+              class=${`status-dot ${e.enabled ? "ok" : "off"}`}
+              title=${e.enabled ? "Aktiv" : "Deaktiviert"}
+              aria-hidden="true"
+            ></span>
+            <h4>${e.name}</h4>
+            <span class=${`status-text ${e.enabled ? "ok" : "off"}`}>
+              ${e.enabled ? "Aktiv" : "Deaktiviert"}
             </span>
           </div>
-          <div class="actions">
-            <button @click=${() => this._toggle(r)}>
-              ${r.enabled ? "Deaktivieren" : "Aktivieren"}
+          <div class="overflow" @click=${(a) => a.stopPropagation()}>
+            <button
+              class="mh-btn mh-btn--icon mh-btn--ghost"
+              aria-label="Webhook-Aktionen"
+              aria-haspopup="menu"
+              aria-expanded=${s}
+              @click=${() => this._toggleMenu(e.webhook_id)}
+            >
+              ⋮
             </button>
-            <button @click=${() => this._edit(r)}>Bearbeiten</button>
-            <button class="danger" @click=${() => this._delete(r)}>Loeschen</button>
+            ${s ? n`<div class="overflow-menu" role="menu">
+                  <button
+                    role="menuitem"
+                    class="overflow-item"
+                    @click=${() => {
+      this._menuOpenId = null, this._toggle(e);
+    }}
+                  >
+                    ${e.enabled ? "Deaktivieren" : "Aktivieren"}
+                  </button>
+                  <button
+                    role="menuitem"
+                    class="overflow-item"
+                    @click=${() => {
+      this._menuOpenId = null, this._edit(e);
+    }}
+                  >
+                    Bearbeiten…
+                  </button>
+                  <hr />
+                  <button
+                    role="menuitem"
+                    class="overflow-item danger"
+                    @click=${() => {
+      this._menuOpenId = null, this._delete(e);
+    }}
+                  >
+                    Löschen
+                  </button>
+                </div>` : null}
           </div>
         </header>
 
-        <dl>
-          <dt>Default-Source</dt>
-          <dd><code>${r.default_source}</code></dd>
-          <dt>Default-Severity</dt>
-          <dd><code>${r.default_severity}</code></dd>
-          <dt>Webhook-URL</dt>
-          <dd>
-            <code class="url">${e}</code>
-            <button class="link" @click=${() => this._copyUrl(r.webhook_id)}>
-              kopieren
-            </button>
-          </dd>
-          ${r.field_map ? n`<dt>JSONPath-Mapping</dt>
-                <dd>
-                  <pre><code>${JSON.stringify(r.field_map, null, 2)}</code></pre>
-                </dd>` : null}
-        </dl>
+        <div class="meta">
+          <span class="meta-pill">
+            <span class="meta-key">Source</span>
+            <code>${e.default_source}</code>
+          </span>
+          <span class="meta-pill">
+            <span class="meta-key">Severity</span>
+            <code>${e.default_severity}</code>
+          </span>
+        </div>
+
+        <div class="url-row">
+          <code class="url" title=${t}>${t}</code>
+          <button
+            class="mh-btn mh-btn--sm"
+            @click=${() => this._copyUrl(e.webhook_id)}
+            title="URL in Zwischenablage kopieren"
+          >
+            <span aria-hidden="true">⧉</span> Kopieren
+          </button>
+        </div>
+
+        ${e.field_map ? n`<details class="mapping">
+              <summary>JSONPath-Mapping anzeigen</summary>
+              <pre><code>${JSON.stringify(e.field_map, null, 2)}</code></pre>
+            </details>` : null}
       </div>
     `;
   }
   render() {
     return n`
-      <div class="root">
+      <div class="root" @click=${this._closeMenu}>
         <section>
           <header class="section-head">
             <div>
               <h2>Webhooks</h2>
               <p class="hint">
                 Eingehende Nachrichten via HTTP-POST. Pro Webhook eigene URL +
-                optionales JSONPath-Mapping fuer beliebige Payload-Strukturen.
+                optionales JSONPath-Mapping für beliebige Payload-Strukturen.
               </p>
             </div>
-            ${this._items.length > 0 && !this._showForm ? n`<button class="primary" @click=${this._add}>+ Webhook anlegen</button>` : null}
+            ${this._items.length > 0 && !this._showForm ? n`<button class="mh-btn mh-btn--primary" @click=${this._add}>
+                  + Webhook anlegen
+                </button>` : null}
           </header>
 
           ${this._showForm ? n`<webhook-form
@@ -3945,7 +4399,7 @@ let O = class extends m {
                 @cancel=${this._onCancel}
               ></webhook-form>` : null}
 
-          ${this._loading ? n`<p class="status">lade…</p>` : this._items.length === 0 && !this._showForm ? this._renderEmpty() : n`<div class="grid">${this._items.map((r) => this._renderItem(r))}</div>`}
+          ${this._loading ? n`<p class="status">lade…</p>` : this._items.length === 0 && !this._showForm ? this._renderEmpty() : n`<div class="grid">${this._items.map((e) => this._renderItem(e))}</div>`}
         </section>
 
         <knx-addresses-view .api=${this.api}></knx-addresses-view>
@@ -3980,7 +4434,7 @@ let O = class extends m {
             <div>
               <h2>Heartbeat-Quellen</h2>
               <p class="hint">
-                Stille Quellen erkennen und alarmieren — Backend-Job laeuft 60s,
+                Stille Quellen erkennen und alarmieren — Backend-Job läuft 60s,
                 UI-Editor folgt in v0.2 (REST-Endpoint
                 <code>/api/messagehub/heartbeats</code> ist da).
               </p>
@@ -3992,272 +4446,345 @@ let O = class extends m {
       </div>
     `;
   }
-};
-O.styles = S`
-    :host {
-      display: block;
-      overflow-y: auto;
-      height: 100%;
-    }
-    .root {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 24px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 32px;
-    }
-    section {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    h2 {
-      margin: 0;
-      font-size: 1.2em;
-      color: var(--primary-text-color, #222);
-    }
-    .hint {
-      margin: 4px 0 0 0;
-      font-size: 0.9em;
-      color: var(--secondary-text-color, #666);
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    .card {
-      background: var(--card-background-color, white);
-      border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
-      padding: 16px;
-    }
-    .card.disabled {
-      opacity: 0.65;
-    }
-    .card header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    h4 {
-      margin: 0;
-      font-size: 1em;
-    }
-    .status {
-      font-size: 0.75em;
-      padding: 2px 8px;
-      border-radius: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .status.ok {
-      background: rgba(76, 175, 80, 0.12);
-      color: #2e7d32;
-    }
-    .status.off {
-      background: rgba(0, 0, 0, 0.06);
-      color: var(--secondary-text-color, #666);
-    }
-    .card .actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    button {
-      padding: 6px 10px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      cursor: pointer;
-      border-radius: 4px;
-      color: inherit;
-      font: inherit;
-      font-size: 0.85em;
-    }
-    button:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    button.primary {
-      background: var(--primary-color, #03a9f4);
-      color: white;
-      border-color: var(--primary-color, #03a9f4);
-      padding: 8px 14px;
-      font-size: 0.9em;
-    }
-    button.primary:hover {
-      filter: brightness(0.9);
-    }
-    button.danger {
-      color: var(--error-color, #db4437);
-      border-color: var(--error-color, #db4437);
-    }
-    button.danger:hover {
-      background: rgba(219, 68, 55, 0.08);
-    }
-    button.link {
-      padding: 2px 6px;
-      border: 0;
-      background: transparent;
-      color: var(--primary-color, #03a9f4);
-      text-decoration: underline;
-      font-size: 0.85em;
-    }
-    dl {
-      display: grid;
-      grid-template-columns: 140px 1fr;
-      gap: 6px 12px;
-      margin: 0;
-    }
-    @media (max-width: 600px) {
-      dl {
+}, ne.styles = [
+  V,
+  ze,
+  yt,
+  w`
+      :host {
+        display: block;
+        overflow-y: auto;
+        height: 100%;
+        background: var(--mh-bg);
+      }
+      .root {
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: var(--mh-space-5);
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-6);
+      }
+      section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-3);
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: var(--mh-space-4);
+        flex-wrap: wrap;
+      }
+      h2 {
+        margin: 0;
+        font-size: var(--mh-text-xl);
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg);
+        letter-spacing: -0.01em;
+      }
+      .hint {
+        margin: 4px 0 0 0;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        line-height: 1.5;
+      }
+      .grid {
+        display: grid;
         grid-template-columns: 1fr;
+        gap: var(--mh-space-3);
       }
-      dt {
-        margin-top: 6px;
+
+      /* Webhook-Card */
+      .webhook-card {
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        padding: var(--mh-space-4);
+        box-shadow: var(--mh-shadow-1);
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-3);
+        transition: opacity var(--mh-transition-fast);
       }
-    }
-    dt {
-      color: var(--secondary-text-color, #666);
-      font-size: 0.85em;
-    }
-    dd {
-      margin: 0;
-      color: var(--primary-text-color, #222);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    code {
-      font-family: var(--ha-font-family-code, monospace);
-      font-size: 0.85em;
-      background: var(--secondary-background-color, #f5f5f5);
-      padding: 2px 6px;
-      border-radius: 3px;
-    }
-    code.url {
-      word-break: break-all;
-    }
-    pre {
-      margin: 0;
-      padding: 8px;
-      background: var(--secondary-background-color, #f5f5f5);
-      border-radius: 4px;
-      overflow: auto;
-      max-width: 100%;
-    }
-    pre code {
-      background: transparent;
-      padding: 0;
-    }
-    .empty {
-      background: var(--card-background-color, white);
-      border: 1px dashed var(--divider-color, #ccc);
-      border-radius: 8px;
-      padding: 32px;
-      text-align: center;
-    }
-    .empty h3 {
-      margin: 0 0 8px 0;
-    }
-    .empty p {
-      margin: 0 0 16px 0;
-      color: var(--secondary-text-color, #666);
-      max-width: 420px;
-      margin-inline: auto;
-    }
-    .placeholder {
-      background: var(--card-background-color, white);
-      border: 1px dashed var(--divider-color, #ccc);
-      border-radius: 8px;
-      padding: 16px;
-      color: var(--secondary-text-color, #666);
-      font-size: 0.9em;
-    }
-    .placeholder p {
-      margin: 0;
-    }
-    .status {
-      color: var(--secondary-text-color, #666);
-      padding: 8px 0;
-    }
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--primary-text-color, #222);
-      color: var(--primary-background-color, white);
-      padding: 10px 16px;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      font-size: 0.9em;
-      animation: slidein 0.2s ease-out;
-    }
-    @keyframes slidein {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
+      .webhook-card.disabled {
+        opacity: 0.6;
       }
-      to {
-        transform: translateY(0);
-        opacity: 1;
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--mh-space-2);
       }
-    }
-  `;
-q([
-  b({ attribute: !1 })
-], O.prototype, "api", 2);
-q([
-  l()
-], O.prototype, "_items", 2);
-q([
-  l()
-], O.prototype, "_loading", 2);
-q([
-  l()
-], O.prototype, "_showForm", 2);
-q([
-  l()
-], O.prototype, "_editing", 2);
-q([
-  l()
-], O.prototype, "_toast", 2);
-O = q([
-  w("settings-view")
+      .title {
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-2);
+      }
+      h4 {
+        margin: 0;
+        font-size: var(--mh-text-md);
+        font-weight: var(--mh-weight-semibold);
+      }
+      .status-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+      }
+      .status-dot.ok {
+        background: var(--mh-success);
+        box-shadow: 0 0 0 3px var(--mh-success-soft);
+      }
+      .status-dot.off {
+        background: var(--mh-divider-strong);
+      }
+      .status-text {
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-medium);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .status-text.ok {
+        color: var(--mh-success);
+      }
+      .status-text.off {
+        color: var(--mh-fg-muted);
+      }
+
+      /* Meta-Pills */
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--mh-space-2);
+      }
+      .meta-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-pill);
+        padding: 3px 10px;
+        font-size: var(--mh-text-xs);
+      }
+      .meta-key {
+        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-medium);
+      }
+      .meta-pill code {
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        background: transparent;
+        color: var(--mh-fg);
+        font-weight: var(--mh-weight-semibold);
+      }
+
+      /* URL-Zeile */
+      .url-row {
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-2);
+        background: var(--mh-bg);
+        border: 1px dashed var(--mh-divider);
+        border-radius: var(--mh-radius-sm);
+        padding: 6px 10px;
+      }
+      code.url {
+        flex: 1;
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        background: transparent;
+        padding: 0;
+      }
+
+      /* Mapping-Details */
+      .mapping {
+        font-size: var(--mh-text-sm);
+      }
+      .mapping summary {
+        cursor: pointer;
+        color: var(--mh-fg-muted);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-medium);
+        padding: 4px 0;
+      }
+      .mapping summary:hover {
+        color: var(--mh-fg);
+      }
+      .mapping pre {
+        margin: var(--mh-space-2) 0 0 0;
+        padding: var(--mh-space-2) var(--mh-space-3);
+        background: var(--mh-bg);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm);
+        overflow: auto;
+        max-width: 100%;
+        font-size: var(--mh-text-xs);
+      }
+      .mapping pre code {
+        background: transparent;
+        padding: 0;
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+      }
+
+      /* Overflow-Menu */
+      .overflow {
+        position: relative;
+      }
+      .overflow-menu {
+        position: absolute;
+        top: calc(100% + 4px);
+        right: 0;
+        z-index: 50;
+        min-width: 180px;
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        box-shadow: var(--mh-shadow-3);
+        padding: 4px;
+      }
+      .overflow-menu hr {
+        border: none;
+        border-top: 1px solid var(--mh-divider);
+        margin: 4px 0;
+      }
+      .overflow-item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        border: 0;
+        padding: 8px 12px;
+        border-radius: var(--mh-radius-sm);
+        font: inherit;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg);
+        cursor: pointer;
+      }
+      .overflow-item:hover:not(:disabled) {
+        background: var(--mh-surface-2);
+      }
+      .overflow-item.danger {
+        color: var(--mh-error);
+      }
+      .overflow-item.danger:hover:not(:disabled) {
+        background: var(--mh-error-soft);
+      }
+
+      /* Empty / Placeholder */
+      .empty {
+        background: var(--mh-surface);
+        border: 1px dashed var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        padding: var(--mh-space-6);
+        text-align: center;
+      }
+      .empty h3 {
+        margin: 0 0 var(--mh-space-2) 0;
+        color: var(--mh-fg);
+      }
+      .empty p {
+        margin: 0 0 var(--mh-space-4) 0;
+        color: var(--mh-fg-muted);
+        max-width: 460px;
+        margin-inline: auto;
+        line-height: 1.5;
+      }
+      .empty code {
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        background: var(--mh-surface-2);
+        padding: 1px 6px;
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-xs);
+      }
+      .placeholder {
+        background: var(--mh-surface);
+        border: 1px dashed var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        padding: var(--mh-space-4);
+        color: var(--mh-fg-muted);
+        font-size: var(--mh-text-sm);
+      }
+      .placeholder p {
+        margin: 0;
+      }
+
+      .status {
+        color: var(--mh-fg-muted);
+        padding: var(--mh-space-2) 0;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: var(--mh-space-5);
+        right: var(--mh-space-5);
+        background: var(--mh-fg);
+        color: var(--mh-bg);
+        padding: var(--mh-space-3) var(--mh-space-4);
+        border-radius: var(--mh-radius-md);
+        box-shadow: var(--mh-shadow-3);
+        font-size: var(--mh-text-sm);
+        animation: slidein 0.2s ease-out;
+      }
+      @keyframes slidein {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+    `
+], ne);
+U([
+  v({ attribute: !1 })
+], O.prototype, "api", void 0);
+U([
+  d()
+], O.prototype, "_items", void 0);
+U([
+  d()
+], O.prototype, "_loading", void 0);
+U([
+  d()
+], O.prototype, "_showForm", void 0);
+U([
+  d()
+], O.prototype, "_editing", void 0);
+U([
+  d()
+], O.prototype, "_toast", void 0);
+U([
+  d()
+], O.prototype, "_menuOpenId", void 0);
+O = U([
+  k("settings-view")
 ], O);
-var lr = Object.defineProperty, dr = Object.getOwnPropertyDescriptor, V = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? dr(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && lr(e, t, s), s;
+var q = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
 };
-const cr = {
+const ht = {
   error: "Errors",
   warning: "Warnings",
   info: "Info",
   debug: "Debug"
-}, hr = {
-  error: "var(--error-color, #db4437)",
-  warning: "var(--warning-color, #ff9800)",
-  info: "var(--info-color, #03a9f4)",
-  debug: "var(--secondary-text-color, #888)"
-};
-let N = class extends m {
+}, pt = {
+  error: "var(--mh-error)",
+  warning: "var(--mh-warning)",
+  info: "var(--mh-info)",
+  debug: "var(--mh-debug)"
+}, ut = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], ms = [1, 2, 3, 4, 5, 6, 0];
+var le;
+let D = (le = class extends b {
   constructor() {
     super(...arguments), this._stats = null, this._sources = [], this._heatmap = [], this._topSources = [], this._loading = !1;
   }
@@ -4268,359 +4795,545 @@ let N = class extends m {
     if (this.api) {
       this._loading = !0;
       try {
-        const [r, e, t] = await Promise.all([
+        const [e, t, s] = await Promise.all([
           this.api.getStats(),
           this.api.listSources(),
           this.api.getStatsExtended(30)
         ]);
-        this._stats = r, this._sources = e, this._heatmap = t.heatmap, this._topSources = t.top_sources;
+        this._stats = e, this._sources = t, this._heatmap = s.heatmap, this._topSources = s.top_sources;
       } finally {
         this._loading = !1;
       }
     }
   }
   _renderHeatmap() {
-    const r = Array.from({ length: 7 }, () => Array(24).fill(0));
-    let e = 0;
-    for (const a of this._heatmap)
-      a.weekday >= 0 && a.weekday < 7 && a.hour >= 0 && a.hour < 24 && (r[a.weekday][a.hour] = a.count, a.count > e && (e = a.count));
-    if (e === 0)
-      return n`<p class="muted">Keine Daten in den letzten 30 Tagen.</p>`;
-    const t = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
-    return n`
-      <div class="heatmap">
-        <div class="heatmap-header">
-          <span></span>
-          ${Array.from(
-      { length: 24 },
-      (a, s) => n`<span class="hour-label">${s % 3 === 0 ? s : ""}</span>`
-    )}
-        </div>
-        ${r.map(
-      (a, s) => n`
-            <div class="heatmap-row">
-              <span class="day-label">${t[s]}</span>
-              ${a.map((i) => {
-        const o = i === 0 ? 0 : Math.max(0.1, i / e);
+    const e = Array.from({ length: 7 }, () => Array(24).fill(0));
+    let t = 0;
+    for (const s of this._heatmap)
+      s.weekday >= 0 && s.weekday < 7 && s.hour >= 0 && s.hour < 24 && (e[s.weekday][s.hour] = s.count, s.count > t && (t = s.count));
+    return t === 0 ? n`<p class="muted">Keine Daten in den letzten 30 Tagen.</p>` : n`
+      <div class="heatmap-wrap">
+        <div class="heatmap">
+          <div class="heatmap-header">
+            <span></span>
+            ${Array.from({ length: 24 }, (s, a) => n`<span class="hour-label">${a % 3 === 0 ? a : ""}</span>`)}
+          </div>
+          ${ms.map((s, a) => {
+      const r = e[s];
+      return n`
+              <div class="heatmap-row">
+                <span class="day-label">${ut[a]}</span>
+                ${r.map((o, l) => {
+        const c = o === 0 ? 0 : Math.max(0.15, o / t), p = o === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(c * 100)}%, transparent)`;
         return n`
-                  <div
-                    class="heatmap-cell"
-                    style=${`background: rgba(3, 169, 244, ${o})`}
-                    title=${`${t[s]} ${a.indexOf(i)}:00 — ${i} msg`}
-                  ></div>
-                `;
+                    <div
+                      class=${`heatmap-cell ${o === 0 ? "empty" : ""}`}
+                      style=${`background: ${p}`}
+                      title=${`${ut[a]} ${l}:00 — ${o} Nachricht${o === 1 ? "" : "en"}`}
+                    ></div>
+                  `;
       })}
-            </div>
-          `
-    )}
+              </div>
+            `;
+    })}
+        </div>
+        <div class="heatmap-legend">
+          <span class="muted small">weniger</span>
+          <span class="legend-cell" style="background: transparent; border: 1px solid var(--mh-divider)"></span>
+          <span class="legend-cell" style="background: color-mix(in srgb, var(--mh-accent) 25%, transparent)"></span>
+          <span class="legend-cell" style="background: color-mix(in srgb, var(--mh-accent) 50%, transparent)"></span>
+          <span class="legend-cell" style="background: color-mix(in srgb, var(--mh-accent) 75%, transparent)"></span>
+          <span class="legend-cell" style="background: var(--mh-accent)"></span>
+          <span class="muted small">mehr (max ${t})</span>
+        </div>
       </div>
-      <p class="muted small">Helligkeit ∝ Nachrichtenanzahl (max: ${e}).</p>
     `;
   }
-  _renderSeverityBars() {
-    if (!this._stats) return n``;
-    const r = this._stats.severity_24h, e = Math.max(1, Object.values(r).reduce((a, s) => a + s, 0));
-    return n`
-      <div class="bars">
-        ${["error", "warning", "info", "debug"].map((a) => {
-      const s = r[a] ?? 0, i = s / e * 100;
+  _renderSeverityStack() {
+    if (!this._stats)
+      return n``;
+    const e = this._stats.severity_24h, t = Object.values(e).reduce((a, r) => a + r, 0), s = ["error", "warning", "info", "debug"];
+    return t === 0 ? n`<p class="muted">Keine Nachrichten in den letzten 24 Stunden.</p>` : n`
+      <div class="stack-bar" role="img" aria-label="Severity-Verteilung der letzten 24 Stunden">
+        ${s.map((a) => {
+      const r = e[a] ?? 0;
+      if (r === 0)
+        return null;
+      const o = r / t * 100;
       return n`
-            <div class="bar-row">
-              <span class="bar-label">${cr[a] ?? a}</span>
-              <div class="bar-track">
-                <div
-                  class="bar-fill"
-                  style=${`width: ${i}%; background: ${hr[a]}`}
-                ></div>
-              </div>
-              <span class="bar-count">${s}</span>
-            </div>
+            <div
+              class=${`stack-seg sev-${a}`}
+              style=${`width: ${o}%; background: ${pt[a]}`}
+              title=${`${ht[a]}: ${r} (${o.toFixed(0)}%)`}
+            ></div>
           `;
     })}
       </div>
+      <ul class="legend">
+        ${s.map((a) => {
+      const r = e[a] ?? 0, o = t > 0 ? r / t * 100 : 0;
+      return n`
+            <li>
+              <span
+                class="legend-dot"
+                style=${`background: ${pt[a]}`}
+              ></span>
+              <span class="legend-label">${ht[a]}</span>
+              <span class="legend-count">${r.toLocaleString("de-DE")}</span>
+              <span class="legend-pct muted">${o.toFixed(0)}%</span>
+            </li>
+          `;
+    })}
+      </ul>
     `;
   }
   render() {
     if (this._loading && !this._stats)
       return n`<div class="root"><p class="status">lade…</p></div>`;
     if (!this._stats)
-      return n`<div class="root"><p class="status">Keine Daten verfuegbar.</p></div>`;
-    const r = this._stats, e = Object.values(r.severity_24h).reduce((t, a) => t + a, 0);
+      return n`<div class="root"><p class="status">Keine Daten verfügbar.</p></div>`;
+    const e = this._stats, t = Object.values(e.severity_24h).reduce((o, l) => o + l, 0), s = e.severity_24h.error ?? 0, a = e.severity_24h.warning ?? 0, r = t > 0 ? s / t * 100 : 0;
     return n`
       <div class="root">
         <section>
-          <h2>Live-Status</h2>
+          <header class="section-head">
+            <h2>Live-Status</h2>
+            <button class="mh-btn-mini" @click=${() => void this._load()}>
+              ↻ Aktualisieren
+            </button>
+          </header>
           <div class="kpis">
             <div class="kpi">
               <span class="kpi-label">Gesamt</span>
-              <span class="kpi-value">${r.total.toLocaleString("de-DE")}</span>
+              <span class="kpi-value">${e.total.toLocaleString("de-DE")}</span>
               <span class="kpi-hint">Nachrichten in der Datenbank</span>
             </div>
             <div class="kpi accent-info">
-              <span class="kpi-label">Letzte 24h</span>
-              <span class="kpi-value">${e.toLocaleString("de-DE")}</span>
+              <span class="kpi-label">Letzte 24 h</span>
+              <span class="kpi-value">${t.toLocaleString("de-DE")}</span>
               <span class="kpi-hint">alle Severities</span>
             </div>
             <div class="kpi accent-error">
-              <span class="kpi-label">Errors 24h</span>
-              <span class="kpi-value">${r.severity_24h.error ?? 0}</span>
-              <span class="kpi-hint">unbehoben + bestaetigt</span>
+              <span class="kpi-label">Errors 24 h</span>
+              <span class="kpi-value">${s}</span>
+              <span class="kpi-hint">
+                ${t === 0 ? "—" : `${r.toFixed(1)} % Anteil`}
+              </span>
             </div>
             <div class="kpi accent-warning">
-              <span class="kpi-label">Warnings 24h</span>
-              <span class="kpi-value">${r.severity_24h.warning ?? 0}</span>
+              <span class="kpi-label">Warnings 24 h</span>
+              <span class="kpi-value">${a}</span>
               <span class="kpi-hint">letzte 24 Stunden</span>
             </div>
           </div>
         </section>
 
         <section>
-          <h2>Severity-Verteilung (24h)</h2>
-          <div class="card">${this._renderSeverityBars()}</div>
+          <div class="mh-card">
+            <div class="mh-card__header">
+              <h3 class="mh-card__title">Severity-Verteilung (24 h)</h3>
+              <span class="muted small">${t.toLocaleString("de-DE")} Nachrichten</span>
+            </div>
+            ${this._renderSeverityStack()}
+          </div>
         </section>
 
         <section>
-          <h2>Aktive Quellen</h2>
-          <div class="card">
-            ${this._sources.length === 0 ? n`<p class="status">
+          <div class="mh-card">
+            <div class="mh-card__header">
+              <h3 class="mh-card__title">Aktive Quellen</h3>
+              <span class="muted small">${this._sources.length}</span>
+            </div>
+            ${this._sources.length === 0 ? n`<p class="muted">
                   Noch keine Quellen erfasst. Sobald die erste Nachricht reinkommt,
                   erscheint sie hier.
                 </p>` : n`<ul class="sources">
-                  ${this._sources.map(
-      (t) => n`<li><code>${t}</code></li>`
-    )}
+                  ${this._sources.map((o) => n`<li class="source-pill">${o}</li>`)}
                 </ul>`}
           </div>
         </section>
 
         <section>
-          <h2>Heatmap (Stunde × Wochentag, letzte 30 Tage)</h2>
-          <div class="card">${this._renderHeatmap()}</div>
+          <div class="mh-card">
+            <div class="mh-card__header">
+              <h3 class="mh-card__title">Heatmap (Stunde × Wochentag, 30 Tage)</h3>
+            </div>
+            ${this._renderHeatmap()}
+          </div>
         </section>
 
         <section>
-          <h2>Top-10 Quellen (30 Tage)</h2>
-          <div class="card">
-            ${this._topSources.length === 0 ? n`<p class="muted">Keine Daten.</p>` : n`<table class="top">
-                  <thead>
-                    <tr><th>Source</th><th>Nachrichten</th></tr>
-                  </thead>
-                  <tbody>
-                    ${this._topSources.map(
-      (t) => n`<tr>
-                        <td><code>${t.source}</code></td>
-                        <td>${t.count.toLocaleString("de-DE")}</td>
-                      </tr>`
-    )}
-                  </tbody>
-                </table>`}
+          <div class="mh-card">
+            <div class="mh-card__header">
+              <h3 class="mh-card__title">Top-10 Quellen (30 Tage)</h3>
+            </div>
+            ${this._topSources.length === 0 ? n`<p class="muted">Keine Daten.</p>` : n`<ul class="top-sources">
+                  ${this._topSources.map((o, l) => {
+      var f;
+      const c = ((f = this._topSources[0]) == null ? void 0 : f.count) ?? 1, p = o.count / c * 100;
+      return n`<li>
+                      <span class="rank">${l + 1}</span>
+                      <code class="source-name">${o.source}</code>
+                      <span class="bar-track">
+                        <span
+                          class="bar-fill"
+                          style=${`width: ${p}%`}
+                        ></span>
+                      </span>
+                      <span class="bar-count">${o.count.toLocaleString("de-DE")}</span>
+                    </li>`;
+    })}
+                </ul>`}
           </div>
         </section>
       </div>
     `;
   }
+}, le.styles = [
+  V,
+  yt,
+  Oe,
+  w`
+      :host {
+        display: block;
+        overflow-y: auto;
+        height: 100%;
+        background: var(--mh-bg);
+      }
+      .root {
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: var(--mh-space-5) var(--mh-space-5);
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-5);
+      }
+      section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-3);
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--mh-space-3);
+      }
+      h2 {
+        margin: 0;
+        font-size: var(--mh-text-lg);
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg);
+        letter-spacing: -0.01em;
+      }
+      h3.mh-card__title {
+        font-size: var(--mh-text-md);
+      }
+      .mh-btn-mini {
+        font: inherit;
+        font-size: var(--mh-text-xs);
+        padding: 4px 10px;
+        border: 1px solid var(--mh-divider);
+        background: var(--mh-surface);
+        color: var(--mh-fg-muted);
+        border-radius: var(--mh-radius-sm);
+        cursor: pointer;
+        transition: background var(--mh-transition-fast);
+      }
+      .mh-btn-mini:hover {
+        background: var(--mh-surface-2);
+        color: var(--mh-fg);
+      }
+
+      /* KPIs */
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: var(--mh-space-3);
+      }
+      .kpi {
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        padding: var(--mh-space-4);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--mh-shadow-1);
+      }
+      .kpi::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: var(--mh-divider);
+      }
+      .kpi.accent-info::before {
+        background: var(--mh-info);
+      }
+      .kpi.accent-error::before {
+        background: var(--mh-error);
+      }
+      .kpi.accent-warning::before {
+        background: var(--mh-warning);
+      }
+      .kpi-label {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: var(--mh-weight-semibold);
+      }
+      .kpi-value {
+        font-size: var(--mh-text-3xl);
+        font-weight: var(--mh-weight-bold);
+        color: var(--mh-fg);
+        line-height: 1.1;
+        margin: 4px 0;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.02em;
+      }
+      .kpi-hint {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+      }
+
+      /* Stacked-Bar fuer Severity */
+      .stack-bar {
+        display: flex;
+        height: 14px;
+        border-radius: var(--mh-radius-pill);
+        overflow: hidden;
+        background: var(--mh-surface-2);
+      }
+      .stack-seg {
+        height: 100%;
+        transition: width var(--mh-transition-med);
+        min-width: 2px;
+      }
+      .legend {
+        list-style: none;
+        padding: 0;
+        margin: var(--mh-space-3) 0 0 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: var(--mh-space-2) var(--mh-space-4);
+      }
+      .legend li {
+        display: grid;
+        grid-template-columns: 12px 1fr auto auto;
+        gap: var(--mh-space-2);
+        align-items: center;
+        font-size: var(--mh-text-sm);
+      }
+      .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .legend-label {
+        color: var(--mh-fg);
+      }
+      .legend-count {
+        font-variant-numeric: tabular-nums;
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg);
+      }
+      .legend-pct {
+        font-size: var(--mh-text-xs);
+        font-variant-numeric: tabular-nums;
+        min-width: 36px;
+        text-align: right;
+      }
+
+      /* Sources */
+      .sources {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .source-pill {
+        padding: 4px 10px;
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-sm);
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-medium);
+      }
+
+      /* Top-Sources */
+      .top-sources {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .top-sources li {
+        display: grid;
+        grid-template-columns: 24px 1fr 1fr auto;
+        gap: var(--mh-space-3);
+        align-items: center;
+        font-size: var(--mh-text-sm);
+      }
+      .rank {
+        font-variant-numeric: tabular-nums;
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg-muted);
+        font-size: var(--mh-text-xs);
+        text-align: right;
+      }
+      .source-name {
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--mh-fg);
+      }
+      .bar-track {
+        position: relative;
+        height: 6px;
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-pill);
+        overflow: hidden;
+      }
+      .bar-fill {
+        position: absolute;
+        inset: 0;
+        background: var(--mh-accent);
+        opacity: 0.7;
+        border-radius: inherit;
+      }
+      .bar-count {
+        font-variant-numeric: tabular-nums;
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg);
+        min-width: 40px;
+        text-align: right;
+      }
+
+      /* Heatmap */
+      .heatmap-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-3);
+      }
+      .heatmap {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        overflow-x: auto;
+      }
+      .heatmap-header,
+      .heatmap-row {
+        display: grid;
+        grid-template-columns: 32px repeat(24, minmax(18px, 1fr));
+        gap: 3px;
+        align-items: center;
+        min-width: 600px;
+      }
+      .day-label,
+      .hour-label {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        text-align: center;
+        font-weight: var(--mh-weight-medium);
+      }
+      .day-label {
+        text-align: right;
+        padding-right: 6px;
+      }
+      .heatmap-cell {
+        aspect-ratio: 1;
+        border-radius: 3px;
+        min-height: 18px;
+        transition: transform var(--mh-transition-fast);
+        cursor: default;
+      }
+      .heatmap-cell.empty {
+        border: 1px solid var(--mh-divider);
+      }
+      .heatmap-cell:hover {
+        transform: scale(1.18);
+        outline: 1px solid var(--mh-fg);
+      }
+      .heatmap-legend {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        justify-content: flex-end;
+      }
+      .legend-cell {
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+      }
+
+      /* Common */
+      .muted {
+        color: var(--mh-fg-muted);
+      }
+      .small {
+        font-size: var(--mh-text-xs);
+      }
+      .status {
+        color: var(--mh-fg-muted);
+        padding: var(--mh-space-2) 0;
+        margin: 0;
+      }
+    `
+], le);
+q([
+  v({ attribute: !1 })
+], D.prototype, "api", void 0);
+q([
+  d()
+], D.prototype, "_stats", void 0);
+q([
+  d()
+], D.prototype, "_sources", void 0);
+q([
+  d()
+], D.prototype, "_heatmap", void 0);
+q([
+  d()
+], D.prototype, "_topSources", void 0);
+q([
+  d()
+], D.prototype, "_loading", void 0);
+D = q([
+  k("stats-view")
+], D);
+var J = function(i, e, t, s) {
+  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
+  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
+  return a > 3 && r && Object.defineProperty(e, t, r), r;
 };
-N.styles = S`
-    :host {
-      display: block;
-      overflow-y: auto;
-      height: 100%;
-    }
-    .root {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 24px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-    }
-    section {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    h2 {
-      margin: 0;
-      font-size: 1.1em;
-      color: var(--primary-text-color, #222);
-    }
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-    }
-    .kpi {
-      background: var(--card-background-color, white);
-      border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      border-left: 4px solid var(--divider-color, #e0e0e0);
-    }
-    .kpi.accent-info {
-      border-left-color: var(--info-color, #03a9f4);
-    }
-    .kpi.accent-error {
-      border-left-color: var(--error-color, #db4437);
-    }
-    .kpi.accent-warning {
-      border-left-color: var(--warning-color, #ff9800);
-    }
-    .kpi-label {
-      font-size: 0.85em;
-      color: var(--secondary-text-color, #666);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .kpi-value {
-      font-size: 2em;
-      font-weight: 600;
-      color: var(--primary-text-color, #222);
-      line-height: 1;
-      margin: 4px 0;
-    }
-    .kpi-hint {
-      font-size: 0.78em;
-      color: var(--secondary-text-color, #888);
-    }
-    .card {
-      background: var(--card-background-color, white);
-      border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
-      padding: 16px;
-    }
-    .bars {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .bar-row {
-      display: grid;
-      grid-template-columns: 80px 1fr 50px;
-      gap: 12px;
-      align-items: center;
-    }
-    .bar-label {
-      font-size: 0.9em;
-      color: var(--primary-text-color, #222);
-    }
-    .bar-track {
-      height: 8px;
-      background: var(--secondary-background-color, #f3f3f3);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .bar-fill {
-      height: 100%;
-      transition: width 0.3s ease;
-      min-width: 1px;
-    }
-    .bar-count {
-      text-align: right;
-      font-size: 0.9em;
-      color: var(--secondary-text-color, #666);
-      font-variant-numeric: tabular-nums;
-    }
-    .sources {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .sources li {
-      padding: 4px 8px;
-      background: var(--secondary-background-color, #f5f5f5);
-      border-radius: 4px;
-    }
-    code {
-      font-family: var(--ha-font-family-code, monospace);
-      font-size: 0.85em;
-    }
-    .heatmap {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      overflow-x: auto;
-    }
-    .heatmap-header,
-    .heatmap-row {
-      display: grid;
-      grid-template-columns: 30px repeat(24, 1fr);
-      gap: 2px;
-      align-items: center;
-      min-width: 540px;
-    }
-    .day-label,
-    .hour-label {
-      font-size: 0.7em;
-      color: var(--secondary-text-color, #888);
-      text-align: center;
-    }
-    .heatmap-cell {
-      aspect-ratio: 1;
-      border-radius: 2px;
-      background: var(--secondary-background-color, #f3f3f3);
-      min-height: 14px;
-    }
-    .top {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .top th,
-    .top td {
-      text-align: left;
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--divider-color, #eee);
-      font-size: 0.9em;
-    }
-    .top th {
-      font-size: 0.78em;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--secondary-text-color, #666);
-    }
-    .small {
-      font-size: 0.78em;
-    }
-    .status {
-      color: var(--secondary-text-color, #666);
-      padding: 8px 0;
-      margin: 0;
-    }
-  `;
-V([
-  b({ attribute: !1 })
-], N.prototype, "api", 2);
-V([
-  l()
-], N.prototype, "_stats", 2);
-V([
-  l()
-], N.prototype, "_sources", 2);
-V([
-  l()
-], N.prototype, "_heatmap", 2);
-V([
-  l()
-], N.prototype, "_topSources", 2);
-V([
-  l()
-], N.prototype, "_loading", 2);
-N = V([
-  w("stats-view")
-], N);
-var pr = Object.defineProperty, ur = Object.getOwnPropertyDescriptor, be = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? ur(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && pr(e, t, s), s;
-};
-let Y = class extends m {
+function gs(i) {
+  const e = i.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), t = new Set(e), s = (...a) => a.some((r) => t.has(r));
+  return s("delete", "remove", "removed", "deleted") ? "delete" : s("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : s("update", "updated", "edit", "edited", "set") ? "update" : s("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
+}
+var de;
+let R = (de = class extends b {
   constructor() {
-    super(...arguments), this._items = [], this._loading = !1;
+    super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._expanded = /* @__PURE__ */ new Set(), this._now = /* @__PURE__ */ new Date();
+  }
+  connectedCallback() {
+    super.connectedCallback(), this._tickerId = window.setInterval(() => this._now = /* @__PURE__ */ new Date(), 3e4);
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback(), this._tickerId && window.clearInterval(this._tickerId);
   }
   async firstUpdated() {
     await this._load();
@@ -4629,209 +5342,460 @@ let Y = class extends m {
     if (this.api) {
       this._loading = !0;
       try {
-        this._items = await this.api.listAudit(200);
+        const e = await this.api.listAudit(200);
+        this._items = e;
       } finally {
         this._loading = !1;
       }
     }
   }
+  _toggle(e) {
+    const t = new Set(this._expanded);
+    t.has(e) ? t.delete(e) : t.add(e), this._expanded = t;
+  }
+  _filtered() {
+    const e = this._filter.trim().toLowerCase();
+    return e ? this._items.filter((t) => {
+      const s = `${t.target_type ?? ""}${t.target_id ?? ""}`.toLowerCase(), a = t.details ? JSON.stringify(t.details).toLowerCase() : "";
+      return (t.actor ?? "").toLowerCase().includes(e) || (t.action ?? "").toLowerCase().includes(e) || s.includes(e) || a.includes(e);
+    }) : this._items;
+  }
+  _renderActionPill(e) {
+    const t = gs(e);
+    return n`<span class=${`action-pill action-${t}`} title=${e}>${e}</span>`;
+  }
+  _renderDetails(e) {
+    if (!e)
+      return n`<span class="muted">—</span>`;
+    if (typeof e == "object") {
+      const t = Object.entries(e);
+      return t.length === 0 ? n`<span class="muted">—</span>` : n`
+        <dl class="kv">
+          ${t.map(([s, a]) => n`
+              <dt>${s}</dt>
+              <dd>${typeof a == "object" ? JSON.stringify(a) : String(a)}</dd>
+            `)}
+        </dl>
+      `;
+    }
+    return n`<code>${String(e)}</code>`;
+  }
+  _renderDetailsSummary(e) {
+    if (!e || typeof e != "object")
+      return n`<span class="muted">—</span>`;
+    const t = e, s = typeof t.label == "string" ? t.label : typeof t.name == "string" ? t.name : null;
+    if (s)
+      return n`<span class="summary">${s}</span>`;
+    const a = Object.keys(t).slice(0, 3).join(", ");
+    return n`<span class="summary muted">{${a}${Object.keys(t).length > 3 ? ", …" : ""}}</span>`;
+  }
   render() {
+    const e = this._filtered();
     return n`
       <div class="root">
-        <header>
-          <h2>Audit-Log</h2>
-          <button @click=${() => void this._load()}>↻ Aktualisieren</button>
+        <header class="page-head">
+          <div>
+            <h2>Audit-Log</h2>
+            <p class="hint">
+              Letzte 200 administrativen Aktionen: Löschen, Status-Änderungen,
+              Webhook-CRUD. Einträge sind unveränderlich.
+            </p>
+          </div>
+          <button class="mh-btn" @click=${() => void this._load()}>↻ Aktualisieren</button>
         </header>
-        <p class="hint">
-          Letzte 200 administrativen Aktionen: Loeschen, Status-Aenderungen,
-          Webhook-CRUD. Eintraege sind unveraenderlich.
-        </p>
-        ${this._loading ? n`<p class="status">lade…</p>` : this._items.length === 0 ? n`<p class="status">Noch keine Audit-Eintraege.</p>` : n`<table>
-                <thead>
-                  <tr>
-                    <th>Zeit</th>
-                    <th>Wer</th>
-                    <th>Aktion</th>
-                    <th>Ziel</th>
-                    <th>Details</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${this._items.map(
-      (r) => n`<tr>
-                      <td class="ts">${String(r.timestamp).replace("T", " ").replace(/\+00:00$/, "")}</td>
-                      <td>${r.actor}</td>
-                      <td><code>${r.action}</code></td>
-                      <td>
-                        ${r.target_type}${r.target_id ? n` #${r.target_id}` : ""}
-                      </td>
-                      <td>
-                        ${r.details ? n`<code>${JSON.stringify(r.details)}</code>` : ""}
-                      </td>
-                    </tr>`
-    )}
-                </tbody>
-              </table>`}
+
+        <div class="filter-bar">
+          <input
+            type="search"
+            class="mh-input"
+            placeholder="Suche in Akteur, Aktion, Ziel oder Details…"
+            .value=${this._filter}
+            @input=${(t) => this._filter = t.target.value}
+          />
+          <span class="muted small"
+            >${e.length} ${e.length === 1 ? "Eintrag" : "Einträge"}</span
+          >
+        </div>
+
+        ${this._loading ? n`<p class="status">lade…</p>` : e.length === 0 ? n`<div class="empty">
+                ${this._items.length === 0 ? "Noch keine Audit-Einträge." : "Keine Treffer für aktuelle Suche."}
+              </div>` : n`
+                <div class="table">
+                  <div class="table-head">
+                    <span>Zeit</span>
+                    <span>Wer</span>
+                    <span>Aktion</span>
+                    <span>Ziel</span>
+                    <span>Details</span>
+                  </div>
+                  ${e.map((t, s) => {
+      const a = this._expanded.has(s), r = String(t.timestamp);
+      return n`
+                      <div class=${`table-row ${a ? "expanded" : ""}`}>
+                        <button
+                          class="row-toggle"
+                          @click=${() => this._toggle(s)}
+                          aria-expanded=${a}
+                          aria-label=${a ? "Details verbergen" : "Details anzeigen"}
+                        >
+                          <span class="ts" title=${kt(r, this._now)}>
+                            ${$t(r, this._now)}
+                          </span>
+                          <span class="actor">${t.actor}</span>
+                          <span>${this._renderActionPill(t.action)}</span>
+                          <span class="target">
+                            <code class="target-type">${t.target_type}</code>
+                            ${t.target_id !== null && t.target_id !== void 0 ? n`<code class="target-id">#${t.target_id}</code>` : m}
+                          </span>
+                          <span class="details-inline">
+                            ${this._renderDetailsSummary(t.details)}
+                            <span class="chevron" aria-hidden="true">${a ? "▾" : "▸"}</span>
+                          </span>
+                        </button>
+                        ${a ? n`<div class="details-panel">
+                              ${this._renderDetails(t.details)}
+                            </div>` : m}
+                      </div>
+                    `;
+    })}
+                </div>
+              `}
       </div>
     `;
   }
+}, de.styles = [
+  V,
+  ze,
+  xt,
+  Oe,
+  w`
+      :host {
+        display: block;
+        overflow-y: auto;
+        height: 100%;
+        background: var(--mh-bg);
+      }
+      .root {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--mh-space-5);
+      }
+      .page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: var(--mh-space-4);
+        margin-bottom: var(--mh-space-3);
+      }
+      h2 {
+        margin: 0;
+        font-size: var(--mh-text-xl);
+        font-weight: var(--mh-weight-semibold);
+        letter-spacing: -0.01em;
+      }
+      .hint {
+        margin: 4px 0 0 0;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+      }
+      .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-3);
+        margin-bottom: var(--mh-space-3);
+        flex-wrap: wrap;
+      }
+      .filter-bar .mh-input {
+        flex: 1;
+        min-width: 240px;
+        max-width: 480px;
+      }
+
+      .table {
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        overflow: hidden;
+        box-shadow: var(--mh-shadow-1);
+      }
+      .table-head {
+        display: grid;
+        grid-template-columns: 130px 130px 160px 1fr 1.2fr;
+        gap: var(--mh-space-3);
+        padding: 10px var(--mh-space-4);
+        background: var(--mh-bg);
+        border-bottom: 1px solid var(--mh-divider);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--mh-fg-muted);
+        position: sticky;
+        top: 0;
+      }
+      .table-row {
+        border-bottom: 1px solid var(--mh-divider);
+      }
+      .table-row:last-child {
+        border-bottom: 0;
+      }
+      .row-toggle {
+        all: unset;
+        display: grid;
+        grid-template-columns: 130px 130px 160px 1fr 1.2fr;
+        gap: var(--mh-space-3);
+        padding: 10px var(--mh-space-4);
+        align-items: center;
+        cursor: pointer;
+        width: 100%;
+        box-sizing: border-box;
+        transition: background var(--mh-transition-fast);
+      }
+      .row-toggle:hover {
+        background: var(--mh-surface-2);
+      }
+      .row-toggle:focus-visible {
+        outline: var(--mh-focus-ring);
+        outline-offset: -2px;
+      }
+      .table-row.expanded .row-toggle {
+        background: var(--mh-surface-2);
+      }
+      .ts {
+        font-variant-numeric: tabular-nums;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        white-space: nowrap;
+      }
+      .actor {
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg);
+        font-weight: var(--mh-weight-medium);
+      }
+      .target {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: wrap;
+        font-size: var(--mh-text-sm);
+      }
+      .target-type,
+      .target-id {
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        padding: 1px 6px;
+        border-radius: var(--mh-radius-sm);
+        color: var(--mh-fg);
+      }
+      .target-id {
+        color: var(--mh-fg-muted);
+      }
+      .details-inline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--mh-space-2);
+        font-size: var(--mh-text-sm);
+        overflow: hidden;
+      }
+      .summary {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .chevron {
+        color: var(--mh-fg-muted);
+        font-size: var(--mh-text-xs);
+        flex-shrink: 0;
+      }
+
+      /* Action-Pills (semantisch) */
+      .action-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 10px;
+        border-radius: var(--mh-radius-pill);
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
+        letter-spacing: 0.02em;
+      }
+      .action-create {
+        background: var(--mh-success-soft);
+        color: var(--mh-success);
+      }
+      .action-update {
+        background: var(--mh-info-soft);
+        color: var(--mh-info);
+      }
+      .action-delete {
+        background: var(--mh-error-soft);
+        color: var(--mh-error);
+      }
+      .action-status {
+        background: var(--mh-warning-soft);
+        color: var(--mh-warning);
+      }
+      .action-other {
+        background: var(--mh-surface-2);
+        color: var(--mh-fg-muted);
+      }
+
+      .details-panel {
+        padding: var(--mh-space-3) var(--mh-space-4) var(--mh-space-4);
+        background: var(--mh-bg);
+        border-top: 1px dashed var(--mh-divider);
+      }
+      dl.kv {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 6px var(--mh-space-3);
+        margin: 0;
+        font-size: var(--mh-text-sm);
+      }
+      dl.kv dt {
+        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-medium);
+      }
+      dl.kv dd {
+        margin: 0;
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg);
+        word-break: break-word;
+      }
+
+      .empty,
+      .status {
+        padding: var(--mh-space-6);
+        text-align: center;
+        color: var(--mh-fg-muted);
+        background: var(--mh-surface);
+        border: 1px dashed var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+      }
+
+      .muted {
+        color: var(--mh-fg-muted);
+      }
+      .small {
+        font-size: var(--mh-text-xs);
+      }
+
+      @media (max-width: 720px) {
+        .table-head,
+        .row-toggle {
+          grid-template-columns: 100px 100px 1fr;
+        }
+        .table-head > :nth-child(4),
+        .table-head > :nth-child(5),
+        .row-toggle > :nth-child(4),
+        .row-toggle > :nth-child(5) {
+          display: none;
+        }
+        dl.kv {
+          grid-template-columns: 1fr;
+        }
+        dl.kv dd {
+          margin-bottom: 4px;
+        }
+      }
+    `
+], de);
+J([
+  v({ attribute: !1 })
+], R.prototype, "api", void 0);
+J([
+  d()
+], R.prototype, "_items", void 0);
+J([
+  d()
+], R.prototype, "_loading", void 0);
+J([
+  d()
+], R.prototype, "_filter", void 0);
+J([
+  d()
+], R.prototype, "_expanded", void 0);
+J([
+  d()
+], R.prototype, "_now", void 0);
+R = J([
+  k("audit-view")
+], R);
+var fs = Object.defineProperty, vs = Object.getOwnPropertyDescriptor, T = (i, e, t, s) => {
+  for (var a = s > 1 ? void 0 : s ? vs(e, t) : e, r = i.length - 1, o; r >= 0; r--)
+    (o = i[r]) && (a = (s ? o(e, t, a) : o(a)) || a);
+  return s && a && fs(e, t, a), a;
 };
-Y.styles = S`
-    :host {
-      display: block;
-      overflow-y: auto;
-      height: 100%;
-    }
-    .root {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px 16px;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    h2 {
-      margin: 0;
-      font-size: 1.1em;
-    }
-    .hint {
-      margin: 0 0 16px 0;
-      font-size: 0.9em;
-      color: var(--secondary-text-color, #666);
-    }
-    button {
-      padding: 6px 12px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      cursor: pointer;
-      border-radius: 4px;
-      font: inherit;
-      font-size: 0.85em;
-    }
-    button:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    .status {
-      color: var(--secondary-text-color, #666);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--card-background-color, white);
-      border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
-      overflow: hidden;
-      font-size: 0.9em;
-    }
-    th,
-    td {
-      text-align: left;
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--divider-color, #eee);
-    }
-    th {
-      background: var(--secondary-background-color, #f3f3f3);
-      font-size: 0.78em;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--secondary-text-color, #666);
-    }
-    .ts {
-      font-family: var(--ha-font-family-code, monospace);
-      font-size: 0.85em;
-      white-space: nowrap;
-      color: var(--secondary-text-color, #666);
-    }
-    code {
-      font-family: var(--ha-font-family-code, monospace);
-      font-size: 0.85em;
-      background: var(--secondary-background-color, #f5f5f5);
-      padding: 1px 5px;
-      border-radius: 3px;
-    }
-  `;
-be([
-  b({ attribute: !1 })
-], Y.prototype, "api", 2);
-be([
-  l()
-], Y.prototype, "_items", 2);
-be([
-  l()
-], Y.prototype, "_loading", 2);
-Y = be([
-  w("audit-view")
-], Y);
-var gr = Object.defineProperty, fr = Object.getOwnPropertyDescriptor, T = (r, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? fr(e, t) : e, i = r.length - 1, o; i >= 0; i--)
-    (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
-  return a && s && gr(e, t, s), s;
-};
-const Je = "messagehub.filters", le = {
+const mt = "messagehub.filters", $e = {
   severity: ["error", "warning", "info"],
   source: "",
   search: ""
 };
-let $ = class extends m {
+let y = class extends b {
   constructor() {
-    super(...arguments), this.narrow = !1, this._tab = "messages", this._items = [], this._total = 0, this._loading = !1, this._selected = null, this._filters = this._loadFilters(), this._newCount = 0, this._testing = !1, this._toast = "", this._api = new St(), this._onSeverityChange = (r) => {
-      this._filters = { ...this._filters, severity: r.detail.severities }, this._persistFilters(), this._reload();
-    }, this._onSourceChange = (r) => {
-      this._filters = { ...this._filters, source: r.detail.source }, this._persistFilters(), this._reload();
-    }, this._onTimeRange = (r) => {
-      this._filters = { ...this._filters, fromIso: r.detail.fromIso, toIso: r.detail.toIso }, this._persistFilters(), this._reload();
-    }, this._onSelect = (r) => {
-      this._selected = r.detail.msg;
-    }, this._onDelete = async (r) => {
+    super(...arguments), this.narrow = !1, this._tab = "messages", this._items = [], this._total = 0, this._loading = !1, this._selected = null, this._filters = this._loadFilters(), this._newCount = 0, this._testing = !1, this._toast = "", this._overflowOpen = !1, this._api = new Jt(), this._onSeverityChange = (i) => {
+      this._filters = { ...this._filters, severity: i.detail.severities }, this._persistFilters(), this._reload();
+    }, this._onSourceChange = (i) => {
+      this._filters = { ...this._filters, source: i.detail.source }, this._persistFilters(), this._reload();
+    }, this._onTimeRange = (i) => {
+      this._filters = { ...this._filters, fromIso: i.detail.fromIso, toIso: i.detail.toIso }, this._persistFilters(), this._reload();
+    }, this._onSelect = (i) => {
+      this._selected = i.detail.msg;
+    }, this._onDelete = async (i) => {
       try {
-        await this._api.deleteMessage(r.detail.id), this._items = this._items.filter((e) => e.id !== r.detail.id), this._total = Math.max(0, this._total - 1), this._selected = null, this._showToast("Nachricht geloescht");
+        await this._api.deleteMessage(i.detail.id), this._items = this._items.filter((e) => e.id !== i.detail.id), this._total = Math.max(0, this._total - 1), this._selected = null, this._showToast("Nachricht gelöscht");
       } catch (e) {
-        this._showToast(`Loeschen fehlgeschlagen: ${e.message}`);
+        this._showToast(`Löschen fehlgeschlagen: ${e.message}`);
       }
+    }, this._toggleOverflow = () => {
+      this._overflowOpen = !this._overflowOpen;
+    }, this._closeOverflow = () => {
+      this._overflowOpen && (this._overflowOpen = !1);
     };
   }
   firstUpdated() {
-    var r;
-    (r = this.hass) != null && r.auth && this._api.setAuth(this.hass.auth.data.access_token), this._reload(), this._subscribeLive();
+    var i;
+    (i = this.hass) != null && i.auth && this._api.setAuth(this.hass.auth.data.access_token), this._reload(), this._subscribeLive();
   }
   disconnectedCallback() {
-    var r;
-    super.disconnectedCallback(), (r = this._unsubLive) == null || r.call(this);
+    var i;
+    super.disconnectedCallback(), (i = this._unsubLive) == null || i.call(this);
   }
   async _subscribeLive() {
-    var r, e;
-    (e = (r = this.hass) == null ? void 0 : r.connection) != null && e.subscribeEvents && (this._unsubLive = await this.hass.connection.subscribeEvents((t) => {
-      const a = t.data;
-      this._matchesFilters(a) && (this._items = [a, ...this._items].slice(0, 200), this._total += 1, this._newCount += 1, window.setTimeout(() => this._newCount = Math.max(0, this._newCount - 1), 4e3));
+    var i, e;
+    (e = (i = this.hass) == null ? void 0 : i.connection) != null && e.subscribeEvents && (this._unsubLive = await this.hass.connection.subscribeEvents((t) => {
+      const s = t.data;
+      this._matchesFilters(s) && (this._items = [s, ...this._items].slice(0, 200), this._total += 1, this._newCount += 1, window.setTimeout(() => this._newCount = Math.max(0, this._newCount - 1), 4e3));
     }, "messagehub_message_added"));
   }
-  _matchesFilters(r) {
-    return !(this._filters.severity.length && !this._filters.severity.includes(r.severity) || this._filters.source && r.source !== this._filters.source || this._filters.search && !r.text.toLowerCase().includes(this._filters.search.toLowerCase()));
+  _matchesFilters(i) {
+    return !(this._filters.severity.length && !this._filters.severity.includes(i.severity) || this._filters.source && i.source !== this._filters.source || this._filters.search && !i.text.toLowerCase().includes(this._filters.search.toLowerCase()));
   }
   _loadFilters() {
     try {
-      const r = localStorage.getItem(Je);
-      if (r) return { ...le, ...JSON.parse(r) };
+      const i = localStorage.getItem(mt);
+      if (i) return { ...$e, ...JSON.parse(i) };
     } catch {
     }
-    return { ...le };
+    return { ...$e };
   }
   _persistFilters() {
     try {
-      localStorage.setItem(Je, JSON.stringify(this._filters));
+      localStorage.setItem(mt, JSON.stringify(this._filters));
     } catch {
     }
   }
   _resetFilters() {
-    this._filters = { ...le }, this._persistFilters(), this._reload();
+    this._filters = { ...$e }, this._persistFilters(), this._reload();
   }
   async _reload() {
     this._loading = !0;
     try {
-      const r = await this._api.listMessages({
+      const i = await this._api.listMessages({
         severity: this._filters.severity,
         source: this._filters.source || void 0,
         search: this._filters.search || void 0,
@@ -4839,48 +5803,48 @@ let $ = class extends m {
         to: this._filters.toIso,
         limit: 100
       });
-      this._items = r.items, this._total = r.total;
-    } catch (r) {
-      this._showToast(`Laden fehlgeschlagen: ${r.message}`);
+      this._items = i.items, this._total = i.total;
+    } catch (i) {
+      this._showToast(`Laden fehlgeschlagen: ${i.message}`);
     } finally {
       this._loading = !1;
     }
   }
-  async _bulkDelete(r) {
+  async _bulkDelete(i) {
     if (this._total === 0) return;
-    const e = r === "all" ? this._total : this._total, t = r === "all" ? `ALLE ${e} Nachrichten dauerhaft loeschen?` : `${e} gefilterte Nachrichten dauerhaft loeschen?`;
+    const e = i === "all" ? this._total : this._total, t = i === "all" ? `ALLE ${e} Nachrichten dauerhaft löschen?` : `${e} gefilterte Nachrichten dauerhaft löschen?`;
     if (window.confirm(t))
       try {
-        const a = r === "all" ? {} : {
+        const s = i === "all" ? {} : {
           severity: this._filters.severity,
           source: this._filters.source || void 0,
           search: this._filters.search || void 0,
           from: this._filters.fromIso,
           to: this._filters.toIso
-        }, s = await this._api.deleteMessages(a);
-        this._showToast(`${s} Nachrichten geloescht`), this._selected = null, await this._reload();
-      } catch (a) {
-        this._showToast(`Loeschen fehlgeschlagen: ${a.message}`);
+        }, a = await this._api.deleteMessages(s);
+        this._showToast(`${a} Nachrichten gelöscht`), this._selected = null, await this._reload();
+      } catch (s) {
+        this._showToast(`Löschen fehlgeschlagen: ${s.message}`);
       }
   }
   async _sendTestMessage() {
-    var r;
-    if (!((r = this.hass) != null && r.callService)) {
-      this._showToast("Test nicht verfuegbar — hass.callService fehlt");
+    var i;
+    if (!((i = this.hass) != null && i.callService)) {
+      this._showToast("Test nicht verfügbar — hass.callService fehlt");
       return;
     }
     this._testing = !0;
     try {
-      const e = ["info", "warning", "error", "info", "info"], t = ["pihole", "knx-bus", "backup-job", "test-script"], a = [
+      const e = ["info", "warning", "error", "info", "info"], t = ["pihole", "knx-bus", "backup-job", "test-script"], s = [
         "Demo-Nachricht aus dem Panel",
         "Test: DNS-Query erfolgreich",
         "Backup abgeschlossen, Dauer 12 min",
         "KNX 1/2/3 — Wohnzimmer Deckenlicht ein"
-      ], s = (i) => Math.floor(Math.random() * i);
+      ], a = (r) => Math.floor(Math.random() * r);
       await this.hass.callService("messagehub", "add_message", {
-        severity: e[s(e.length)],
-        source: t[s(t.length)],
-        text: a[s(a.length)],
+        severity: e[a(e.length)],
+        source: t[a(t.length)],
+        text: s[a(s.length)],
         metadata: { source_panel: !0, ts: (/* @__PURE__ */ new Date()).toISOString() }
       }), this._showToast("Test-Nachricht gesendet"), window.setTimeout(() => void this._reload(), 300);
     } catch (e) {
@@ -4889,18 +5853,18 @@ let $ = class extends m {
       this._testing = !1;
     }
   }
-  _showToast(r) {
-    this._toast = r, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
+  _showToast(i) {
+    this._toast = i, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
   }
-  _debounceSearch(r) {
+  _debounceSearch(i) {
     this._debounceTimer && window.clearTimeout(this._debounceTimer), this._debounceTimer = window.setTimeout(() => {
-      this._filters = { ...this._filters, search: r }, this._persistFilters(), this._reload();
+      this._filters = { ...this._filters, search: i }, this._persistFilters(), this._reload();
     }, 300);
   }
   _hasActiveFilters() {
-    return this._filters.severity.length !== le.severity.length || this._filters.source !== "" || this._filters.search !== "" || this._filters.fromIso !== void 0;
+    return this._filters.severity.length !== $e.severity.length || this._filters.source !== "" || this._filters.search !== "" || this._filters.fromIso !== void 0;
   }
-  _exportUrl(r) {
+  _exportUrl(i) {
     return this._api.exportUrl({
       severity: this._filters.severity,
       source: this._filters.source || void 0,
@@ -4908,19 +5872,25 @@ let $ = class extends m {
       from: this._filters.fromIso,
       to: this._filters.toIso,
       limit: 1e4,
-      format: r
+      format: i
     });
   }
   _renderEmptyMessages() {
     return n`
       <div class="empty">
-        <h3>Noch keine Nachrichten ${this._hasActiveFilters() ? "fuer diese Filter" : ""}</h3>
+        <h3>Noch keine Nachrichten ${this._hasActiveFilters() ? "für diese Filter" : ""}</h3>
         <p>
-          ${this._hasActiveFilters() ? "Probiere weniger restriktive Filter oder setze sie zurueck." : "Sobald Nachrichten ueber Webhook, MQTT, Eventbus oder den Service messagehub.add_message reinkommen, erscheinen sie hier."}
+          ${this._hasActiveFilters() ? "Probiere weniger restriktive Filter oder setze sie zurück." : "Sobald Nachrichten über Webhook, MQTT, Eventbus oder den Service messagehub.add_message reinkommen, erscheinen sie hier."}
         </p>
         <div class="empty-actions">
-          ${this._hasActiveFilters() ? n`<button @click=${this._resetFilters}>Filter zuruecksetzen</button>` : null}
-          <button class="primary" ?disabled=${this._testing} @click=${this._sendTestMessage}>
+          ${this._hasActiveFilters() ? n`<button class="mh-btn" @click=${this._resetFilters}>
+                Filter zurücksetzen
+              </button>` : null}
+          <button
+            class="mh-btn mh-btn--primary"
+            ?disabled=${this._testing}
+            @click=${this._sendTestMessage}
+          >
             ${this._testing ? "sende…" : "+ Test-Nachricht senden"}
           </button>
         </div>
@@ -4945,8 +5915,8 @@ let $ = class extends m {
           placeholder="Volltextsuche…"
           aria-label="Volltextsuche"
           .value=${this._filters.search}
-          @input=${(r) => {
-      const e = r.target.value;
+          @input=${(i) => {
+      const e = i.target.value;
       this._debounceSearch(e);
     }}
         />
@@ -4956,36 +5926,67 @@ let $ = class extends m {
           @change=${this._onTimeRange}
         ></time-range-filter>
         ${this._hasActiveFilters() ? n`<button class="filter-reset" @click=${this._resetFilters}>
-              Filter loeschen
+              Filter zurücksetzen
             </button>` : null}
       </div>
 
       <div class="status-bar">
-        <span>
-          ${this._loading ? "lade…" : `${this._items.length.toLocaleString("de-DE")} von ${this._total.toLocaleString("de-DE")}`}
-          ${this._newCount > 0 ? n`<span class="new-badge"
-                >+${this._newCount} neue</span
-              >` : null}
+        <span class="status-count">
+          ${this._loading ? "lade…" : n`<strong>${this._items.length.toLocaleString("de-DE")}</strong>
+                <span class="muted">von ${this._total.toLocaleString("de-DE")}</span>`}
+          ${this._newCount > 0 ? n`<span class="new-badge">+${this._newCount} neu</span>` : null}
         </span>
         <div class="status-actions">
           ${this._total > 0 ? n`<a
-                  class="export-link"
+                  class="mh-btn mh-btn--sm"
                   href=${this._exportUrl("jsonl")}
                   download="messagehub-export.jsonl"
-                  >⤓ JSONL</a
+                  title="Als JSONL exportieren"
+                  >↓ JSONL</a
                 >
                 <a
-                  class="export-link"
+                  class="mh-btn mh-btn--sm"
                   href=${this._exportUrl("csv")}
                   download="messagehub-export.csv"
-                  >⤓ CSV</a
+                  title="Als CSV exportieren"
+                  >↓ CSV</a
                 >` : null}
-          ${this._total > 0 && this._hasActiveFilters() ? n`<button class="danger" @click=${() => this._bulkDelete("filter")}>
-                Gefilterte loeschen
+          ${this._total > 0 && this._hasActiveFilters() ? n`<button
+                class="mh-btn mh-btn--sm mh-btn--danger"
+                @click=${() => this._bulkDelete("filter")}
+              >
+                Gefilterte löschen
               </button>` : null}
-          <button ?disabled=${this._testing} @click=${this._sendTestMessage}>
-            ${this._testing ? "sende…" : "+ Test"}
+          <button
+            class="mh-btn mh-btn--sm"
+            ?disabled=${this._testing}
+            @click=${this._sendTestMessage}
+          >
+            ${this._testing ? "sende…" : "+ Testnachricht"}
           </button>
+          <div class="overflow" @click=${(i) => i.stopPropagation()}>
+            <button
+              class="mh-btn mh-btn--sm mh-btn--icon mh-btn--ghost"
+              aria-label="Weitere Aktionen"
+              aria-haspopup="menu"
+              aria-expanded=${this._overflowOpen}
+              @click=${this._toggleOverflow}
+            >
+              ⋯
+            </button>
+            ${this._overflowOpen ? n`<div class="overflow-menu" role="menu">
+                  <button
+                    role="menuitem"
+                    class="overflow-item danger"
+                    ?disabled=${this._total === 0}
+                    @click=${() => {
+      this._overflowOpen = !1, this._bulkDelete("all");
+    }}
+                  >
+                    🗑 Alle ${this._total} Nachrichten löschen
+                  </button>
+                </div>` : null}
+          </div>
         </div>
       </div>
 
@@ -5000,67 +6001,46 @@ let $ = class extends m {
             @close=${() => this._selected = null}
             @delete=${this._onDelete}
             @status-change=${() => void this._reload()}
-            @error=${(r) => this._showToast(r.detail.message)}
+            @error=${(i) => this._showToast(i.detail.message)}
           ></detail-pane>` : null}
     `;
   }
   render() {
+    const i = [
+      { id: "messages", label: "Nachrichten" },
+      { id: "stats", label: "Statistik" },
+      { id: "settings", label: "Einstellungen" },
+      { id: "audit", label: "Audit" }
+    ];
     return n`
-      <div class="root">
+      <div class="root" @click=${this._closeOverflow}>
         <header>
           <div class="brand">
             <span class="logo" aria-hidden="true">📨</span>
             <h1>Message Hub</h1>
           </div>
-          <nav role="tablist">
+          <nav role="tablist" class="tabs">
+            ${i.map(
+      (e) => n`<button
+                role="tab"
+                aria-selected=${this._tab === e.id}
+                class=${`tab ${this._tab === e.id ? "active" : ""}`}
+                @click=${() => this._tab = e.id}
+              >
+                ${e.label}
+              </button>`
+    )}
+          </nav>
+          <div class="header-actions">
             <button
-              role="tab"
-              aria-selected=${this._tab === "messages"}
-              class=${this._tab === "messages" ? "active" : ""}
-              @click=${() => this._tab = "messages"}
-            >
-              Nachrichten
-            </button>
-            <button
-              role="tab"
-              aria-selected=${this._tab === "stats"}
-              class=${this._tab === "stats" ? "active" : ""}
-              @click=${() => this._tab = "stats"}
-            >
-              Statistik
-            </button>
-            <button
-              role="tab"
-              aria-selected=${this._tab === "settings"}
-              class=${this._tab === "settings" ? "active" : ""}
-              @click=${() => this._tab = "settings"}
-            >
-              Einstellungen
-            </button>
-            <button
-              role="tab"
-              aria-selected=${this._tab === "audit"}
-              class=${this._tab === "audit" ? "active" : ""}
-              @click=${() => this._tab = "audit"}
-            >
-              Audit
-            </button>
-            ${this._tab === "messages" ? n`<button
-                  class="header-danger"
-                  ?disabled=${this._total === 0}
-                  title=${this._total === 0 ? "Keine Nachrichten zum Loeschen" : `${this._total} Nachrichten loeschen`}
-                  @click=${() => this._bulkDelete("all")}
-                >
-                  🗑 Alle loeschen
-                </button>` : null}
-            <button
-              class="refresh"
+              class="mh-btn mh-btn--icon mh-btn--ghost"
               aria-label="Aktualisieren"
+              title="Aktualisieren"
               @click=${() => void this._reload()}
             >
-              ↻
+              <span aria-hidden="true">↻</span>
             </button>
-          </nav>
+          </div>
         </header>
 
         <main>
@@ -5075,309 +6055,364 @@ let $ = class extends m {
     `;
   }
 };
-$.styles = S`
-    :host {
-      display: block;
-      height: 100vh;
-      background: var(--primary-background-color, #fafafa);
-      color: var(--primary-text-color, #222);
-      font-family: var(--ha-font-family-body, system-ui, sans-serif);
-    }
-    .root {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--divider-color, #ddd);
-      background: var(--app-header-background-color, var(--primary-color, #03a9f4));
-      color: var(--app-header-text-color, white);
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .logo {
-      font-size: 1.3em;
-    }
-    h1 {
-      font-size: 1.1em;
-      margin: 0;
-      font-weight: 600;
-    }
-    nav {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-    nav button {
-      background: transparent;
-      color: inherit;
-      border: 1px solid currentColor;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font: inherit;
-      font-size: 0.9em;
-    }
-    nav button:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-    nav button:focus-visible {
-      outline: 2px solid white;
-      outline-offset: 2px;
-    }
-    nav button.active {
-      background: white;
-      color: var(--app-header-background-color, var(--primary-color, #03a9f4));
-      font-weight: 600;
-    }
-    nav button.refresh {
-      font-size: 1.1em;
-      padding: 6px 10px;
-    }
-    nav button.header-danger {
-      background: rgba(255, 255, 255, 0.95);
-      color: var(--error-color, #db4437);
-      border-color: rgba(255, 255, 255, 0.95);
-      font-weight: 500;
-    }
-    nav button.header-danger:hover:not(:disabled) {
-      background: white;
-      filter: brightness(0.95);
-    }
-    nav button.header-danger:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    main {
-      flex: 1;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      background: var(--primary-background-color, #fafafa);
-    }
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--divider-color, #ddd);
-      background: var(--card-background-color, white);
-      align-items: center;
-    }
-    @media (max-width: 600px) {
+y.styles = [
+  V,
+  ze,
+  w`
+      :host {
+        display: block;
+        height: 100vh;
+        background: var(--mh-bg);
+        color: var(--mh-fg);
+        font-family: var(--ha-font-family-body, "Inter", system-ui, -apple-system, "Segoe UI",
+          Roboto, sans-serif);
+        font-size: var(--mh-text-md);
+      }
+      .root {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      /* Top-Header: ruhig, neutral, mit dezenter Bottom-Border */
+      header {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: var(--mh-space-4);
+        padding: var(--mh-space-3) var(--mh-space-5);
+        background: var(--mh-surface);
+        border-bottom: 1px solid var(--mh-divider);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-2);
+      }
+      .logo {
+        font-size: 1.4em;
+      }
+      h1 {
+        font-size: var(--mh-text-lg);
+        margin: 0;
+        font-weight: var(--mh-weight-semibold);
+        letter-spacing: -0.01em;
+      }
+
+      /* Segmented Tabs: ein gemeinsamer Container, klare aktiv/inaktiv-States */
+      .tabs {
+        display: inline-flex;
+        gap: 2px;
+        background: var(--mh-surface-2);
+        padding: 4px;
+        border-radius: var(--mh-radius-md);
+        justify-self: center;
+      }
+      .tab {
+        appearance: none;
+        background: transparent;
+        border: 0;
+        padding: 6px 14px;
+        font: inherit;
+        font-size: var(--mh-text-sm);
+        font-weight: var(--mh-weight-medium);
+        color: var(--mh-fg-muted);
+        cursor: pointer;
+        border-radius: var(--mh-radius-sm);
+        transition: background var(--mh-transition-fast), color var(--mh-transition-fast);
+      }
+      .tab:hover {
+        color: var(--mh-fg);
+      }
+      .tab:focus-visible {
+        outline: var(--mh-focus-ring);
+        outline-offset: var(--mh-focus-offset);
+      }
+      .tab.active {
+        background: var(--mh-surface);
+        color: var(--mh-fg);
+        font-weight: var(--mh-weight-semibold);
+        box-shadow: var(--mh-shadow-1);
+      }
+      .header-actions {
+        display: flex;
+        gap: var(--mh-space-2);
+        align-items: center;
+        justify-self: end;
+      }
+      @media (max-width: 720px) {
+        header {
+          grid-template-columns: 1fr auto;
+          row-gap: var(--mh-space-2);
+        }
+        .tabs {
+          grid-column: 1 / -1;
+          justify-self: stretch;
+          overflow-x: auto;
+        }
+      }
+
+      main {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Filter-Bar */
       .filter-bar {
-        padding: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--mh-space-2);
+        padding: var(--mh-space-3) var(--mh-space-5);
+        border-bottom: 1px solid var(--mh-divider);
+        background: var(--mh-surface);
+        align-items: center;
       }
-      .filter-bar > * {
-        flex: 1 1 auto;
+      @media (max-width: 600px) {
+        .filter-bar {
+          padding: var(--mh-space-2);
+        }
+        .filter-bar > * {
+          flex: 1 1 auto;
+        }
       }
-    }
-    input.search {
-      padding: 6px 10px;
-      border: 1px solid var(--divider-color, #ccc);
-      border-radius: 4px;
-      min-width: 200px;
-      flex: 1;
-      max-width: 320px;
-      font: inherit;
-      background: var(--card-background-color, white);
-      color: var(--primary-text-color, #222);
-    }
-    input.search:focus-visible {
-      outline: 2px solid var(--primary-color, #03a9f4);
-      outline-offset: 1px;
-    }
-    .filter-reset {
-      padding: 6px 12px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      cursor: pointer;
-      border-radius: 4px;
-      color: var(--secondary-text-color, #666);
-      font: inherit;
-      font-size: 0.85em;
-    }
-    .filter-reset:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    .status-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 16px;
-      font-size: 0.85em;
-      color: var(--secondary-text-color, #666);
-      background: var(--primary-background-color, #fafafa);
-      border-bottom: 1px solid var(--divider-color, #eee);
-    }
-    .new-badge {
-      display: inline-block;
-      margin-left: 8px;
-      padding: 1px 8px;
-      background: var(--primary-color, #03a9f4);
-      color: white;
-      border-radius: 10px;
-      font-size: 0.78em;
-      font-weight: 500;
-      animation: pulse 1s ease-in-out infinite alternate;
-    }
-    @keyframes pulse {
-      from {
-        opacity: 0.7;
+      input.search {
+        padding: 7px 12px;
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm);
+        min-width: 200px;
+        flex: 1;
+        max-width: 320px;
+        font: inherit;
+        font-size: var(--mh-text-sm);
+        background: var(--mh-surface);
+        color: var(--mh-fg);
+        transition: border-color var(--mh-transition-fast), box-shadow var(--mh-transition-fast);
       }
-      to {
-        opacity: 1;
+      input.search:focus-visible {
+        outline: none;
+        border-color: var(--mh-accent);
+        box-shadow: 0 0 0 3px var(--mh-accent-soft);
       }
-    }
-    .status-actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .status-actions button {
-      padding: 4px 10px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      cursor: pointer;
-      border-radius: 4px;
-      color: inherit;
-      font: inherit;
-      font-size: 0.85em;
-    }
-    .status-actions button:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    .status-actions button.danger {
-      color: var(--error-color, #db4437);
-      border-color: var(--error-color, #db4437);
-    }
-    .status-actions button.danger:hover {
-      background: rgba(219, 68, 55, 0.08);
-    }
-    .status-actions a.export-link {
-      padding: 4px 10px;
-      border: 1px solid var(--divider-color, #ccc);
-      border-radius: 4px;
-      text-decoration: none;
-      color: inherit;
-      font-size: 0.85em;
-    }
-    .status-actions a.export-link:hover {
-      background: var(--secondary-background-color, #f3f3f3);
-    }
-    .empty {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
-      text-align: center;
-      color: var(--secondary-text-color, #666);
-    }
-    .empty h3 {
-      margin: 0 0 8px 0;
-      color: var(--primary-text-color, #222);
-    }
-    .empty p {
-      margin: 0 0 20px 0;
-      max-width: 460px;
-    }
-    .empty-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .empty button {
-      padding: 8px 16px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      cursor: pointer;
-      border-radius: 4px;
-      color: inherit;
-      font: inherit;
-    }
-    .empty button.primary {
-      background: var(--primary-color, #03a9f4);
-      color: white;
-      border-color: var(--primary-color, #03a9f4);
-    }
-    .empty button.primary:hover {
-      filter: brightness(0.9);
-    }
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--primary-text-color, #222);
-      color: var(--primary-background-color, white);
-      padding: 10px 16px;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      font-size: 0.9em;
-      z-index: 100;
-      animation: slidein 0.2s ease-out;
-    }
-    @keyframes slidein {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
+      .filter-reset {
+        padding: 6px 12px;
+        border: 1px solid var(--mh-divider);
+        background: transparent;
+        cursor: pointer;
+        border-radius: var(--mh-radius-sm);
+        color: var(--mh-fg-muted);
+        font: inherit;
+        font-size: var(--mh-text-xs);
       }
-      to {
-        transform: translateY(0);
-        opacity: 1;
+      .filter-reset:hover {
+        background: var(--mh-surface-2);
+        color: var(--mh-fg);
       }
-    }
-  `;
+
+      /* Status-Bar */
+      .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--mh-space-2) var(--mh-space-5);
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        background: var(--mh-bg);
+        border-bottom: 1px solid var(--mh-divider);
+      }
+      .status-count {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--mh-space-2);
+      }
+      .status-count strong {
+        color: var(--mh-fg);
+        font-variant-numeric: tabular-nums;
+      }
+      .status-count .muted {
+        color: var(--mh-fg-muted);
+      }
+      .new-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        background: var(--mh-accent);
+        color: var(--mh-accent-fg);
+        border-radius: var(--mh-radius-pill);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
+        animation: pulse 1.4s ease-in-out infinite alternate;
+      }
+      @keyframes pulse {
+        from {
+          opacity: 0.65;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .status-actions {
+        display: flex;
+        gap: var(--mh-space-2);
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      a.mh-btn {
+        text-decoration: none;
+      }
+
+      /* Overflow-Menu */
+      .overflow {
+        position: relative;
+      }
+      .overflow-menu {
+        position: absolute;
+        top: calc(100% + 4px);
+        right: 0;
+        z-index: 50;
+        min-width: 240px;
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        box-shadow: var(--mh-shadow-3);
+        padding: 4px;
+        animation: menu-in 120ms ease-out;
+      }
+      @keyframes menu-in {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .overflow-item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        border: 0;
+        padding: 8px 12px;
+        border-radius: var(--mh-radius-sm);
+        font: inherit;
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg);
+        cursor: pointer;
+      }
+      .overflow-item:hover:not(:disabled) {
+        background: var(--mh-surface-2);
+      }
+      .overflow-item:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .overflow-item.danger {
+        color: var(--mh-error);
+      }
+      .overflow-item.danger:hover:not(:disabled) {
+        background: var(--mh-error-soft);
+      }
+
+      /* Empty-State */
+      .empty {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--mh-space-7) var(--mh-space-5);
+        text-align: center;
+        color: var(--mh-fg-muted);
+      }
+      .empty h3 {
+        margin: 0 0 var(--mh-space-2) 0;
+        color: var(--mh-fg);
+        font-size: var(--mh-text-lg);
+      }
+      .empty p {
+        margin: 0 0 var(--mh-space-5) 0;
+        max-width: 460px;
+        line-height: 1.5;
+      }
+      .empty-actions {
+        display: flex;
+        gap: var(--mh-space-2);
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: var(--mh-space-5);
+        right: var(--mh-space-5);
+        background: var(--mh-fg);
+        color: var(--mh-bg);
+        padding: var(--mh-space-3) var(--mh-space-4);
+        border-radius: var(--mh-radius-md);
+        box-shadow: var(--mh-shadow-3);
+        font-size: var(--mh-text-sm);
+        z-index: 100;
+        animation: slidein 200ms ease-out;
+      }
+      @keyframes slidein {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+    `
+];
 T([
-  b({ attribute: !1 })
-], $.prototype, "hass", 2);
+  v({ attribute: !1 })
+], y.prototype, "hass", 2);
 T([
-  b({ type: Boolean })
-], $.prototype, "narrow", 2);
+  v({ type: Boolean })
+], y.prototype, "narrow", 2);
 T([
-  b({ attribute: !1 })
-], $.prototype, "panel", 2);
+  v({ attribute: !1 })
+], y.prototype, "panel", 2);
 T([
-  l()
-], $.prototype, "_tab", 2);
+  d()
+], y.prototype, "_tab", 2);
 T([
-  l()
-], $.prototype, "_items", 2);
+  d()
+], y.prototype, "_items", 2);
 T([
-  l()
-], $.prototype, "_total", 2);
+  d()
+], y.prototype, "_total", 2);
 T([
-  l()
-], $.prototype, "_loading", 2);
+  d()
+], y.prototype, "_loading", 2);
 T([
-  l()
-], $.prototype, "_selected", 2);
+  d()
+], y.prototype, "_selected", 2);
 T([
-  l()
-], $.prototype, "_filters", 2);
+  d()
+], y.prototype, "_filters", 2);
 T([
-  l()
-], $.prototype, "_newCount", 2);
+  d()
+], y.prototype, "_newCount", 2);
 T([
-  l()
-], $.prototype, "_testing", 2);
+  d()
+], y.prototype, "_testing", 2);
 T([
-  l()
-], $.prototype, "_toast", 2);
-$ = T([
-  w("messagehub-panel")
-], $);
+  d()
+], y.prototype, "_toast", 2);
+T([
+  d()
+], y.prototype, "_overflowOpen", 2);
+y = T([
+  k("messagehub-panel")
+], y);
 export {
-  $ as MessageHubPanel
+  y as MessageHubPanel
 };

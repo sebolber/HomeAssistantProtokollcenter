@@ -19,6 +19,9 @@ venv/
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/tsconfig.tsbuildinfo
+frontend/src/**/*.js
+frontend/tests/**/*.js
 
 # Build-Artefakte (NICHT ignorieren: custom_components/messagehub/frontend_dist/)
 # Das wird committet, weil HACS keinen Build-Step hat.
