@@ -23,6 +23,8 @@ export class KnxAddressesView extends LitElement {
   @state() private _newAddr = "";
   @state() private _newLabel = "";
   @state() private _newDpt = "";
+  @state() private _sevPopoverFor: string | null = null;
+  @state() private _sevPopoverPos: { top: number; left: number } | null = null;
   @state() private _discovery: Array<{ address: string; name: string; dpt: string | null }> = [];
   @state() private _discoveryStatus = "loading";
   @state() private _editing: KnxAddressDto | null = null;
@@ -188,6 +190,103 @@ export class KnxAddressesView extends LitElement {
     } catch (err) {
       this._showToast((err as Error).message);
     }
+  }
+
+  private _closeSevPopover(): void {
+    this._sevPopoverFor = null;
+    this._sevPopoverPos = null;
+  }
+
+  private _onSeverityTrigger(e: Event, item: KnxAddressDto): void {
+    e.stopPropagation();
+    e.preventDefault();
+    if (this._sevPopoverFor === item.address) {
+      this._closeSevPopover();
+      return;
+    }
+    const trigger = e.currentTarget as HTMLElement;
+    const rect = trigger.getBoundingClientRect();
+    const POPOVER_HEIGHT_HINT = 220;
+    const placeBelow = rect.bottom + POPOVER_HEIGHT_HINT < window.innerHeight;
+    this._sevPopoverPos = {
+      top: placeBelow ? rect.bottom + 4 : rect.top - POPOVER_HEIGHT_HINT - 4,
+      left: rect.left,
+    };
+    this._sevPopoverFor = item.address;
+  }
+
+  private async _onSeverityPick(
+    e: Event,
+    item: KnxAddressDto,
+    severity: "debug" | "info" | "warning" | "error" | "auto"
+  ): Promise<void> {
+    e.stopPropagation();
+    this._closeSevPopover();
+    if (severity === item.log_severity) return;
+    if (!this.api) return;
+    // "auto" benoetigt T/F-Severities — Default-Mapping setzen falls leer
+    const patch: Partial<KnxAddressDto> & Pick<KnxAddressDto, "address"> = {
+      address: item.address,
+      log_severity: severity,
+    };
+    if (severity === "auto") {
+      patch.severity_on_true = item.severity_on_true ?? "warning";
+      patch.severity_on_false = item.severity_on_false ?? "info";
+    }
+    // Optimistic update
+    const previous = item.log_severity;
+    this._items = this._items.map((it) =>
+      it.address === item.address
+        ? {
+            ...it,
+            log_severity: severity,
+            severity_on_true: patch.severity_on_true ?? it.severity_on_true,
+            severity_on_false: patch.severity_on_false ?? it.severity_on_false,
+          }
+        : it
+    );
+    try {
+      await this.api.upsertKnxAddress({ ...item, ...patch });
+      this._showToast(`${item.address}: Severity ${previous} → ${severity}`);
+    } catch (err) {
+      // Rollback
+      this._items = this._items.map((it) =>
+        it.address === item.address ? { ...it, log_severity: previous } : it
+      );
+      this._showToast(`Fehlgeschlagen: ${(err as Error).message}`);
+    }
+  }
+
+  private _renderSevPopover(): TemplateResult | typeof nothing {
+    if (this._sevPopoverFor === null || this._sevPopoverPos === null) return nothing;
+    const item = this._items.find((it) => it.address === this._sevPopoverFor);
+    if (!item) return nothing;
+    const current = item.log_severity;
+    return html`
+      <div class="sev-backdrop" @click=${() => this._closeSevPopover()}></div>
+      <div
+        class="sev-popover"
+        role="menu"
+        style=${`top: ${this._sevPopoverPos.top}px; left: ${this._sevPopoverPos.left}px`}
+        @click=${(e: Event) => e.stopPropagation()}
+      >
+        ${LOG_SEVERITY_OPTIONS.map(
+          (opt) => html`<button
+            role="menuitemradio"
+            aria-checked=${opt === current}
+            class=${`sev-option ${opt === current ? "active" : ""}`}
+            @click=${(e: Event) => void this._onSeverityPick(e, item, opt)}
+          >
+            <span
+              class=${`mh-pill mh-pill--${opt === "auto" ? "neutral" : opt}`}
+            >${opt}</span>
+            ${opt === current
+              ? html`<span class="sev-check" aria-hidden="true">✓</span>`
+              : nothing}
+          </button>`
+        )}
+      </div>
+    `;
   }
 
   private async _onCsvFile(e: Event): Promise<void> {
@@ -527,9 +626,15 @@ export class KnxAddressesView extends LitElement {
                             </td>
                             <td>
                               ${it.log_enabled
-                                ? html`<span class=${`mh-pill mh-pill--${
-                                    it.log_severity === "auto" ? "neutral" : it.log_severity
-                                  }`}>
+                                ? html`<button
+                                    class=${`mh-pill mh-pill--${
+                                      it.log_severity === "auto" ? "neutral" : it.log_severity
+                                    } sev-trigger`}
+                                    title="Severity ändern"
+                                    aria-haspopup="menu"
+                                    aria-expanded=${this._sevPopoverFor === it.address}
+                                    @click=${(e: Event) => this._onSeverityTrigger(e, it)}
+                                  >
                                     <span class="mh-pill__dot"></span>
                                     ${it.log_severity}${it.log_severity === "auto"
                                       ? html` <small class="auto-detail"
@@ -537,7 +642,8 @@ export class KnxAddressesView extends LitElement {
                                           / F:${it.severity_on_false ?? "info"}</small
                                         >`
                                       : nothing}
-                                  </span>`
+                                    <span class="sev-caret" aria-hidden="true">▾</span>
+                                  </button>`
                                 : html`<span class="muted">—</span>`}
                             </td>
                             <td class="col-toggle">
@@ -582,6 +688,7 @@ export class KnxAddressesView extends LitElement {
               `}
 
         ${this._renderEditor()}
+        ${this._renderSevPopover()}
         ${this._toast ? html`<div class="toast">${this._toast}</div>` : nothing}
       </section>
     `;
@@ -953,6 +1060,86 @@ export class KnxAddressesView extends LitElement {
       }
       .modal-actions .mh-btn {
         font-size: var(--mh-text-sm);
+      }
+
+      /* Severity-Inline-Popover (Pille als klickbarer Trigger) */
+      button.sev-trigger {
+        appearance: none;
+        cursor: pointer;
+        font: inherit;
+        border: 0;
+        gap: 4px;
+        transition: filter var(--mh-transition-fast), box-shadow var(--mh-transition-fast);
+      }
+      button.sev-trigger:hover {
+        filter: brightness(0.95);
+        box-shadow: 0 0 0 2px var(--mh-divider);
+      }
+      button.sev-trigger:focus-visible {
+        outline: var(--mh-focus-ring);
+        outline-offset: 2px;
+      }
+      .sev-caret {
+        font-size: 0.7em;
+        opacity: 0.65;
+        margin-left: 2px;
+      }
+      .sev-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: transparent;
+      }
+      .sev-popover {
+        position: fixed;
+        z-index: 70;
+        min-width: 200px;
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        box-shadow: var(--mh-shadow-3);
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        animation: sev-pop-in 120ms ease-out;
+      }
+      @keyframes sev-pop-in {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      button.sev-option {
+        appearance: none;
+        background: transparent;
+        border: 0;
+        padding: 6px 8px;
+        border-radius: var(--mh-radius-sm);
+        cursor: pointer;
+        font: inherit;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--mh-space-2);
+      }
+      button.sev-option:hover {
+        background: var(--mh-surface-2);
+      }
+      button.sev-option.active {
+        background: var(--mh-surface-2);
+      }
+      button.sev-option:focus-visible {
+        outline: var(--mh-focus-ring);
+        outline-offset: -2px;
+      }
+      .sev-check {
+        color: var(--mh-success);
+        font-weight: var(--mh-weight-bold);
       }
     `,
   ];
