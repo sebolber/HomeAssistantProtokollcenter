@@ -3,8 +3,8 @@
 Status der Iterationen aus `claude-code-runbook.md` §6.
 
 ## Phase A — Foundation & Storage
-- [ ] Iteration 1 — Repo-Bootstrap
-- [ ] Iteration 2 — SQLite-Storage-Schicht
+- [x] Iteration 1 — Repo-Bootstrap
+- [x] Iteration 2 — SQLite-Storage-Schicht
 - [ ] Iteration 3 — Models & Validierung
 - [ ] Iteration 4 — Message-Repository (CRUD)
 - [ ] Iteration 5 — Service add_message + Eventbus
