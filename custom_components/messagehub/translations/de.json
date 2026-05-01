@@ -1,0 +1,14 @@
+{
+  "title": "Message Hub",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Message Hub einrichten",
+        "description": "Bestaetige die Einrichtung. Webhooks und weitere Optionen werden im Panel verwaltet."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Es ist nur eine Instanz dieser Integration erlaubt."
+    }
+  }
+}

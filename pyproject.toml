@@ -1,0 +1,99 @@
+[project]
+name = "messagehub"
+version = "0.1.0"
+description = "Home Assistant Custom Integration: zentrale Sammelstelle fuer Nachrichten und Fehlermeldungen"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "sebolber" }]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["custom_components*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = [
+    ".dev",
+    "frontend/dist",
+    "frontend/node_modules",
+    "custom_components/messagehub/frontend_dist",
+]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",       # pycodestyle / pyflakes
+    "I",                   # isort
+    "N",                   # pep8-naming
+    "UP",                  # pyupgrade
+    "B",                   # flake8-bugbear
+    "SIM",                 # flake8-simplify
+    "ASYNC",               # flake8-async
+    "RUF",                 # ruff-specific
+    "C4",                  # comprehensions
+    "PT",                  # pytest-style
+    "PL",                  # pylint subset
+    "TRY",                 # tryceratops
+]
+ignore = [
+    "PLR0913",  # too many arguments — Konfigurations-Konstruktoren brauchen sie oft
+    "TRY003",   # long messages in raise — wir wollen aussagekraeftige Fehler
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["PLR2004", "S101", "PLR0915"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_any_generics = true
+no_implicit_optional = true
+files = ["custom_components/messagehub"]
+
+[[tool.mypy.overrides]]
+module = [
+    "jsonpath_ng.*",
+    "aiosqlite.*",
+    "pytest_homeassistant_custom_component.*",
+    "homeassistant.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
+markers = [
+    "slow: tests that take more than a second",
+]
+
+[tool.coverage.run]
+source = ["custom_components/messagehub"]
+branch = true
+omit = ["custom_components/messagehub/frontend_dist/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

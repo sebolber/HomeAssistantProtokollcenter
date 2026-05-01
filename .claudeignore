@@ -1,0 +1,25 @@
+# Build-Artefakte
+custom_components/messagehub/frontend_dist/
+frontend/dist/
+frontend/node_modules/
+**/__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+*.pyc
+
+# HA-Dev-Container State
+.devcontainer/config/
+
+# Smoke-Test-Logs
+tests/smoke/
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Grosse Doc-Backups
+docs/archive/
