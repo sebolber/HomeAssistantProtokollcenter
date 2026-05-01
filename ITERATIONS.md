@@ -38,10 +38,10 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 - [x] Iteration 25 — Translations DE/EN, README, hacs.json
 
 ## Phase F — Erweiterungen Lifecycle & Dedup
-- [ ] Iteration 26 — Deduplizierung Fingerprint
-- [ ] Iteration 27 — Aggregation auf Insert
-- [ ] Iteration 28 — Status-Lifecycle
-- [ ] Iteration 29 — Acknowledge-UI
+- [x] Iteration 26 — Deduplizierung Fingerprint
+- [x] Iteration 27 — Aggregation auf Insert
+- [x] Iteration 28 — Status-Lifecycle
+- [x] Iteration 29 — Acknowledge-UI
 
 ## Phase G — Notifications
 - [ ] Iteration 30 — Forwarder + Telegram

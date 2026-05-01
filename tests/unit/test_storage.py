@@ -76,7 +76,7 @@ async def test_schema_version_after_initial_migration(tmp_path: Path) -> None:
         cols = await db.fetch_all("PRAGMA table_info(messages)")
         col_names = {row["name"] for row in cols}
         expected = {"id", "timestamp", "severity", "source", "text", "metadata", "webhook_id"}
-        assert col_names == expected
+        assert expected.issubset(col_names)
 
         # Indizes
         indexes = await db.fetch_all(

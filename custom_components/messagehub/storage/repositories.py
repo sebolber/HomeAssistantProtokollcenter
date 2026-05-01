@@ -25,18 +25,27 @@ class MessageRepository:
 
     async def insert(self, message: Message) -> int:
         """Fuegt eine Nachricht ein und gibt die generierte ID zurueck."""
+        from ..processing.deduplication import compute_fingerprint  # noqa: PLC0415
+
+        fp = compute_fingerprint(message.source, message.severity.value, message.text)
+        ts = message.timestamp_iso
         cursor = await self._db.connection.execute(
             """
-            INSERT INTO messages (timestamp, severity, source, text, metadata, webhook_id)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO messages
+                (timestamp, severity, source, text, metadata, webhook_id,
+                 fingerprint, count, first_seen, last_seen, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 'new')
             """,
             (
-                message.timestamp_iso,
+                ts,
                 message.severity.value,
                 message.source,
                 message.text,
                 message.metadata_json,
                 message.webhook_id,
+                fp,
+                ts,
+                ts,
             ),
         )
         await self._db.connection.commit()
@@ -46,6 +55,69 @@ class MessageRepository:
             raise RuntimeError("INSERT did not produce a lastrowid")
         message.id = new_id
         return new_id
+
+    async def insert_or_aggregate(
+        self, message: Message, *, window_minutes: int = 10
+    ) -> tuple[int, bool]:
+        """Iter 27: aggregiert in einem aktiven Eintrag mit gleichem Fingerprint
+        innerhalb des Zeitfensters; sonst regulaerer Insert.
+
+        Returns (id, was_aggregated).
+        """
+        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
+
+        from ..processing.deduplication import compute_fingerprint  # noqa: PLC0415
+
+        if window_minutes <= 0:
+            return await self.insert(message), False
+
+        fp = compute_fingerprint(message.source, message.severity.value, message.text)
+        cutoff = (
+            datetime.now(UTC) - timedelta(minutes=window_minutes)
+        ).isoformat(timespec="seconds")
+        row = await self._db.fetch_one(
+            """
+            SELECT id, count FROM messages
+            WHERE fingerprint = ?
+              AND status IN ('new', 'acknowledged')
+              AND last_seen >= ?
+            ORDER BY last_seen DESC
+            LIMIT 1
+            """,
+            (fp, cutoff),
+        )
+        if row is None:
+            return await self.insert(message), False
+
+        msg_id = int(row["id"])
+        new_count = int(row["count"]) + 1
+        await self._db.execute(
+            "UPDATE messages SET count = ?, last_seen = ? WHERE id = ?",
+            (new_count, message.timestamp_iso, msg_id),
+        )
+        message.id = msg_id
+        return msg_id, True
+
+    async def set_status(self, message_id: int, status: str) -> bool:
+        """Iter 28: Status-Lifecycle setzen."""
+        if status not in {"new", "acknowledged", "resolved", "expired"}:
+            raise ValueError(f"invalid status {status!r}")
+        cursor = await self._db.connection.execute(
+            "UPDATE messages SET status = ? WHERE id = ?",
+            (status, message_id),
+        )
+        await self._db.connection.commit()
+        ok = cursor.rowcount > 0
+        await cursor.close()
+        return ok
+
+    async def count_unacknowledged_errors(self) -> int:
+        """Iter 29: Counter fuer den binary_sensor."""
+        row = await self._db.fetch_one(
+            "SELECT COUNT(*) AS cnt FROM messages "
+            "WHERE severity = 'error' AND status IN ('new', 'acknowledged')"
+        )
+        return int(row["cnt"]) if row is not None else 0
 
     async def get_by_id(self, message_id: int) -> Message | None:
         """Liefert eine Nachricht per ID oder None."""
@@ -291,10 +363,9 @@ def _row_to_webhook(row: object) -> WebhookConfig:
 
 def _row_to_message(row: object) -> Message:
     """Konvertiert eine aiosqlite.Row in ein Message-Dataclass."""
-    # row supports __getitem__ via aiosqlite.Row, das wir hier via dict-Zugriff nutzen.
     timestamp_str: str = row["timestamp"]  # type: ignore[index]
     metadata_str: str | None = row["metadata"]  # type: ignore[index]
-    return Message(
+    msg = Message(
         id=int(row["id"]),  # type: ignore[index]
         timestamp=datetime.fromisoformat(timestamp_str).astimezone(UTC),
         severity=Severity(row["severity"]),  # type: ignore[index]
@@ -303,3 +374,4 @@ def _row_to_message(row: object) -> Message:
         metadata=json.loads(metadata_str) if metadata_str else None,
         webhook_id=row["webhook_id"],  # type: ignore[index]
     )
+    return msg
