@@ -143,7 +143,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     geoip_path = Path(hass.config.path("messagehub")) / "GeoLite2-Country.mmdb"
     state["geoip"] = GeoIpResolver(geoip_path if geoip_path.is_file() else None)
 
-    await _async_register_services(hass, repository)
+    _register_services(hass, repository)
     async_register_views(hass)
     await _async_register_panel(hass)
     _async_register_retention(hass, entry, database)
@@ -413,12 +413,9 @@ async def _async_register_syslog_listener(
                     metadata={"syslog_facility": parsed.facility, "remote": str(addr)},
                 )
                 hass.async_create_task(repository.insert_or_aggregate(msg, window_minutes=10))
-                hass.async_create_task(_fire_added_async(hass, msg))
+                _fire_added(hass, msg)
             except (ValueError, UnicodeDecodeError):
                 pass
-
-    async def _fire_added_async(h: Any, m: Any) -> None:
-        _fire_added(h, m)
 
     loop = asyncio.get_event_loop()
     transport, _ = await loop.create_datagram_endpoint(
@@ -788,7 +785,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-async def _async_register_services(hass: HomeAssistant, repository: MessageRepository) -> None:
+def _register_services(hass: HomeAssistant, repository: MessageRepository) -> None:
     """Registriert messagehub.add_message (idempotent)."""
     if hass.services.has_service(DOMAIN, SERVICE_ADD_MESSAGE):
         return

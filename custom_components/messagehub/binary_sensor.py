@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from .storage import MessageRepository
 
 
-async def async_setup_entry(
+async def async_setup_entry(  # NOSONAR: HA-Plattform-Hook, Signatur durch HA-API vorgegeben
     hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,

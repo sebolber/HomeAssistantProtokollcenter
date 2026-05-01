@@ -26,6 +26,17 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_LIMIT = 100
 HARD_CAP_LIMIT = 1000
 
+# Standard-Error-Messages fuer JSON-Responses.
+# Sonst wuerden die duplizierten Literale (~30x dieselben Strings) als
+# Code-Smell aufschlagen. Konstanten machen die Fehlermeldungen ausserdem
+# austauschbar/uebersetzbar an einer Stelle.
+_ERR_NOT_INITIALISED = "not initialised"
+_ERR_NOT_INITIALISED_LONG = "messagehub not initialised"
+_ERR_NOT_FOUND = "not found"
+_ERR_INVALID_ID = "invalid id"
+_ERR_INVALID_REQUEST = "invalid request"
+_ERR_INVALID_JSON = "invalid json"
+
 
 def _msg_to_dict(msg: Message) -> dict[str, Any]:
     return {
@@ -125,7 +136,7 @@ class MessagesListView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("messagehub not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED_LONG, status_code=503)
         msg_repo, _ = repos
         params = request.query
         severities = (
@@ -147,7 +158,7 @@ class MessagesListView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("messagehub not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED_LONG, status_code=503)
         msg_repo, _ = repos
 
         params = request.query
@@ -205,30 +216,30 @@ class MessageDetailView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("messagehub not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED_LONG, status_code=503)
         msg_repo, _ = repos
         try:
             mid = int(message_id)
         except ValueError:
-            return self.json_message("invalid id", status_code=400)
+            return self.json_message(_ERR_INVALID_ID, status_code=400)
         msg = await msg_repo.get_by_id(mid)
         if msg is None:
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
         return self.json(_msg_to_dict(msg))
 
     async def delete(self, request: web.Request, message_id: str) -> web.Response:
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("messagehub not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED_LONG, status_code=503)
         msg_repo, _ = repos
         try:
             mid = int(message_id)
         except ValueError:
-            return self.json_message("invalid id", status_code=400)
+            return self.json_message(_ERR_INVALID_ID, status_code=400)
         deleted = await msg_repo.delete_by_id(mid)
         if not deleted:
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
         hass = request.app["hass"]
         hass.bus.async_fire(EVENT_MESSAGE_DELETED, {"id": mid})
         await _audit(hass, request, action="delete", target_type="message", target_id=str(mid))
@@ -243,7 +254,7 @@ class SourcesView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("messagehub not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED_LONG, status_code=503)
         msg_repo, _ = repos
         sources = await msg_repo.distinct_sources()
         return self.json({"sources": sources})
@@ -257,7 +268,7 @@ class StatsView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("messagehub not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED_LONG, status_code=503)
         msg_repo, _ = repos
         return self.json(
             {
@@ -275,7 +286,7 @@ class WebhooksView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("messagehub not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED_LONG, status_code=503)
         _, wh_repo = repos
         return self.json({"webhooks": [_wh_to_dict(c) for c in await wh_repo.list_all()]})
 
@@ -290,12 +301,12 @@ class WebhooksView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("messagehub not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED_LONG, status_code=503)
         _, wh_repo = repos
         try:
             data = await request.json()
         except (ValueError, TypeError):
-            return self.json_message("invalid json", status_code=400)
+            return self.json_message(_ERR_INVALID_JSON, status_code=400)
         try:
             cfg = WebhookConfig(
                 name=data["name"],
@@ -321,11 +332,11 @@ class WebhookDetailView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         _, wh_repo = repos
         cfg = await wh_repo.get(webhook_id)
         if cfg is None:
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
         return self.json(_wh_to_dict(cfg))
 
     async def put(self, request: web.Request, webhook_id: str) -> web.Response:
@@ -335,15 +346,15 @@ class WebhookDetailView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         _, wh_repo = repos
         cfg = await wh_repo.get(webhook_id)
         if cfg is None:
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
         try:
             data = await request.json()
         except (ValueError, TypeError):
-            return self.json_message("invalid json", status_code=400)
+            return self.json_message(_ERR_INVALID_JSON, status_code=400)
         if "name" in data:
             cfg.name = data["name"]
         if "default_source" in data:
@@ -367,10 +378,10 @@ class WebhookDetailView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         _, wh_repo = repos
         if not await wh_repo.delete(webhook_id):
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
         hass = request.app["hass"]
         async_unregister_webhook(hass, webhook_id)
         await _audit(
@@ -393,20 +404,20 @@ class MessageStatusView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         msg_repo, _ = repos
         try:
             mid = int(message_id)
             data = await request.json()
             new_status = str(data.get("status", "")).strip()
         except (ValueError, TypeError):
-            return self.json_message("invalid request", status_code=400)
+            return self.json_message(_ERR_INVALID_REQUEST, status_code=400)
         try:
             ok = await msg_repo.set_status(mid, new_status)
         except ValueError as err:
             return self.json_message(str(err), status_code=400)
         if not ok:
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
         await _audit(
             request.app["hass"],
             request,
@@ -428,20 +439,20 @@ class MessageSeverityView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         msg_repo, _ = repos
         try:
             mid = int(message_id)
             data = await request.json()
             new_severity = str(data.get("severity", "")).strip().lower()
         except (ValueError, TypeError):
-            return self.json_message("invalid request", status_code=400)
+            return self.json_message(_ERR_INVALID_REQUEST, status_code=400)
         try:
             ok = await msg_repo.set_severity(mid, new_severity)
         except ValueError as err:
             return self.json_message(str(err), status_code=400)
         if not ok:
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
         await _audit(
             request.app["hass"],
             request,
@@ -463,26 +474,26 @@ class MessageTagsView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         msg_repo, _ = repos
         try:
             mid = int(message_id)
         except ValueError:
-            return self.json_message("invalid id", status_code=400)
+            return self.json_message(_ERR_INVALID_ID, status_code=400)
         return self.json({"tags": await msg_repo.get_tags(mid)})
 
     async def post(self, request: web.Request, message_id: str) -> web.Response:
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         msg_repo, _ = repos
         try:
             mid = int(message_id)
             data = await request.json()
             tag = str(data.get("tag", "")).strip()
         except (ValueError, TypeError):
-            return self.json_message("invalid request", status_code=400)
+            return self.json_message(_ERR_INVALID_REQUEST, status_code=400)
         if not tag:
             return self.json_message("tag required", status_code=400)
         await msg_repo.add_tag(mid, tag)
@@ -492,12 +503,12 @@ class MessageTagsView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         msg_repo, _ = repos
         try:
             mid = int(message_id)
         except ValueError:
-            return self.json_message("invalid id", status_code=400)
+            return self.json_message(_ERR_INVALID_ID, status_code=400)
         tag = request.query.get("tag", "").strip()
         if not tag:
             return self.json_message("tag query required", status_code=400)
@@ -517,7 +528,7 @@ class RunbookForView(_RequireAdminView):
         self._check_admin(request)
         db = _get_database(request.app["hass"])
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         fingerprint = request.query.get("fingerprint")
         rb = await RunbookRepository(db).find_for(source, fingerprint=fingerprint)
         if rb is None:
@@ -544,7 +555,7 @@ class AuditLogView(_RequireAdminView):
         self._check_admin(request)
         db = _get_database(request.app["hass"])
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             limit = min(int(request.query.get("limit", 200)), 1000)
         except ValueError:
@@ -565,7 +576,7 @@ class ExportView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         msg_repo, _ = repos
         params = request.query
         fmt = params.get("format", "jsonl").lower()
@@ -615,7 +626,7 @@ class HeartbeatsView(_RequireAdminView):
         self._check_admin(request)
         db = _get_database(request.app["hass"])
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         items = await HeartbeatRepository(db).list_all()
         return self.json(
             {
@@ -638,7 +649,7 @@ class HeartbeatsView(_RequireAdminView):
         self._check_admin(request)
         db = _get_database(request.app["hass"])
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             data = await request.json()
             source = str(data["source"])
@@ -832,7 +843,7 @@ class KnxAddressesView(_RequireAdminView):
         self._check_admin(request)
         db = _get_database(request.app["hass"])
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         items = await KnxAddressRepository(db).list_all()
         return self.json(
             {
@@ -861,11 +872,11 @@ class KnxAddressesView(_RequireAdminView):
         self._check_admin(request)
         db = _get_database(request.app["hass"])
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             data = await request.json()
         except (ValueError, TypeError):
-            return self.json_message("invalid json", status_code=400)
+            return self.json_message(_ERR_INVALID_JSON, status_code=400)
 
         repo = KnxAddressRepository(db)
         # Bulk-Import via {"csv": "..."}
@@ -926,9 +937,9 @@ class KnxAddressDetailView(_RequireAdminView):
         self._check_admin(request)
         db = _get_database(request.app["hass"])
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         if not await KnxAddressRepository(db).delete(address):
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
         await _audit(
             request.app["hass"],
             request,
@@ -954,7 +965,7 @@ class ChannelsView(_RequireAdminView):
         self._check_admin(request)
         db = _get_database(request.app["hass"])
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         items = await ChannelRepository(db).list_all()
         return self.json({"items": [channel_to_dict(it) for it in items]})
 
@@ -969,7 +980,7 @@ class ChannelsView(_RequireAdminView):
         hass = request.app["hass"]
         db = _get_database(hass)
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             data = await request.json()
             ch = Channel(
@@ -1009,15 +1020,15 @@ class ChannelTestView(_RequireAdminView):
         hass = request.app["hass"]
         db = _get_database(hass)
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             cid = int(channel_id)
         except ValueError:
-            return self.json_message("invalid id", status_code=400)
+            return self.json_message(_ERR_INVALID_ID, status_code=400)
         channels = await ChannelRepository(db).list_all()
         target = next((c for c in channels if c.id == cid), None)
         if target is None:
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
 
         # Test ignoriert Throttle/Quiet — wir ueberschreiben temporaer die Schwelle
         # auf 'debug' und Throttle auf 0, damit die Test-Nachricht garantiert
@@ -1067,7 +1078,7 @@ class ChannelDetailView(_RequireAdminView):
         hass = request.app["hass"]
         db = _get_database(hass)
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             data = await request.json()
             ch = Channel(
@@ -1098,13 +1109,13 @@ class ChannelDetailView(_RequireAdminView):
         hass = request.app["hass"]
         db = _get_database(hass)
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             cid = int(channel_id)
         except ValueError:
-            return self.json_message("invalid id", status_code=400)
+            return self.json_message(_ERR_INVALID_ID, status_code=400)
         if not await ChannelRepository(db).delete(cid):
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
         await _reload_dispatch(hass)
         await _audit(
             hass, request, action="channel_delete", target_type="channel", target_id=channel_id
@@ -1134,7 +1145,7 @@ class MqttTopicsView(_RequireAdminView):
         self._check_admin(request)
         db = _get_database(request.app["hass"])
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         items = await MqttTopicRepository(db).list_all()
         return self.json(
             {
@@ -1158,7 +1169,7 @@ class MqttTopicsView(_RequireAdminView):
         hass = request.app["hass"]
         db = _get_database(hass)
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             data = await request.json()
             t = MqttTopic(
@@ -1200,13 +1211,13 @@ class MqttTopicDetailView(_RequireAdminView):
         hass = request.app["hass"]
         db = _get_database(hass)
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             tid = int(topic_id)
         except ValueError:
-            return self.json_message("invalid id", status_code=400)
+            return self.json_message(_ERR_INVALID_ID, status_code=400)
         if not await MqttTopicRepository(db).delete(tid):
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
         await _audit(
             hass,
             request,
@@ -1229,7 +1240,7 @@ class RemediationHooksView(_RequireAdminView):
         self._check_admin(request)
         db = _get_database(request.app["hass"])
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         items = await RemediationHookRepository(db).list_all()
         return self.json(
             {
@@ -1258,7 +1269,7 @@ class RemediationHooksView(_RequireAdminView):
         hass = request.app["hass"]
         db = _get_database(hass)
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             data = await request.json()
             h = RemediationHook(
@@ -1294,13 +1305,13 @@ class RemediationHookDetailView(_RequireAdminView):
         hass = request.app["hass"]
         db = _get_database(hass)
         if db is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             hid = int(hook_id)
         except ValueError:
-            return self.json_message("invalid id", status_code=400)
+            return self.json_message(_ERR_INVALID_ID, status_code=400)
         if not await RemediationHookRepository(db).delete(hid):
-            return self.json_message("not found", status_code=404)
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
         await _audit(
             hass,
             request,
@@ -1321,7 +1332,7 @@ class StatsExtendedView(_RequireAdminView):
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message("not initialised", status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         msg_repo, _ = repos
         try:
             days = min(int(request.query.get("days", 30)), 365)
