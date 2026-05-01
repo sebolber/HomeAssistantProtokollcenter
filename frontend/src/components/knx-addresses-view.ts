@@ -150,12 +150,27 @@ export class KnxAddressesView extends LitElement {
 
   private async _toggleLog(item: KnxAddressDto): Promise<void> {
     if (!this.api) return;
+    const target = !item.log_enabled;
     try {
       await this.api.upsertKnxAddress({
         ...item,
-        log_enabled: !item.log_enabled,
+        log_enabled: target,
       });
       await this._load();
+      // Verifizieren: was kam tatsaechlich aus der DB zurueck?
+      const fresh = this._items.find((i) => i.address === item.address);
+      if (fresh && fresh.log_enabled !== target) {
+        this._showToast(
+          `Backend speichert log_enabled nicht — Browser-Cache leeren ` +
+            `(Cmd+Shift+R) und HA-Container neu starten`
+        );
+      } else {
+        this._showToast(
+          target
+            ? `${item.address} im Protokoll aktiv`
+            : `${item.address} aus Protokoll entfernt`
+        );
+      }
     } catch (err) {
       this._showToast((err as Error).message);
     }
@@ -453,11 +468,35 @@ export class KnxAddressesView extends LitElement {
         ${this._loading
           ? html`<p class="muted">lade…</p>`
           : items.length === 0
-            ? html`<p class="empty">
+            ? html`<div class="empty">
                 ${this._items.length === 0
-                  ? "Noch keine Adressen. Lege oben den ersten Eintrag an oder importiere eine ETS-CSV."
-                  : "Keine Treffer fuer aktuelle Filter."}
-              </p>`
+                  ? html`<p>
+                      Noch keine Adressen. Lege oben den ersten Eintrag an oder
+                      importiere eine ETS-CSV.
+                    </p>`
+                  : this._onlyEnabled && enabledCount === 0
+                    ? html`<p>
+                          <strong>Keine Adresse ist im Protokoll aktiv.</strong>
+                        </p>
+                        <p>
+                          So aktivierst du eine: in der Liste den
+                          <strong>OFF</strong>-Knopf einer Adresse klicken (er
+                          wird gruen <strong>✓ ON</strong>) — oder im
+                          Edit-Dialog &bdquo;Im Protokoll erfassen&ldquo;
+                          anhaken und speichern.
+                        </p>
+                        <p class="muted small">
+                          Falls du gerade aktiviert hast und es trotzdem nicht
+                          erscheint: <strong>Browser-Cache leeren</strong>
+                          (Cmd+Shift+R) — sonst liegt evtl. der alte Bundle
+                          mit dem API-Bug vom 2026-05-01 vor 21:14 vor.
+                        </p>`
+                    : html`<p>
+                        Keine Treffer fuer aktuelle Filter
+                        (${this._items.length} Adressen total,
+                        ${enabledCount} davon aktiv).
+                      </p>`}
+              </div>`
             : html`
                 <table>
                   <thead>

@@ -45,7 +45,7 @@ const st = (r) => new Qe(typeof r == "string" ? r : r + "", void 0, Te), S = (r,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: it, defineProperty: ot, getOwnPropertyDescriptor: nt, getOwnPropertyNames: lt, getOwnPropertySymbols: dt, getPrototypeOf: ct } = Object, D = globalThis, Ue = D.trustedTypes, ht = Ue ? Ue.emptyScript : "", ve = D.reactiveElementPolyfillSupport, te = (r, e) => r, ce = { toAttribute(r, e) {
+const { is: it, defineProperty: ot, getOwnPropertyDescriptor: nt, getOwnPropertyNames: lt, getOwnPropertySymbols: dt, getPrototypeOf: ct } = Object, D = globalThis, Ue = D.trustedTypes, ht = Ue ? Ue.emptyScript : "", me = D.reactiveElementPolyfillSupport, te = (r, e) => r, ce = { toAttribute(r, e) {
   switch (e) {
     case Boolean:
       r = r ? ht : null;
@@ -278,7 +278,7 @@ let J = class extends HTMLElement {
   firstUpdated(e) {
   }
 };
-J.elementStyles = [], J.shadowRootOptions = { mode: "open" }, J[te("elementProperties")] = /* @__PURE__ */ new Map(), J[te("finalized")] = /* @__PURE__ */ new Map(), ve == null || ve({ ReactiveElement: J }), (D.reactiveElementVersions ?? (D.reactiveElementVersions = [])).push("2.1.2");
+J.elementStyles = [], J.shadowRootOptions = { mode: "open" }, J[te("elementProperties")] = /* @__PURE__ */ new Map(), J[te("finalized")] = /* @__PURE__ */ new Map(), me == null || me({ ReactiveElement: J }), (D.reactiveElementVersions ?? (D.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -296,8 +296,8 @@ const ft = (r, e) => {
   let s, i = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", o = Z;
   for (let c = 0; c < t; c++) {
     const d = r[c];
-    let p, m, h = -1, f = 0;
-    for (; f < d.length && (o.lastIndex = f, m = o.exec(d), m !== null); ) f = o.lastIndex, o === Z ? m[1] === "!--" ? o = Le : m[1] !== void 0 ? o = Me : m[2] !== void 0 ? (Ze.test(m[2]) && (s = RegExp("</" + m[2], "g")), o = L) : m[3] !== void 0 && (o = L) : o === L ? m[0] === ">" ? (o = s ?? Z, h = -1) : m[1] === void 0 ? h = -2 : (h = o.lastIndex - m[2].length, p = m[1], o = m[3] === void 0 ? L : m[3] === '"' ? Re : Ie) : o === Re || o === Ie ? o = L : o === Le || o === Me ? o = Z : (o = L, s = void 0);
+    let p, v, h = -1, f = 0;
+    for (; f < d.length && (o.lastIndex = f, v = o.exec(d), v !== null); ) f = o.lastIndex, o === Z ? v[1] === "!--" ? o = Le : v[1] !== void 0 ? o = Me : v[2] !== void 0 ? (Ze.test(v[2]) && (s = RegExp("</" + v[2], "g")), o = L) : v[3] !== void 0 && (o = L) : o === L ? v[0] === ">" ? (o = s ?? Z, h = -1) : v[1] === void 0 ? h = -2 : (h = o.lastIndex - v[2].length, p = v[1], o = v[3] === void 0 ? L : v[3] === '"' ? Re : Ie) : o === Re || o === Ie ? o = L : o === Le || o === Me ? o = Z : (o = L, s = void 0);
     const u = o === L && r[c + 1].startsWith("/>") ? " " : "";
     i += o === Z ? d + pt : h >= 0 ? (a.push(p), d.slice(0, h) + Ye + d.slice(h) + U + u) : d + U + (h === -2 ? c : u);
   }
@@ -308,7 +308,7 @@ class ie {
     let s;
     this.parts = [];
     let i = 0, o = 0;
-    const c = e.length - 1, d = this.parts, [p, m] = ft(e, t);
+    const c = e.length - 1, d = this.parts, [p, v] = ft(e, t);
     if (this.el = ie.createElement(p, a), I.currentNode = this.el.content, t === 2 || t === 3) {
       const h = this.el.content.firstChild;
       h.replaceWith(...h.childNodes);
@@ -316,8 +316,8 @@ class ie {
     for (; (s = I.nextNode()) !== null && d.length < c; ) {
       if (s.nodeType === 1) {
         if (s.hasAttributes()) for (const h of s.getAttributeNames()) if (h.endsWith(Ye)) {
-          const f = m[o++], u = s.getAttribute(h).split(U), _ = /([.?@])?(.*)/.exec(f);
-          d.push({ type: 1, index: i, name: _[2], strings: u, ctor: _[1] === "." ? mt : _[1] === "?" ? vt : _[1] === "@" ? _t : ge }), s.removeAttribute(h);
+          const f = v[o++], u = s.getAttribute(h).split(U), _ = /([.?@])?(.*)/.exec(f);
+          d.push({ type: 1, index: i, name: _[2], strings: u, ctor: _[1] === "." ? vt : _[1] === "?" ? mt : _[1] === "@" ? _t : ge }), s.removeAttribute(h);
         } else h.startsWith(U) && (d.push({ type: 6, index: i }), s.removeAttribute(h));
         if (Ze.test(s.tagName)) {
           const h = s.textContent.split(U), f = h.length - 1;
@@ -463,7 +463,7 @@ class ge {
     e === g ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
   }
 }
-class mt extends ge {
+class vt extends ge {
   constructor() {
     super(...arguments), this.type = 3;
   }
@@ -471,7 +471,7 @@ class mt extends ge {
     this.element[this.name] = e === g ? void 0 : e;
   }
 }
-class vt extends ge {
+class mt extends ge {
   constructor() {
     super(...arguments), this.type = 4;
   }
@@ -521,7 +521,7 @@ const $t = (r, e, t) => {
  * SPDX-License-Identifier: BSD-3-Clause
  */
 const R = globalThis;
-let v = class extends J {
+let m = class extends J {
   constructor() {
     super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
   }
@@ -547,9 +547,9 @@ let v = class extends J {
   }
 };
 var Ge;
-v._$litElement$ = !0, v.finalized = !0, (Ge = R.litElementHydrateSupport) == null || Ge.call(R, { LitElement: v });
+m._$litElement$ = !0, m.finalized = !0, (Ge = R.litElementHydrateSupport) == null || Ge.call(R, { LitElement: m });
 const xe = R.litElementPolyfillSupport;
-xe == null || xe({ LitElement: v });
+xe == null || xe({ LitElement: m });
 (R.litElementVersions ?? (R.litElementVersions = [])).push("4.2.2");
 /**
  * @license
@@ -916,8 +916,8 @@ const { I: Pt } = xt, Be = (r) => r, We = () => document.createComment(""), ee =
     if (o !== s || d) {
       let p = t._$AA;
       for (; p !== o; ) {
-        const m = Be(p).nextSibling;
-        Be(a).insertBefore(p, s), p = m;
+        const v = Be(p).nextSibling;
+        Be(a).insertBefore(p, s), p = v;
       }
     }
   }
@@ -953,19 +953,19 @@ const Ke = (r, e, t) => {
     const s = Ot(r), { values: i, keys: o } = this.dt(e, t, a);
     if (!Array.isArray(s)) return this.ut = o, i;
     const c = this.ut ?? (this.ut = []), d = [];
-    let p, m, h = 0, f = s.length - 1, u = 0, _ = i.length - 1;
+    let p, v, h = 0, f = s.length - 1, u = 0, _ = i.length - 1;
     for (; h <= f && u <= _; ) if (s[h] === null) h++;
     else if (s[f] === null) f--;
     else if (c[h] === o[u]) d[u] = M(s[h], i[u]), h++, u++;
     else if (c[f] === o[_]) d[_] = M(s[f], i[_]), f--, _--;
     else if (c[h] === o[_]) d[_] = M(s[h], i[_]), ee(r, d[_ + 1], s[h]), h++, _--;
     else if (c[f] === o[u]) d[u] = M(s[f], i[u]), ee(r, s[h], s[f]), f--, u++;
-    else if (p === void 0 && (p = Ke(o, u, _), m = Ke(c, h, f)), p.has(c[h])) if (p.has(c[f])) {
-      const z = m.get(o[u]), me = z !== void 0 ? s[z] : null;
-      if (me === null) {
+    else if (p === void 0 && (p = Ke(o, u, _), v = Ke(c, h, f)), p.has(c[h])) if (p.has(c[f])) {
+      const z = v.get(o[u]), ve = z !== void 0 ? s[z] : null;
+      if (ve === null) {
         const Ce = ee(r, s[h]);
         M(Ce, i[u]), d[u] = Ce;
-      } else d[u] = M(me, i[u]), ee(r, s[h], me), s[z] = null;
+      } else d[u] = M(ve, i[u]), ee(r, s[h], ve), s[z] = null;
       u++;
     } else $e(s[f]), f--;
     else $e(s[h]), h++;
@@ -996,7 +996,7 @@ const Ht = {
   info: "Info",
   debug: "Debug"
 };
-let pe = class extends v {
+let pe = class extends m {
   constructor() {
     super(...arguments), this.items = [], this._onClick = (r) => {
       this.dispatchEvent(
@@ -1181,7 +1181,7 @@ var jt = Object.defineProperty, Lt = Object.getOwnPropertyDescriptor, rt = (r, e
   return a && s && jt(e, t, s), s;
 };
 const Ve = ["error", "warning", "info", "debug"];
-let ue = class extends v {
+let ue = class extends m {
   constructor() {
     super(...arguments), this.selected = [...Ve];
   }
@@ -1250,7 +1250,7 @@ var Mt = Object.defineProperty, It = Object.getOwnPropertyDescriptor, fe = (r, e
     (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
   return a && s && Mt(e, t, s), s;
 };
-let Q = class extends v {
+let Q = class extends m {
   constructor() {
     super(...arguments), this.selected = "", this._sources = [];
   }
@@ -1307,7 +1307,7 @@ var Rt = Object.defineProperty, Ft = Object.getOwnPropertyDescriptor, Pe = (r, e
     (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
   return a && s && Rt(e, t, s), s;
 };
-let oe = class extends v {
+let oe = class extends m {
   _set(r) {
     let e;
     const t = /* @__PURE__ */ new Date();
@@ -1357,7 +1357,7 @@ var Bt = Object.defineProperty, Wt = Object.getOwnPropertyDescriptor, j = (r, e,
     (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
   return a && s && Bt(e, t, s), s;
 };
-let E = class extends v {
+let E = class extends m {
   constructor() {
     super(...arguments), this._status = "new", this._tags = [], this._newTag = "", this._runbook = null, this._busy = !1;
   }
@@ -1792,7 +1792,7 @@ const Vt = ["debug", "info", "warning", "error"], Jt = JSON.stringify(
 function Gt(r) {
   return r.toLowerCase().normalize("NFKD").replace(/[äÄ]/g, "ae").replace(/[öÖ]/g, "oe").replace(/[üÜ]/g, "ue").replace(/ß/g, "ss").replace(/[\s/\\]+/g, "-").replace(/[^a-z0-9._-]/g, "").slice(0, 64);
 }
-let A = class extends v {
+let A = class extends m {
   constructor() {
     super(...arguments), this.editing = null, this._name = "", this._source = "", this._severity = "info", this._enabled = !0, this._mappingText = "", this._error = "", this._saving = !1;
   }
@@ -2127,7 +2127,7 @@ var Qt = Object.defineProperty, Yt = Object.getOwnPropertyDescriptor, k = (r, e,
   return a && s && Qt(e, t, s), s;
 };
 const Xt = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, ke = ["debug", "info", "warning", "error"], Zt = [...ke, "auto"];
-let x = class extends v {
+let x = class extends m {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._onlyEnabled = !1, this._newAddr = "", this._newLabel = "", this._newDpt = "", this._discovery = [], this._discoveryStatus = "loading", this._editing = null, this._toast = "", this._error = "";
   }
@@ -2218,15 +2218,22 @@ let x = class extends v {
     }
   }
   async _toggleLog(r) {
-    if (this.api)
-      try {
-        await this.api.upsertKnxAddress({
-          ...r,
-          log_enabled: !r.log_enabled
-        }), await this._load();
-      } catch (e) {
-        this._showToast(e.message);
-      }
+    if (!this.api) return;
+    const e = !r.log_enabled;
+    try {
+      await this.api.upsertKnxAddress({
+        ...r,
+        log_enabled: e
+      }), await this._load();
+      const t = this._items.find((a) => a.address === r.address);
+      t && t.log_enabled !== e ? this._showToast(
+        "Backend speichert log_enabled nicht — Browser-Cache leeren (Cmd+Shift+R) und HA-Container neu starten"
+      ) : this._showToast(
+        e ? `${r.address} im Protokoll aktiv` : `${r.address} aus Protokoll entfernt`
+      );
+    } catch (t) {
+      this._showToast(t.message);
+    }
   }
   async _delete(r) {
     if (this.api && window.confirm(`KNX-Adresse ${r} loeschen?`))
@@ -2471,9 +2478,31 @@ let x = class extends v {
           <span class="muted">${r.length} sichtbar</span>
         </div>
 
-        ${this._loading ? n`<p class="muted">lade…</p>` : r.length === 0 ? n`<p class="empty">
-                ${this._items.length === 0 ? "Noch keine Adressen. Lege oben den ersten Eintrag an oder importiere eine ETS-CSV." : "Keine Treffer fuer aktuelle Filter."}
-              </p>` : n`
+        ${this._loading ? n`<p class="muted">lade…</p>` : r.length === 0 ? n`<div class="empty">
+                ${this._items.length === 0 ? n`<p>
+                      Noch keine Adressen. Lege oben den ersten Eintrag an oder
+                      importiere eine ETS-CSV.
+                    </p>` : this._onlyEnabled && e === 0 ? n`<p>
+                          <strong>Keine Adresse ist im Protokoll aktiv.</strong>
+                        </p>
+                        <p>
+                          So aktivierst du eine: in der Liste den
+                          <strong>OFF</strong>-Knopf einer Adresse klicken (er
+                          wird gruen <strong>✓ ON</strong>) — oder im
+                          Edit-Dialog &bdquo;Im Protokoll erfassen&ldquo;
+                          anhaken und speichern.
+                        </p>
+                        <p class="muted small">
+                          Falls du gerade aktiviert hast und es trotzdem nicht
+                          erscheint: <strong>Browser-Cache leeren</strong>
+                          (Cmd+Shift+R) — sonst liegt evtl. der alte Bundle
+                          mit dem API-Bug vom 2026-05-01 vor 21:14 vor.
+                        </p>` : n`<p>
+                        Keine Treffer fuer aktuelle Filter
+                        (${this._items.length} Adressen total,
+                        ${e} davon aktiv).
+                      </p>`}
+              </div>` : n`
                 <table>
                   <thead>
                     <tr>
@@ -2888,7 +2917,7 @@ var er = Object.defineProperty, tr = Object.getOwnPropertyDescriptor, ne = (r, e
   return a && s && er(e, t, s), s;
 };
 const rr = ["telegram", "pushover", "ntfy", "signal", "notify"], sr = ["debug", "info", "warning", "error"];
-let W = class extends v {
+let W = class extends m {
   constructor() {
     super(...arguments), this._items = [], this._editing = null, this._toast = "";
   }
@@ -3482,7 +3511,7 @@ const ze = S`
     color: var(--secondary-text-color, #666);
   }
 `;
-let H = class extends v {
+let H = class extends m {
   constructor() {
     super(...arguments), this._items = [], this._newPattern = "", this._newSource = "", this._newSeverity = "info";
   }
@@ -3589,7 +3618,7 @@ y([
 H = y([
   w("mqtt-topics-view")
 ], H);
-let K = class extends v {
+let K = class extends m {
   constructor() {
     super(...arguments), this._items = [], this._newSource = "", this._newInterval = 3600;
   }
@@ -3671,7 +3700,7 @@ y([
 K = y([
   w("heartbeats-view")
 ], K);
-let C = class extends v {
+let C = class extends m {
   constructor() {
     super(...arguments), this._items = [], this._newName = "", this._newSource = "", this._newAutomation = "", this._newAuto = !1;
   }
@@ -3794,7 +3823,7 @@ var or = Object.defineProperty, nr = Object.getOwnPropertyDescriptor, q = (r, e,
     (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
   return a && s && or(e, t, s), s;
 };
-let O = class extends v {
+let O = class extends m {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._showForm = !1, this._editing = null, this._toast = "";
   }
@@ -4228,7 +4257,7 @@ const cr = {
   info: "var(--info-color, #03a9f4)",
   debug: "var(--secondary-text-color, #888)"
 };
-let N = class extends v {
+let N = class extends m {
   constructor() {
     super(...arguments), this._stats = null, this._sources = [], this._heatmap = [], this._topSources = [], this._loading = !1;
   }
@@ -4589,7 +4618,7 @@ var pr = Object.defineProperty, ur = Object.getOwnPropertyDescriptor, be = (r, e
     (o = r[i]) && (s = (a ? o(e, t, s) : o(s)) || s);
   return a && s && pr(e, t, s), s;
 };
-let Y = class extends v {
+let Y = class extends m {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1;
   }
@@ -4746,7 +4775,7 @@ const Je = "messagehub.filters", le = {
   source: "",
   search: ""
 };
-let $ = class extends v {
+let $ = class extends m {
   constructor() {
     super(...arguments), this.narrow = !1, this._tab = "messages", this._items = [], this._total = 0, this._loading = !1, this._selected = null, this._filters = this._loadFilters(), this._newCount = 0, this._testing = !1, this._toast = "", this._api = new St(), this._onSeverityChange = (r) => {
       this._filters = { ...this._filters, severity: r.detail.severities }, this._persistFilters(), this._reload();
