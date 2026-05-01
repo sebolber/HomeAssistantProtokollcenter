@@ -1,0 +1,42 @@
+name: Release
+
+# Stoesst HACS-/HA-Validierung bei jedem v*-Tag an, plus optional manuell.
+# Stellt sicher, dass die manifest.json-Version mit dem Tag uebereinstimmt
+# und dass HACS das Repo akzeptieren wird.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate manifest + HACS + hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check manifest version matches tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF##refs/tags/v}"
+          version="$(python -c 'import json,sys; print(json.load(open("custom_components/messagehub/manifest.json"))["version"])')"
+          echo "Tag version:      ${tag}"
+          echo "Manifest version: ${version}"
+          if [ "${tag}" != "${version}" ]; then
+            echo "::error::manifest.json version (${version}) does not match tag (v${tag})"
+            exit 1
+          fi
+
+      - name: Hassfest (HA Core integration validation)
+        uses: home-assistant/actions/hassfest@master
+
+      - name: HACS validation (integration category)
+        uses: hacs/action@main
+        with:
+          category: integration
