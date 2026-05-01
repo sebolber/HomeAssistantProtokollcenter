@@ -63,6 +63,12 @@ export class DetailPane extends LitElement {
       background: var(--card-background-color, white);
       box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
       display: flex;
+      z-index: 50;
+    }
+    @media (max-width: 600px) {
+      :host {
+        width: 100%;
+      }
     }
     aside {
       flex: 1;
