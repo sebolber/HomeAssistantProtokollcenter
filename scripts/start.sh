@@ -3,7 +3,8 @@
 #
 # One-Stop-Start fuer die messagehub-Entwicklung:
 #   0. (optional) holt einen Branch aus origin und checkt ihn aus
-#   1. prueft Voraussetzungen (Python 3.12+, Docker, docker compose)
+#   1. prueft Voraussetzungen (Python 3.12+, Docker, docker compose) und
+#      installiert Fehlendes nach (sudo erforderlich, mit Rueckfrage)
 #   2. legt eine venv .venv/ an, falls nicht vorhanden
 #   3. installiert Test- und Tooling-Dependencies (idempotent)
 #   4. fuehrt optional die Unit-Tests als Smoke-Test aus
@@ -21,13 +22,16 @@
 #   --no-tests    Smoke-Tests ueberspringen
 #   --reset       Dev-HA-Konfiguration loeschen, frischer HA-Onboarding-Flow
 #   --logs        nach dem Start direkt in den Log-Tail wechseln
+#   --yes | -y    sudo-/Install-Prompts automatisch bestaetigen
+#   --no-install  fehlende Voraussetzungen NICHT auto-installieren, nur warnen
 #   -h | --help   diese Hilfe anzeigen
 #
 # Beispiele:
 #   bash scripts/start.sh
 #   bash scripts/start.sh main
 #   bash scripts/start.sh main --reset --logs
-#   bash scripts/start.sh claude/extract-zip-implement-566cR --no-tests
+#   bash scripts/start.sh -y                        # alles auto-installieren
+#   bash scripts/start.sh claude/feature-x --no-tests
 
 set -euo pipefail
 
@@ -45,7 +49,7 @@ warn() { echo -e "${YELLOW}!${NC}  $*"; }
 fail() { echo -e "${RED}✗${NC}  $*" >&2; exit 1; }
 
 usage() {
-  sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,33p' "$0" | sed 's/^# \{0,1\}//'
   exit 0
 }
 
@@ -53,15 +57,19 @@ usage() {
 RUN_TESTS=1
 RESET_HA=0
 TAIL_LOGS=0
+ASSUME_YES=0
+AUTO_INSTALL=1
 BRANCH=""
 for arg in "$@"; do
   case "$arg" in
-    --no-tests) RUN_TESTS=0 ;;
-    --reset)    RESET_HA=1 ;;
-    --logs)     TAIL_LOGS=1 ;;
-    -h|--help)  usage ;;
-    --*)        fail "Unbekannte Option: $arg (--help fuer Hilfe)" ;;
-    -*)         fail "Unbekannte Option: $arg (--help fuer Hilfe)" ;;
+    --no-tests)    RUN_TESTS=0 ;;
+    --reset)       RESET_HA=1 ;;
+    --logs)        TAIL_LOGS=1 ;;
+    --yes|-y)      ASSUME_YES=1 ;;
+    --no-install)  AUTO_INSTALL=0 ;;
+    -h|--help)     usage ;;
+    --*)           fail "Unbekannte Option: $arg (--help fuer Hilfe)" ;;
+    -*)            fail "Unbekannte Option: $arg (--help fuer Hilfe)" ;;
     *)
       if [ -z "$BRANCH" ]; then
         BRANCH="$arg"
@@ -127,33 +135,248 @@ fi
 # ── 1. Prerequisites ───────────────────────────────────────────────────────────
 step "pruefe Voraussetzungen"
 
-PYTHON_BIN=""
-for cand in python3.13 python3.12 python3; do
-  if command -v "$cand" >/dev/null 2>&1; then
-    ver=$("$cand" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-    major=${ver%%.*}
-    minor=${ver##*.}
-    if [ "$major" -eq 3 ] && [ "$minor" -ge 12 ]; then
-      PYTHON_BIN="$cand"
-      info "Python:        $cand ($ver)"
-      break
-    fi
+# OS / Package-Manager erkennen
+OS_FAMILY="unknown"
+PKG_INSTALL=""
+PKG_UPDATE=""
+NEEDS_SUDO=0
+
+if [ "$(uname -s)" = "Darwin" ]; then
+  OS_FAMILY="macos"
+  if command -v brew >/dev/null 2>&1; then
+    PKG_INSTALL="brew install"
+    PKG_UPDATE="brew update"
   fi
-done
-[ -n "$PYTHON_BIN" ] || fail "Python 3.12 oder neuer benoetigt (gefunden: keiner)"
-
-command -v docker >/dev/null 2>&1 || fail "docker nicht gefunden"
-info "Docker:        $(docker --version)"
-
-if docker compose version >/dev/null 2>&1; then
-  COMPOSE="docker compose"
-  info "Compose:       $(docker compose version --short 2>/dev/null || echo 'plugin')"
-elif command -v docker-compose >/dev/null 2>&1; then
-  COMPOSE="docker-compose"
-  warn "nutze legacy docker-compose ($(docker-compose --version))"
-else
-  fail "weder 'docker compose' noch 'docker-compose' verfuegbar"
+elif [ -f /etc/os-release ]; then
+  # shellcheck source=/dev/null
+  . /etc/os-release
+  case "${ID:-}${ID_LIKE:-}" in
+    *ubuntu*|*debian*)
+      OS_FAMILY="debian"
+      PKG_INSTALL="apt-get install -y"
+      PKG_UPDATE="apt-get update"
+      NEEDS_SUDO=1
+      ;;
+    *fedora*|*rhel*|*centos*|*rocky*|*alma*)
+      OS_FAMILY="fedora"
+      PKG_INSTALL="dnf install -y"
+      PKG_UPDATE="dnf -y check-update || true"
+      NEEDS_SUDO=1
+      ;;
+    *arch*|*manjaro*)
+      OS_FAMILY="arch"
+      PKG_INSTALL="pacman -S --noconfirm"
+      PKG_UPDATE="pacman -Sy"
+      NEEDS_SUDO=1
+      ;;
+    *alpine*)
+      OS_FAMILY="alpine"
+      PKG_INSTALL="apk add"
+      PKG_UPDATE="apk update"
+      NEEDS_SUDO=1
+      ;;
+  esac
 fi
+
+info "OS-Family:     $OS_FAMILY"
+
+# sudo nur, wenn nicht root
+SUDO=""
+if [ "$NEEDS_SUDO" -eq 1 ] && [ "$(id -u)" -ne 0 ]; then
+  SUDO="sudo"
+fi
+
+confirm() {
+  # confirm "<frage>" — true bei y/Y oder ASSUME_YES, false sonst
+  local prompt="$1"
+  if [ "$ASSUME_YES" -eq 1 ]; then
+    info "$prompt (auto-yes)"
+    return 0
+  fi
+  printf "${YELLOW}?${NC}  %s [y/N] " "$prompt"
+  read -r answer
+  case "${answer:-}" in
+    y|Y|yes|YES) return 0 ;;
+    *)           return 1 ;;
+  esac
+}
+
+run_install() {
+  # run_install <kommandos...>
+  if [ -z "$PKG_INSTALL" ]; then
+    return 1
+  fi
+  # shellcheck disable=SC2086
+  $SUDO $PKG_UPDATE >/dev/null 2>&1 || true
+  # shellcheck disable=SC2086
+  $SUDO $PKG_INSTALL "$@"
+}
+
+ensure_python() {
+  PYTHON_BIN=""
+  for cand in python3.13 python3.12 python3; do
+    if command -v "$cand" >/dev/null 2>&1; then
+      ver=$("$cand" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+      major=${ver%%.*}
+      minor=${ver##*.}
+      if [ "$major" -eq 3 ] && [ "$minor" -ge 12 ]; then
+        PYTHON_BIN="$cand"
+        info "Python:        $cand ($ver)"
+        return 0
+      fi
+    fi
+  done
+
+  warn "Python 3.12+ nicht gefunden"
+  if [ "$AUTO_INSTALL" -eq 0 ]; then
+    fail "Bitte Python 3.12+ installieren (siehe README) oder ohne --no-install starten"
+  fi
+
+  case "$OS_FAMILY" in
+    debian)
+      if confirm "Python 3.12 via deadsnakes-PPA installieren? (sudo)"; then
+        $SUDO $PKG_INSTALL software-properties-common >/dev/null
+        $SUDO add-apt-repository -y ppa:deadsnakes/ppa
+        $SUDO $PKG_UPDATE >/dev/null
+        $SUDO $PKG_INSTALL python3.12 python3.12-venv python3.12-dev
+      else
+        fail "Python-Install abgebrochen"
+      fi
+      ;;
+    fedora)
+      if confirm "Python 3.12 via dnf installieren? (sudo)"; then
+        run_install python3.12
+      else
+        fail "Python-Install abgebrochen"
+      fi
+      ;;
+    arch)
+      if confirm "Python via pacman installieren? (sudo)"; then
+        run_install python
+      else
+        fail "Python-Install abgebrochen"
+      fi
+      ;;
+    alpine)
+      if confirm "Python 3.12 via apk installieren? (sudo)"; then
+        run_install python3 py3-virtualenv
+      else
+        fail "Python-Install abgebrochen"
+      fi
+      ;;
+    macos)
+      if ! command -v brew >/dev/null 2>&1; then
+        fail "Homebrew nicht gefunden. Installiere via https://brew.sh und starte erneut"
+      fi
+      if confirm "Python 3.12 via Homebrew installieren?"; then
+        brew install python@3.12
+      else
+        fail "Python-Install abgebrochen"
+      fi
+      ;;
+    *)
+      fail "automatischer Python-Install fuer OS '$OS_FAMILY' nicht unterstuetzt — bitte manuell installieren"
+      ;;
+  esac
+
+  # Nach Install nochmal suchen
+  for cand in python3.13 python3.12; do
+    if command -v "$cand" >/dev/null 2>&1; then
+      PYTHON_BIN="$cand"
+      info "Python:        $cand"
+      return 0
+    fi
+  done
+  fail "Python-Install schien zu klappen, aber kein python3.12/3.13 im PATH"
+}
+
+ensure_docker() {
+  if command -v docker >/dev/null 2>&1; then
+    info "Docker:        $(docker --version)"
+    return 0
+  fi
+
+  warn "docker nicht gefunden"
+  if [ "$AUTO_INSTALL" -eq 0 ]; then
+    fail "Bitte Docker installieren (siehe https://docs.docker.com/get-docker)"
+  fi
+
+  case "$OS_FAMILY" in
+    debian|fedora|arch|alpine)
+      if confirm "Docker via get.docker.com Skript installieren? (curl | sh, sudo)"; then
+        curl -fsSL https://get.docker.com | $SUDO sh
+        # Wenn nicht root: Benutzer in docker-Gruppe aufnehmen
+        if [ "$(id -u)" -ne 0 ]; then
+          $SUDO usermod -aG docker "$USER" || true
+          warn "Du wurdest zur Gruppe 'docker' hinzugefuegt — bitte einmal aus-/einloggen, dann start.sh erneut starten"
+          exit 0
+        fi
+      else
+        fail "Docker-Install abgebrochen"
+      fi
+      ;;
+    macos)
+      fail "Bitte Docker Desktop fuer Mac installieren: https://www.docker.com/products/docker-desktop"
+      ;;
+    *)
+      fail "automatischer Docker-Install fuer OS '$OS_FAMILY' nicht unterstuetzt"
+      ;;
+  esac
+
+  command -v docker >/dev/null 2>&1 || fail "Docker-Install ist fehlgeschlagen"
+  info "Docker:        $(docker --version)"
+}
+
+ensure_compose() {
+  if docker compose version >/dev/null 2>&1; then
+    COMPOSE="docker compose"
+    info "Compose:       $(docker compose version --short 2>/dev/null || echo 'plugin')"
+    return 0
+  fi
+  if command -v docker-compose >/dev/null 2>&1; then
+    COMPOSE="docker-compose"
+    warn "nutze legacy docker-compose ($(docker-compose --version))"
+    return 0
+  fi
+
+  warn "weder 'docker compose' noch 'docker-compose' verfuegbar"
+  if [ "$AUTO_INSTALL" -eq 0 ]; then
+    fail "Bitte docker-compose-plugin installieren"
+  fi
+
+  case "$OS_FAMILY" in
+    debian)
+      if confirm "docker-compose-plugin via apt installieren? (sudo)"; then
+        run_install docker-compose-plugin
+      else
+        fail "Compose-Install abgebrochen"
+      fi
+      ;;
+    fedora|arch|alpine)
+      if confirm "docker-compose-plugin nachinstallieren? (sudo)"; then
+        run_install docker-compose-plugin || run_install docker-compose
+      else
+        fail "Compose-Install abgebrochen"
+      fi
+      ;;
+    macos)
+      fail "Compose ist Teil von Docker Desktop — bitte sicherstellen, dass Desktop laeuft"
+      ;;
+  esac
+
+  if docker compose version >/dev/null 2>&1; then
+    COMPOSE="docker compose"
+  elif command -v docker-compose >/dev/null 2>&1; then
+    COMPOSE="docker-compose"
+  else
+    fail "Compose-Install ist fehlgeschlagen"
+  fi
+  info "Compose:       $COMPOSE OK"
+}
+
+ensure_python
+ensure_docker
+ensure_compose
 
 # ── 2. venv ────────────────────────────────────────────────────────────────────
 if [ ! -d .venv ]; then
