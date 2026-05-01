@@ -1,0 +1,38 @@
+add_message:
+  name: Nachricht hinzufuegen
+  description: Fuegt manuell eine Nachricht in den Message Hub ein.
+  fields:
+    severity:
+      name: Severity
+      description: Schweregrad der Nachricht.
+      required: true
+      example: "error"
+      selector:
+        select:
+          options:
+            - "debug"
+            - "info"
+            - "warning"
+            - "error"
+    source:
+      name: Quelle
+      description: Logische Herkunft (z. B. `pihole`, `knx-bus`). Lowercase, max 64 Zeichen.
+      required: true
+      example: "pihole"
+      selector:
+        text:
+    text:
+      name: Text
+      description: Nachrichtentext (UTF-8, max 8 KB).
+      required: true
+      example: "Upstream DNS unreachable"
+      selector:
+        text:
+          multiline: true
+    metadata:
+      name: Metadata
+      description: Optionale Zusatzfelder als beliebiges Mapping.
+      required: false
+      example: '{"host": "raspi", "code": 42}'
+      selector:
+        object:
