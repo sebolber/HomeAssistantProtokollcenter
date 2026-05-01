@@ -1,8 +1,11 @@
-// Stats-Dashboard: KPI-Cards + Severity-Verteilung + Top-Sources.
+// Stats-Dashboard: KPI-Cards + Severity-Verteilung + Top-Sources + Heatmap.
+// UI-Polish: Stacked-Bar statt 4-Zeilen-Liste, kompaktere KPIs,
+// nuanciertere Heatmap mit Achsenbeschriftung.
 
 import { LitElement, css, html, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ApiClient, StatsDto } from "../api-client.js";
+import { tokens, cards, pills } from "../styles/tokens.js";
 
 const SEVERITY_LABELS: Record<string, string> = {
   error: "Errors",
@@ -12,11 +15,15 @@ const SEVERITY_LABELS: Record<string, string> = {
 };
 
 const SEVERITY_VARS: Record<string, string> = {
-  error: "var(--error-color, #db4437)",
-  warning: "var(--warning-color, #ff9800)",
-  info: "var(--info-color, #03a9f4)",
-  debug: "var(--secondary-text-color, #888)",
+  error: "var(--mh-error)",
+  warning: "var(--mh-warning)",
+  info: "var(--mh-info)",
+  debug: "var(--mh-debug)",
 };
+
+const DAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+// API-Konvention: weekday 0 = So. UI-Reihenfolge: Mo..So.
+const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 @customElement("stats-view")
 export class StatsView extends LitElement {
@@ -62,61 +69,96 @@ export class StatsView extends LitElement {
     if (max === 0) {
       return html`<p class="muted">Keine Daten in den letzten 30 Tagen.</p>`;
     }
-    const labelDays = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
     return html`
-      <div class="heatmap">
-        <div class="heatmap-header">
-          <span></span>
-          ${Array.from({ length: 24 }, (_, h) =>
-            html`<span class="hour-label">${h % 3 === 0 ? h : ""}</span>`
-          )}
+      <div class="heatmap-wrap">
+        <div class="heatmap">
+          <div class="heatmap-header">
+            <span></span>
+            ${Array.from(
+              { length: 24 },
+              (_, h) => html`<span class="hour-label">${h % 3 === 0 ? h : ""}</span>`
+            )}
+          </div>
+          ${WEEKDAY_ORDER.map((dayIdx, rowIdx) => {
+            const row = grid[dayIdx];
+            return html`
+              <div class="heatmap-row">
+                <span class="day-label">${DAYS[rowIdx]}</span>
+                ${row.map((count, hour) => {
+                  const intensity = count === 0 ? 0 : Math.max(0.15, count / max);
+                  const bg =
+                    count === 0
+                      ? "transparent"
+                      : `color-mix(in srgb, var(--mh-accent) ${Math.round(
+                          intensity * 100
+                        )}%, transparent)`;
+                  return html`
+                    <div
+                      class=${`heatmap-cell ${count === 0 ? "empty" : ""}`}
+                      style=${`background: ${bg}`}
+                      title=${`${DAYS[rowIdx]} ${hour}:00 — ${count} Nachricht${count === 1 ? "" : "en"}`}
+                    ></div>
+                  `;
+                })}
+              </div>
+            `;
+          })}
         </div>
-        ${grid.map(
-          (row, dayIdx) => html`
-            <div class="heatmap-row">
-              <span class="day-label">${labelDays[dayIdx]}</span>
-              ${row.map((count) => {
-                const intensity = count === 0 ? 0 : Math.max(0.1, count / max);
-                return html`
-                  <div
-                    class="heatmap-cell"
-                    style=${`background: rgba(3, 169, 244, ${intensity})`}
-                    title=${`${labelDays[dayIdx]} ${row.indexOf(count)}:00 — ${count} msg`}
-                  ></div>
-                `;
-              })}
-            </div>
-          `
-        )}
+        <div class="heatmap-legend">
+          <span class="muted small">weniger</span>
+          <span class="legend-cell" style="background: transparent; border: 1px solid var(--mh-divider)"></span>
+          <span class="legend-cell" style="background: color-mix(in srgb, var(--mh-accent) 25%, transparent)"></span>
+          <span class="legend-cell" style="background: color-mix(in srgb, var(--mh-accent) 50%, transparent)"></span>
+          <span class="legend-cell" style="background: color-mix(in srgb, var(--mh-accent) 75%, transparent)"></span>
+          <span class="legend-cell" style="background: var(--mh-accent)"></span>
+          <span class="muted small">mehr (max ${max})</span>
+        </div>
       </div>
-      <p class="muted small">Helligkeit ∝ Nachrichtenanzahl (max: ${max}).</p>
     `;
   }
 
-  private _renderSeverityBars(): TemplateResult {
+  private _renderSeverityStack(): TemplateResult {
     if (!this._stats) return html``;
     const counts = this._stats.severity_24h;
-    const total = Math.max(1, Object.values(counts).reduce((a, b) => a + b, 0));
-    const order = ["error", "warning", "info", "debug"];
+    const total = Object.values(counts).reduce((a, b) => a + b, 0);
+    const order = ["error", "warning", "info", "debug"] as const;
+
+    if (total === 0) {
+      return html`<p class="muted">Keine Nachrichten in den letzten 24 Stunden.</p>`;
+    }
+
     return html`
-      <div class="bars">
+      <div class="stack-bar" role="img" aria-label="Severity-Verteilung der letzten 24 Stunden">
         ${order.map((sev) => {
           const c = counts[sev] ?? 0;
+          if (c === 0) return null;
           const pct = (c / total) * 100;
           return html`
-            <div class="bar-row">
-              <span class="bar-label">${SEVERITY_LABELS[sev] ?? sev}</span>
-              <div class="bar-track">
-                <div
-                  class="bar-fill"
-                  style=${`width: ${pct}%; background: ${SEVERITY_VARS[sev]}`}
-                ></div>
-              </div>
-              <span class="bar-count">${c}</span>
-            </div>
+            <div
+              class=${`stack-seg sev-${sev}`}
+              style=${`width: ${pct}%; background: ${SEVERITY_VARS[sev]}`}
+              title=${`${SEVERITY_LABELS[sev]}: ${c} (${pct.toFixed(0)}%)`}
+            ></div>
           `;
         })}
       </div>
+      <ul class="legend">
+        ${order.map((sev) => {
+          const c = counts[sev] ?? 0;
+          const pct = total > 0 ? (c / total) * 100 : 0;
+          return html`
+            <li>
+              <span
+                class="legend-dot"
+                style=${`background: ${SEVERITY_VARS[sev]}`}
+              ></span>
+              <span class="legend-label">${SEVERITY_LABELS[sev]}</span>
+              <span class="legend-count">${c.toLocaleString("de-DE")}</span>
+              <span class="legend-pct muted">${pct.toFixed(0)}%</span>
+            </li>
+          `;
+        })}
+      </ul>
     `;
   }
 
@@ -125,16 +167,24 @@ export class StatsView extends LitElement {
       return html`<div class="root"><p class="status">lade…</p></div>`;
     }
     if (!this._stats) {
-      return html`<div class="root"><p class="status">Keine Daten verfuegbar.</p></div>`;
+      return html`<div class="root"><p class="status">Keine Daten verfügbar.</p></div>`;
     }
 
     const s = this._stats;
     const totals24 = Object.values(s.severity_24h).reduce((a, b) => a + b, 0);
+    const errors24 = s.severity_24h.error ?? 0;
+    const warnings24 = s.severity_24h.warning ?? 0;
+    const errorRate = totals24 > 0 ? (errors24 / totals24) * 100 : 0;
 
     return html`
       <div class="root">
         <section>
-          <h2>Live-Status</h2>
+          <header class="section-head">
+            <h2>Live-Status</h2>
+            <button class="mh-btn-mini" @click=${() => void this._load()}>
+              ↻ Aktualisieren
+            </button>
+          </header>
           <div class="kpis">
             <div class="kpi">
               <span class="kpi-label">Gesamt</span>
@@ -142,243 +192,395 @@ export class StatsView extends LitElement {
               <span class="kpi-hint">Nachrichten in der Datenbank</span>
             </div>
             <div class="kpi accent-info">
-              <span class="kpi-label">Letzte 24h</span>
+              <span class="kpi-label">Letzte 24 h</span>
               <span class="kpi-value">${totals24.toLocaleString("de-DE")}</span>
               <span class="kpi-hint">alle Severities</span>
             </div>
             <div class="kpi accent-error">
-              <span class="kpi-label">Errors 24h</span>
-              <span class="kpi-value">${s.severity_24h.error ?? 0}</span>
-              <span class="kpi-hint">unbehoben + bestaetigt</span>
+              <span class="kpi-label">Errors 24 h</span>
+              <span class="kpi-value">${errors24}</span>
+              <span class="kpi-hint">
+                ${totals24 === 0 ? "—" : `${errorRate.toFixed(1)} % Anteil`}
+              </span>
             </div>
             <div class="kpi accent-warning">
-              <span class="kpi-label">Warnings 24h</span>
-              <span class="kpi-value">${s.severity_24h.warning ?? 0}</span>
+              <span class="kpi-label">Warnings 24 h</span>
+              <span class="kpi-value">${warnings24}</span>
               <span class="kpi-hint">letzte 24 Stunden</span>
             </div>
           </div>
         </section>
 
         <section>
-          <h2>Severity-Verteilung (24h)</h2>
-          <div class="card">${this._renderSeverityBars()}</div>
+          <div class="mh-card">
+            <div class="mh-card__header">
+              <h3 class="mh-card__title">Severity-Verteilung (24 h)</h3>
+              <span class="muted small">${totals24.toLocaleString("de-DE")} Nachrichten</span>
+            </div>
+            ${this._renderSeverityStack()}
+          </div>
         </section>
 
         <section>
-          <h2>Aktive Quellen</h2>
-          <div class="card">
+          <div class="mh-card">
+            <div class="mh-card__header">
+              <h3 class="mh-card__title">Aktive Quellen</h3>
+              <span class="muted small">${this._sources.length}</span>
+            </div>
             ${this._sources.length === 0
-              ? html`<p class="status">
+              ? html`<p class="muted">
                   Noch keine Quellen erfasst. Sobald die erste Nachricht reinkommt,
                   erscheint sie hier.
                 </p>`
               : html`<ul class="sources">
                   ${this._sources.map(
-                    (src) => html`<li><code>${src}</code></li>`
+                    (src) => html`<li class="source-pill">${src}</li>`
                   )}
                 </ul>`}
           </div>
         </section>
 
         <section>
-          <h2>Heatmap (Stunde × Wochentag, letzte 30 Tage)</h2>
-          <div class="card">${this._renderHeatmap()}</div>
+          <div class="mh-card">
+            <div class="mh-card__header">
+              <h3 class="mh-card__title">Heatmap (Stunde × Wochentag, 30 Tage)</h3>
+            </div>
+            ${this._renderHeatmap()}
+          </div>
         </section>
 
         <section>
-          <h2>Top-10 Quellen (30 Tage)</h2>
-          <div class="card">
+          <div class="mh-card">
+            <div class="mh-card__header">
+              <h3 class="mh-card__title">Top-10 Quellen (30 Tage)</h3>
+            </div>
             ${this._topSources.length === 0
               ? html`<p class="muted">Keine Daten.</p>`
-              : html`<table class="top">
-                  <thead>
-                    <tr><th>Source</th><th>Nachrichten</th></tr>
-                  </thead>
-                  <tbody>
-                    ${this._topSources.map(
-                      (t) => html`<tr>
-                        <td><code>${t.source}</code></td>
-                        <td>${t.count.toLocaleString("de-DE")}</td>
-                      </tr>`
-                    )}
-                  </tbody>
-                </table>`}
+              : html`<ul class="top-sources">
+                  ${this._topSources.map((t, i) => {
+                    const max = this._topSources[0]?.count ?? 1;
+                    const pct = (t.count / max) * 100;
+                    return html`<li>
+                      <span class="rank">${i + 1}</span>
+                      <code class="source-name">${t.source}</code>
+                      <span class="bar-track">
+                        <span
+                          class="bar-fill"
+                          style=${`width: ${pct}%`}
+                        ></span>
+                      </span>
+                      <span class="bar-count">${t.count.toLocaleString("de-DE")}</span>
+                    </li>`;
+                  })}
+                </ul>`}
           </div>
         </section>
       </div>
     `;
   }
 
-  static override styles = css`
-    :host {
-      display: block;
-      overflow-y: auto;
-      height: 100%;
-    }
-    .root {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 24px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-    }
-    section {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    h2 {
-      margin: 0;
-      font-size: 1.1em;
-      color: var(--primary-text-color, #222);
-    }
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-    }
-    .kpi {
-      background: var(--card-background-color, white);
-      border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      border-left: 4px solid var(--divider-color, #e0e0e0);
-    }
-    .kpi.accent-info {
-      border-left-color: var(--info-color, #03a9f4);
-    }
-    .kpi.accent-error {
-      border-left-color: var(--error-color, #db4437);
-    }
-    .kpi.accent-warning {
-      border-left-color: var(--warning-color, #ff9800);
-    }
-    .kpi-label {
-      font-size: 0.85em;
-      color: var(--secondary-text-color, #666);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .kpi-value {
-      font-size: 2em;
-      font-weight: 600;
-      color: var(--primary-text-color, #222);
-      line-height: 1;
-      margin: 4px 0;
-    }
-    .kpi-hint {
-      font-size: 0.78em;
-      color: var(--secondary-text-color, #888);
-    }
-    .card {
-      background: var(--card-background-color, white);
-      border: 1px solid var(--divider-color, #e0e0e0);
-      border-radius: 8px;
-      padding: 16px;
-    }
-    .bars {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .bar-row {
-      display: grid;
-      grid-template-columns: 80px 1fr 50px;
-      gap: 12px;
-      align-items: center;
-    }
-    .bar-label {
-      font-size: 0.9em;
-      color: var(--primary-text-color, #222);
-    }
-    .bar-track {
-      height: 8px;
-      background: var(--secondary-background-color, #f3f3f3);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .bar-fill {
-      height: 100%;
-      transition: width 0.3s ease;
-      min-width: 1px;
-    }
-    .bar-count {
-      text-align: right;
-      font-size: 0.9em;
-      color: var(--secondary-text-color, #666);
-      font-variant-numeric: tabular-nums;
-    }
-    .sources {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .sources li {
-      padding: 4px 8px;
-      background: var(--secondary-background-color, #f5f5f5);
-      border-radius: 4px;
-    }
-    code {
-      font-family: var(--ha-font-family-code, monospace);
-      font-size: 0.85em;
-    }
-    .heatmap {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      overflow-x: auto;
-    }
-    .heatmap-header,
-    .heatmap-row {
-      display: grid;
-      grid-template-columns: 30px repeat(24, 1fr);
-      gap: 2px;
-      align-items: center;
-      min-width: 540px;
-    }
-    .day-label,
-    .hour-label {
-      font-size: 0.7em;
-      color: var(--secondary-text-color, #888);
-      text-align: center;
-    }
-    .heatmap-cell {
-      aspect-ratio: 1;
-      border-radius: 2px;
-      background: var(--secondary-background-color, #f3f3f3);
-      min-height: 14px;
-    }
-    .top {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .top th,
-    .top td {
-      text-align: left;
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--divider-color, #eee);
-      font-size: 0.9em;
-    }
-    .top th {
-      font-size: 0.78em;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--secondary-text-color, #666);
-    }
-    .small {
-      font-size: 0.78em;
-    }
-    .status {
-      color: var(--secondary-text-color, #666);
-      padding: 8px 0;
-      margin: 0;
-    }
-  `;
+  static override styles = [
+    tokens,
+    cards,
+    pills,
+    css`
+      :host {
+        display: block;
+        overflow-y: auto;
+        height: 100%;
+        background: var(--mh-bg);
+      }
+      .root {
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: var(--mh-space-5) var(--mh-space-5);
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-5);
+      }
+      section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-3);
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--mh-space-3);
+      }
+      h2 {
+        margin: 0;
+        font-size: var(--mh-text-lg);
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg);
+        letter-spacing: -0.01em;
+      }
+      h3.mh-card__title {
+        font-size: var(--mh-text-md);
+      }
+      .mh-btn-mini {
+        font: inherit;
+        font-size: var(--mh-text-xs);
+        padding: 4px 10px;
+        border: 1px solid var(--mh-divider);
+        background: var(--mh-surface);
+        color: var(--mh-fg-muted);
+        border-radius: var(--mh-radius-sm);
+        cursor: pointer;
+        transition: background var(--mh-transition-fast);
+      }
+      .mh-btn-mini:hover {
+        background: var(--mh-surface-2);
+        color: var(--mh-fg);
+      }
+
+      /* KPIs */
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: var(--mh-space-3);
+      }
+      .kpi {
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-md);
+        padding: var(--mh-space-4);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--mh-shadow-1);
+      }
+      .kpi::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: var(--mh-divider);
+      }
+      .kpi.accent-info::before {
+        background: var(--mh-info);
+      }
+      .kpi.accent-error::before {
+        background: var(--mh-error);
+      }
+      .kpi.accent-warning::before {
+        background: var(--mh-warning);
+      }
+      .kpi-label {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: var(--mh-weight-semibold);
+      }
+      .kpi-value {
+        font-size: var(--mh-text-3xl);
+        font-weight: var(--mh-weight-bold);
+        color: var(--mh-fg);
+        line-height: 1.1;
+        margin: 4px 0;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.02em;
+      }
+      .kpi-hint {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+      }
+
+      /* Stacked-Bar fuer Severity */
+      .stack-bar {
+        display: flex;
+        height: 14px;
+        border-radius: var(--mh-radius-pill);
+        overflow: hidden;
+        background: var(--mh-surface-2);
+      }
+      .stack-seg {
+        height: 100%;
+        transition: width var(--mh-transition-med);
+        min-width: 2px;
+      }
+      .legend {
+        list-style: none;
+        padding: 0;
+        margin: var(--mh-space-3) 0 0 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: var(--mh-space-2) var(--mh-space-4);
+      }
+      .legend li {
+        display: grid;
+        grid-template-columns: 12px 1fr auto auto;
+        gap: var(--mh-space-2);
+        align-items: center;
+        font-size: var(--mh-text-sm);
+      }
+      .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .legend-label {
+        color: var(--mh-fg);
+      }
+      .legend-count {
+        font-variant-numeric: tabular-nums;
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg);
+      }
+      .legend-pct {
+        font-size: var(--mh-text-xs);
+        font-variant-numeric: tabular-nums;
+        min-width: 36px;
+        text-align: right;
+      }
+
+      /* Sources */
+      .sources {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .source-pill {
+        padding: 4px 10px;
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-sm);
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-medium);
+      }
+
+      /* Top-Sources */
+      .top-sources {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .top-sources li {
+        display: grid;
+        grid-template-columns: 24px 1fr 1fr auto;
+        gap: var(--mh-space-3);
+        align-items: center;
+        font-size: var(--mh-text-sm);
+      }
+      .rank {
+        font-variant-numeric: tabular-nums;
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg-muted);
+        font-size: var(--mh-text-xs);
+        text-align: right;
+      }
+      .source-name {
+        font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);
+        font-size: var(--mh-text-xs);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--mh-fg);
+      }
+      .bar-track {
+        position: relative;
+        height: 6px;
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-pill);
+        overflow: hidden;
+      }
+      .bar-fill {
+        position: absolute;
+        inset: 0;
+        background: var(--mh-accent);
+        opacity: 0.7;
+        border-radius: inherit;
+      }
+      .bar-count {
+        font-variant-numeric: tabular-nums;
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg);
+        min-width: 40px;
+        text-align: right;
+      }
+
+      /* Heatmap */
+      .heatmap-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-3);
+      }
+      .heatmap {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        overflow-x: auto;
+      }
+      .heatmap-header,
+      .heatmap-row {
+        display: grid;
+        grid-template-columns: 32px repeat(24, minmax(18px, 1fr));
+        gap: 3px;
+        align-items: center;
+        min-width: 600px;
+      }
+      .day-label,
+      .hour-label {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        text-align: center;
+        font-weight: var(--mh-weight-medium);
+      }
+      .day-label {
+        text-align: right;
+        padding-right: 6px;
+      }
+      .heatmap-cell {
+        aspect-ratio: 1;
+        border-radius: 3px;
+        min-height: 18px;
+        transition: transform var(--mh-transition-fast);
+        cursor: default;
+      }
+      .heatmap-cell.empty {
+        border: 1px solid var(--mh-divider);
+      }
+      .heatmap-cell:hover {
+        transform: scale(1.18);
+        outline: 1px solid var(--mh-fg);
+      }
+      .heatmap-legend {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        justify-content: flex-end;
+      }
+      .legend-cell {
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+      }
+
+      /* Common */
+      .muted {
+        color: var(--mh-fg-muted);
+      }
+      .small {
+        font-size: var(--mh-text-xs);
+      }
+      .status {
+        color: var(--mh-fg-muted);
+        padding: var(--mh-space-2) 0;
+        margin: 0;
+      }
+    `,
+  ];
 }
