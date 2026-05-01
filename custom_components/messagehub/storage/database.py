@@ -78,11 +78,14 @@ class Database:
             return
         # `hass` ist hier `HomeAssistant`, aber wir vermeiden den Import,
         # damit der Storage-Layer frei von HA-Deps bleibt.
-        await hass.async_add_executor_job(  # type: ignore[attr-defined]
-            self._path.parent.mkdir,
-            True,
-            True,  # parents=True, exist_ok=True
-        )
+        # Path.mkdir-Signatur ist (mode, parents, exist_ok) — daher ueber
+        # eine Helper-Lambda, um die Keyword-Args korrekt zu uebergeben.
+        parent = self._path.parent
+
+        def _mkdir_idempotent() -> None:
+            parent.mkdir(parents=True, exist_ok=True)
+
+        await hass.async_add_executor_job(_mkdir_idempotent)  # type: ignore[attr-defined]
         _LOGGER.debug("Opening messagehub database at %s", self._path)
         self._conn = await aiosqlite.connect(self._path)
         self._conn.row_factory = aiosqlite.Row
