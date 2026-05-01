@@ -79,6 +79,33 @@ async def test_bulk_import_csv(repo: KnxAddressRepository) -> None:
 
 
 @pytest.mark.asyncio
+async def test_upsert_persists_log_fields(repo: KnxAddressRepository) -> None:
+    """Regression: log_enabled/log_severity/severity_on_true/false muessen
+    durch die API/UI bis in die DB gelangen — sonst Filter 'nur aktive' leer."""
+    await repo.upsert(
+        KnxAddress(
+            address="5/0/12",
+            label="Stoerung Heizung Pumpe",
+            dpt="1.005",
+            log_enabled=True,
+            log_severity="auto",
+            severity_on_true="error",
+            severity_on_false="info",
+        )
+    )
+    items = await repo.list_all()
+    assert len(items) == 1
+    saved = items[0]
+    assert saved.log_enabled is True
+    assert saved.log_severity == "auto"
+    assert saved.severity_on_true == "error"
+    assert saved.severity_on_false == "info"
+
+    logged = await repo.list_logged()
+    assert "5/0/12" in logged
+
+
+@pytest.mark.asyncio
 async def test_upsert_rejects_invalid(repo: KnxAddressRepository) -> None:
     with pytest.raises(ValueError, match="invalid KNX"):
         await repo.upsert(KnxAddress(address="bad", label="x"))

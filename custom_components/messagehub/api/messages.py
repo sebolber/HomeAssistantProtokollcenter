@@ -849,6 +849,10 @@ class KnxAddressesView(_RequireAdminView):
                 label=str(data["label"]),
                 dpt=data.get("dpt"),
                 description=data.get("description"),
+                log_enabled=bool(data.get("log_enabled", False)),
+                log_severity=str(data.get("log_severity", "info")),
+                severity_on_true=data.get("severity_on_true"),
+                severity_on_false=data.get("severity_on_false"),
             )
             await repo.upsert(item)
         except (KeyError, ValueError, TypeError) as err:
@@ -859,9 +863,18 @@ class KnxAddressesView(_RequireAdminView):
             action="knx_upsert",
             target_type="knx_address",
             target_id=item.address,
-            details={"label": item.label},
+            details={"label": item.label, "log_enabled": item.log_enabled},
         )
-        return self.json({"address": item.address, "label": item.label})
+        return self.json(
+            {
+                "address": item.address,
+                "label": item.label,
+                "log_enabled": item.log_enabled,
+                "log_severity": item.log_severity,
+                "severity_on_true": item.severity_on_true,
+                "severity_on_false": item.severity_on_false,
+            }
+        )
 
 
 class KnxAddressDetailView(_RequireAdminView):
