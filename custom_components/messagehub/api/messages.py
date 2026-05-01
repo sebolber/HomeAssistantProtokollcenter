@@ -212,6 +212,90 @@ class WebhooksView(_RequireAdminView):
         _, wh_repo = repos
         return self.json({"webhooks": [_wh_to_dict(c) for c in await wh_repo.list_all()]})
 
+    async def post(self, request: web.Request) -> web.Response:
+        from ..storage import (  # noqa: PLC0415
+            Severity,
+            WebhookConfig,
+            WebhookConfigRepository,
+        )
+
+        self._check_admin(request)
+        repos = _get_repos(request.app["hass"])
+        if repos is None:
+            return self.json_message("messagehub not initialised", status_code=503)
+        _, wh_repo = repos
+        try:
+            data = await request.json()
+        except (ValueError, TypeError):
+            return self.json_message("invalid json", status_code=400)
+        try:
+            cfg = WebhookConfig(
+                name=data["name"],
+                webhook_id=WebhookConfigRepository.generate_webhook_id(),
+                default_source=data["default_source"],
+                default_severity=Severity.normalise(data.get("default_severity", "info")),
+                field_map=data.get("field_map"),
+                enabled=bool(data.get("enabled", True)),
+            )
+            await wh_repo.add(cfg)
+        except (KeyError, ValueError, TypeError) as err:
+            return self.json_message(f"invalid: {err}", status_code=400)
+        return self.json(_wh_to_dict(cfg))
+
+
+class WebhookDetailView(_RequireAdminView):
+    url = "/api/messagehub/webhooks/{webhook_id}"
+    name = "api:messagehub:webhook-detail"
+
+    async def get(self, request: web.Request, webhook_id: str) -> web.Response:
+        self._check_admin(request)
+        repos = _get_repos(request.app["hass"])
+        if repos is None:
+            return self.json_message("not initialised", status_code=503)
+        _, wh_repo = repos
+        cfg = await wh_repo.get(webhook_id)
+        if cfg is None:
+            return self.json_message("not found", status_code=404)
+        return self.json(_wh_to_dict(cfg))
+
+    async def put(self, request: web.Request, webhook_id: str) -> web.Response:
+        from ..storage import Severity  # noqa: PLC0415
+
+        self._check_admin(request)
+        repos = _get_repos(request.app["hass"])
+        if repos is None:
+            return self.json_message("not initialised", status_code=503)
+        _, wh_repo = repos
+        cfg = await wh_repo.get(webhook_id)
+        if cfg is None:
+            return self.json_message("not found", status_code=404)
+        try:
+            data = await request.json()
+        except (ValueError, TypeError):
+            return self.json_message("invalid json", status_code=400)
+        if "name" in data:
+            cfg.name = data["name"]
+        if "default_source" in data:
+            cfg.default_source = data["default_source"]
+        if "default_severity" in data:
+            cfg.default_severity = Severity.normalise(data["default_severity"])
+        if "field_map" in data:
+            cfg.field_map = data["field_map"]
+        if "enabled" in data:
+            cfg.enabled = bool(data["enabled"])
+        await wh_repo.update(cfg)
+        return self.json(_wh_to_dict(cfg))
+
+    async def delete(self, request: web.Request, webhook_id: str) -> web.Response:
+        self._check_admin(request)
+        repos = _get_repos(request.app["hass"])
+        if repos is None:
+            return self.json_message("not initialised", status_code=503)
+        _, wh_repo = repos
+        if not await wh_repo.delete(webhook_id):
+            return self.json_message("not found", status_code=404)
+        return self.json_message("deleted")
+
 
 def async_register_views(hass: HomeAssistant) -> None:
     """Registriert alle API-Views (idempotent)."""
@@ -221,6 +305,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         SourcesView,
         StatsView,
         WebhooksView,
+        WebhookDetailView,
     ):
         view = view_cls()
         # HA-internes Doppel-Register vermeiden

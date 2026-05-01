@@ -33,9 +33,9 @@ Status der Iterationen aus `claude-code-runbook.md` §6.
 
 ## Phase E — Verwaltung & Lifecycle
 - [x] Iteration 22 — Settings-Tab Webhook-Liste
-- [ ] Iteration 23 — Webhook Add/Edit/Delete UI
-- [ ] Iteration 24 — Retention-Job
-- [ ] Iteration 25 — Translations DE/EN, README, hacs.json
+- [x] Iteration 23 — Webhook Add/Edit/Delete UI
+- [x] Iteration 24 — Retention-Job
+- [x] Iteration 25 — Translations DE/EN, README, hacs.json
 
 ## Phase F — Erweiterungen Lifecycle & Dedup
 - [ ] Iteration 26 — Deduplizierung Fingerprint

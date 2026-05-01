@@ -80,10 +80,52 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await _async_register_services(hass, repository)
     async_register_views(hass)
     _async_register_panel(hass)
+    _async_register_retention(hass, entry, database)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _LOGGER.debug("messagehub config entry %s set up", entry.entry_id)
     return True
+
+
+def _async_register_retention(hass: HomeAssistant, entry: ConfigEntry, database: Any) -> None:
+    """Registriert taeglichen Retention-Lauf um 03:30 (Iter 24)."""
+    from datetime import datetime as _dt  # noqa: PLC0415
+
+    from homeassistant.helpers.event import async_track_time_change  # noqa: PLC0415
+
+    from .const import (  # noqa: PLC0415
+        DEFAULT_HARD_CAP_TOTAL,
+        DEFAULT_RETENTION_DEBUG_DAYS,
+        DEFAULT_RETENTION_ERROR_DAYS,
+        DEFAULT_RETENTION_INFO_DAYS,
+        DEFAULT_RETENTION_WARNING_DAYS,
+        OPT_HARD_CAP_TOTAL,
+        OPT_RETENTION_DEBUG_DAYS,
+        OPT_RETENTION_ERROR_DAYS,
+        OPT_RETENTION_INFO_DAYS,
+        OPT_RETENTION_WARNING_DAYS,
+    )
+    from .processing.retention import run_retention, run_vacuum  # noqa: PLC0415
+
+    async def _job(now: _dt) -> None:
+        opts = entry.options
+        max_days = {
+            "debug": opts.get(OPT_RETENTION_DEBUG_DAYS, DEFAULT_RETENTION_DEBUG_DAYS),
+            "info": opts.get(OPT_RETENTION_INFO_DAYS, DEFAULT_RETENTION_INFO_DAYS),
+            "warning": opts.get(OPT_RETENTION_WARNING_DAYS, DEFAULT_RETENTION_WARNING_DAYS),
+            "error": opts.get(OPT_RETENTION_ERROR_DAYS, DEFAULT_RETENTION_ERROR_DAYS),
+        }
+        await run_retention(
+            database,
+            max_days=max_days,
+            hard_cap_total=opts.get(OPT_HARD_CAP_TOTAL, DEFAULT_HARD_CAP_TOTAL),
+        )
+        weekday_sunday = 6
+        if now.weekday() == weekday_sunday:
+            await run_vacuum(database)
+
+    state = hass.data[DOMAIN][entry.entry_id]
+    state["retention_unsub"] = async_track_time_change(hass, _job, hour=3, minute=30, second=0)
 
 
 def _async_register_panel(hass: HomeAssistant) -> None:
