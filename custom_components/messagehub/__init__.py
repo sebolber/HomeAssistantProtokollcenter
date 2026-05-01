@@ -487,34 +487,35 @@ def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository:
     from .storage import Message, Severity  # noqa: PLC0415
 
     knx_repo = KnxAddressRepository(database)
-    cache: dict[str, Any] = {"map": None, "ts": 0.0}
-    cache_ttl_seconds = 30.0
-
-    async def _refresh_cache() -> dict[str, Any]:
-        from time import monotonic  # noqa: PLC0415
-
-        now = monotonic()
-        if cache["map"] is None or now - cache["ts"] > cache_ttl_seconds:
-            cache["map"] = await knx_repo.list_logged()
-            cache["ts"] = now
-        return cache["map"]
+    seen_first_event = {"flag": False}
 
     async def _on_knx_event(event: Any) -> None:
         try:
             data = dict(event.data)
             ga = str(data.get("destination") or "").strip()
+            if not seen_first_event["flag"]:
+                seen_first_event["flag"] = True
+                _LOGGER.info(
+                    "messagehub: erstes knx_event empfangen — ga=%s keys=%s",
+                    ga,
+                    sorted(data.keys()),
+                )
+            else:
+                _LOGGER.debug("knx_event ga=%s data=%s", ga, data)
             if not ga:
                 return
-            mapping = await _refresh_cache()
-            cfg = mapping.get(ga)
+            cfg = await knx_repo.get(ga)
             if cfg is None:
+                _LOGGER.debug("knx_event %s: GA nicht in messagehub-Whitelist", ga)
+                return
+            if not cfg.log_enabled:
+                _LOGGER.debug("knx_event %s: log_enabled=0, skip", ga)
                 return
             telegramtype = data.get("telegramtype")
             value = data.get("value")
             if value is None:
                 value = data.get("data")
             severity = Severity.normalise(resolve_severity(cfg, value))
-            # v0.4: DPT-Formatter — `1.005 + True` -> 'Alarm', `9.001 + 21.5` -> '21.5 °C'.
             formatted = format_knx_value(cfg.dpt, value)
             text = f"{cfg.label} = {formatted}" if formatted else cfg.label
             if telegramtype and telegramtype != "GroupValueWrite":
@@ -534,6 +535,7 @@ def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository:
             )
             await repository.insert_or_aggregate(msg, window_minutes=10)
             _fire_added(hass, msg)
+            _LOGGER.info("messagehub knx-bus: %s -> %s [%s]", ga, text, severity)
         except (ValueError, TypeError, KeyError) as err:
             _LOGGER.debug("knx_event ingest skipped: %s", err)
 
