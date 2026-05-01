@@ -115,4 +115,50 @@ export class ApiClient {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return (((await res.json()) as { webhooks: WebhookDto[] }).webhooks);
   }
+
+  async createWebhook(payload: {
+    name: string;
+    default_source: string;
+    default_severity?: string;
+    field_map?: Record<string, unknown> | null;
+    enabled?: boolean;
+  }): Promise<WebhookDto> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/webhooks`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as WebhookDto;
+  }
+
+  async updateWebhook(
+    webhookId: string,
+    payload: Partial<{
+      name: string;
+      default_source: string;
+      default_severity: string;
+      field_map: Record<string, unknown> | null;
+      enabled: boolean;
+    }>
+  ): Promise<WebhookDto> {
+    const res = await fetch(
+      `${this.baseUrl}/api/messagehub/webhooks/${webhookId}`,
+      {
+        method: "PUT",
+        headers: this.headers(),
+        body: JSON.stringify(payload),
+      }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as WebhookDto;
+  }
+
+  async deleteWebhook(webhookId: string): Promise<void> {
+    const res = await fetch(
+      `${this.baseUrl}/api/messagehub/webhooks/${webhookId}`,
+      { method: "DELETE", headers: this.headers() }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  }
 }
