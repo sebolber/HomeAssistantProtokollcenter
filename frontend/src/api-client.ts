@@ -84,6 +84,78 @@ export interface StatsDto {
   severity_24h: Record<string, number>;
 }
 
+// KNX-Stats — siehe docs/messagehub_knx_statistik.md
+export interface KnxStatsSummaryDto {
+  from: string;
+  to: string;
+  total_telegrams: number;
+  active_gas: number;
+  active_devices: number;
+  estimated_busload_pct: number;
+  counts_by_severity: Record<"green" | "yellow" | "orange" | "red", number>;
+}
+
+export type KnxRowSeverity = "green" | "yellow" | "orange" | "red";
+
+export interface KnxStatsTopRowDto {
+  ga: string;
+  dpt: string | null;
+  label: string | null;
+  dev_source: string;
+  count: number;
+  rate_per_min: number;
+  recommended_rate: number;
+  ratio: number;
+  severity: KnxRowSeverity;
+  acknowledged: boolean;
+}
+
+export interface KnxStatsRecommendationDto {
+  severity: KnxRowSeverity;
+  text: string;
+  action_required: boolean;
+  ratio: number;
+  estimated_reduction_pct: number | null;
+}
+
+export interface KnxStatsFindingDto {
+  kind: string;
+  severity: KnxRowSeverity;
+  text: string;
+}
+
+export interface KnxStatsGaDetailDto {
+  ga: string;
+  dpt: string | null;
+  label: string | null;
+  count: number;
+  rate_per_min: number;
+  recommended_rate: number;
+  recommendation: KnxStatsRecommendationDto;
+  findings: KnxStatsFindingDto[];
+}
+
+export interface KnxStatsTimelineDto {
+  from: string;
+  to: string;
+  bucket_minutes: number;
+  items: Array<{ ga: string; bucket: string; count: number }>;
+}
+
+export interface KnxStatsTopBySourceRowDto {
+  dev_source: string;
+  count: number;
+  ga_count: number;
+}
+
+export interface KnxStatsFilters {
+  from?: string;
+  to?: string;
+  limit?: number;
+  minRate?: number;
+  includeAcknowledged?: boolean;
+}
+
 export interface ListFilters {
   severity?: string[];
   source?: string;
@@ -475,5 +547,95 @@ export class ApiClient {
       { method: "DELETE", headers: this.headers() }
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  }
+
+  // --- KNX-Stats (Iter 6) ----------------------------------------------
+
+  private _knxStatsParams(f: KnxStatsFilters): URLSearchParams {
+    const p = new URLSearchParams();
+    if (f.from) p.set("from", f.from);
+    if (f.to) p.set("to", f.to);
+    if (f.limit !== undefined) p.set("limit", String(f.limit));
+    if (f.minRate !== undefined) p.set("min_rate", String(f.minRate));
+    if (f.includeAcknowledged === false) p.set("include_acknowledged", "false");
+    return p;
+  }
+
+  async getKnxStatsSummary(f: KnxStatsFilters): Promise<KnxStatsSummaryDto> {
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/summary?${this._knxStatsParams(f).toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsSummaryDto;
+  }
+
+  async getKnxStatsTop(
+    f: KnxStatsFilters
+  ): Promise<{ from: string; to: string; items: KnxStatsTopRowDto[]; total: number }> {
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/top?${this._knxStatsParams(f).toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as {
+      from: string;
+      to: string;
+      items: KnxStatsTopRowDto[];
+      total: number;
+    };
+  }
+
+  async getKnxStatsTopBySource(
+    f: KnxStatsFilters
+  ): Promise<{ from: string; to: string; items: KnxStatsTopBySourceRowDto[]; total: number }> {
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/top-by-source?${this._knxStatsParams(f).toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as {
+      from: string;
+      to: string;
+      items: KnxStatsTopBySourceRowDto[];
+      total: number;
+    };
+  }
+
+  async getKnxStatsGaDetail(
+    ga: string,
+    f: KnxStatsFilters
+  ): Promise<KnxStatsGaDetailDto> {
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/ga/${encodeURIComponent(ga)}?${this._knxStatsParams(f).toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsGaDetailDto;
+  }
+
+  async getKnxStatsTimeline(
+    f: KnxStatsFilters & { gas: string[]; bucketMinutes?: number }
+  ): Promise<KnxStatsTimelineDto> {
+    const params = this._knxStatsParams(f);
+    params.set("gas", f.gas.join(","));
+    if (f.bucketMinutes !== undefined) params.set("bucket", String(f.bucketMinutes));
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/timeline?${params.toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsTimelineDto;
+  }
+
+  async acknowledgeKnxGa(
+    ga: string,
+    payload: { note?: string; expiryDays?: number } = {}
+  ): Promise<void> {
+    const body: Record<string, unknown> = { ga };
+    if (payload.note !== undefined) body["note"] = payload.note;
+    if (payload.expiryDays !== undefined) body["expiry_days"] = payload.expiryDays;
+    const res = await fetch(`${this.baseUrl}/api/messagehub/knx-stats/acknowledge`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async unacknowledgeKnxGa(ga: string): Promise<void> {
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge/${encodeURIComponent(ga)}`;
+    const res = await fetch(url, { method: "DELETE", headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
   }
 }
