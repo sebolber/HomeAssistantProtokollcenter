@@ -4,9 +4,22 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
-## [Unreleased] – 0.11.0 (in Arbeit)
+## [0.12.0] – 2026-05-02
 
-### Hinzugefügt
+Großer KNX-Stats-Release mit 49 Iterationen seit 0.10.2. Komplett
+neuer Sub-Tab „KNX-Bus-Analyse", bus-weite Erfassung,
+Empfehlungs-Engine, Web-Recherche-getriebene KPIs, intelligenter
+ETS-Abgleich und konfigurierbare Bus-Analyse.
+
+### Hinzugefügt – KNX-Bus-Analyse-Tab (Iter 1-34)
+- **KNX-Bus-Analyse-Tab unter Statistik:** Neuer Sub-Tab mit
+  Empfehlungs-Engine, der überaktive Gruppenadressen identifiziert und
+  konkrete ETS-Anpassungs-Empfehlungen liefert. Konzept siehe
+  `docs/messagehub_knx_statistik.md`.
+- DPT-Wissensbasis (`KNX_RECOMMENDED_RATES_PER_MIN`) mit 15+ Geräteklassen
+  und 4-stufiger Ampel-Klassifizierung (grün/gelb/orange/rot).
+- Anti-Pattern-Detector: Konstant-Wert-Spam, Read-Burst, Mehrfach-Response,
+  Heartbeat-Spam — alle aus realem User-Log validiert.
 - **Bus-weite Erfassung (Iter 20-27):** Alle KNX-Telegramme aus dem
   Gruppenmonitor werden in `knx_raw_telegrams` (48 h Retention) und
   `knx_telegram_counters` (365 Tage) erfasst — unabhängig von der
@@ -25,31 +38,108 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   werden gegen das ETS-Projekt aufgelöst (Hörmann, MDT, Hager, Gira,
   ABB, Theben, Busch-Jaeger, Zennio, Elsner). Detail-Pane zeigt
   Hersteller-spezifische Tipps + Link zur Hersteller-Doku.
-- **KNX-Bus-Analyse-Tab unter Statistik:** Neuer Sub-Tab mit
-  Empfehlungs-Engine, der überaktive Gruppenadressen identifiziert und
-  konkrete ETS-Anpassungs-Empfehlungen liefert. Konzept siehe
-  `docs/messagehub_knx_statistik.md`.
-- DPT-Wissensbasis (`KNX_RECOMMENDED_RATES_PER_MIN`) mit 15+ Geräteklassen
-  und 4-stufiger Ampel-Klassifizierung (grün/gelb/orange/rot).
-- Anti-Pattern-Detector: Konstant-Wert-Spam, Read-Burst, Mehrfach-Response,
-  Heartbeat-Spam — alle aus realem User-Log validiert.
+
+### Hinzugefügt – Web-Recherche-Top-5 (Iter 36-42)
+- **Buslast-%-KPI (Iter 36, Feature A):** ETS-konformes Modell mit
+  10 s/60 s/5 min/10 min Bucketing je nach Periode. Anzeige von
+  current / max / Ø-Buslast in der Übersicht-Card.
+  Endpoint `GET /knx-stats/busload?bucket_seconds=`.
+- **Bus-Health-Score 0–100 (Iter 37, Feature K):** Single-Glance-KPI
+  über alle vorhandenen Indikatoren (Wiederhol-Quote, Buslast-Spitze,
+  stumme Geräte, offene Alarme). Vier Komponenten gewichtet zu einer
+  Gesamtzahl, mit Findings-Liste pro Befund. Ampel green/yellow/orange/
+  red an den Schwellen 90/70/50.
+  Endpoint `GET /knx-stats/health-score`.
+- **Long-Term-Sicht aus Counter-Tabelle (Iter 38-39, Feature B+J):**
+  Neue Period-Presets 7 d / 30 d / 365 d aktivieren den degradierten
+  Modus — Counter-Tabelle liefert Total + Top-GAs + bucketierte Series
+  (hour/day automatisch). Banner erklärt Einschränkungen (keine Source,
+  keine Werte). `parse_iso_period` unterstützt jetzt `max_days`
+  (Counter-Retention 365 d). Endpoint `GET /knx-stats/long-term`.
+- **Burst-Detector (Iter 40-41, Feature C):** Erkennt kurze
+  Telegrammfluten („10 Rolladen gleichzeitig"), die im Period-Avg
+  untergehen. Sliding-Window-basiert, mit GA- und Source-Count zur
+  Diagnose („ein Gerät flutet" vs. „ein Trigger feuert viele Geräte").
+  Endpoint `GET /knx-stats/bursts?window_seconds=&threshold_pct=`.
+- **Sicherheits-Audit-Log (Iter 42, Feature N):** Admins markieren
+  GAs als sicherheitsrelevant (Türschloss, Alarmanlage, Tor) per
+  `is_sensitive`-Flag. Card listet markierte GAs + Telegramme mit
+  Zeit/Geräte/Wert. Migration 0020.
+  Endpoints `GET /knx-stats/sensitive-log`, `POST/DELETE /knx-stats/sensitive/{ga}`.
+
+### Hinzugefügt – User-Feedback-Items (Iter 44-49)
+- **Audit-Log löschbar (Iter 44, N5):** Danger-Button in der Audit-Log-
+  Card mit Bestätigungsdialog. Backend legt nach dem Clear einen
+  `audit_clear`-Eintrag an, damit der Vorgang in den verbleibenden
+  Logs nachvollziehbar bleibt. Endpoint `DELETE /api/messagehub/audit`.
+- **Top-N pro Card konfigurierbar (Iter 45, N6):** Top-Sender und
+  Top-Geräte haben jetzt eigene Inline-Selektoren (10/25/50/100) im
+  Card-Header. Werte werden im localStorage persistiert.
+- **Intelligenter ETS-Projektdatei-Abgleich (Iter 46-47, N4):** Neuer
+  Sync-Endpoint mit vier Buckets: `add` / `keep` / `update` / `delete`.
+  - **KEEP:** identische Einträge bleiben mit User-Config (log_enabled,
+    log_severity) komplett erhalten.
+  - **UPDATE:** label/dpt-Änderungen übernehmen ETS-Felder, setzen
+    User-Config bewusst zurück (Semantik der GA hat sich geändert).
+  - **DELETE:** in ETS nicht mehr vorhandene GAs werden entfernt
+    (inkl. Lausch-Konfig).
+  Frontend-Vorschau-Dialog zeigt Counts vor dem Anwenden. Endpoint
+  `POST /knx-addresses/sync` mit body `{items, apply}`.
+- **Bus-Analyse ein-/ausschaltbar (Iter 48-49, N1):** Toggle in der
+  Filter-Bar des Stats-Tabs deaktiviert die bus-weite Telegramm-
+  Erfassung — ressourcen-sparend, ohne HA-Restart. Banner über dem
+  Tab erinnert an den deaktivierten Zustand. Migration 0021
+  (`messagehub_settings`-Key/Value-Tabelle). Endpoint
+  `GET/PUT /knx-stats/bus-analysis-state`.
+
+### Geändert
+- **Default-Severity beim GA-Logging-Aktivieren = `warning` (Iter 44,
+  N2):** Statt vorher `info`. Drei Stellen aktualisiert: Frontend
+  `_add` + `_import`, Backend-API-Default. Bestehende Einträge bleiben
+  unverändert.
+- **Settings-Tab-Leiste ohne Icons (Iter 44, N3):** Reine Text-Buttons
+  in der Tableiste (Webhooks/KNX-Bus/Channels/MQTT/Heartbeats/
+  Auto-Remediation).
+- **Buslast-Konstanten zentral in `const.py`** (`KNX_TP_BAUDRATE_BPS`,
+  `KNX_AVG_TELEGRAM_BITS = 200`): Vereint alte Schätzung (22 Byte) mit
+  ETS-konformem Modell (200 Bit/Telegramm inkl. Inter-Frame-Pause).
 - HTTP-API unter `/api/messagehub/knx-stats/`: summary, top, top-by-source,
-  ga/{ga} (Detail mit Empfehlung + Findings), timeline, acknowledge.
+  ga/{ga} (Detail mit Empfehlung + Findings), timeline, acknowledge,
+  busload, health-score, long-term, bursts, sensitive-log,
+  bus-analysis-state.
 - Frontend-Sub-Tabs „Live-Status" (= bisheriger Inhalt) + „KNX-Bus-Analyse"
   (neu) mit Filter-Bar, KPIs, Top-Tabelle, Detail-Pane, SVG-Sparkline-
-  Timeline.
+  Timeline, Health-Score-Card, Long-Term-Card, Bursts-Card,
+  Sensitive-Log-Card.
 - Acknowledgement-Mechanismus mit konfigurierbarem Auto-Ablauf
   (Default 90 Tage, sticky möglich).
-- Neue DB-Tabellen: `knx_ga_acknowledgements`, `knx_telegram_counters`
-  (Phase-2-Schema vorbereitet), partieller Index
-  `idx_messages_knx_bus_timestamp`.
+- Neue DB-Tabellen / Schema-Änderungen:
+  `knx_ga_acknowledgements`, `knx_telegram_counters`,
+  `knx_raw_telegrams` (Iter 20), `is_sensitive`-Spalte in
+  `knx_group_addresses` (Iter 42, Migration 0020),
+  `messagehub_settings` (Iter 48, Migration 0021),
+  partieller Index `idx_messages_knx_bus_timestamp`.
 
 ### Sicherheit
-- Alle KNX-Stats-Endpoints sind Admin-only (`RequireAdminView`).
-- Period-Validierung mit Hard-Cap MAX_PERIOD_DAYS=90 (DoS-Schutz).
-- GA-Format-Validierung per Regex.
-- Hard-Limits: `top<=500`, `timeline-gas<=20`, `bucket<=60min`.
-- Audit-Log für alle Mutationen (Acknowledge/Unacknowledge).
+- Alle neuen KNX-Stats-Endpoints sind Admin-only (`RequireAdminView`).
+- Period-Validierung mit Hard-Cap MAX_PERIOD_DAYS=90 (DoS-Schutz),
+  Long-Term-Endpoint hebt explizit auf 365 d (Counter-Retention).
+- GA-Format-Validierung per Regex (`validate_knx_ga`,
+  `validate_knx_individual_address`).
+- Hard-Limits: `top<=500`, `timeline-gas<=20`, `bucket<=60min`,
+  `bulk-ack<=100`, `sensitive-telegrams<=1000`, `sync-items<=10000`,
+  `note-length<=1000`.
+- Audit-Log für alle Mutationen (Acknowledge/Unacknowledge, Bulk-Ack,
+  ETS-Sync, Sensitive-Set, Bus-Analyse-Toggle, Audit-Clear selbst).
+- Knowledge-Base hartcodiert in `const.py`, kein Internet-Zugriff zur
+  Laufzeit, kein Eval. HTTPS-Doku-Links mit `rel="noopener noreferrer"`.
+
+### Tests
+- Backend: 471 → 535 Unit-Tests (+64 neu für Buslast, Health-Score,
+  Long-Term, Bursts, Sensitive-Log, ETS-Sync, Settings-Repo,
+  Audit-Clear).
+- Frontend: 68 → 75 Vitest-Tests (+7 neu für KPI-Cards, Banner,
+  Toggles, Inline-Top-N).
 
 ## [0.10.2] – 2026-05-02
 
