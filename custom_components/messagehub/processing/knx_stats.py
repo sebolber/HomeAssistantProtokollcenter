@@ -3,14 +3,19 @@ Anti-Pattern-Detector und Aggregations-Helfer.
 
 Iter 1: classify_severity + recommended_rate_for.
 Iter 2: Recommendation-Dataclass + build_recommendation.
+Iter 3: Anti-Pattern-Detector (Konstant-Wert, Read-Burst, Mehrfach-
+        Response, Heartbeat-Spam).
 Folgende Iterationen erweitern dieses Modul.
 """
 
 from __future__ import annotations
 
 import math
+import statistics
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Final, Literal
+from datetime import datetime
+from typing import Any, Final, Literal
 
 from ..const import (
     KNX_RATIO_GREEN_MAX,
@@ -191,3 +196,190 @@ def build_recommendation(
         ratio=ratio,
         estimated_reduction_pct=reduction,
     )
+
+
+# Anti-Pattern-Detector (Iter 3) ---------------------------------------------
+
+# Schwellen aus dem Konzept §5.6
+_CONSTANT_VALUE_MIN_SAMPLES: Final[int] = 10
+_READ_BURST_MIN_COUNT: Final[int] = 10
+_READ_BURST_WINDOW_SEC: Final[float] = 5.0
+_MULTI_RESPONSE_WINDOW_SEC: Final[float] = 0.2
+_MULTI_RESPONSE_MIN_COUNT: Final[int] = 2
+_HEARTBEAT_MIN_SAMPLES: Final[int] = 10
+_HEARTBEAT_MAX_INTERVAL_SEC: Final[float] = 60.0
+_HEARTBEAT_INTERVAL_TOLERANCE: Final[float] = 0.2  # ±20 %
+_MIN_PATTERN_SAMPLES: Final[int] = 2
+
+FindingKind = Literal[
+    "constant_value",
+    "read_burst",
+    "multiple_response",
+    "heartbeat_spam",
+    "status_loop",
+]
+
+
+@dataclass(frozen=True, slots=True)
+class TelegramSample:
+    """Ein einzelnes KNX-Telegramm fuer den Pattern-Detector.
+
+    Reduzierte Sicht des Telegramms — nur die fuer Mustererkennung
+    relevanten Felder. Wird vom Storage-Layer aus den DB-Rows befuellt.
+    """
+
+    ts: datetime
+    value: Any
+    telegramtype: str | None
+    source: str
+
+
+@dataclass(frozen=True, slots=True)
+class Finding:
+    """Erkannte Anomalie im Telegramm-Strom."""
+
+    kind: FindingKind
+    severity: KnxSeverity
+    text: str
+
+
+def _detect_constant_value(samples: Sequence[TelegramSample]) -> Finding | None:
+    """Konstant-Wert-Spam: Wert (oder Wert-Repr) variiert nicht ueber
+    >= _CONSTANT_VALUE_MIN_SAMPLES Stichproben."""
+    if len(samples) < _CONSTANT_VALUE_MIN_SAMPLES:
+        return None
+    values = {repr(s.value) for s in samples if s.telegramtype != "GroupValueRead"}
+    if len(values) != 1:
+        return None
+    only = next(iter(values))
+    return Finding(
+        kind="constant_value",
+        severity="orange",
+        text=(
+            f"Sensor sendet konstanten Wert ({only}) ueber "
+            f"{len(samples)} Telegramme. Wahrscheinlich keine reale "
+            f"Sensorik dran oder Default-0 im Geraet. ETS-App pruefen, "
+            f"zyklisches Senden deaktivieren."
+        ),
+    )
+
+
+def _detect_read_burst(samples: Sequence[TelegramSample]) -> Finding | None:
+    """Read-Burst: >= N GroupValueRead-Telegramme einer Source in < T Sek."""
+    reads = [s for s in samples if s.telegramtype == "GroupValueRead"]
+    if len(reads) < _READ_BURST_MIN_COUNT:
+        return None
+    by_source: dict[str, list[datetime]] = {}
+    for r in reads:
+        by_source.setdefault(r.source, []).append(r.ts)
+    for src, timestamps in by_source.items():
+        timestamps.sort()
+        for i in range(len(timestamps) - _READ_BURST_MIN_COUNT + 1):
+            window = (
+                timestamps[i + _READ_BURST_MIN_COUNT - 1] - timestamps[i]
+            ).total_seconds()
+            if window <= _READ_BURST_WINDOW_SEC:
+                return Finding(
+                    kind="read_burst",
+                    severity="orange",
+                    text=(
+                        f"Read-Burst von Geraet {src}: "
+                        f"{_READ_BURST_MIN_COUNT}+ GroupValueRead in "
+                        f"{window:.1f}s. Typisch HA `sync_state` zu "
+                        f"aggressiv — auf `init` oder `expire 30` "
+                        f"umstellen."
+                    ),
+                )
+    return None
+
+
+def _detect_multiple_response(samples: Sequence[TelegramSample]) -> Finding | None:
+    """Mehrfach-Response: >= 2 Responses innerhalb _MULTI_RESPONSE_WINDOW_SEC."""
+    responses = sorted(
+        (s for s in samples if s.telegramtype == "GroupValueResponse"),
+        key=lambda s: s.ts,
+    )
+    if len(responses) < _MULTI_RESPONSE_MIN_COUNT + 1:
+        return None
+    for i in range(len(responses) - _MULTI_RESPONSE_MIN_COUNT):
+        window = (
+            responses[i + _MULTI_RESPONSE_MIN_COUNT].ts - responses[i].ts
+        ).total_seconds()
+        if window <= _MULTI_RESPONSE_WINDOW_SEC:
+            return Finding(
+                kind="multiple_response",
+                severity="orange",
+                text=(
+                    f"Mehrfach-Response: {_MULTI_RESPONSE_MIN_COUNT + 1}+ "
+                    f"Responses innerhalb {window * 1000:.0f}ms. "
+                    f"Mehrere Aktoren auf gleicher GA oder Aktor "
+                    f"antwortet redundant. ETS-Topologie und Status-"
+                    f"Objekt-Konfig pruefen."
+                ),
+            )
+    return None
+
+
+def _detect_heartbeat_spam(samples: Sequence[TelegramSample]) -> Finding | None:
+    """Heartbeat-Spam: konstantes dt < _HEARTBEAT_MAX_INTERVAL_SEC,
+    Werte identisch ueber _HEARTBEAT_MIN_SAMPLES Stichproben."""
+    writes = sorted(
+        (s for s in samples if s.telegramtype != "GroupValueRead"),
+        key=lambda s: s.ts,
+    )
+    if len(writes) < _HEARTBEAT_MIN_SAMPLES:
+        return None
+    deltas = [
+        (writes[i + 1].ts - writes[i].ts).total_seconds()
+        for i in range(len(writes) - 1)
+    ]
+    if not deltas:
+        return None
+    median_dt = statistics.median(deltas)
+    if median_dt <= 0 or median_dt >= _HEARTBEAT_MAX_INTERVAL_SEC:
+        return None
+    # Toleranz-Check: alle Deltas innerhalb ±20 % des Medians?
+    tolerance = median_dt * _HEARTBEAT_INTERVAL_TOLERANCE
+    if any(abs(d - median_dt) > tolerance for d in deltas):
+        return None
+    # Werte identisch?
+    values = {repr(w.value) for w in writes}
+    if len(values) != 1:
+        return None
+    return Finding(
+        kind="heartbeat_spam",
+        severity="yellow",
+        text=(
+            f"Heartbeat alle {median_dt:.0f}s mit identischem Wert. "
+            f"Lebenszeichen-Intervall zu kurz — auf >= 5 Min anheben."
+        ),
+    )
+
+
+def detect_patterns(
+    samples: Sequence[TelegramSample],
+    *,
+    dpt: str | None,
+) -> list[Finding]:
+    """Fuehrt alle Anti-Pattern-Detektoren in fester Reihenfolge aus.
+
+    Nicht-anwendbare Detektoren liefern None und werden uebersprungen.
+    Liefert die Liste der erkannten Findings (kann leer sein).
+    """
+    if len(samples) < _MIN_PATTERN_SAMPLES:
+        return []
+    detectors = (
+        _detect_constant_value,
+        _detect_read_burst,
+        _detect_multiple_response,
+        _detect_heartbeat_spam,
+    )
+    findings: list[Finding] = []
+    for detector in detectors:
+        result = detector(samples)
+        if result is not None:
+            findings.append(result)
+    # dpt aktuell nicht genutzt — zukunft: DPT-spezifische Detektoren
+    # (z. B. Status-Schleife nur fuer DPT 1.001).
+    _ = dpt
+    return findings
