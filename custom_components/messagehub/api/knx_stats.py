@@ -41,6 +41,7 @@ from ..processing.knx_stats_service import (
 )
 from ..processing.rate_limit import TokenBucketLimiter
 from ..storage.knx_stats_repo import KnxStatsRepository
+from ._alarm_dedup import AlarmDedupCache
 from ._helpers import (
     ERR_INVALID_JSON,
     ERR_NOT_FOUND,
@@ -69,6 +70,12 @@ _alarms_limiter = TokenBucketLimiter(
     capacity=_ALARMS_RATE_CAPACITY,
     refill_per_minute=_ALARMS_RATE_PER_MINUTE,
 )
+
+# Iter 76 / CR-17: Alarm-Eventbus-Dedup. Auch wenn der Rate-Limiter
+# einen Aufruf zulaesst, soll derselbe triggered Alarm pro Minute nur
+# ein Event feuern — sonst entstehen redundante Automation-Trigger
+# bei kurzem Polling. Modul-Singleton, in-process state.
+_alarm_dedup = AlarmDedupCache()
 
 _DEFAULT_TOP_LIMIT = 50
 _HARD_TOP_LIMIT = 500
@@ -419,10 +426,17 @@ class KnxStatsAlarmsView(RequireAdminView):
             silence_count_threshold=silence_th,
             max_silence_minutes=max_silence,
         )
-        # Eventbus-Trigger fuer triggered Alarme
+        # Eventbus-Trigger fuer triggered Alarme.
+        # Iter 76 / CR-17: Dedup pro (rule_kind, Minutenbucket) — bei
+        # rapid-Polling wird derselbe Alarm pro Minute nur einmal
+        # gefeuert. Schuetzt nachgelagerte Automationen vor Mehrfach-
+        # Trigger.
         bus = request.app["hass"].bus
         for alarm in alarms:
-            if alarm["triggered"]:
+            if not alarm["triggered"]:
+                continue
+            rule_kind = str(alarm.get("kind") or alarm.get("rule") or "unknown")
+            if _alarm_dedup.should_fire(rule_kind):
                 bus.async_fire(EVENT_KNX_ALARM_TRIGGERED, alarm)
         return self.json(
             {

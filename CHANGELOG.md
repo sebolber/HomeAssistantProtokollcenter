@@ -6,6 +6,16 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Sicherheit (Iter 76 — CR-17 Alarm-Eventbus-Dedup)
+- **`AlarmDedupCache`** (in-process Set + TTL) verhindert mehrfaches
+  Eventbus-Fire desselben Alarms innerhalb derselben Minute. Bei
+  rapid-Polling (z. B. alle 30 s) wurde sonst dieselbe `triggered`-
+  Bedingung pro Aufruf neu gefeuert → nachgelagerte Automationen
+  liefen mehrfach.
+- Modul-Singleton `_alarm_dedup` in `api/knx_stats.py`. Default-TTL
+  3600 s, Cleanup inline beim Lookup.
+- 6 neue Backend-Tests in `test_alarm_dedup.py`.
+
 ### Sicherheit (Iter 75 — CR-19 + CR-21: Sensitive-Export-Audit + Channels-SSRF)
 - **CR-19 KNX-GA-Export markiert sensitive GAs im Audit**:
   `KnxStatsRepository.is_sensitive(ga)` prüft das `is_sensitive=1`-
