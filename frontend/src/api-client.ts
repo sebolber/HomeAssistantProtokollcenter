@@ -148,6 +148,22 @@ export interface KnxStatsTopBySourceRowDto {
   ga_count: number;
 }
 
+export interface KnxStatsSilenceItemDto {
+  dev_source: string;
+  last_seen: string;
+  total: number;
+  silent_minutes: number;
+  alarm: boolean;
+}
+
+export interface KnxStatsSilenceDto {
+  from: string;
+  to: string;
+  max_silence_minutes: number;
+  items: KnxStatsSilenceItemDto[];
+  alarm_count: number;
+}
+
 export interface KnxStatsBusHealthDto {
   from: string;
   to: string;
@@ -644,6 +660,19 @@ export class ApiClient {
       body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async getKnxStatsSilence(
+    f: KnxStatsFilters & { maxSilenceMinutes?: number }
+  ): Promise<KnxStatsSilenceDto> {
+    const params = this._knxStatsParams(f);
+    if (f.maxSilenceMinutes !== undefined) {
+      params.set("max_silence_min", String(f.maxSilenceMinutes));
+    }
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/silence?${params.toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsSilenceDto;
   }
 
   async getKnxStatsBusHealth(f: KnxStatsFilters): Promise<KnxStatsBusHealthDto> {

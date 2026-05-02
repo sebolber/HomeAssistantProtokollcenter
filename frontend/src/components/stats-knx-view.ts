@@ -11,6 +11,7 @@ import type {
   KnxStatsBusHealthDto,
   KnxStatsFilters,
   KnxStatsGaDetailDto,
+  KnxStatsSilenceDto,
   KnxStatsSummaryDto,
   KnxStatsTimelineDto,
   KnxStatsTopRowDto,
@@ -79,6 +80,7 @@ export class StatsKnxView extends LitElement {
   @state() private _filters: UiFilters = loadFilters();
   @state() private _summary: KnxStatsSummaryDto | null = null;
   @state() private _busHealth: KnxStatsBusHealthDto | null = null;
+  @state() private _silence: KnxStatsSilenceDto | null = null;
   @state() private _top: KnxStatsTopRowDto[] = [];
   @state() private _timeline: KnxStatsTimelineDto | null = null;
   @state() private _selectedGa: string | null = null;
@@ -109,14 +111,19 @@ export class StatsKnxView extends LitElement {
     this._error = "";
     try {
       const f = this._apiFilters();
-      const [summary, top, busHealth] = await Promise.all([
+      const [summary, top, busHealth, silence] = await Promise.all([
         this.api.getKnxStatsSummary(f),
         this.api.getKnxStatsTop(f),
         this.api.getKnxStatsBusHealth(f),
+        this.api.getKnxStatsSilence({
+          ...f,
+          maxSilenceMinutes: this._suggestSilenceMinutes(),
+        }),
       ]);
       this._summary = summary;
       this._top = top.items;
       this._busHealth = busHealth;
+      this._silence = silence;
       // Timeline fuer Top-5 GAs (mehr Linien werden unleserlich).
       const topGas = top.items.slice(0, 5).map((r) => r.ga);
       if (topGas.length > 0) {
@@ -134,6 +141,7 @@ export class StatsKnxView extends LitElement {
       this._top = [];
       this._timeline = null;
       this._busHealth = null;
+      this._silence = null;
     } finally {
       this._loading = false;
     }
@@ -150,6 +158,21 @@ export class StatsKnxView extends LitElement {
       case "30d":
       default:
         return 60;
+    }
+  }
+
+  private _suggestSilenceMinutes(): number {
+    // Stille-Schwelle proportional zur Periode: kuerzere Periode → kuerzere Stille
+    switch (this._filters.periodId) {
+      case "1h":
+        return 30;
+      case "24h":
+        return 360; // 6h
+      case "7d":
+        return 1440; // 24h
+      case "30d":
+      default:
+        return 4320; // 3d
     }
   }
 
@@ -384,6 +407,9 @@ export class StatsKnxView extends LitElement {
         ${this._busHealth !== null && this._busHealth.summary.total > 0
           ? this._renderBusHealth()
           : nothing}
+        ${this._silence !== null && this._silence.alarm_count > 0
+          ? this._renderSilenceAlarms()
+          : nothing}
 
         <section class="mh-card">
           <header class="card-head">
@@ -568,6 +594,52 @@ export class StatsKnxView extends LitElement {
           : nothing}
       </section>
     `;
+  }
+
+  private _renderSilenceAlarms(): TemplateResult {
+    const s = this._silence!;
+    const alarms = s.items.filter((i) => i.alarm);
+    if (alarms.length === 0) return html``;
+    return html`
+      <section class="mh-card silence-card">
+        <header class="card-head">
+          <h3>Stille-Alarme (${s.alarm_count})</h3>
+          <span class="muted small">
+            Schwelle: &gt; ${s.max_silence_minutes} Min ohne Telegramm
+          </span>
+        </header>
+        <ul class="silence-list">
+          ${alarms.slice(0, 10).map(
+            (a) => html`<li>
+              <code>${a.dev_source}</code>
+              <span class="muted">
+                seit ${this._formatSilence(a.silent_minutes)} stumm
+              </span>
+              <span class="muted small">last_seen ${this._formatTs(a.last_seen)}</span>
+            </li>`
+          )}
+        </ul>
+        ${s.alarm_count > 10
+          ? html`<p class="muted small">
+              … und ${s.alarm_count - 10} weitere
+            </p>`
+          : nothing}
+      </section>
+    `;
+  }
+
+  private _formatSilence(minutes: number): string {
+    if (minutes >= 1440) return `${Math.floor(minutes / 1440)} Tagen`;
+    if (minutes >= 60) return `${Math.floor(minutes / 60)} Std`;
+    return `${Math.round(minutes)} Min`;
+  }
+
+  private _formatTs(iso: string): string {
+    try {
+      return new Date(iso).toLocaleString("de-DE");
+    } catch {
+      return iso;
+    }
   }
 
   private _renderBusHealth(): TemplateResult {
@@ -951,6 +1023,34 @@ export class StatsKnxView extends LitElement {
         background: var(--mh-surface-2);
         border-radius: var(--mh-radius-sm);
         font-size: var(--mh-text-sm);
+      }
+
+      /* Silence-Card */
+      .silence-card {
+        border-left: 3px solid var(--mh-error);
+      }
+      .silence-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .silence-list li {
+        display: grid;
+        grid-template-columns: 80px 1fr auto;
+        gap: var(--mh-space-2);
+        padding: 4px var(--mh-space-2);
+        background: var(--mh-error-soft);
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-sm);
+        align-items: center;
+      }
+      .silence-list code {
+        font-family: var(--ha-font-family-code, ui-monospace, monospace);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
       }
 
       /* Bus-Health-Liste */

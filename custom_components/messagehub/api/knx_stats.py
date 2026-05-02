@@ -173,6 +173,44 @@ class KnxStatsTimelineView(RequireAdminView):
         })
 
 
+class KnxStatsSilenceView(RequireAdminView):
+    """Iter 13 (QS-c): Stille-Detector pro Source-Adresse.
+
+    Default max_silence=1440 Min (24h). Anpassbar via Query-Param.
+    """
+
+    url = "/api/messagehub/knx-stats/silence"
+    name = "api:messagehub:knx-stats:silence"
+
+    async def get(self, request: web.Request) -> web.Response:
+        from datetime import UTC, datetime  # noqa: PLC0415
+
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        max_silence = parse_int_param(
+            request.query, "max_silence_min", 1440,
+            min_value=1, max_value=43200,  # max 30 Tage
+        )
+        now_iso = datetime.now(UTC).isoformat(timespec="seconds")
+        rows = await KnxStatsRepository(db).silence_detect(
+            from_iso, to_iso,
+            now_iso=now_iso, max_silence_minutes=max_silence,
+        )
+        # Frontend zeigt primaer die Alarme — sortieren wir die zuerst.
+        rows.sort(key=lambda r: (not r["alarm"], -r["silent_minutes"]))
+        return self.json({
+            "from": from_iso, "to": to_iso,
+            "max_silence_minutes": max_silence,
+            "items": rows,
+            "alarm_count": sum(1 for r in rows if r["alarm"]),
+        })
+
+
 class KnxStatsBusHealthView(RequireAdminView):
     """Iter 12 (QS-a): Wiederhol-Quote ueber den Zeitraum + Top-GAs."""
 
@@ -262,6 +300,7 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsTopBySourceView())
     hass.http.register_view(KnxStatsGaDetailView())
     hass.http.register_view(KnxStatsTimelineView())
+    hass.http.register_view(KnxStatsSilenceView())
     hass.http.register_view(KnxStatsBusHealthView())
     hass.http.register_view(KnxStatsAcknowledgeView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())

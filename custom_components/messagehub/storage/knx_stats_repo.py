@@ -91,6 +91,20 @@ WHERE source = 'knx-bus'
   AND timestamp <  ?
 """
 
+_SILENCE_DETECT_SQL = """
+SELECT
+    json_extract(metadata, '$.knx_source') AS dev_source,
+    MAX(timestamp) AS last_seen,
+    COUNT(*) AS total
+FROM messages
+WHERE source = 'knx-bus'
+  AND timestamp >= ?
+  AND timestamp <  ?
+GROUP BY dev_source
+HAVING dev_source IS NOT NULL AND dev_source <> ''
+ORDER BY last_seen ASC
+"""
+
 _BUS_HEALTH_PER_GA_SQL = """
 SELECT
     json_extract(metadata, '$.knx_ga') AS ga,
@@ -214,6 +228,49 @@ class KnxStatsRepository:
             }
             for row in rows
         ]
+
+    # --- Silence-Detection (Iter 13, QS-c) ----------------------------------
+
+    async def silence_detect(
+        self,
+        from_iso: str,
+        to_iso: str,
+        *,
+        now_iso: str,
+        max_silence_minutes: int,
+    ) -> list[dict[str, Any]]:
+        """Liefert pro Source-Adresse das last_seen + Stille-Status.
+
+        - dev_source: KNX Individualadresse (1.1.x)
+        - last_seen: ISO-Timestamp des letzten Telegramms im Zeitraum
+        - total: Anzahl Telegramme im Zeitraum
+        - silent_minutes: Minuten seit last_seen (rel. zu now_iso)
+        - alarm: silent_minutes > max_silence_minutes
+        """
+        from datetime import datetime as _dt  # noqa: PLC0415
+
+        rows = await self._db.fetch_all(
+            _SILENCE_DETECT_SQL, (from_iso, to_iso)
+        )
+        now = _dt.fromisoformat(now_iso)
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            last_seen_str = str(row["last_seen"])
+            try:
+                last_seen = _dt.fromisoformat(last_seen_str)
+            except ValueError:
+                continue
+            silent_min = (now - last_seen).total_seconds() / 60.0
+            out.append(
+                {
+                    "dev_source": str(row["dev_source"] or ""),
+                    "last_seen": last_seen_str,
+                    "total": int(row["total"]),
+                    "silent_minutes": round(silent_min, 1),
+                    "alarm": silent_min > max_silence_minutes,
+                }
+            )
+        return out
 
     # --- Bus-Health (Iter 12, QS-a) -----------------------------------------
 
