@@ -4,6 +4,17 @@ name: Release
 # Stellt sicher, dass die manifest.json-Version mit dem Tag uebereinstimmt,
 # dass HACS das Repo akzeptieren wird, und legt einen GitHub-Release mit
 # CHANGELOG-Auszug an.
+#
+# Sicherheits-Hinweis: Action-Pins
+# Sonar (S7637) empfiehlt, externe Actions auf einen vollstaendigen Commit-SHA
+# zu pinnen, damit ein bewegter Tag keinen Fremdcode einschleusen kann.
+# Wir pinnen aktuell auf gut beobachtete Major-Tags. Vor jeder neuen Release-
+# Generation sollte man die SHAs aktualisieren:
+#   gh api repos/actions/checkout/git/ref/tags/v4 --jq .object.sha
+#   gh api repos/home-assistant/actions/commits/master --jq .sha
+#   gh api repos/hacs/action/commits/main --jq .sha
+#   gh api repos/softprops/action-gh-release/git/ref/tags/v2 --jq .object.sha
+# und die @-Referenz unten durch @<sha> # tag-name ersetzen.
 
 on:
   push:
@@ -41,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ ! -f custom_components/messagehub/frontend_dist/messagehub-panel.js ]; then
-            echo "::error::frontend_dist/messagehub-panel.js fehlt — bitte 'npm run build' lokal vor Tag-Push"
+            echo "::error::frontend_dist/messagehub-panel.js fehlt — bitte 'npm run build --prefix frontend' lokal vor Tag-Push"
             exit 1
           fi
           echo "frontend bundle ok ($(wc -c < custom_components/messagehub/frontend_dist/messagehub-panel.js) bytes)"
@@ -50,7 +61,7 @@ jobs:
         uses: home-assistant/actions/hassfest@master
 
       - name: HACS validation (integration category)
-        uses: hacs/action@main
+        uses: hacs/action@22.5.0
         with:
           category: integration
 

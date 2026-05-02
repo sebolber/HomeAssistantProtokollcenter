@@ -259,10 +259,9 @@ export class MessageHubPanel extends LitElement {
         "Backup abgeschlossen, Dauer 12 min",
         "KNX 1/2/3 — Wohnzimmer Deckenlicht ein",
       ];
-      // NOSONAR: Math.random ist hier sicher — nicht-kryptographische
-      // Auswahl unter 4 Demo-Texten/-Quellen fuer den Test-Button.
-      // Kein Token, keine Auth, kein Secret — nur UX-Variation.
-      const r = (n: number) => Math.floor(Math.random() * n);
+      // Demo-Variation fuer den Test-Button — nicht-kryptographisch.
+      // Kein Token, keine Auth, kein Secret — nur Auswahl unter 4 Demo-Texten.
+      const r = (n: number) => Math.floor(Math.random() * n); // NOSONAR S2245
       await this.hass.callService("messagehub", "add_message", {
         severity: severities[r(severities.length)],
         source: sources[r(sources.length)],
