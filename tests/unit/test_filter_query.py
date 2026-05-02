@@ -60,6 +60,32 @@ async def test_filter_by_search_substring(repo: MessageRepository) -> None:
 
 
 @pytest.mark.asyncio
+async def test_search_with_fts5_special_characters_no_syntax_error(
+    repo: MessageRepository,
+) -> None:
+    # Iter 74 / CR-16: User-Input mit FTS5-Sonderzeichen (NEAR, ", *,
+    # AND, OR, NOT) hat vorher SQLITE_ERROR: fts5: syntax error
+    # geworfen — DoS via 500er und Info-Leak. Jetzt wrappen wir den
+    # Input in Anführungszeichen, sodass beliebige Strings sicher als
+    # Phrase-Suche durchlaufen.
+    queries = [
+        '"',  # nackte Anführungszeichen
+        'foo"bar',  # eingebettete
+        'NEAR(a b)',  # FTS5 NEAR-Operator
+        'a OR b',  # boolean
+        'col*',  # wildcard
+        'AND OR NOT',  # alle Keywords
+        '* hello',  # wildcard prefix
+        '',  # leerer String wird ignoriert
+    ]
+    for q in queries:
+        # Soll keine Exception werfen; Treffer-Anzahl ist egal,
+        # uns geht's um die Robustheit.
+        await repo.list_filtered(search=q, limit=10)
+        await repo.count_filtered(search=q)
+
+
+@pytest.mark.asyncio
 async def test_filter_pagination(repo: MessageRepository) -> None:
     page1 = await repo.list_filtered(limit=2, offset=0)
     page2 = await repo.list_filtered(limit=2, offset=2)

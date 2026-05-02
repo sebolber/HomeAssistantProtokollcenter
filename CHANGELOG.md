@@ -6,6 +6,16 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Sicherheit (Iter 74 — CR-16 FTS5-Injection / DoS gefixt)
+- **FTS5-MATCH-Klausel** in `_build_filter_where` wrappt User-Input
+  jetzt in doppelte Anführungszeichen + escapt interne `"`.
+  Vorher konnten Spezialzeichen (NEAR, AND, OR, `"`, `*`) einen
+  `SQLITE_ERROR: fts5: syntax error` triggern → DoS via 500-Response
+  und Info-Leak (Fehlermeldung im Body).
+- 1 neuer Backend-Test mit 8 problematischen Queries (nackte
+  Anführungszeichen, NEAR, OR, Wildcards, FTS5-Keywords) — alle
+  laufen jetzt ohne Exception durch.
+
 ### Performance (Iter 73 — CR-8 N+1 in `compute_ga_detail` behoben)
 - **Neue Repo-Methode** `KnxStatsRepository.ga_meta_for_period(ga,
   from, to)` mit direktem `WHERE r.destination = ?` + LIMIT 1.

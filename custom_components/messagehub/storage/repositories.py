@@ -382,10 +382,17 @@ class MessageRepository:
                 params.append(source)
         if search:
             # FTS5 + LIKE-Fallback: einheitlich in list und count.
+            # Iter 74 / CR-16: FTS5 MATCH erwartet eine Query-Syntax.
+            # Ungewrappter User-Input mit Spezialzeichen (NEAR, AND, OR,
+            # ", *) triggert SQLITE_ERROR: fts5: syntax error — DoS via
+            # 500er. Loesung: User-Input als Phrase-Suche wrappen
+            # (doppelte Anfuehrungszeichen) und interne " escapen
+            # (FTS5-Spec: "" innerhalb von "..." ist ein literales ").
+            fts_phrase = '"' + search.replace('"', '""') + '"'
             clauses.append(
                 "(id IN (SELECT rowid FROM messages_fts WHERE messages_fts MATCH ?) OR text LIKE ?)"
             )
-            params.append(search)
+            params.append(fts_phrase)
             params.append(f"%{search}%")
         if from_iso:
             clauses.append("timestamp >= ?")
