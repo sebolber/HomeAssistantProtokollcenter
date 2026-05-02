@@ -1337,16 +1337,39 @@ class StatsExtendedView(_RequireAdminView):
         if repos is None:
             return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         msg_repo, _ = repos
-        try:
-            days = min(int(request.query.get("days", 30)), 365)
-        except ValueError:
-            days = 30
+        days = _parse_int_param(request.query, "days", 30, min_value=1, max_value=365)
         return self.json(
             {
                 "heatmap": await msg_repo.heatmap_hour_weekday(days=days),
                 "top_sources": await msg_repo.top_sources(limit=10, days=days),
                 "mttr_per_source": await msg_repo.mttr_per_source(days=days),
                 "severity_time_series": await msg_repo.severity_time_series(hours=24),
+            }
+        )
+
+
+class MttrView(_RequireAdminView):
+    """Mean-Time-To-Resolution pro Source.
+
+    Eigener Endpoint zusaetzlich zur Aggregation in /stats-extended,
+    damit Frontends/Skripte gezielt nur MTTR abfragen koennen ohne
+    den gesamten Stats-Block zu laden.
+    """
+
+    url = "/api/messagehub/mttr"
+    name = "api:messagehub:mttr"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        repos = _get_repos(request.app["hass"])
+        if repos is None:
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
+        msg_repo, _ = repos
+        days = _parse_int_param(request.query, "days", 30, min_value=1, max_value=365)
+        return self.json(
+            {
+                "days": days,
+                "items": await msg_repo.mttr_per_source(days=days),
             }
         )
 
@@ -1378,6 +1401,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         RemediationHooksView,
         RemediationHookDetailView,
         StatsExtendedView,
+        MttrView,
     ):
         view = view_cls()
         # HA-internes Doppel-Register vermeiden
