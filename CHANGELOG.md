@@ -6,6 +6,18 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Sicherheit (Iter 65 — P2-3 Rate-Limit für `/knx-stats/alarms`)
+- **Token-Bucket-Limiter** auf den Alarms-Endpoint. Jeder Aufruf
+  feuert HA-Eventbus-Events für triggered Alarms — ein Admin-User
+  könnte über Polling absichtlich Eventspam erzeugen. Konfiguration
+  Capacity 5, Refill 12/Minute (= 1 Token alle 5 s). Pro-User-Key
+  (User-ID), damit ein User nicht andere blockiert.
+- Bei Limit überschritten: HTTP 429 mit `Retry-After: 5`-Header.
+  `web.json_response` direkt, weil `HomeAssistantView.json_message`
+  keine custom Headers unterstützt.
+- 3 neue Backend-Tests in `test_alarms_rate_limit.py` (Burst,
+  Per-Key-Isolation, Refill-nach-Wait via monkeypatched monotonic).
+
 ### Hinzugefügt (Iter 64 — WR-P HA-KNX-Direktlinks)
 - **„Schnell-Aktionen"-Sektion im Detail-Pane** unter den Geschwister-
   GAs. Zwei Direktlinks pro GA:

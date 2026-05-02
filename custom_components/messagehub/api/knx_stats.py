@@ -39,6 +39,7 @@ from ..processing.knx_stats_service import (
     ga_detail_to_dict,
     top_row_to_dict,
 )
+from ..processing.rate_limit import TokenBucketLimiter
 from ..storage.knx_stats_repo import KnxStatsRepository
 from ._helpers import (
     ERR_INVALID_JSON,
@@ -54,6 +55,19 @@ from ._validation import (
     validate_knx_ga,
     validate_knx_individual_address,
     validate_note,
+)
+
+# Iter 65 / P2-3: Rate-Limit fuer /knx-stats/alarms. Jeder Aufruf
+# feuert HA-Eventbus-Events fuer triggered Alarms — ein Admin koennte
+# durch Polling sehr viele Events erzeugen. Capacity 5 Bursts, Refill
+# 1 pro 5 Sekunden = 12 / Minute. Praktischer Use-Case: alle 30-60 s
+# pollen reicht; absichtliches Spam wird gedrosselt. Pro-User-Key
+# (User-ID), damit ein User nicht andere blockiert.
+_ALARMS_RATE_CAPACITY: float = 5.0
+_ALARMS_RATE_PER_MINUTE: float = 12.0
+_alarms_limiter = TokenBucketLimiter(
+    capacity=_ALARMS_RATE_CAPACITY,
+    refill_per_minute=_ALARMS_RATE_PER_MINUTE,
 )
 
 _DEFAULT_TOP_LIMIT = 50
@@ -256,6 +270,21 @@ class KnxStatsAlarmsView(RequireAdminView):
 
     async def get(self, request: web.Request) -> web.Response:
         self._check_admin(request)
+        # Iter 65 / P2-3: Rate-Limit pro User-ID gegen Eventbus-Spam.
+        # Vor allem anderen Validation-Aufwand pruefen — DoS-Resistenz.
+        user = request.get("hass_user")
+        rate_key = (
+            f"user:{user.id}" if user is not None and getattr(user, "id", None) else "anon"
+        )
+        if not _alarms_limiter.allow(rate_key):
+            # Refill-Rate: 1 Token pro 5 s. Retry-After konservativ 5 s.
+            # web.json_response statt self.json_message, weil letzteres
+            # in HomeAssistantView keine custom Headers unterstuetzt.
+            return web.json_response(
+                {"message": "rate limit exceeded"},
+                status=429,
+                headers={"Retry-After": "5"},
+            )
         svc = _service(request.app["hass"])
         if svc is None:
             return self.json_message(ERR_NOT_INITIALISED, status_code=503)
