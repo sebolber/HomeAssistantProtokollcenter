@@ -17,7 +17,7 @@ venv/
 .env
 
 # Frontend
-frontend/node_modules/
+node_modules/
 frontend/dist/
 frontend/tsconfig.tsbuildinfo
 frontend/src/**/*.js
