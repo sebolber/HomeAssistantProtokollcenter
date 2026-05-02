@@ -14,6 +14,11 @@ from typing import TYPE_CHECKING, Any
 
 from ..const import DOMAIN
 from ..helpers import fire_message_added
+from ..processing.knx_cache import KnxWhitelistCache
+from ..processing.knx_dpt import format_value as format_knx_value
+from ..processing.knx_repo import KnxAddressRepository, resolve_severity
+from ..repair import report_knx_unavailable
+from ..storage import Message, Severity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -101,15 +106,7 @@ def _build_knx_message(cfg: Any, data: dict[str, Any] | KnxTelegramData) -> Any:
     Akzeptiert sowohl die typed KnxTelegramData (neuer Hot-Path) als auch
     das alte dict-Schema (Backward-Compat fuer bestehende Tests).
     """
-    from ..processing.knx_dpt import format_value as format_knx_value  # noqa: PLC0415
-    from ..processing.knx_repo import resolve_severity  # noqa: PLC0415
-    from ..storage import Message, Severity  # noqa: PLC0415
-
-    if isinstance(data, KnxTelegramData):
-        td = data
-    else:
-        td = KnxTelegramData.from_event_data(data)
-
+    td = data if isinstance(data, KnxTelegramData) else KnxTelegramData.from_event_data(data)
     value = td.best_value()
     severity = Severity.normalise(resolve_severity(cfg, value))
     formatted = format_knx_value(cfg.dpt, value)
@@ -144,13 +141,8 @@ def _get_xknx_instance(hass: HomeAssistant) -> Any:
     return None
 
 
-def async_register_knx_listener(
-    hass: HomeAssistant, database: Any, repository: Any
-) -> Any:
+def async_register_knx_listener(hass: HomeAssistant, database: Any, repository: Any) -> Any:
     """Registriert den KNX-Listener — primaer xknx-Hook, Fallback knx_event."""
-    from ..processing.knx_cache import KnxWhitelistCache  # noqa: PLC0415
-    from ..processing.knx_repo import KnxAddressRepository  # noqa: PLC0415
-
     knx_repo = KnxAddressRepository(database)
     cache = KnxWhitelistCache(knx_repo)
     hass.data.setdefault(DOMAIN, {}).setdefault("_knx_whitelist_cache", cache)
@@ -165,8 +157,9 @@ def async_register_knx_listener(
                 td.telegramtype,
             )
         else:
-            _LOGGER.debug("knx telegram ga=%s type=%s value=%s",
-                          td.destination, td.telegramtype, td.value)
+            _LOGGER.debug(
+                "knx telegram ga=%s type=%s value=%s", td.destination, td.telegramtype, td.value
+            )
         if not td.destination:
             return
         cfg = await cache.get(td.destination)
@@ -179,8 +172,7 @@ def async_register_knx_listener(
         msg = _build_knx_message(cfg, td)
         await repository.insert_or_aggregate(msg, window_minutes=10)
         fire_message_added(hass, msg)
-        _LOGGER.info("messagehub knx-bus: %s -> %s [%s]",
-                     td.destination, msg.text, msg.severity)
+        _LOGGER.info("messagehub knx-bus: %s -> %s [%s]", td.destination, msg.text, msg.severity)
 
     xknx = _get_xknx_instance(hass)
     if xknx is not None:
@@ -209,8 +201,7 @@ def async_register_knx_listener(
                 return _unsub_xknx
         except (AttributeError, TypeError) as err:
             _LOGGER.warning(
-                "messagehub: xknx-Hook nicht verfuegbar (%s) — "
-                "falle auf knx_event-Bus zurueck",
+                "messagehub: xknx-Hook nicht verfuegbar (%s) — falle auf knx_event-Bus zurueck",
                 err,
             )
 
@@ -218,6 +209,9 @@ def async_register_knx_listener(
         "messagehub: kein xknx-Hook moeglich — falle auf knx_event-Bus zurueck. "
         "Damit Telegramme ankommen, in configuration.yaml 'knx: event: <ga-liste>' eintragen."
     )
+    # Repair-Issue: HA-Settings -> Reparaturen zeigt dem User direkt
+    # einen Hinweis statt nur stiller Log-Zeile.
+    report_knx_unavailable(hass)
 
     async def _on_knx_event(event: Any) -> None:
         try:

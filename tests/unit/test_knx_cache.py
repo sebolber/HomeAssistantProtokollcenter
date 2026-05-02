@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from time import monotonic
 from typing import Any
 from unittest.mock import AsyncMock
 
@@ -85,7 +84,7 @@ async def test_concurrent_refresh_serialisiert() -> None:
     repo.list_logged = slow_load
     cache = KnxWhitelistCache(repo)
 
-    # 5 Lookups parallel — soll genau 1× refresh ausloesen
+    # 5 Lookups parallel — soll genau 1x refresh ausloesen
     results = await asyncio.gather(*[cache.get("1/2/3") for _ in range(5)])
 
     assert call_count == 1

@@ -51,6 +51,30 @@ class Severity(StrEnum):
             return _SYSLOG_LEVEL_MAP.get(value, cls.INFO)
         return cls.INFO
 
+    # v0.10 (W4): zentrale Helper, damit `_VALID_SEVERITIES`-Sets und
+    # `SEVERITY_RANK`-Tabellen nicht parallel in mehreren Modulen leben.
+
+    @classmethod
+    def values(cls) -> frozenset[str]:
+        """Alle gueltigen Severity-Strings als immutables Set."""
+        return _VALID_SEVERITY_VALUES
+
+    @classmethod
+    def is_valid(cls, value: str) -> bool:
+        """Pruefe, ob `value` einer der vier kanonischen Strings ist."""
+        return value in _VALID_SEVERITY_VALUES
+
+    def rank(self) -> int:
+        """Numerischer Rang (0=DEBUG bis 3=ERROR) fuer Schwellenwert-Vergleiche."""
+        return _SEVERITY_RANK[self.value]
+
+    @classmethod
+    def rank_of(cls, value: str | Severity) -> int:
+        """Rang fuer Strings; akzeptiert auch ungueltige Werte (-> INFO-Rang)."""
+        if isinstance(value, cls):
+            return _SEVERITY_RANK[value.value]
+        return _SEVERITY_RANK.get(value, _SEVERITY_RANK["info"])
+
 
 _STRING_SYNONYMS: Final[dict[str, Severity]] = {
     "debug": Severity.DEBUG,
@@ -91,6 +115,17 @@ _SYSLOG_LEVEL_MAP: Final[dict[int, Severity]] = {
     5: Severity.INFO,
     6: Severity.INFO,
     7: Severity.DEBUG,
+}
+
+# v0.10 (W4): zentrale Severity-Tabellen — von Severity-Helpern genutzt.
+_VALID_SEVERITY_VALUES: Final[frozenset[str]] = frozenset(
+    {Severity.DEBUG.value, Severity.INFO.value, Severity.WARNING.value, Severity.ERROR.value}
+)
+_SEVERITY_RANK: Final[dict[str, int]] = {
+    Severity.DEBUG.value: 0,
+    Severity.INFO.value: 1,
+    Severity.WARNING.value: 2,
+    Severity.ERROR.value: 3,
 }
 
 

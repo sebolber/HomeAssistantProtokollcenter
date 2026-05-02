@@ -213,9 +213,7 @@ async def test_count_since_aggregates_all_severities(repo: MessageRepository) ->
     base = datetime(2026, 5, 1, 12, 0, 0, tzinfo=UTC)
     # 2 alte (vor dem Cutoff) + 3 neue
     for offset in (-120, -60, 5, 10, 30):
-        await repo.insert(
-            _msg(severity=Severity.INFO, timestamp=base + timedelta(minutes=offset))
-        )
+        await repo.insert(_msg(severity=Severity.INFO, timestamp=base + timedelta(minutes=offset)))
 
     cutoff = base.isoformat(timespec="seconds")
     assert await repo.count_since(cutoff) == 3

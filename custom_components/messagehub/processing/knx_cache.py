@@ -2,7 +2,7 @@
 
 Hintergrund: der KNX-Listener bekommt pro Telegramm einen Callback. Ohne
 Cache wuerde er pro Telegramm einen DB-SELECT auf knx_group_addresses
-machen — bei einem aktiven KNX-Bus mit 50–200 Telegrammen/Sek ist das
+machen — bei einem aktiven KNX-Bus mit 50-200 Telegrammen/Sek ist das
 massive Verschwendung, weil sich die Whitelist nur aendert, wenn ein
 Admin im Panel etwas konfiguriert (Stunden-/Tage-Skala).
 

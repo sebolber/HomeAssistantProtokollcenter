@@ -401,7 +401,7 @@ def _async_register_pattern_mining(hass: HomeAssistant, database: Any, repositor
 # KNX-Listener-Funktionen sind nach listeners/knx.py umgezogen.
 # Re-Exports fuer Backward-Compat: Tests und alte Import-Pfade
 # erwarten die alten privaten Namen weiterhin in __init__.
-from .listeners.knx import (  # noqa: E402
+from .listeners.knx import (  # noqa: E402, F401
     _build_knx_message,
     _get_xknx_instance,
     _log_knx_event,
@@ -418,7 +418,7 @@ def _fire_added(hass: HomeAssistant, message: Any) -> None:
 
 
 # Periodic-Jobs nach jobs/periodic.py ausgelagert.
-from .jobs.periodic import (  # noqa: E402
+from .jobs.periodic import (  # noqa: E402, F401
     _handle_anomaly_row,
     _handle_silent_heartbeat,
     _run_anomaly_tick,
@@ -494,7 +494,7 @@ def _ensure_device_registered(hass: HomeAssistant, entry: ConfigEntry) -> None:
             name=DEVICE_NAME,
             configuration_url=f"homeassistant://navigate/{DOMAIN}",
         )
-    except Exception as err:  # noqa: BLE001
+    except Exception as err:
         # Geraete-Registrierung ist Komfort, nicht kritisch — Setup soll
         # weiterlaufen, Entitaeten zeigen sich dann ohne Geraete-Gruppe.
         _LOGGER.warning("device-registry update skipped: %s", err)

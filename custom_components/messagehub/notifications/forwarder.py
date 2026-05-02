@@ -21,8 +21,6 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-SEVERITY_RANK = {"debug": 0, "info": 1, "warning": 2, "error": 3}
-
 
 @dataclass(slots=True)
 class ChannelConfig:
@@ -80,7 +78,8 @@ class Forwarder:
 
     @staticmethod
     def _severity_passes(ch: ChannelConfig, sev: Severity) -> bool:
-        return SEVERITY_RANK[sev.value] >= SEVERITY_RANK.get(ch.severity_threshold, 1)
+        # v0.10 (W4): zentraler Severity-Rang aus dem Enum, kein lokaler Tabellen-Klon
+        return sev.rank() >= Severity.rank_of(ch.severity_threshold)
 
     @staticmethod
     def _quiet_blocked(ch: ChannelConfig, now: dt_time, sev: Severity) -> bool:
@@ -100,7 +99,9 @@ class Forwarder:
         return (time_module.monotonic() - last) < ch.throttle_seconds
 
 
-async def telegram_handler(ch: ChannelConfig, msg: Message) -> None:  # NOSONAR: Channel-Handler-Polymorphismus, gemeinsame async-Signatur mit pushover/ntfy/notify
+# NOSONAR: Channel-Handler-Polymorphismus, gemeinsame async-Signatur
+# mit pushover/ntfy/notify — die Signatur darf nicht geaendert werden.
+async def telegram_handler(ch: ChannelConfig, msg: Message) -> None:
     """Iter 30: Telegram via HA-notify.telegram. Stub fuer Tests; in HA wird
     dispatch ueber hass.services aufgerufen — siehe async_register_telegram_handler."""
     cfg = ch.config or {}

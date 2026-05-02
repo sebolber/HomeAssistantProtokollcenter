@@ -46,7 +46,10 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["PLR2004", "S101", "PLR0915"]
+# N802: Test-Funktionen referenzieren teils Pascal-Cased Klassen-Namen
+# (z. B. test_..._GroupValueWrite) — das ist absichtlich, damit man im
+# pytest-Output sofort sieht, welche xknx-Klasse getestet wird.
+"tests/**/*.py" = ["PLR2004", "S101", "PLR0915", "N802"]
 
 [tool.ruff.format]
 quote-style = "double"

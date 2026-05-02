@@ -1,0 +1,15 @@
+# Frontend-Bundle ist Vite-Output, kein hand-geschriebener Code.
+# linguist-generated=true: GitHub markiert das File in PRs als
+# "generated", der Diff ist standardmaessig kollabiert.
+# linguist-vendored=true: das File zaehlt nicht zur Sprach-Statistik
+# des Repos (sonst wird das Repo als 90% JavaScript klassifiziert).
+custom_components/messagehub/frontend_dist/messagehub-panel.js linguist-generated=true linguist-vendored=true
+
+# Brand-Assets: vom SVG via cairosvg gerendert.
+custom_components/messagehub/brand/*.png binary
+assets/brands/messagehub/*.png binary
+assets/icon-*.png binary
+assets/logo-*.png binary
+
+# Lock-Files: einmal pro Dependency-Update neu, kein Review-Material.
+frontend/package-lock.json linguist-generated=true

@@ -14,6 +14,9 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from ..helpers import fire_message_added
+from ..processing.anomaly import SourceMetricsRepository, is_anomaly, update
+from ..processing.heartbeat import HeartbeatRepository, is_silent
+from ..storage import Message, Severity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -25,8 +28,6 @@ async def _handle_silent_heartbeat(
     hass: HomeAssistant, repository: Any, hb_repo: Any, hb: Any
 ) -> None:
     """Erzeugt eine Heartbeat-Silent-Message und markiert die Quelle als gemeldet."""
-    from ..storage import Message, Severity  # noqa: PLC0415
-
     msg = Message(
         severity=Severity.WARNING,
         source="messagehub.heartbeat",
@@ -40,8 +41,6 @@ async def _handle_silent_heartbeat(
 
 async def _run_heartbeat_tick(hass: HomeAssistant, repository: Any, hb_repo: Any) -> None:
     """Prueft alle Heartbeats und meldet stille Quellen."""
-    from ..processing.heartbeat import is_silent  # noqa: PLC0415
-
     try:
         for hb in await hb_repo.list_all():
             if not hb.enabled or hb.silent_alert_active:
@@ -61,9 +60,6 @@ async def _handle_anomaly_row(
     now_bucket: str,
 ) -> None:
     """Wertet eine source/count-Zeile aus, meldet Anomalien und aktualisiert Metriken."""
-    from ..processing.anomaly import is_anomaly, update  # noqa: PLC0415
-    from ..storage import Message, Severity  # noqa: PLC0415
-
     metric = await metrics_repo.get(source)
     if metric.last_bucket == now_bucket:
         return
@@ -103,14 +99,11 @@ async def _run_anomaly_tick(
         _LOGGER.warning("anomaly tick failed: %s", err)
 
 
-def async_register_periodic_jobs(
-    hass: HomeAssistant, database: Any, repository: Any
-) -> Any:
+def async_register_periodic_jobs(hass: HomeAssistant, database: Any, repository: Any) -> Any:
     """Registriert Heartbeat + Anomaly-Tick (alle 60 s)."""
+    # HA-Eventbus-Helper bleibt lazy: Tests instanziieren Periodic-Jobs
+    # ohne vollstaendigen HA-Stack.
     from homeassistant.helpers.event import async_track_time_interval  # noqa: PLC0415
-
-    from ..processing.anomaly import SourceMetricsRepository  # noqa: PLC0415
-    from ..processing.heartbeat import HeartbeatRepository  # noqa: PLC0415
 
     hb_repo = HeartbeatRepository(database)
     metrics_repo = SourceMetricsRepository(database)

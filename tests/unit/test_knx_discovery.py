@@ -17,7 +17,6 @@ from custom_components.messagehub.processing.knx_discovery import (
     ga_sort_key,
 )
 
-
 # ---------------------------- find_knx_state ----------------------------
 
 

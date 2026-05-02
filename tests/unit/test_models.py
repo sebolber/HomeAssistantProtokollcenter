@@ -190,3 +190,37 @@ class TestWebhookConfig:
             field_map={"severity": "$.lvl", "text": "$.msg"},
         )
         assert cfg.field_map_json == '{"severity":"$.lvl","text":"$.msg"}'
+
+
+# v0.10 (W4): Severity-Helper konsolidieren parallele Tabellen
+# (`_VALID_SEVERITIES`, `SEVERITY_RANK`) aus knx_repo / forwarder.
+
+
+class TestSeverityHelpers:
+    def test_values_returns_all_four_strings(self) -> None:
+        assert Severity.values() == frozenset({"debug", "info", "warning", "error"})
+
+    def test_is_valid_accepts_canonical_strings(self) -> None:
+        for sev in ("debug", "info", "warning", "error"):
+            assert Severity.is_valid(sev)
+
+    def test_is_valid_rejects_synonyms_and_uppercase(self) -> None:
+        # `is_valid` macht keine Normalisierung — nur kanonische Strings.
+        assert not Severity.is_valid("ERROR")
+        assert not Severity.is_valid("warn")
+        assert not Severity.is_valid("auto")
+        assert not Severity.is_valid("")
+
+    def test_rank_orders_severities(self) -> None:
+        assert Severity.DEBUG.rank() == 0
+        assert Severity.INFO.rank() == 1
+        assert Severity.WARNING.rank() == 2
+        assert Severity.ERROR.rank() == 3
+        assert Severity.ERROR.rank() > Severity.WARNING.rank()
+
+    def test_rank_of_accepts_string_and_enum(self) -> None:
+        assert Severity.rank_of("warning") == Severity.rank_of(Severity.WARNING) == 2
+
+    def test_rank_of_falls_back_to_info_for_unknown(self) -> None:
+        assert Severity.rank_of("nonsense") == 1
+        assert Severity.rank_of("") == 1

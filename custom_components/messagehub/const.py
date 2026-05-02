@@ -34,6 +34,7 @@ def build_device_info(entry_id: str) -> dict[str, Any]:
         "configuration_url": f"homeassistant://navigate/{DOMAIN}",
     }
 
+
 # Datenbank-Pfad relativ zu hass.config.path
 DB_DIRNAME: Final = "messagehub"
 DB_FILENAME: Final = "messages.db"

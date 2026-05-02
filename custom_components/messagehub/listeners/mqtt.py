@@ -7,6 +7,8 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from ..helpers import fire_message_added
+from ..ingestion.mqtt_repo import MqttTopicRepository
+from ..storage import Message, Severity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -18,13 +20,12 @@ async def async_register_mqtt_subscriptions(
     hass: HomeAssistant, database: Any, repository: Any
 ) -> Any:
     """Registriert MQTT-Subscriptions fuer alle aktivierten topic_patterns."""
-    from ..ingestion.mqtt_repo import MqttTopicRepository  # noqa: PLC0415
-    from ..storage import Message, Severity  # noqa: PLC0415
-
     if "mqtt" not in hass.config.components:
         _LOGGER.debug("mqtt not loaded — skipping MQTT subscriptions")
         return None
 
+    # mqtt-Komponente wird nur geladen, wenn HA sie kennt — daher
+    # bleibt der Import lazy guarded.
     try:
         from homeassistant.components import mqtt  # noqa: PLC0415
     except ImportError:

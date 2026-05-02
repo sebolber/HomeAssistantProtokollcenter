@@ -3,6 +3,7 @@
 Iter 10: jsonpath-ng Wrapper, fallback auf Defaults bei fehlendem Pfad,
 Plain-Text-Body wird komplett zu `text`.
 Iter 12: pro-Webhook Severity-Map ergaenzt das interne Severity-Schema.
+v0.10 (S4): Expression-Length-Limit gegen ReDoS-aehnliche Pathologien.
 """
 
 from __future__ import annotations
@@ -17,6 +18,44 @@ from ..storage import Severity
 
 _LOGGER = logging.getLogger(__name__)
 
+# v0.10 S4: hartes Limit fuer JSONPath-Expressions. Pathologische
+# Patterns wie '$.a..b..c..d..e' koennen auf grossen Payloads quadratisch
+# explodieren. 512 Zeichen reicht fuer 99% der realen Webhook-Mappings,
+# verhindert aber DoS via Webhook-CRUD-API.
+MAX_EXPRESSION_LENGTH = 512
+"""Maximale Laenge einer einzelnen JSONPath-Expression."""
+
+MAX_PAYLOAD_DEPTH = 32
+"""Maximale Verschachtelungs-Tiefe eingehender JSON-Payloads."""
+
+
+def _validate_expression(field: str, expr: str) -> str:
+    """Validiert eine JSONPath-Expression — wirft ValueError oder TypeError."""
+    if not isinstance(expr, str):
+        raise TypeError(f"jsonpath for {field!r} must be a string, got {type(expr).__name__}")
+    if len(expr) > MAX_EXPRESSION_LENGTH:
+        raise ValueError(f"jsonpath for {field!r} too long ({len(expr)} > {MAX_EXPRESSION_LENGTH})")
+    return expr
+
+
+def _payload_depth(payload: Any, max_depth: int = MAX_PAYLOAD_DEPTH) -> int:
+    """Berechnet die Verschachtelungstiefe — abgebrochen bei max_depth."""
+    if isinstance(payload, dict):
+        if not payload:
+            return 1
+        return 1 + max(
+            (_payload_depth(v, max_depth - 1) for v in payload.values()),
+            default=0,
+        )
+    if isinstance(payload, list):
+        if not payload:
+            return 1
+        return 1 + max(
+            (_payload_depth(v, max_depth - 1) for v in payload),
+            default=0,
+        )
+    return 0
+
 
 class FieldMapper:
     """Konvertiert einen Payload (Bytes/Dict/Text) ueber konfigurierbare Pfade
@@ -29,12 +68,24 @@ class FieldMapper:
         defaults: dict[str, Any] | None = None,
     ) -> None:
         self._raw_mapping = mapping or {}
-        self._compiled = {key: jsonpath_parse(expr) for key, expr in self._raw_mapping.items()}
+        # v0.10 S4: Expression-Length-Limit als Erste-Linie-Verteidigung.
+        # Die jsonpath_parse-Funktion selbst bekommt damit nur klein
+        # genuegene Eingaben, dass keine Compile-Bombe moeglich ist.
+        self._compiled = {
+            key: jsonpath_parse(_validate_expression(key, expr))
+            for key, expr in self._raw_mapping.items()
+        }
         self._severity_map = {k.lower(): v for k, v in (severity_map or {}).items()}
         self._defaults = defaults or {}
 
     def map_payload(self, payload: Any) -> dict[str, Any]:
-        """Liefert ein Dict mit Schluesseln severity/source/text/timestamp/metadata."""
+        """Liefert ein Dict mit Schluesseln severity/source/text/timestamp/metadata.
+
+        v0.10 (S4): pathologisch tief verschachtelte Payloads werden auf
+        ``MAX_PAYLOAD_DEPTH`` begrenzt. Tiefer-verschachtelte Strukturen
+        wuerden die jsonpath-Engine quadratisch belasten und sind in
+        realen Webhook-Payloads (Sentry, Grafana, GH) nicht zu finden.
+        """
         result: dict[str, Any] = dict(self._defaults)
 
         if isinstance(payload, str):
@@ -45,6 +96,15 @@ class FieldMapper:
 
         if not isinstance(payload, dict | list):
             result.setdefault("text", str(payload))
+            self._apply_severity_normalisation(result)
+            return result
+
+        if _payload_depth(payload) > MAX_PAYLOAD_DEPTH:
+            _LOGGER.warning(
+                "field-mapping: payload deeper than %d — applying defaults only",
+                MAX_PAYLOAD_DEPTH,
+            )
+            result.setdefault("text", "<payload too deep>")
             self._apply_severity_normalisation(result)
             return result
 

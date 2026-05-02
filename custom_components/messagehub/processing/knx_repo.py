@@ -12,13 +12,17 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
+from ..storage import Severity
+
 if TYPE_CHECKING:
     from ..storage import Database
 
 
 _GA_PATTERN = re.compile(r"^\d{1,2}/\d{1,2}/\d{1,3}$")
-_VALID_SEVERITIES = {"debug", "info", "warning", "error"}
-_VALID_LOG_SEVERITIES = _VALID_SEVERITIES | {"auto"}
+# v0.10 (W4): Severity-Werte aus dem zentralen Enum holen, statt hier
+# parallele Tabellen zu pflegen.
+_VALID_SEVERITIES = Severity.values()
+_VALID_LOG_SEVERITIES = _VALID_SEVERITIES | frozenset({"auto"})
 
 
 @dataclass(slots=True)

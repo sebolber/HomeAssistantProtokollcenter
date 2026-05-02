@@ -4,6 +4,81 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.10.0] – 2026-05-02
+
+Architektur-Review-Pass. Performance, Modularitaet, Security und
+Code-Hygiene auf Production-Niveau gehoben — keine Verhaltens-
+aenderung fuer User, aber substantieller Refactor unter der Haube.
+
+### Performance & Hot-Path
+
+- **KNX-Whitelist-Cache** (`processing/knx_cache.py`): TTL-basierter
+  In-Memory-Cache eliminiert den DB-SELECT pro KNX-Telegramm. Bei
+  KNX-Bursts (10+ Telegrammen/s) ist das spuerbar.
+- **Sensor-Coalescing**: 500ms-Debounce vor jedem Sensor-Update
+  bricht Schreibsturm-Kaskaden bei vielen gleichzeitig eintreffenden
+  Nachrichten — ein Burst loest jetzt einen statt N HA-State-Writes aus.
+- **Per-Fingerprint-Lock** (`storage/repositories.py`): statt eines
+  globalen Repository-Locks wird nur das SELECT+UPDATE/INSERT-Race auf
+  identischem Fingerprint serialisiert. Parallele Inserts auf
+  unterschiedlichen Sources blockieren einander nicht mehr.
+
+### Modularitaet
+
+- **`__init__.py` von 858 auf 662 Zeilen reduziert.** Listener und
+  periodische Jobs wandern in eigene Module:
+  - `listeners/knx.py`, `listeners/mqtt.py`, `listeners/syslog.py`
+  - `jobs/periodic.py` (Heartbeat + Anomaly-Tick)
+  - `helpers.py` (zentrales `fire_message_added`)
+- **`KnxTelegramData` als typed dataclass** (`@frozen, slots`):
+  vereint xknx-Telegram-Hook und HA-Eventbus-`knx_event`-Daten in ein
+  einheitliches Schema. `_build_knx_message` und `_ingest` arbeiten
+  jetzt mit konkretem Typ statt `dict[str, Any]`.
+- **`storage/queries.py`** zentralisiert die haeufigsten SQL-Templates
+  fuer die `messages`-Tabelle. Davor stand der INSERT-Block wortwoertlich
+  doppelt im Repository.
+
+### Security
+
+- **Syslog-Bind defaults auf `127.0.0.1`** statt `0.0.0.0`. Wer den
+  Listener absichtlich aus dem LAN erreichbar machen will, setzt das
+  jetzt explizit — und bekommt eine WARN-Logzeile als Bestaetigung.
+- **JSONPath-Expression-Limit** (512 Zeichen) als Erste-Linie-Verteidigung
+  gegen pathologische Compile-Bomben in der Webhook-CRUD-API.
+- **Payload-Depth-Limit** (32 Ebenen): tiefer-verschachtelte Webhook-
+  Payloads werden mit Platzhalter ersetzt, statt die jsonpath-Engine
+  quadratisch zu belasten.
+- **Repair-Issues** (`repair.py`): KNX-/MQTT-Listener melden fehlende
+  Voraussetzungen jetzt aktiv ueber HA-Settings → Reparaturen, nicht
+  nur als stille Log-Zeile.
+
+### Code-Hygiene
+
+- **PLC0415-Audit**: lazy `from datetime import ...` 5x dedupliziert
+  (jetzt einmal am Modul-Top). Lokale Modul-Imports in Listenern und
+  Jobs nach Modul-Top verschoben, wo keine zirkulaeren Abhaengigkeiten
+  drohen. HA-spezifische Imports bleiben lazy mit dokumentierter
+  Begruendung.
+- **Severity-Enum konsolidiert** (`Severity.values()`, `Severity.is_valid()`,
+  `Severity.rank()`, `Severity.rank_of()`): `_VALID_SEVERITIES`-Sets in
+  `knx_repo` und `SEVERITY_RANK`-Tabelle in `forwarder.py` greifen jetzt
+  auf das zentrale Enum zu.
+- **`.gitattributes`**: das Vite-Output-Bundle
+  (`frontend_dist/messagehub-panel.js`) wird in PRs als
+  `linguist-generated` markiert und zaehlt nicht zur Sprach-Statistik.
+  PR-Diffs sind nicht mehr von 5000 Zeilen Bundle-Diff zugewuchert.
+
+### Hinzugefuegt
+
+- 6 neue Tests fuer JSONPath-Validation (`test_field_mapping.py`)
+- 5 neue Tests fuer Repair-Issue-Helper (`test_repair.py`)
+- 6 neue Tests fuer Severity-Helper (`test_models.py::TestSeverityHelpers`)
+- 2 neue strings.json-Eintraege (Issue-Translations fuer KNX/MQTT)
+
+### Geaendert
+
+- **335 Tests gruen** (vorher 309) — saemtliche Refactorings TDD-konform.
+
 ## [0.9.5] – 2026-05-02
 
 KNX-Listener-Refactor. Beseitigt die laestige Doppelt-Konfiguration

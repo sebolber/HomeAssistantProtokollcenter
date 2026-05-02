@@ -9,9 +9,10 @@ from __future__ import annotations
 import asyncio
 import json
 import secrets
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from . import queries
 from .models import Message, Severity, WebhookConfig
 
 if TYPE_CHECKING:
@@ -50,12 +51,7 @@ class MessageRepository:
         fp = compute_fingerprint(message.source, message.severity.value, message.text)
         ts = message.timestamp_iso
         cursor = await self._db.connection.execute(
-            """
-            INSERT INTO messages
-                (timestamp, severity, source, text, metadata, webhook_id,
-                 fingerprint, count, first_seen, last_seen, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 'new')
-            """,
+            queries.INSERT_MESSAGE,
             (
                 ts,
                 message.severity.value,
@@ -88,8 +84,6 @@ class MessageRepository:
 
         Returns (id, was_aggregated).
         """
-        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
-
         from ..processing.deduplication import compute_fingerprint  # noqa: PLC0415
 
         if window_minutes <= 0:
@@ -113,7 +107,7 @@ class MessageRepository:
             msg_id = int(row["id"])
             new_count = int(row["count"]) + 1
             upd = await self._db.connection.execute(
-                "UPDATE messages SET count = ?, last_seen = ? WHERE id = ?",
+                queries.UPDATE_MESSAGE_AGGREGATE,
                 (new_count, message.timestamp_iso, msg_id),
             )
             await upd.close()
@@ -123,14 +117,7 @@ class MessageRepository:
 
     async def _select_active_dup(self, fp: str, cutoff: str) -> Any | None:
         cursor = await self._db.connection.execute(
-            """
-            SELECT id, count FROM messages
-            WHERE fingerprint = ?
-              AND status IN ('new', 'acknowledged')
-              AND last_seen >= ?
-            ORDER BY last_seen DESC
-            LIMIT 1
-            """,
+            queries.SELECT_ACTIVE_DUPLICATE,
             (fp, cutoff),
         )
         try:
@@ -142,12 +129,7 @@ class MessageRepository:
     async def _insert_in_tx(self, message: Message, fp: str) -> int:
         ts = message.timestamp_iso
         cursor = await self._db.connection.execute(
-            """
-            INSERT INTO messages
-                (timestamp, severity, source, text, metadata, webhook_id,
-                 fingerprint, count, first_seen, last_seen, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 'new')
-            """,
+            queries.INSERT_MESSAGE,
             (
                 ts,
                 message.severity.value,
@@ -172,7 +154,7 @@ class MessageRepository:
         if status not in {"new", "acknowledged", "resolved", "expired"}:
             raise ValueError(f"invalid status {status!r}")
         cursor = await self._db.connection.execute(
-            "UPDATE messages SET status = ? WHERE id = ?",
+            queries.UPDATE_MESSAGE_STATUS,
             (status, message_id),
         )
         await self._db.connection.commit()
@@ -182,10 +164,10 @@ class MessageRepository:
 
     async def set_severity(self, message_id: int, severity: str) -> bool:
         """UI-Inline-Edit: Severity einer einzelnen Nachricht aendern."""
-        if severity not in {"debug", "info", "warning", "error"}:
+        if not Severity.is_valid(severity):
             raise ValueError(f"invalid severity {severity!r}")
         cursor = await self._db.connection.execute(
-            "UPDATE messages SET severity = ? WHERE id = ?",
+            queries.UPDATE_MESSAGE_SEVERITY,
             (severity, message_id),
         )
         await self._db.connection.commit()
@@ -262,8 +244,6 @@ class MessageRepository:
 
     async def severity_time_series(self, hours: int = 24) -> list[dict[str, Any]]:
         """v0.4: stundenweise Severity-Buckets der letzten N Stunden."""
-        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
-
         cutoff = (datetime.now(UTC) - timedelta(hours=hours)).isoformat(timespec="seconds")
         rows = await self._db.fetch_all(
             "SELECT strftime('%Y-%m-%dT%H:00:00', timestamp) AS bucket, "
@@ -287,8 +267,6 @@ class MessageRepository:
     async def mttr_per_source(self, days: int = 30) -> list[dict[str, Any]]:
         """v0.4: Mean-Time-To-Resolve pro Source — Durchschnitt aus
         (last_seen - first_seen) fuer resolvte Errors."""
-        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
-
         cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat(timespec="seconds")
         rows = await self._db.fetch_all(
             "SELECT source, "
@@ -312,8 +290,6 @@ class MessageRepository:
 
     async def heatmap_hour_weekday(self, days: int = 30) -> list[dict[str, int]]:
         """Iter 41: Heatmap (hour x weekday) ueber die letzten N Tage."""
-        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
-
         cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat(timespec="seconds")
         rows = await self._db.fetch_all(
             """
@@ -336,8 +312,6 @@ class MessageRepository:
         ]
 
     async def top_sources(self, *, limit: int = 10, days: int = 30) -> list[dict[str, object]]:
-        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
-
         cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat(timespec="seconds")
         rows = await self._db.fetch_all(
             "SELECT source, COUNT(*) AS cnt FROM messages "
@@ -348,16 +322,13 @@ class MessageRepository:
 
     async def get_by_id(self, message_id: int) -> Message | None:
         """Liefert eine Nachricht per ID oder None."""
-        row = await self._db.fetch_one(
-            "SELECT * FROM messages WHERE id = ?",
-            (message_id,),
-        )
+        row = await self._db.fetch_one(queries.SELECT_MESSAGE_BY_ID, (message_id,))
         return _row_to_message(row) if row is not None else None
 
     async def delete_by_id(self, message_id: int) -> bool:
         """Loescht eine Nachricht. True, wenn etwas geloescht wurde."""
         cursor = await self._db.connection.execute(
-            "DELETE FROM messages WHERE id = ?",
+            queries.DELETE_MESSAGE_BY_ID,
             (message_id,),
         )
         await self._db.connection.commit()
@@ -473,25 +444,23 @@ class MessageRepository:
         return int(row["cnt"]) if row is not None else 0
 
     async def distinct_sources(self) -> list[str]:
-        rows = await self._db.fetch_all("SELECT DISTINCT source FROM messages ORDER BY source ASC")
+        rows = await self._db.fetch_all(queries.SELECT_DISTINCT_SOURCES)
         return [str(row["source"]) for row in rows]
 
     async def stats_severity_last_24h(self) -> dict[str, int]:
-        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
-
         cutoff = (datetime.now(UTC) - timedelta(hours=24)).isoformat(timespec="seconds")
         rows = await self._db.fetch_all(
             "SELECT severity, COUNT(*) AS cnt FROM messages WHERE timestamp >= ? GROUP BY severity",
             (cutoff,),
         )
         counts = {row["severity"]: int(row["cnt"]) for row in rows}
-        for sev in ("debug", "info", "warning", "error"):
+        for sev in Severity.values():
             counts.setdefault(sev, 0)
         return counts
 
     async def count_total(self) -> int:
         """Liefert die Gesamtanzahl der Nachrichten."""
-        row = await self._db.fetch_one("SELECT COUNT(*) AS cnt FROM messages")
+        row = await self._db.fetch_one(queries.COUNT_MESSAGES)
         if row is None:
             return 0
         return int(row["cnt"])

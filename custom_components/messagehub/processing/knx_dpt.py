@@ -181,9 +181,7 @@ def _format_datetime(value: Any) -> str:
     """DPT 19.001: 8 Byte (year-1900, month, day, dow|hour, min, sec, flags1, flags2)."""
     if isinstance(value, tuple) and len(value) >= _DATETIME_TUPLE_MIN_LEN:
         try:
-            year_off, month, day, b3, mins, secs = (
-                int(v) for v in value[:_DATETIME_TUPLE_MIN_LEN]
-            )
+            year_off, month, day, b3, mins, secs = (int(v) for v in value[:_DATETIME_TUPLE_MIN_LEN])
         except (TypeError, ValueError):
             return str(value)
         full_year = 1900 + year_off

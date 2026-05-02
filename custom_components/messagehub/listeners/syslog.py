@@ -7,6 +7,8 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from ..helpers import fire_message_added
+from ..ingestion.syslog import parse_rfc3164
+from ..storage import Message
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -24,9 +26,6 @@ async def async_register_syslog_listener(
     hass: HomeAssistant, entry: ConfigEntry, repository: Any
 ) -> Any:
     """Bindet einen UDP-Datagram-Listener auf den konfigurierten Port."""
-    from ..ingestion.syslog import parse_rfc3164  # noqa: PLC0415
-    from ..storage import Message  # noqa: PLC0415
-
     if not entry.options.get("syslog_enabled", False):
         return None
     port = int(entry.options.get("syslog_port", 5514))
@@ -36,7 +35,7 @@ async def async_register_syslog_listener(
         return None
 
     bind = str(entry.options.get("syslog_bind", DEFAULT_SYSLOG_BIND))
-    if bind == "0.0.0.0":  # noqa: S104
+    if bind == "0.0.0.0":
         _LOGGER.warning(
             "messagehub: Syslog-Listener bindet auf 0.0.0.0 — der UDP-Port %d ist "
             "vom LAN/WAN aus erreichbar, ohne Auth. Nur in vertrauenswuerdigen "
@@ -61,9 +60,7 @@ async def async_register_syslog_listener(
                 pass
 
     loop = asyncio.get_event_loop()
-    transport, _ = await loop.create_datagram_endpoint(
-        _SyslogProtocol, local_addr=(bind, port)
-    )
+    transport, _ = await loop.create_datagram_endpoint(_SyslogProtocol, local_addr=(bind, port))
     _LOGGER.info("syslog UDP listener active on %s:%d", bind, port)
 
     def _unsub() -> None:
