@@ -19,6 +19,7 @@ from .knx_stats import (
     classify_severity,
     detect_patterns,
     recommended_rate_for,
+    safe_ratio,
 )
 
 if TYPE_CHECKING:
@@ -137,7 +138,7 @@ class KnxStatsService:
                     count=row["count"],
                     rate_per_min=round(rate, 2),
                     recommended_rate=recommended,
-                    ratio=_safe_ratio(rate, recommended),
+                    ratio=safe_ratio(rate, recommended),
                     severity=classify_severity(rate, recommended),
                     acknowledged=is_ack,
                 )
@@ -326,12 +327,6 @@ class KnxStatsService:
             if row["ga"] == ga:
                 return row
         return None
-
-
-def _safe_ratio(rate: float, recommended: float) -> float:
-    if recommended <= 0.0:
-        return float("inf") if rate > 0.0 else 0.0
-    return rate / recommended
 
 
 # Public helpers fuer JSON-Serialisierung im API-Layer

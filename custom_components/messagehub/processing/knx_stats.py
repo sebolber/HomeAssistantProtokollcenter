@@ -127,8 +127,13 @@ _RECOMMENDATION_TEMPLATES: Final[dict[str, str]] = {
 _GREEN_TEXT: Final = "Telegrammrate ist im erwarteten Bereich — keine Aktion noetig."
 
 
-def _compute_ratio(rate: float, recommended: float) -> float:
-    """Verhaeltnis Ist/Soll, mit Sonderfall recommended<=0."""
+def safe_ratio(rate: float, recommended: float) -> float:
+    """Verhaeltnis Ist/Soll mit Sonderfall recommended<=0.
+
+    Public, weil sowohl Recommendation-Engine (knx_stats.py) als auch
+    Service-Layer (knx_stats_service.py) ihn brauchen. Vermeidet eine
+    duplizierte Implementierung.
+    """
     if recommended <= 0.0:
         return float("inf") if rate > 0.0 else 0.0
     return rate / recommended
@@ -167,7 +172,7 @@ def build_recommendation(
     Reduktion in Prozent.
     """
     severity = classify_severity(rate, recommended)
-    ratio = _compute_ratio(rate, recommended)
+    ratio = safe_ratio(rate, recommended)
 
     if severity == "green":
         return Recommendation(
