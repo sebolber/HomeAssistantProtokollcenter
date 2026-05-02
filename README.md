@@ -1,5 +1,7 @@
 # Message Hub für Home Assistant
 
+<img src="assets/icon.svg" alt="Message Hub icon" width="96" align="right"/>
+
 Zentrale Sammelstelle für strukturierte Nachrichten (Info / Warning / Error / Debug)
 aus beliebigen Quellen — eingehend über Webhooks, MQTT, KNX-Bus, Eventbus, Syslog
 oder den Service `messagehub.add_message`. Persistent in eigener SQLite-Datenbank,

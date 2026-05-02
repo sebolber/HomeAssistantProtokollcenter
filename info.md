@@ -1,5 +1,7 @@
 # Message Hub
 
+<img src="https://raw.githubusercontent.com/sebolber/HomeAssistantProtokollcenter/main/assets/icon-256.png" alt="Message Hub" width="96" align="right"/>
+
 Zentrale Sammelstelle für Nachrichten und Fehlermeldungen aus mehreren
 Eingangskanälen — persistiert in eigener SQLite, dargestellt in einem
 Sidebar-Panel.

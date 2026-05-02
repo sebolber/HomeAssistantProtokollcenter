@@ -493,7 +493,16 @@ export class MessageHubPanel extends LitElement {
       <div class="root" @click=${this._closeOverflow}>
         <header>
           <div class="brand">
-            <span class="logo" aria-hidden="true">📨</span>
+            <span class="logo" aria-hidden="true">
+              <svg viewBox="0 0 512 512" width="28" height="28">
+                <rect x="0" y="0" width="512" height="512" rx="112" ry="112" fill="var(--mh-accent)"/>
+                <path d="M 112 232 L 168 232 L 200 280 L 312 280 L 344 232 L 400 232 L 400 384 Q 400 400 384 400 L 128 400 Q 112 400 112 384 Z" fill="#fff"/>
+                <path d="M 112 232 L 168 168 L 344 168 L 400 232 L 344 232 L 312 280 L 200 280 L 168 232 Z" fill="none" stroke="#fff" stroke-width="6" stroke-linejoin="round"/>
+                <circle cx="180" cy="112" r="22" fill="#ef5350"/>
+                <circle cx="256" cy="92" r="22" fill="#ffb300"/>
+                <circle cx="332" cy="112" r="22" fill="#66bb6a"/>
+              </svg>
+            </span>
             <h1>Message Hub</h1>
           </div>
           <nav role="tablist" class="tabs">
@@ -573,7 +582,12 @@ export class MessageHubPanel extends LitElement {
         gap: var(--mh-space-2);
       }
       .logo {
-        font-size: 1.4em;
+        display: inline-flex;
+        align-items: center;
+        line-height: 0;
+      }
+      .logo svg {
+        border-radius: 6px;
       }
       h1 {
         font-size: var(--mh-text-lg);
