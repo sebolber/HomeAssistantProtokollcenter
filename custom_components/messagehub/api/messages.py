@@ -734,6 +734,16 @@ class ChannelsView(_RequireAdminView):
         return self.json(channel_to_dict(ch))
 
 
+# Iter 88 / CR-20: Rate-Limit fuer ChannelTestView. Vorher konnte ein
+# Admin per POST /channels/{id}/test einen Provider (Telegram, Pushover,
+# ntfy) automatisiert spammen — interne Throttle/Quiet-Hours wurden im
+# Test-Pfad deaktiviert. Token-Bucket pro Channel-ID: 3 Tests / Minute,
+# Capacity 3. Verhindert Bursts ohne legitime Tests zu blockieren.
+from ..processing.rate_limit import TokenBucketLimiter  # noqa: E402
+
+_channel_test_limiter = TokenBucketLimiter(capacity=3.0, refill_per_minute=3.0)
+
+
 class ChannelTestView(_RequireAdminView):
     """v0.4: schickt eine Test-Nachricht ueber den Channel."""
 
@@ -754,6 +764,14 @@ class ChannelTestView(_RequireAdminView):
             cid = int(channel_id)
         except ValueError:
             return self.json_message(_ERR_INVALID_ID, status_code=400)
+        # Iter 88 / CR-20: Rate-Limit pro Channel-ID. Verhindert
+        # Provider-Spam via wiederholtem Test-Knopf-Klick.
+        if not _channel_test_limiter.allow(f"ch:{cid}"):
+            return web.json_response(
+                {"message": "rate limit exceeded — bitte etwas warten"},
+                status=429,
+                headers={"Retry-After": "20"},
+            )
         channels = await ChannelRepository(db).list_all()
         target = next((c for c in channels if c.id == cid), None)
         if target is None:

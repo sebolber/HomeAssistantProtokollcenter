@@ -6,6 +6,13 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Sicherheit (Iter 88 — CR-20 ChannelTestView Rate-Limit)
+- **Token-Bucket** auf `POST /channels/{id}/test`. Vorher konnte ein
+  Admin per Klick einen externen Provider (Telegram, Pushover, ntfy)
+  spammen — interner Throttle/Quiet-Hours-Schutz wurde im Test-Pfad
+  bewusst deaktiviert. Jetzt: Capacity 3, Refill 3/Min pro Channel-ID.
+- HTTP 429 mit `Retry-After: 20` bei überschrittenem Limit.
+
 ### Hinzugefügt (Iter 87 — P2-2 Alarm-Schwellen via Config-Flow)
 - **3 neue Config-Flow-Options** im OptionsFlow: `knx_alarm_busload_pct`,
   `knx_alarm_repeat_rate_pct`, `knx_alarm_silence_count`. Setzt User
