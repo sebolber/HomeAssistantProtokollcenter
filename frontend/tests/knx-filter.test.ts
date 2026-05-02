@@ -161,6 +161,93 @@ describe("knx-addresses-view filter 'nur aktive'", () => {
   });
 });
 
+describe("knx-addresses-view Iter 55: Pagination (3000+ GAs)", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+    try {
+      localStorage.removeItem("messagehub.knx-addresses.only-enabled");
+    } catch {
+      // ignore
+    }
+  });
+
+  function makeMany(count: number, allEnabled: boolean = true): KnxAddressDto[] {
+    const items: KnxAddressDto[] = [];
+    for (let i = 0; i < count; i++) {
+      items.push(
+        makeAddr({
+          address: `1/0/${i}`,
+          label: `GA ${i}`,
+          log_enabled: allEnabled,
+        })
+      );
+    }
+    return items;
+  }
+
+  it("zeigt initial maximal 200 Rows auch bei 3000+ Items", async () => {
+    const el = await mount(makeMany(3000));
+    const rows = el.shadowRoot!.querySelectorAll("table tbody tr");
+    expect(rows.length).toBe(200);
+  });
+
+  it("zeigt 'Mehr laden'-Button wenn mehr als 200 Items gefiltert sind", async () => {
+    const el = await mount(makeMany(500));
+    const moreBtn = Array.from(
+      el.shadowRoot!.querySelectorAll(".load-more button")
+    ).find((b) => (b.textContent || "").includes("Mehr laden"));
+    expect(moreBtn).toBeDefined();
+  });
+
+  it("'Mehr laden' fuegt eine weitere Page (200) Rows hinzu", async () => {
+    const el = await mount(makeMany(500));
+    const moreBtn = Array.from(
+      el.shadowRoot!.querySelectorAll(".load-more button")
+    ).find((b) =>
+      (b.textContent || "").includes("Mehr laden")
+    ) as HTMLButtonElement;
+    moreBtn.click();
+    await el.updateComplete;
+    const rows = el.shadowRoot!.querySelectorAll("table tbody tr");
+    expect(rows.length).toBe(400);
+  });
+
+  it("'Alle zeigen' rendert alle gefilterten Rows", async () => {
+    const el = await mount(makeMany(500));
+    const allBtn = Array.from(
+      el.shadowRoot!.querySelectorAll(".load-more button")
+    ).find((b) =>
+      (b.textContent || "").includes("Alle")
+    ) as HTMLButtonElement;
+    allBtn.click();
+    await el.updateComplete;
+    const rows = el.shadowRoot!.querySelectorAll("table tbody tr");
+    expect(rows.length).toBe(500);
+  });
+
+  it("Filter-Aenderung resetted Pagination zurueck auf 200", async () => {
+    const el = await mount(makeMany(500));
+    const allBtn = Array.from(
+      el.shadowRoot!.querySelectorAll(".load-more button")
+    ).find((b) =>
+      (b.textContent || "").includes("Alle")
+    ) as HTMLButtonElement;
+    allBtn.click();
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelectorAll("table tbody tr").length).toBe(500);
+    // Such-Filter setzen -> Pagination resetted, Filter laesst nur 1 Row
+    const search = el.shadowRoot!.querySelector(
+      'input[type="search"]'
+    ) as HTMLInputElement;
+    search.value = "GA 42";
+    search.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    const rows = el.shadowRoot!.querySelectorAll("table tbody tr");
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.length).toBeLessThan(500);
+  });
+});
+
 describe("knx-addresses-view Iter 54 (N2): Toggle-On-Severity-Default", () => {
   beforeEach(() => {
     document.body.innerHTML = "";

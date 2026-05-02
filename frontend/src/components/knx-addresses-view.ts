@@ -34,6 +34,10 @@ function loadOnlyEnabled(): boolean {
 // importierte Trenner-GAs.
 const PLACEHOLDER_LABEL_RE = /^[\s\-_=]*$/;
 
+// Iter 55: Pagination — bei 3593 GAs ist das DOM mit allen Rows traege.
+// 200 Rows pro Page reichen visuell, "Mehr laden" haengt an.
+const PAGE_SIZE = 200;
+
 @customElement("knx-addresses-view")
 export class KnxAddressesView extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
@@ -45,6 +49,9 @@ export class KnxAddressesView extends LitElement {
   // Iter 53: Toggle, ob ETS-Platzhalter-GAs (Label nur Striche/leer)
   // angezeigt werden. Default: aus, weil sie meist Noise sind.
   @state() private _hidePlaceholders = true;
+  // Iter 55: Wie viele der gefilterten Rows aktuell gerendert werden.
+  // Wird auf PAGE_SIZE zurueckgesetzt, wenn sich Filter aendern.
+  @state() private _displayedCount = PAGE_SIZE;
   @state() private _newAddr = "";
   @state() private _newLabel = "";
   @state() private _newDpt = "";
@@ -522,7 +529,12 @@ export class KnxAddressesView extends LitElement {
   }
 
   override render(): TemplateResult {
-    const items = this._filtered();
+    // Iter 55: Pagination — wir filtern alle Items, schneiden auf
+    // _displayedCount fuer das Render-Slicing. So bleibt das DOM bei
+    // 3593 GAs handhabbar (typisch nur 200 Rows im DOM).
+    const allFiltered = this._filtered();
+    const items = allFiltered.slice(0, this._displayedCount);
+    const hasMore = allFiltered.length > items.length;
     const enabledCount = this._items.filter((i) => i.log_enabled).length;
     return html`
       <section>
@@ -616,8 +628,10 @@ export class KnxAddressesView extends LitElement {
             class="mh-input"
             placeholder="Suche (GA / Label / DPT)…"
             .value=${this._filter}
-            @input=${(e: InputEvent) =>
-              (this._filter = (e.target as HTMLInputElement).value)}
+            @input=${(e: InputEvent) => {
+              this._filter = (e.target as HTMLInputElement).value;
+              this._displayedCount = PAGE_SIZE;
+            }}
           />
           <label class="toggle">
             <input
@@ -625,6 +639,7 @@ export class KnxAddressesView extends LitElement {
               .checked=${this._onlyEnabled}
               @change=${(e: Event) => {
                 this._onlyEnabled = (e.target as HTMLInputElement).checked;
+                this._displayedCount = PAGE_SIZE;
                 try {
                   localStorage.setItem(
                     STORAGE_KEY_ONLY_ENABLED,
@@ -641,12 +656,18 @@ export class KnxAddressesView extends LitElement {
             <input
               type="checkbox"
               .checked=${this._hidePlaceholders}
-              @change=${(e: Event) =>
-                (this._hidePlaceholders = (e.target as HTMLInputElement).checked)}
+              @change=${(e: Event) => {
+                this._hidePlaceholders = (e.target as HTMLInputElement).checked;
+                this._displayedCount = PAGE_SIZE;
+              }}
             />
             <span>Platzhalter ausblenden</span>
           </label>
-          <span class="muted">${items.length} sichtbar</span>
+          <span class="muted">
+            ${items.length} sichtbar${hasMore
+              ? html` von ${allFiltered.length}`
+              : nothing}
+          </span>
         </div>
 
         ${this._loading
@@ -764,6 +785,27 @@ export class KnxAddressesView extends LitElement {
                       )}
                     </tbody>
                   </table>
+                  ${hasMore
+                    ? html`<div class="load-more">
+                        <button
+                          class="mh-btn"
+                          @click=${() =>
+                            (this._displayedCount = Math.min(
+                              this._displayedCount + PAGE_SIZE,
+                              allFiltered.length
+                            ))}
+                        >
+                          Mehr laden (${allFiltered.length - items.length} weitere)
+                        </button>
+                        <button
+                          class="mh-btn mh-btn--ghost"
+                          @click=${() =>
+                            (this._displayedCount = allFiltered.length)}
+                        >
+                          Alle ${allFiltered.length} zeigen
+                        </button>
+                      </div>`
+                    : nothing}
                 </div>
               `}
 
@@ -880,6 +922,23 @@ export class KnxAddressesView extends LitElement {
         border-radius: var(--mh-radius-md);
         overflow: hidden;
         box-shadow: var(--mh-shadow-1);
+      }
+      /* Iter 55: Load-more Footer fuer paginierte Liste */
+      .load-more {
+        display: flex;
+        justify-content: center;
+        gap: var(--mh-space-2);
+        padding: var(--mh-space-3);
+        border-top: 1px solid var(--mh-divider);
+        background: var(--mh-bg);
+      }
+      .mh-btn--ghost {
+        background: transparent;
+        color: var(--mh-fg-muted);
+      }
+      .mh-btn--ghost:hover {
+        color: var(--mh-fg);
+        background: var(--mh-bg-hover, rgba(0, 0, 0, 0.04));
       }
       table {
         width: 100%;
