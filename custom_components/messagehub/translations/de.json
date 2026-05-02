@@ -39,5 +39,15 @@
         "metadata": { "name": "Metadata", "description": "Optionale Zusatzfelder" }
       }
     }
+  },
+  "issues": {
+    "knx_unavailable": {
+      "title": "KNX-Integration nicht verfuegbar",
+      "description": "Message Hub kann den KNX-Bus nicht direkt mitlesen, weil die HA-KNX-Integration nicht (mehr) laeuft oder eine alte Modul-Struktur hat. Wir fallen auf den `knx_event`-Bus zurueck; damit Telegramme ankommen, muss in `configuration.yaml` eine `knx: event:`-Liste mit den relevanten GAs eingetragen sein. Empfohlen: HA-KNX neu starten oder updaten."
+    },
+    "mqtt_unavailable": {
+      "title": "MQTT-Integration nicht verfuegbar",
+      "description": "Message Hub hat MQTT-Topic-Subscriptions konfiguriert, aber die HA-MQTT-Integration laeuft nicht. Setze die MQTT-Integration auf, damit eingehende Topics als Nachrichten erscheinen."
+    }
   }
 }

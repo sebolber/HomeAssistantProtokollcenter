@@ -39,5 +39,15 @@
         "metadata": { "name": "Metadata", "description": "Optional extra fields" }
       }
     }
+  },
+  "issues": {
+    "knx_unavailable": {
+      "title": "KNX integration unavailable",
+      "description": "Message Hub cannot read the KNX bus directly because the HA-KNX integration is not running (or has an old module layout). We fell back to the `knx_event` bus; for telegrams to arrive, you must add a `knx: event:` list with the relevant group addresses to `configuration.yaml`. Recommended: restart or update HA-KNX."
+    },
+    "mqtt_unavailable": {
+      "title": "MQTT integration unavailable",
+      "description": "Message Hub has MQTT topic subscriptions configured, but the HA-MQTT integration is not running. Set up the MQTT integration so incoming topics show up as messages."
+    }
   }
 }

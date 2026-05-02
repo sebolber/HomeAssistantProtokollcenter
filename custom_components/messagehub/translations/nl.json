@@ -39,5 +39,15 @@
         "metadata": { "name": "Metadata", "description": "Optionele extra velden" }
       }
     }
+  },
+  "issues": {
+    "knx_unavailable": {
+      "title": "KNX-integratie niet beschikbaar",
+      "description": "Message Hub kan de KNX-bus niet rechtstreeks lezen omdat de HA-KNX-integratie niet (meer) draait of een oude modulestructuur heeft. We vallen terug op de `knx_event`-bus; om telegrammen te ontvangen moet je een `knx: event:`-lijst met de relevante groepsadressen toevoegen in `configuration.yaml`. Aanbevolen: HA-KNX herstarten of bijwerken."
+    },
+    "mqtt_unavailable": {
+      "title": "MQTT-integratie niet beschikbaar",
+      "description": "Message Hub heeft MQTT-topic-abonnementen geconfigureerd, maar de HA-MQTT-integratie draait niet. Stel de MQTT-integratie in zodat binnenkomende topics als berichten verschijnen."
+    }
   }
 }

@@ -4,6 +4,20 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.10.1] – 2026-05-02
+
+Hotfix fuer Repair-Issue-Translations.
+
+### Behoben
+
+- **Repair-Issues zeigten den raw `translation_key`** statt der
+  uebersetzten Texte. Ursache: in v0.10.0 lagen die `issues`-
+  Eintraege nur in `strings.json`, nicht in `translations/<lang>.json`.
+  HA holt zur Laufzeit aber aus den `translations/`-Dateien.
+- **`issues`-Block in alle sechs Translation-Dateien** ergaenzt
+  (de, en, es, fr, it, nl) — KNX-/MQTT-Repair-Issues haben jetzt
+  ueberall lesbare Titel und Beschreibungen.
+
 ## [0.10.0] – 2026-05-02
 
 Architektur-Review-Pass. Performance, Modularitaet, Security und
