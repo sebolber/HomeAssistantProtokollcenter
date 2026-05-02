@@ -39,8 +39,16 @@ export class KnxTimelineChart extends LitElement {
     const innerW = this.width - padding.left - padding.right;
     const innerH = this.height - padding.top - padding.bottom;
 
-    const xFor = (bucketIdx: number): number =>
-      padding.left + (bucketIdx / Math.max(1, buckets.length - 1)) * innerW;
+    // Iter 52: Single-Bucket-Fix — bei nur einem Datenpunkt war
+    // <polyline> leer (SVG-Spec braucht >=2 Punkte). Loesung: x ueber
+    // die volle Breite spannen, sodass eine horizontale Linie entsteht;
+    // zusaetzlich rendern wir Circles an jedem Datenpunkt, damit die
+    // Existenz des Wertes auch bei wenigen Buckets klar erkennbar ist.
+    const singleBucket = buckets.length === 1;
+    const xFor = (bucketIdx: number): number => {
+      if (singleBucket) return padding.left + innerW / 2;
+      return padding.left + (bucketIdx / (buckets.length - 1)) * innerW;
+    };
     const yFor = (count: number): number =>
       padding.top + (1 - count / maxCount) * innerH;
 
@@ -68,17 +76,37 @@ export class KnxTimelineChart extends LitElement {
 
         <!-- Series -->
         ${series.map((s, idx) => {
-          const points = s.values.map(
-            (v, i) => `${xFor(i)},${yFor(v)}`
-          ).join(" ");
           const color = PALETTE[idx % PALETTE.length];
-          return html`<polyline
-            points=${points}
-            class="series"
-            fill="none"
-            stroke=${color}
-            stroke-width="1.5"
-          ><title>${s.ga}</title></polyline>`;
+          if (singleBucket) {
+            // Single-Bucket: horizontale Linie ueber die volle Breite +
+            // Circle in der Mitte. Polyline waere mit 1 Punkt unsichtbar.
+            const y = yFor(s.values[0] ?? 0);
+            return html`<g class="series">
+              <line
+                x1=${padding.left} y1=${y}
+                x2=${this.width - padding.right} y2=${y}
+                stroke=${color}
+                stroke-width="1.5"
+              ></line>
+              <circle cx=${xFor(0)} cy=${y} r="2.5" fill=${color}>
+                <title>${s.ga}: ${s.values[0]}</title>
+              </circle>
+            </g>`;
+          }
+          const points = s.values.map((v, i) => `${xFor(i)},${yFor(v)}`).join(" ");
+          return html`<g class="series">
+            <polyline
+              points=${points}
+              fill="none"
+              stroke=${color}
+              stroke-width="1.5"
+            ><title>${s.ga}</title></polyline>
+            ${s.values.map(
+              (v, i) => html`<circle cx=${xFor(i)} cy=${yFor(v)} r="1.8" fill=${color}>
+                <title>${s.ga}: ${v}</title>
+              </circle>`
+            )}
+          </g>`;
         })}
       </svg>
       <div class="legend">

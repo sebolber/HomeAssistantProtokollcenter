@@ -3,7 +3,7 @@
  * Copyright 2019 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ke = globalThis, Be = ke.ShadowRoot && (ke.ShadyCSS === void 0 || ke.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, je = Symbol(), Je = /* @__PURE__ */ new WeakMap();
+const ke = globalThis, Fe = ke.ShadowRoot && (ke.ShadyCSS === void 0 || ke.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, je = Symbol(), Je = /* @__PURE__ */ new WeakMap();
 let wt = class {
   constructor(e, s, a) {
     if (this._$cssResult$ = !0, a !== je) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
@@ -12,7 +12,7 @@ let wt = class {
   get styleSheet() {
     let e = this.o;
     const s = this.t;
-    if (Be && e === void 0) {
+    if (Fe && e === void 0) {
       const a = s !== void 0 && s.length === 1;
       a && (e = Je.get(s)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), a && Je.set(s, e));
     }
@@ -30,12 +30,12 @@ const Ct = (t) => new wt(typeof t == "string" ? t : t + "", void 0, je), y = (t,
   })(r) + t[o + 1], t[0]);
   return new wt(s, t, je);
 }, Mt = (t, e) => {
-  if (Be) t.adoptedStyleSheets = e.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
+  if (Fe) t.adoptedStyleSheets = e.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
   else for (const s of e) {
     const a = document.createElement("style"), r = ke.litNonce;
     r !== void 0 && a.setAttribute("nonce", r), a.textContent = s.cssText, t.appendChild(a);
   }
-}, Ye = Be ? (t) => t : (t) => t instanceof CSSStyleSheet ? ((e) => {
+}, Ye = Fe ? (t) => t : (t) => t instanceof CSSStyleSheet ? ((e) => {
   let s = "";
   for (const a of e.cssRules) s += a.cssText;
   return Ct(s);
@@ -45,7 +45,7 @@ const Ct = (t) => new wt(typeof t == "string" ? t : t + "", void 0, je), y = (t,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: Nt, defineProperty: Ht, getOwnPropertyDescriptor: It, getOwnPropertyNames: Ft, getOwnPropertySymbols: Bt, getPrototypeOf: jt } = Object, B = globalThis, Qe = B.trustedTypes, Ut = Qe ? Qe.emptyScript : "", Le = B.reactiveElementPolyfillSupport, he = (t, e) => t, Se = { toAttribute(t, e) {
+const { is: Nt, defineProperty: Ht, getOwnPropertyDescriptor: It, getOwnPropertyNames: Bt, getOwnPropertySymbols: Ft, getPrototypeOf: jt } = Object, F = globalThis, Qe = F.trustedTypes, Ut = Qe ? Qe.emptyScript : "", Le = F.reactiveElementPolyfillSupport, he = (t, e) => t, Se = { toAttribute(t, e) {
   switch (e) {
     case Boolean:
       t = t ? Ut : null;
@@ -74,7 +74,7 @@ const { is: Nt, defineProperty: Ht, getOwnPropertyDescriptor: It, getOwnProperty
   }
   return s;
 } }, Ue = (t, e) => !Nt(t, e), Ze = { attribute: !0, type: String, converter: Se, reflect: !1, useDefault: !1, hasChanged: Ue };
-Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), B.litPropertyMetadata ?? (B.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
+Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), F.litPropertyMetadata ?? (F.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
 let ee = class extends HTMLElement {
   static addInitializer(e) {
     this._$Ei(), (this.l ?? (this.l = [])).push(e);
@@ -95,8 +95,8 @@ let ee = class extends HTMLElement {
       this[s] = n;
     } };
     return { get: r, set(n) {
-      const h = r == null ? void 0 : r.call(this);
-      o == null || o.call(this, n), this.requestUpdate(e, h, a);
+      const d = r == null ? void 0 : r.call(this);
+      o == null || o.call(this, n), this.requestUpdate(e, d, a);
     }, configurable: !0, enumerable: !0 };
   }
   static getPropertyOptions(e) {
@@ -110,7 +110,7 @@ let ee = class extends HTMLElement {
   static finalize() {
     if (this.hasOwnProperty(he("finalized"))) return;
     if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(he("properties"))) {
-      const s = this.properties, a = [...Ft(s), ...Bt(s)];
+      const s = this.properties, a = [...Bt(s), ...Ft(s)];
       for (const r of a) this.createProperty(r, s[r]);
     }
     const e = this[Symbol.metadata];
@@ -192,17 +192,17 @@ let ee = class extends HTMLElement {
     var o, n;
     const a = this.constructor, r = a._$Eh.get(e);
     if (r !== void 0 && this._$Em !== r) {
-      const h = a.getPropertyOptions(r), d = typeof h.converter == "function" ? { fromAttribute: h.converter } : ((o = h.converter) == null ? void 0 : o.fromAttribute) !== void 0 ? h.converter : Se;
+      const d = a.getPropertyOptions(r), c = typeof d.converter == "function" ? { fromAttribute: d.converter } : ((o = d.converter) == null ? void 0 : o.fromAttribute) !== void 0 ? d.converter : Se;
       this._$Em = r;
-      const m = d.fromAttribute(s, h.type);
-      this[r] = m ?? ((n = this._$Ej) == null ? void 0 : n.get(r)) ?? m, this._$Em = null;
+      const p = c.fromAttribute(s, d.type);
+      this[r] = p ?? ((n = this._$Ej) == null ? void 0 : n.get(r)) ?? p, this._$Em = null;
     }
   }
   requestUpdate(e, s, a, r = !1, o) {
     var n;
     if (e !== void 0) {
-      const h = this.constructor;
-      if (r === !1 && (o = this[e]), a ?? (a = h.getPropertyOptions(e)), !((a.hasChanged ?? Ue)(o, s) || a.useDefault && a.reflect && o === ((n = this._$Ej) == null ? void 0 : n.get(e)) && !this.hasAttribute(h._$Eu(e, a)))) return;
+      const d = this.constructor;
+      if (r === !1 && (o = this[e]), a ?? (a = d.getPropertyOptions(e)), !((a.hasChanged ?? Ue)(o, s) || a.useDefault && a.reflect && o === ((n = this._$Ej) == null ? void 0 : n.get(e)) && !this.hasAttribute(d._$Eu(e, a)))) return;
       this.C(e, s, a);
     }
     this.isUpdatePending === !1 && (this._$ES = this._$EP());
@@ -233,8 +233,8 @@ let ee = class extends HTMLElement {
       }
       const r = this.constructor.elementProperties;
       if (r.size > 0) for (const [o, n] of r) {
-        const { wrapped: h } = n, d = this[o];
-        h !== !0 || this._$AL.has(o) || d === void 0 || this.C(o, void 0, n, d);
+        const { wrapped: d } = n, c = this[o];
+        d !== !0 || this._$AL.has(o) || c === void 0 || this.C(o, void 0, n, c);
       }
     }
     let e = !1;
@@ -278,15 +278,15 @@ let ee = class extends HTMLElement {
   firstUpdated(e) {
   }
 };
-ee.elementStyles = [], ee.shadowRootOptions = { mode: "open" }, ee[he("elementProperties")] = /* @__PURE__ */ new Map(), ee[he("finalized")] = /* @__PURE__ */ new Map(), Le == null || Le({ ReactiveElement: ee }), (B.reactiveElementVersions ?? (B.reactiveElementVersions = [])).push("2.1.2");
+ee.elementStyles = [], ee.shadowRootOptions = { mode: "open" }, ee[he("elementProperties")] = /* @__PURE__ */ new Map(), ee[he("finalized")] = /* @__PURE__ */ new Map(), Le == null || Le({ ReactiveElement: ee }), (F.reactiveElementVersions ?? (F.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ce = globalThis, Xe = (t) => t, Te = ce.trustedTypes, et = Te ? Te.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, yt = "$lit$", F = `lit$${Math.random().toFixed(9).slice(2)}$`, $t = "?" + F, Rt = `<${$t}>`, V = document, pe = () => V.createComment(""), me = (t) => t === null || typeof t != "object" && typeof t != "function", Re = Array.isArray, Kt = (t) => Re(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Oe = `[ 	
+const ce = globalThis, Xe = (t) => t, Te = ce.trustedTypes, et = Te ? Te.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, yt = "$lit$", B = `lit$${Math.random().toFixed(9).slice(2)}$`, $t = "?" + B, Rt = `<${$t}>`, V = document, pe = () => V.createComment(""), me = (t) => t === null || typeof t != "object" && typeof t != "function", Re = Array.isArray, Kt = (t) => Re(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Oe = `[ 	
 \f\r]`, ne = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, tt = /-->/g, st = />/g, R = RegExp(`>|${Oe}(?:([^\\s"'>=/]+)(${Oe}*=${Oe}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), at = /'/g, rt = /"/g, kt = /^(?:script|style|textarea|title)$/i, Gt = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), i = Gt(1), q = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), it = /* @__PURE__ */ new WeakMap(), G = V.createTreeWalker(V, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), at = /'/g, rt = /"/g, kt = /^(?:script|style|textarea|title)$/i, Gt = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), i = Gt(1), q = Symbol.for("lit-noChange"), h = Symbol.for("lit-nothing"), it = /* @__PURE__ */ new WeakMap(), G = V.createTreeWalker(V, 129);
 function St(t, e) {
   if (!Re(t) || !t.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return et !== void 0 ? et.createHTML(e) : e;
@@ -294,12 +294,12 @@ function St(t, e) {
 const Wt = (t, e) => {
   const s = t.length - 1, a = [];
   let r, o = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", n = ne;
-  for (let h = 0; h < s; h++) {
-    const d = t[h];
-    let m, _, p = -1, v = 0;
-    for (; v < d.length && (n.lastIndex = v, _ = n.exec(d), _ !== null); ) v = n.lastIndex, n === ne ? _[1] === "!--" ? n = tt : _[1] !== void 0 ? n = st : _[2] !== void 0 ? (kt.test(_[2]) && (r = RegExp("</" + _[2], "g")), n = R) : _[3] !== void 0 && (n = R) : n === R ? _[0] === ">" ? (n = r ?? ne, p = -1) : _[1] === void 0 ? p = -2 : (p = n.lastIndex - _[2].length, m = _[1], n = _[3] === void 0 ? R : _[3] === '"' ? rt : at) : n === rt || n === at ? n = R : n === tt || n === st ? n = ne : (n = R, r = void 0);
-    const g = n === R && t[h + 1].startsWith("/>") ? " " : "";
-    o += n === ne ? d + Rt : p >= 0 ? (a.push(m), d.slice(0, p) + yt + d.slice(p) + F + g) : d + F + (p === -2 ? h : g);
+  for (let d = 0; d < s; d++) {
+    const c = t[d];
+    let p, b, m = -1, v = 0;
+    for (; v < c.length && (n.lastIndex = v, b = n.exec(c), b !== null); ) v = n.lastIndex, n === ne ? b[1] === "!--" ? n = tt : b[1] !== void 0 ? n = st : b[2] !== void 0 ? (kt.test(b[2]) && (r = RegExp("</" + b[2], "g")), n = R) : b[3] !== void 0 && (n = R) : n === R ? b[0] === ">" ? (n = r ?? ne, m = -1) : b[1] === void 0 ? m = -2 : (m = n.lastIndex - b[2].length, p = b[1], n = b[3] === void 0 ? R : b[3] === '"' ? rt : at) : n === rt || n === at ? n = R : n === tt || n === st ? n = ne : (n = R, r = void 0);
+    const u = n === R && t[d + 1].startsWith("/>") ? " " : "";
+    o += n === ne ? c + Rt : m >= 0 ? (a.push(p), c.slice(0, m) + yt + c.slice(m) + B + u) : c + B + (m === -2 ? d : u);
   }
   return [St(t, o + (t[s] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), a];
 };
@@ -308,29 +308,29 @@ class ue {
     let r;
     this.parts = [];
     let o = 0, n = 0;
-    const h = e.length - 1, d = this.parts, [m, _] = Wt(e, s);
-    if (this.el = ue.createElement(m, a), G.currentNode = this.el.content, s === 2 || s === 3) {
-      const p = this.el.content.firstChild;
-      p.replaceWith(...p.childNodes);
+    const d = e.length - 1, c = this.parts, [p, b] = Wt(e, s);
+    if (this.el = ue.createElement(p, a), G.currentNode = this.el.content, s === 2 || s === 3) {
+      const m = this.el.content.firstChild;
+      m.replaceWith(...m.childNodes);
     }
-    for (; (r = G.nextNode()) !== null && d.length < h; ) {
+    for (; (r = G.nextNode()) !== null && c.length < d; ) {
       if (r.nodeType === 1) {
-        if (r.hasAttributes()) for (const p of r.getAttributeNames()) if (p.endsWith(yt)) {
-          const v = _[n++], g = r.getAttribute(p).split(F), u = /([.?@])?(.*)/.exec(v);
-          d.push({ type: 1, index: o, name: u[2], strings: g, ctor: u[1] === "." ? qt : u[1] === "?" ? Jt : u[1] === "@" ? Yt : Ee }), r.removeAttribute(p);
-        } else p.startsWith(F) && (d.push({ type: 6, index: o }), r.removeAttribute(p));
+        if (r.hasAttributes()) for (const m of r.getAttributeNames()) if (m.endsWith(yt)) {
+          const v = b[n++], u = r.getAttribute(m).split(B), g = /([.?@])?(.*)/.exec(v);
+          c.push({ type: 1, index: o, name: g[2], strings: u, ctor: g[1] === "." ? qt : g[1] === "?" ? Jt : g[1] === "@" ? Yt : Ee }), r.removeAttribute(m);
+        } else m.startsWith(B) && (c.push({ type: 6, index: o }), r.removeAttribute(m));
         if (kt.test(r.tagName)) {
-          const p = r.textContent.split(F), v = p.length - 1;
+          const m = r.textContent.split(B), v = m.length - 1;
           if (v > 0) {
             r.textContent = Te ? Te.emptyScript : "";
-            for (let g = 0; g < v; g++) r.append(p[g], pe()), G.nextNode(), d.push({ type: 2, index: ++o });
-            r.append(p[v], pe());
+            for (let u = 0; u < v; u++) r.append(m[u], pe()), G.nextNode(), c.push({ type: 2, index: ++o });
+            r.append(m[v], pe());
           }
         }
-      } else if (r.nodeType === 8) if (r.data === $t) d.push({ type: 2, index: o });
+      } else if (r.nodeType === 8) if (r.data === $t) c.push({ type: 2, index: o });
       else {
-        let p = -1;
-        for (; (p = r.data.indexOf(F, p + 1)) !== -1; ) d.push({ type: 7, index: o }), p += F.length - 1;
+        let m = -1;
+        for (; (m = r.data.indexOf(B, m + 1)) !== -1; ) c.push({ type: 7, index: o }), m += B.length - 1;
       }
       o++;
     }
@@ -341,11 +341,11 @@ class ue {
   }
 }
 function te(t, e, s = t, a) {
-  var n, h;
+  var n, d;
   if (e === q) return e;
   let r = a !== void 0 ? (n = s._$Co) == null ? void 0 : n[a] : s._$Cl;
   const o = me(e) ? void 0 : e._$litDirective$;
-  return (r == null ? void 0 : r.constructor) !== o && ((h = r == null ? void 0 : r._$AO) == null || h.call(r, !1), o === void 0 ? r = void 0 : (r = new o(t), r._$AT(t, s, a)), a !== void 0 ? (s._$Co ?? (s._$Co = []))[a] = r : s._$Cl = r), r !== void 0 && (e = te(t, r._$AS(t, e.values), r, a)), e;
+  return (r == null ? void 0 : r.constructor) !== o && ((d = r == null ? void 0 : r._$AO) == null || d.call(r, !1), o === void 0 ? r = void 0 : (r = new o(t), r._$AT(t, s, a)), a !== void 0 ? (s._$Co ?? (s._$Co = []))[a] = r : s._$Cl = r), r !== void 0 && (e = te(t, r._$AS(t, e.values), r, a)), e;
 }
 class Vt {
   constructor(e, s) {
@@ -360,13 +360,13 @@ class Vt {
   u(e) {
     const { el: { content: s }, parts: a } = this._$AD, r = ((e == null ? void 0 : e.creationScope) ?? V).importNode(s, !0);
     G.currentNode = r;
-    let o = G.nextNode(), n = 0, h = 0, d = a[0];
-    for (; d !== void 0; ) {
-      if (n === d.index) {
-        let m;
-        d.type === 2 ? m = new ie(o, o.nextSibling, this, e) : d.type === 1 ? m = new d.ctor(o, d.name, d.strings, this, e) : d.type === 6 && (m = new Qt(o, this, e)), this._$AV.push(m), d = a[++h];
+    let o = G.nextNode(), n = 0, d = 0, c = a[0];
+    for (; c !== void 0; ) {
+      if (n === c.index) {
+        let p;
+        c.type === 2 ? p = new ie(o, o.nextSibling, this, e) : c.type === 1 ? p = new c.ctor(o, c.name, c.strings, this, e) : c.type === 6 && (p = new Qt(o, this, e)), this._$AV.push(p), c = a[++d];
       }
-      n !== (d == null ? void 0 : d.index) && (o = G.nextNode(), n++);
+      n !== (c == null ? void 0 : c.index) && (o = G.nextNode(), n++);
     }
     return G.currentNode = V, r;
   }
@@ -381,7 +381,7 @@ class ie {
     return ((e = this._$AM) == null ? void 0 : e._$AU) ?? this._$Cv;
   }
   constructor(e, s, a, r) {
-    this.type = 2, this._$AH = c, this._$AN = void 0, this._$AA = e, this._$AB = s, this._$AM = a, this.options = r, this._$Cv = (r == null ? void 0 : r.isConnected) ?? !0;
+    this.type = 2, this._$AH = h, this._$AN = void 0, this._$AA = e, this._$AB = s, this._$AM = a, this.options = r, this._$Cv = (r == null ? void 0 : r.isConnected) ?? !0;
   }
   get parentNode() {
     let e = this._$AA.parentNode;
@@ -395,7 +395,7 @@ class ie {
     return this._$AB;
   }
   _$AI(e, s = this) {
-    e = te(this, e, s), me(e) ? e === c || e == null || e === "" ? (this._$AH !== c && this._$AR(), this._$AH = c) : e !== this._$AH && e !== q && this._(e) : e._$litType$ !== void 0 ? this.$(e) : e.nodeType !== void 0 ? this.T(e) : Kt(e) ? this.k(e) : this._(e);
+    e = te(this, e, s), me(e) ? e === h || e == null || e === "" ? (this._$AH !== h && this._$AR(), this._$AH = h) : e !== this._$AH && e !== q && this._(e) : e._$litType$ !== void 0 ? this.$(e) : e.nodeType !== void 0 ? this.T(e) : Kt(e) ? this.k(e) : this._(e);
   }
   O(e) {
     return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -404,15 +404,15 @@ class ie {
     this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
   }
   _(e) {
-    this._$AH !== c && me(this._$AH) ? this._$AA.nextSibling.data = e : this.T(V.createTextNode(e)), this._$AH = e;
+    this._$AH !== h && me(this._$AH) ? this._$AA.nextSibling.data = e : this.T(V.createTextNode(e)), this._$AH = e;
   }
   $(e) {
     var o;
     const { values: s, _$litType$: a } = e, r = typeof a == "number" ? this._$AC(e) : (a.el === void 0 && (a.el = ue.createElement(St(a.h, a.h[0]), this.options)), a);
     if (((o = this._$AH) == null ? void 0 : o._$AD) === r) this._$AH.p(s);
     else {
-      const n = new Vt(r, this), h = n.u(this.options);
-      n.p(s), this.T(h), this._$AH = n;
+      const n = new Vt(r, this), d = n.u(this.options);
+      n.p(s), this.T(d), this._$AH = n;
     }
   }
   _$AC(e) {
@@ -446,21 +446,21 @@ class Ee {
     return this._$AM._$AU;
   }
   constructor(e, s, a, r, o) {
-    this.type = 1, this._$AH = c, this._$AN = void 0, this.element = e, this.name = s, this._$AM = r, this.options = o, a.length > 2 || a[0] !== "" || a[1] !== "" ? (this._$AH = Array(a.length - 1).fill(new String()), this.strings = a) : this._$AH = c;
+    this.type = 1, this._$AH = h, this._$AN = void 0, this.element = e, this.name = s, this._$AM = r, this.options = o, a.length > 2 || a[0] !== "" || a[1] !== "" ? (this._$AH = Array(a.length - 1).fill(new String()), this.strings = a) : this._$AH = h;
   }
   _$AI(e, s = this, a, r) {
     const o = this.strings;
     let n = !1;
     if (o === void 0) e = te(this, e, s, 0), n = !me(e) || e !== this._$AH && e !== q, n && (this._$AH = e);
     else {
-      const h = e;
-      let d, m;
-      for (e = o[0], d = 0; d < o.length - 1; d++) m = te(this, h[a + d], s, d), m === q && (m = this._$AH[d]), n || (n = !me(m) || m !== this._$AH[d]), m === c ? e = c : e !== c && (e += (m ?? "") + o[d + 1]), this._$AH[d] = m;
+      const d = e;
+      let c, p;
+      for (e = o[0], c = 0; c < o.length - 1; c++) p = te(this, d[a + c], s, c), p === q && (p = this._$AH[c]), n || (n = !me(p) || p !== this._$AH[c]), p === h ? e = h : e !== h && (e += (p ?? "") + o[c + 1]), this._$AH[c] = p;
     }
     n && !r && this.j(e);
   }
   j(e) {
-    e === c ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
+    e === h ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
   }
 }
 class qt extends Ee {
@@ -468,7 +468,7 @@ class qt extends Ee {
     super(...arguments), this.type = 3;
   }
   j(e) {
-    this.element[this.name] = e === c ? void 0 : e;
+    this.element[this.name] = e === h ? void 0 : e;
   }
 }
 class Jt extends Ee {
@@ -476,7 +476,7 @@ class Jt extends Ee {
     super(...arguments), this.type = 4;
   }
   j(e) {
-    this.element.toggleAttribute(this.name, !!e && e !== c);
+    this.element.toggleAttribute(this.name, !!e && e !== h);
   }
 }
 class Yt extends Ee {
@@ -484,8 +484,8 @@ class Yt extends Ee {
     super(e, s, a, r, o), this.type = 5;
   }
   _$AI(e, s = this) {
-    if ((e = te(this, e, s, 0) ?? c) === q) return;
-    const a = this._$AH, r = e === c && a !== c || e.capture !== a.capture || e.once !== a.once || e.passive !== a.passive, o = e !== c && (a === c || r);
+    if ((e = te(this, e, s, 0) ?? h) === q) return;
+    const a = this._$AH, r = e === h && a !== h || e.capture !== a.capture || e.once !== a.once || e.passive !== a.passive, o = e !== h && (a === h || r);
     r && this.element.removeEventListener(this.name, this, a), o && this.element.addEventListener(this.name, this, e), this._$AH = e;
   }
   handleEvent(e) {
@@ -571,18 +571,18 @@ const ts = { attribute: !0, type: String, converter: Se, reflect: !1, hasChanged
   let o = globalThis.litPropertyMetadata.get(r);
   if (o === void 0 && globalThis.litPropertyMetadata.set(r, o = /* @__PURE__ */ new Map()), a === "setter" && ((t = Object.create(t)).wrapped = !0), o.set(s.name, t), a === "accessor") {
     const { name: n } = s;
-    return { set(h) {
-      const d = e.get.call(this);
-      e.set.call(this, h), this.requestUpdate(n, d, t, !0, h);
-    }, init(h) {
-      return h !== void 0 && this.C(n, void 0, t, h), h;
+    return { set(d) {
+      const c = e.get.call(this);
+      e.set.call(this, d), this.requestUpdate(n, c, t, !0, d);
+    }, init(d) {
+      return d !== void 0 && this.C(n, void 0, t, d), d;
     } };
   }
   if (a === "setter") {
     const { name: n } = s;
-    return function(h) {
-      const d = this[n];
-      e.call(this, h), this.requestUpdate(n, d, t, !0, h);
+    return function(d) {
+      const c = this[n];
+      e.call(this, d), this.requestUpdate(n, c, t, !0, d);
     };
   }
   throw Error("Unsupported decorator location: " + a);
@@ -1311,19 +1311,19 @@ const { I: ns } = Zt, ot = (t) => t, nt = () => document.createComment(""), le =
   var o;
   const a = t._$AA.parentNode, r = e === void 0 ? t._$AB : e._$AA;
   if (s === void 0) {
-    const n = a.insertBefore(nt(), r), h = a.insertBefore(nt(), r);
-    s = new ns(n, h, t, t.options);
+    const n = a.insertBefore(nt(), r), d = a.insertBefore(nt(), r);
+    s = new ns(n, d, t, t.options);
   } else {
-    const n = s._$AB.nextSibling, h = s._$AM, d = h !== t;
-    if (d) {
-      let m;
-      (o = s._$AQ) == null || o.call(s, t), s._$AM = t, s._$AP !== void 0 && (m = t._$AU) !== h._$AU && s._$AP(m);
+    const n = s._$AB.nextSibling, d = s._$AM, c = d !== t;
+    if (c) {
+      let p;
+      (o = s._$AQ) == null || o.call(s, t), s._$AM = t, s._$AP !== void 0 && (p = t._$AU) !== d._$AU && s._$AP(p);
     }
-    if (n !== r || d) {
-      let m = s._$AA;
-      for (; m !== n; ) {
-        const _ = ot(m).nextSibling;
-        ot(a).insertBefore(m, r), m = _;
+    if (n !== r || c) {
+      let p = s._$AA;
+      for (; p !== n; ) {
+        const b = ot(p).nextSibling;
+        ot(a).insertBefore(p, r), p = b;
       }
     }
   }
@@ -1349,7 +1349,7 @@ const lt = (t, e, s) => {
     s === void 0 ? s = e : e !== void 0 && (a = e);
     const r = [], o = [];
     let n = 0;
-    for (const h of t) r[n] = a ? a(h, n) : n, o[n] = s(h, n), n++;
+    for (const d of t) r[n] = a ? a(d, n) : n, o[n] = s(d, n), n++;
     return { values: o, keys: r };
   }
   render(t, e, s) {
@@ -1358,32 +1358,32 @@ const lt = (t, e, s) => {
   update(t, [e, s, a]) {
     const r = hs(t), { values: o, keys: n } = this.dt(e, s, a);
     if (!Array.isArray(r)) return this.ut = n, o;
-    const h = this.ut ?? (this.ut = []), d = [];
-    let m, _, p = 0, v = r.length - 1, g = 0, u = o.length - 1;
-    for (; p <= v && g <= u; ) if (r[p] === null) p++;
+    const d = this.ut ?? (this.ut = []), c = [];
+    let p, b, m = 0, v = r.length - 1, u = 0, g = o.length - 1;
+    for (; m <= v && u <= g; ) if (r[m] === null) m++;
     else if (r[v] === null) v--;
-    else if (h[p] === n[g]) d[g] = K(r[p], o[g]), p++, g++;
-    else if (h[v] === n[u]) d[u] = K(r[v], o[u]), v--, u--;
-    else if (h[p] === n[u]) d[u] = K(r[p], o[u]), le(t, d[u + 1], r[p]), p++, u--;
-    else if (h[v] === n[g]) d[g] = K(r[v], o[g]), le(t, r[p], r[v]), v--, g++;
-    else if (m === void 0 && (m = lt(n, g, u), _ = lt(h, p, v)), m.has(h[p])) if (m.has(h[v])) {
-      const T = _.get(n[g]), oe = T !== void 0 ? r[T] : null;
+    else if (d[m] === n[u]) c[u] = K(r[m], o[u]), m++, u++;
+    else if (d[v] === n[g]) c[g] = K(r[v], o[g]), v--, g--;
+    else if (d[m] === n[g]) c[g] = K(r[m], o[g]), le(t, c[g + 1], r[m]), m++, g--;
+    else if (d[v] === n[u]) c[u] = K(r[v], o[u]), le(t, r[m], r[v]), v--, u++;
+    else if (p === void 0 && (p = lt(n, u, g), b = lt(d, m, v)), p.has(d[m])) if (p.has(d[v])) {
+      const T = b.get(n[u]), oe = T !== void 0 ? r[T] : null;
       if (oe === null) {
-        const we = le(t, r[p]);
-        K(we, o[g]), d[g] = we;
-      } else d[g] = K(oe, o[g]), le(t, r[p], oe), r[T] = null;
-      g++;
+        const we = le(t, r[m]);
+        K(we, o[u]), c[u] = we;
+      } else c[u] = K(oe, o[u]), le(t, r[m], oe), r[T] = null;
+      u++;
     } else Ne(r[v]), v--;
-    else Ne(r[p]), p++;
-    for (; g <= u; ) {
-      const T = le(t, d[u + 1]);
-      K(T, o[g]), d[g++] = T;
+    else Ne(r[m]), m++;
+    for (; u <= g; ) {
+      const T = le(t, c[g + 1]);
+      K(T, o[u]), c[u++] = T;
     }
-    for (; p <= v; ) {
-      const T = r[p++];
+    for (; m <= v; ) {
+      const T = r[m++];
       T !== null && Ne(T);
     }
-    return this.ut = n, ds(t, d), q;
+    return this.ut = n, ds(t, c), q;
   }
 }), ps = new Intl.RelativeTimeFormat("de", { numeric: "auto" }), ms = [
   { unit: "year", seconds: 31536e3 },
@@ -1401,8 +1401,8 @@ function At(t, e = /* @__PURE__ */ new Date()) {
   if (r < 5) return "gerade eben";
   for (const { unit: o, seconds: n } of ms)
     if (r >= n) {
-      const h = Math.round(a / n);
-      return ps.format(h, o);
+      const d = Math.round(a / n);
+      return ps.format(d, o);
     }
   return "gerade eben";
 }
@@ -1494,7 +1494,7 @@ let J = class extends w {
               <span class="sev-icon" aria-hidden="true">${dt[a]}</span>
               ${ht[a]}
             </span>
-            ${a === e ? i`<span class="check" aria-hidden="true">✓</span>` : c}
+            ${a === e ? i`<span class="check" aria-hidden="true">✓</span>` : h}
           </button>`
     )}
       </div>
@@ -2139,7 +2139,7 @@ let O = class extends w {
         <pre class="text">${this.msg.text}</pre>
 
         ${this.msg.metadata ? i`<h3>Metadata</h3>
-              <pre class="meta">${JSON.stringify(this.msg.metadata, null, 2)}</pre>` : c}
+              <pre class="meta">${JSON.stringify(this.msg.metadata, null, 2)}</pre>` : h}
 
         <h3>Tags</h3>
         <div class="tags">
@@ -2172,7 +2172,7 @@ let O = class extends w {
         </div>
 
         ${this._runbook ? i`<h3>Runbook: ${this._runbook.title}</h3>
-              <pre class="runbook">${this._runbook.markdown}</pre>` : c}
+              <pre class="runbook">${this._runbook.markdown}</pre>` : h}
 
         <footer>
           <button class="del" @click=${this._delete}>Löschen</button>
@@ -2946,9 +2946,9 @@ ${e.keep} unveraenderte Eintraege bleiben bestehen.`;
     }
   }
   _renderSevPopover() {
-    if (this._sevPopoverFor === null || this._sevPopoverPos === null) return c;
+    if (this._sevPopoverFor === null || this._sevPopoverPos === null) return h;
     const t = this._items.find((s) => s.address === this._sevPopoverFor);
-    if (!t) return c;
+    if (!t) return h;
     const e = t.log_severity;
     return i`
       <div class="sev-backdrop" @click=${() => this._closeSevPopover()}></div>
@@ -2968,7 +2968,7 @@ ${e.keep} unveraenderte Eintraege bleiben bestehen.`;
             <span
               class=${`mh-pill mh-pill--${s === "auto" ? "neutral" : s}`}
             >${s}</span>
-            ${s === e ? i`<span class="sev-check" aria-hidden="true">✓</span>` : c}
+            ${s === e ? i`<span class="sev-check" aria-hidden="true">✓</span>` : h}
           </button>`
     )}
       </div>
@@ -3002,7 +3002,7 @@ ${e.keep} unveraenderte Eintraege bleiben bestehen.`;
     ) : t;
   }
   _renderEditor() {
-    if (!this._editing) return c;
+    if (!this._editing) return h;
     const t = this._editing, e = (s) => {
       this._editing = { ...t, ...s };
     };
@@ -3084,8 +3084,8 @@ ${e.keep} unveraenderte Eintraege bleiben bestehen.`;
     )}
                         </select>
                       </label>
-                    </div>` : c}
-              ` : c}
+                    </div>` : h}
+              ` : h}
 
           <div class="modal-actions">
             <button class="mh-btn" @click=${() => this._editing = null}>Abbrechen</button>
@@ -3191,7 +3191,7 @@ ${e.keep} unveraenderte Eintraege bleiben bestehen.`;
               ETS-Projekt — Label und DPT werden dann automatisch vorbefüllt.
             </p>` : null}
         ${this._renderDiscoveryStatus()}
-        ${this._error ? i`<div class="error">${this._error}</div>` : c}
+        ${this._error ? i`<div class="error">${this._error}</div>` : h}
 
         <div class="filter-bar">
           <input
@@ -3269,7 +3269,7 @@ ${e.keep} unveraenderte Eintraege bleiben bestehen.`;
                                     ${s.log_severity}${s.log_severity === "auto" ? i` <small class="auto-detail"
                                           >T:${s.severity_on_true ?? "warning"}
                                           / F:${s.severity_on_false ?? "info"}</small
-                                        >` : c}
+                                        >` : h}
                                     <span class="sev-caret" aria-hidden="true">▾</span>
                                   </button>` : i`<span class="muted">—</span>`}
                             </td>
@@ -3312,7 +3312,7 @@ ${e.keep} unveraenderte Eintraege bleiben bestehen.`;
 
         ${this._renderEditor()}
         ${this._renderSevPopover()}
-        ${this._toast ? i`<div class="toast">${this._toast}</div>` : c}
+        ${this._toast ? i`<div class="toast">${this._toast}</div>` : h}
       </section>
     `;
   }
@@ -4721,10 +4721,10 @@ S([
 M = S([
   $("remediation-view")
 ], M);
-var Fs = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, I = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Bs(e, s) : e, o = t.length - 1, n; o >= 0; o--)
+var Bs = Object.defineProperty, Fs = Object.getOwnPropertyDescriptor, I = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Fs(e, s) : e, o = t.length - 1, n; o >= 0; o--)
     (n = t[o]) && (r = (a ? n(e, s, r) : n(r)) || r);
-  return a && r && Fs(e, s, r), r;
+  return a && r && Bs(e, s, r), r;
 };
 const zt = [
   { id: "webhooks", label: "Webhooks" },
@@ -5412,13 +5412,13 @@ let N = class extends w {
               <div class="heatmap-row">
                 <span class="day-label">${gt[a]}</span>
                 ${r.map((o, n) => {
-        const h = o === 0 ? 0 : Math.max(0.15, o / e), d = o === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(
-          h * 100
+        const d = o === 0 ? 0 : Math.max(0.15, o / e), c = o === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(
+          d * 100
         )}%, transparent)`;
         return i`
                     <div
                       class=${`heatmap-cell ${o === 0 ? "empty" : ""}`}
-                      style=${`background: ${d}`}
+                      style=${`background: ${c}`}
                       title=${`${gt[a]} ${n}:00 — ${o} Nachricht${o === 1 ? "" : "en"}`}
                     ></div>
                   `;
@@ -5556,13 +5556,13 @@ let N = class extends w {
             </div>
             ${this._topSources.length === 0 ? i`<p class="muted">Keine Daten.</p>` : i`<ul class="top-sources">
                   ${this._topSources.map((o, n) => {
-      var m;
-      const h = ((m = this._topSources[0]) == null ? void 0 : m.count) ?? 1, d = o.count / h * 100;
+      var p;
+      const d = ((p = this._topSources[0]) == null ? void 0 : p.count) ?? 1, c = o.count / d * 100;
       return i`<li>
                       <span class="rank">${n + 1}</span>
                       <code class="source-name">${o.source}</code>
                       <span class="bar-track">
-                        <span class="bar-fill" style=${`width: ${d}%`}></span>
+                        <span class="bar-fill" style=${`width: ${c}%`}></span>
                       </span>
                       <span class="bar-count">${o.count.toLocaleString("de-DE")}</span>
                     </li>`;
@@ -5682,7 +5682,7 @@ let ae = class extends w {
   render() {
     if (this.items.length === 0)
       return i`<p class="muted">Keine Timeline-Daten.</p>`;
-    const t = this._buildSeries(), e = this._allBuckets(), s = Math.max(1, ...this.items.map((d) => d.count)), a = { top: 8, right: 8, bottom: 18, left: 32 }, r = this.width - a.left - a.right, o = this.height - a.top - a.bottom, n = (d) => a.left + d / Math.max(1, e.length - 1) * r, h = (d) => a.top + (1 - d / s) * o;
+    const t = this._buildSeries(), e = this._allBuckets(), s = Math.max(1, ...this.items.map((p) => p.count)), a = { top: 8, right: 8, bottom: 18, left: 32 }, r = this.width - a.left - a.right, o = this.height - a.top - a.bottom, n = e.length === 1, d = (p) => n ? a.left + r / 2 : a.left + p / (e.length - 1) * r, c = (p) => a.top + (1 - p / s) * o;
     return i`
       <svg
         viewBox=${`0 0 ${this.width} ${this.height}`}
@@ -5706,27 +5706,46 @@ let ae = class extends w {
         <text x="2" y=${this.height - a.bottom + 4} class="axis-label">0</text>
 
         <!-- Series -->
-        ${t.map((d, m) => {
-      const _ = d.values.map(
-        (v, g) => `${n(g)},${h(v)}`
-      ).join(" "), p = ye[m % ye.length];
-      return i`<polyline
-            points=${_}
-            class="series"
-            fill="none"
-            stroke=${p}
-            stroke-width="1.5"
-          ><title>${d.ga}</title></polyline>`;
+        ${t.map((p, b) => {
+      const m = ye[b % ye.length];
+      if (n) {
+        const u = c(p.values[0] ?? 0);
+        return i`<g class="series">
+              <line
+                x1=${a.left} y1=${u}
+                x2=${this.width - a.right} y2=${u}
+                stroke=${m}
+                stroke-width="1.5"
+              ></line>
+              <circle cx=${d(0)} cy=${u} r="2.5" fill=${m}>
+                <title>${p.ga}: ${p.values[0]}</title>
+              </circle>
+            </g>`;
+      }
+      const v = p.values.map((u, g) => `${d(g)},${c(u)}`).join(" ");
+      return i`<g class="series">
+            <polyline
+              points=${v}
+              fill="none"
+              stroke=${m}
+              stroke-width="1.5"
+            ><title>${p.ga}</title></polyline>
+            ${p.values.map(
+        (u, g) => i`<circle cx=${d(g)} cy=${c(u)} r="1.8" fill=${m}>
+                <title>${p.ga}: ${u}</title>
+              </circle>`
+      )}
+          </g>`;
     })}
       </svg>
       <div class="legend">
         ${t.map(
-      (d, m) => i`<span class="legend-item">
+      (p, b) => i`<span class="legend-item">
             <span
               class="dot"
-              style=${`background: ${ye[m % ye.length]}`}
+              style=${`background: ${ye[b % ye.length]}`}
             ></span>
-            <code>${d.ga}</code>
+            <code>${p.ga}</code>
           </span>`
     )}
       </div>
@@ -5833,13 +5852,13 @@ let re = class extends w {
     super(...arguments), this.points = [], this.width = 600, this.height = 80;
   }
   render() {
-    const t = this.points.map((u) => ({ ts: u.ts, value: Js(u.value) })).filter((u) => u.value !== null);
+    const t = this.points.map((g) => ({ ts: g.ts, value: Js(g.value) })).filter((g) => g.value !== null);
     if (t.length < 2)
       return i`<p class="muted">
         Wertverlauf: zu wenige numerische Datenpunkte
         (${t.length} von ${this.points.length}).
       </p>`;
-    const e = t.map((u) => u.value), s = Math.min(...e), a = Math.max(...e), r = a - s || 1, o = { top: 8, right: 8, bottom: 18, left: 40 }, n = this.width - o.left - o.right, h = this.height - o.top - o.bottom, d = (u) => o.left + u / Math.max(1, t.length - 1) * n, m = (u) => o.top + (1 - (u - s) / r) * h, _ = t.map((u, T) => `${d(T)},${m(u.value)}`).join(" "), v = [...e.slice(1).map((u, T) => Math.abs(u - e[T]))].sort((u, T) => u - T), g = v[Math.floor(v.length / 2)];
+    const e = t.map((g) => g.value), s = Math.min(...e), a = Math.max(...e), r = a - s || 1, o = { top: 8, right: 8, bottom: 18, left: 40 }, n = this.width - o.left - o.right, d = this.height - o.top - o.bottom, c = (g) => o.left + g / Math.max(1, t.length - 1) * n, p = (g) => o.top + (1 - (g - s) / r) * d, b = t.map((g, T) => `${c(T)},${p(g.value)}`).join(" "), v = [...e.slice(1).map((g, T) => Math.abs(g - e[T]))].sort((g, T) => g - T), u = v[Math.floor(v.length / 2)];
     return i`
       <div class="wrap">
         <svg
@@ -5860,12 +5879,12 @@ let re = class extends w {
           ></line>
           <text x="2" y=${o.top + 4} class="axis-label">${a.toFixed(1)}</text>
           <text x="2" y=${this.height - o.bottom + 4} class="axis-label">${s.toFixed(1)}</text>
-          <polyline points=${_} class="series" fill="none"></polyline>
+          <polyline points=${b} class="series" fill="none"></polyline>
         </svg>
         <p class="muted small">
           ${t.length} Punkte • Min ${s.toFixed(1)} • Max ${a.toFixed(1)} •
-          Median Δ ${g.toFixed(2)}
-          ${g < 0.1 && r > 0 ? i` <span class="hint">→ enge Hysterese</span>` : Ys}
+          Median Δ ${u.toFixed(2)}
+          ${u < 0.1 && r > 0 ? i` <span class="hint">→ enge Hysterese</span>` : Ys}
         </p>
       </div>
     `;
@@ -5929,7 +5948,7 @@ var Qs = Object.defineProperty, Zs = Object.getOwnPropertyDescriptor, x = (t, e,
     (n = t[o]) && (r = (a ? n(e, s, r) : n(r)) || r);
   return a && r && Qs(e, s, r), r;
 };
-const Lt = "messagehub.knx-stats.filters", Fe = [
+const Lt = "messagehub.knx-stats.filters", Be = [
   { id: "1h", label: "1 Std", days: 1 / 24 },
   { id: "6h", label: "6 Std", days: 0.25 },
   { id: "24h", label: "24 Std", days: 1 },
@@ -5962,7 +5981,7 @@ function de(t) {
   }
 }
 function ft(t) {
-  const e = Fe.find((r) => r.id === t) ?? Fe[2], s = /* @__PURE__ */ new Date();
+  const e = Be.find((r) => r.id === t) ?? Be[2], s = /* @__PURE__ */ new Date();
   return { from: new Date(s.getTime() - e.days * 864e5).toISOString(), to: s.toISOString() };
 }
 const sa = 48;
@@ -5970,7 +5989,7 @@ function aa() {
   const t = /* @__PURE__ */ new Date();
   return { from: new Date(t.getTime() - sa * 3600 * 1e3).toISOString(), to: t.toISOString() };
 }
-let b = class extends w {
+let _ = class extends w {
   constructor() {
     super(...arguments), this._filters = ta(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._loading = !1, this._error = "", this._toast = "";
   }
@@ -6081,14 +6100,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     try {
       const s = this._isLongTermMode(), a = this._apiFilters(), r = this._liveFiltersForRaw(), o = { ...r, limit: this._filters.topNDevices }, [
         n,
-        h,
         d,
-        m,
-        _,
+        c,
         p,
+        b,
+        m,
         v,
-        g,
         u,
+        g,
         T,
         oe,
         we
@@ -6112,8 +6131,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         e("bursts", this.api.getKnxStatsBursts(r)),
         e("sensitive-log", this.api.getKnxStatsSensitiveLog(r))
       ]);
-      this._summary = n, this._top = h.items, this._topBySource = d.items, this._busHealth = m, this._silence = _, this._orphans = p, this._alarms = v, this._busload = g, this._health = u, this._longTerm = T, this._bursts = oe, this._sensitiveLog = we, this._apiErrors = t, this._apiErrorsDismissed = !1;
-      const qe = h.items.slice(0, 5).map((Ot) => Ot.ga);
+      this._summary = n, this._top = d.items, this._topBySource = c.items, this._busHealth = p, this._silence = b, this._orphans = m, this._alarms = v, this._busload = u, this._health = g, this._longTerm = T, this._bursts = oe, this._sensitiveLog = we, this._apiErrors = t, this._apiErrorsDismissed = !1;
+      const qe = d.items.slice(0, 5).map((Ot) => Ot.ga);
       qe.length > 0 ? this._timeline = await this.api.getKnxStatsTimeline({
         ...r,
         gas: qe,
@@ -6249,7 +6268,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         <div class="filter-group">
           <span class="filter-label">Zeitraum</span>
           <div class="seg">
-            ${Fe.map(
+            ${Be.map(
       (t) => i`<button
                 class=${`seg-btn ${this._filters.periodId === t.id ? "active" : ""}`}
                 @click=${() => this._onPeriod(t.id)}
@@ -6427,8 +6446,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             ${t.addresses.map(
       (s) => i`<li>
                 <code>${s.ga}</code>
-                ${s.label ? i`<span class="muted small">${s.label}</span>` : c}
-                ${s.dpt ? i`<span class="mh-pill mh-pill--neutral">${s.dpt}</span>` : c}
+                ${s.label ? i`<span class="muted small">${s.label}</span>` : h}
+                ${s.dpt ? i`<span class="mh-pill mh-pill--neutral">${s.dpt}</span>` : h}
               </li>`
     )}
           </ul>
@@ -6451,7 +6470,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                         <td class="bursts__ts">${e(s.ts)}</td>
                         <td>
                           <code>${s.ga}</code>
-                          ${s.label ? i`<span class="muted small">${s.label}</span>` : c}
+                          ${s.label ? i`<span class="muted small">${s.label}</span>` : h}
                         </td>
                         <td><code>${s.dev_source}</code></td>
                         <td><code>${s.value ?? "—"}</code></td>
@@ -6460,7 +6479,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   </tbody>
                 </table>
               </div>
-              ${t.telegrams.length > 50 ? i`<p class="muted small">… und ${t.telegrams.length - 50} weitere</p>` : c}`}
+              ${t.telegrams.length > 50 ? i`<p class="muted small">… und ${t.telegrams.length - 50} weitere</p>` : h}`}
         </div>
       </section>
     `;
@@ -6509,7 +6528,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             </tbody>
           </table>
         </div>
-        ${t.bursts.length > 20 ? i`<p class="muted small">… und ${t.bursts.length - 20} weitere</p>` : c}
+        ${t.bursts.length > 20 ? i`<p class="muted small">… und ${t.bursts.length - 20} weitere</p>` : h}
       </section>
     `;
   }
@@ -6557,7 +6576,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   ${t.top_gas.slice(0, 10).map(
       (a) => i`<li>
                       <code>${a.ga}</code>
-                      ${a.label ? i`<span class="muted small">${a.label}</span>` : c}
+                      ${a.label ? i`<span class="muted small">${a.label}</span>` : h}
                       <span class="long-term__top-count">${s(a.count)}</span>
                     </li>`
     )}
@@ -6593,21 +6612,21 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           landen zusaetzlich im Logbuch (Tab „Nachrichten").
         </div>
         ${this._renderFilterBar()}
-        ${this._apiErrors.size > 0 && !this._apiErrorsDismissed ? this._renderApiErrorBanner() : c}
+        ${this._apiErrors.size > 0 && !this._apiErrorsDismissed ? this._renderApiErrorBanner() : h}
         ${this._busAnalysisLoaded && !this._busAnalysisEnabled ? i`<div class="bus-analysis-banner">
               <strong>Bus-Analyse ist aus.</strong>
               Es werden keine neuen Telegramme erfasst — bestehende Daten bleiben
               sichtbar, altern aber raus (Raw 48 h, Counter 365 Tage). Toggle in
               der Filter-Leiste oben rechts schaltet sie wieder ein.
-            </div>` : c}
-        ${this._error ? i`<div class="error">${this._error}</div>` : c}
-        ${this._alarms !== null && this._alarms.triggered_count > 0 ? this._renderAlarmBanner() : c}
+            </div>` : h}
+        ${this._error ? i`<div class="error">${this._error}</div>` : h}
+        ${this._alarms !== null && this._alarms.triggered_count > 0 ? this._renderAlarmBanner() : h}
 
-        ${this._isLongTermMode() ? this._renderLongTermBanner() : c}
-        ${this._health !== null ? this._renderHealthScore() : c}
-        ${this._longTerm !== null ? this._renderLongTerm() : c}
-        ${this._bursts !== null && this._bursts.bursts.length > 0 ? this._renderBursts() : c}
-        ${this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0 ? this._renderSensitiveLog() : c}
+        ${this._isLongTermMode() ? this._renderLongTermBanner() : h}
+        ${this._health !== null ? this._renderHealthScore() : h}
+        ${this._longTerm !== null ? this._renderLongTerm() : h}
+        ${this._bursts !== null && this._bursts.bursts.length > 0 ? this._renderBursts() : h}
+        ${this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0 ? this._renderSensitiveLog() : h}
 
         <section class="mh-card kpi-card">
           <header class="card-head">
@@ -6617,9 +6636,9 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           ${this._loading && this._summary === null ? i`<p class="muted">lade…</p>` : this._renderKpis()}
         </section>
 
-        ${this._busHealth !== null && this._busHealth.summary.total > 0 ? this._renderBusHealth() : c}
-        ${this._silence !== null && this._silence.alarm_count > 0 ? this._renderSilenceAlarms() : c}
-        ${this._orphans !== null && (this._orphans.missing_in_log.length > 0 || this._orphans.extra_in_log.length > 0) ? this._renderOrphans() : c}
+        ${this._busHealth !== null && this._busHealth.summary.total > 0 ? this._renderBusHealth() : h}
+        ${this._silence !== null && this._silence.alarm_count > 0 ? this._renderSilenceAlarms() : h}
+        ${this._orphans !== null && (this._orphans.missing_in_log.length > 0 || this._orphans.extra_in_log.length > 0) ? this._renderOrphans() : h}
 
         <section class="mh-card">
           <header class="card-head">
@@ -6646,7 +6665,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 </div>
               </header>
               ${this._renderTopBySource()}
-            </section>` : c}
+            </section>` : h}
 
         ${this._timeline !== null && this._timeline.items.length > 0 ? i`<section class="mh-card">
               <header class="card-head">
@@ -6657,10 +6676,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 .width=${800}
                 .height=${140}
               ></knx-timeline-chart>
-            </section>` : c}
+            </section>` : h}
 
-        ${this._detail !== null || this._detailLoading ? this._renderDetailPane() : c}
-        ${this._toast ? i`<div class="toast">${this._toast}</div>` : c}
+        ${this._detail !== null || this._detailLoading ? this._renderDetailPane() : h}
+        ${this._toast ? i`<div class="toast">${this._toast}</div>` : h}
       </div>
     `;
   }
@@ -6701,7 +6720,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                     <span class="mh-pill__dot"></span>
                     ${this._severityLabel(t.severity)}
                   </span>
-                  ${t.acknowledged ? i`<span class="ack-pill" title="acknowledged">✓ bekannt</span>` : c}
+                  ${t.acknowledged ? i`<span class="ack-pill" title="acknowledged">✓ bekannt</span>` : h}
                 </td>
                 <td class="actions">
                   ${t.acknowledged ? i`<button
@@ -6742,7 +6761,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             <span class="muted small">
               Geraet:
               <code>${t.dev_source || "?"}</code>
-              ${t.dpt ? i` • DPT <code>${t.dpt}</code>` : c}
+              ${t.dpt ? i` • DPT <code>${t.dpt}</code>` : h}
             </span>
           </div>
           <button
@@ -6774,7 +6793,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       "de-DE",
       { maximumFractionDigits: 0 }
     )} %</strong>
-              </div>` : c}
+              </div>` : h}
         </div>
 
         <div class=${`recommendation rec-${e.severity}`}>
@@ -6794,7 +6813,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   </li>`
     )}
               </ul>
-            </div>` : c}
+            </div>` : h}
 
         ${t.value_history.length >= 2 ? i`<div class="value-history">
               <strong>Wertverlauf:</strong>
@@ -6803,11 +6822,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 .width=${800}
                 .height=${100}
               ></knx-value-sparkline>
-            </div>` : c}
+            </div>` : h}
 
-        ${t.device || t.manufacturer_hints ? this._renderDeviceInfo(t) : c}
+        ${t.device || t.manufacturer_hints ? this._renderDeviceInfo(t) : h}
 
-        ${t.sibling_gas.length > 0 ? this._renderSiblingGas(t) : c}
+        ${t.sibling_gas.length > 0 ? this._renderSiblingGas(t) : h}
       </section>
     `;
   }
@@ -6817,18 +6836,18 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <div class="device-info">
         ${e ? i`<strong>
               Geraet: ${e.manufacturer || "?"}
-              ${e.name ? i` — ${e.name}` : c}
-              ${e.product ? i`<span class="muted small">(${e.product})</span>` : c}
+              ${e.name ? i` — ${e.name}` : h}
+              ${e.product ? i`<span class="muted small">(${e.product})</span>` : h}
             </strong>` : i`<strong>Hersteller-Hinweise</strong>`}
         ${s && s.tips.length > 0 ? i`<ul class="hints">
               ${s.tips.map((a) => i`<li>${a}</li>`)}
-            </ul>` : c}
+            </ul>` : h}
         ${s != null && s.doc_url ? i`<p class="muted small">
               Hersteller-Doku:
               <a href=${s.doc_url} target="_blank" rel="noopener noreferrer">
                 ${s.doc_url}
               </a>
-            </p>` : c}
+            </p>` : h}
       </div>
     `;
   }
@@ -6857,7 +6876,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         </ul>
         ${t.sibling_gas.length > 10 ? i`<p class="muted small">
               … und ${t.sibling_gas.length - 10} weitere
-            </p>` : c}
+            </p>` : h}
       </div>
     `;
   }
@@ -6879,8 +6898,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </thead>
           <tbody>
             ${this._topBySource.slice(0, t).map((e, s) => {
-      var h;
-      const a = ((h = this._summary) == null ? void 0 : h.total_telegrams) ?? 0, r = a > 0 ? e.count / a * 100 : 0, o = e.manufacturer ?? "", n = e.device_name ?? "";
+      var d;
+      const a = ((d = this._summary) == null ? void 0 : d.total_telegrams) ?? 0, r = a > 0 ? e.count / a * 100 : 0, o = e.manufacturer ?? "", n = e.device_name ?? "";
       return i`<tr>
                 <td class="num muted">${s + 1}</td>
                 <td><code class="ga">${e.dev_source}</code></td>
@@ -6901,8 +6920,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   <button
                     class="mh-btn mh-btn--sm mh-btn--ghost"
                     title="Alle GAs dieses Geraets als bekannt markieren"
-                    @click=${(d) => {
-        d.stopPropagation(), this._ackBulk(e.dev_source);
+                    @click=${(c) => {
+        c.stopPropagation(), this._ackBulk(e.dev_source);
       }}
                   >
                     ✓ Alle ${e.ga_count} bekannt
@@ -6972,14 +6991,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       (e) => i`<li>
                       <code>${e.address}</code>
                       <span>${e.name || "—"}</span>
-                      ${e.dpt ? i`<code class="dpt">${e.dpt}</code>` : c}
+                      ${e.dpt ? i`<code class="dpt">${e.dpt}</code>` : h}
                     </li>`
     )}
                 </ul>
                 ${t.missing_in_log.length > 15 ? i`<p class="muted small">
                       … und ${t.missing_in_log.length - 15} weitere
-                    </p>` : c}
-              </div>` : c}
+                    </p>` : h}
+              </div>` : h}
           ${t.extra_in_log.length > 0 ? i`<div>
                 <strong>Geloggt, nicht im Projekt (${t.extra_in_log.length})</strong>
                 <ul class="orphans-list extra-list">
@@ -6993,8 +7012,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 </ul>
                 ${t.extra_in_log.length > 15 ? i`<p class="muted small">
                       … und ${t.extra_in_log.length - 15} weitere
-                    </p>` : c}
-              </div>` : c}
+                    </p>` : h}
+              </div>` : h}
         </div>
       </section>
     `;
@@ -7022,7 +7041,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         </ul>
         ${t.alarm_count > 10 ? i`<p class="muted small">
               … und ${t.alarm_count - 10} weitere
-            </p>` : c}
+            </p>` : h}
       </section>
     `;
   }
@@ -7079,7 +7098,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   </li>`
     )}
               </ul>
-            </div>` : c}
+            </div>` : h}
       </section>
     `;
   }
@@ -7096,7 +7115,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     }
   }
 };
-b.styles = [
+_.styles = [
   L,
   Ke,
   be,
@@ -7993,82 +8012,82 @@ b.styles = [
 ];
 x([
   f({ attribute: !1 })
-], b.prototype, "api", 2);
+], _.prototype, "api", 2);
 x([
   l()
-], b.prototype, "_filters", 2);
+], _.prototype, "_filters", 2);
 x([
   l()
-], b.prototype, "_summary", 2);
+], _.prototype, "_summary", 2);
 x([
   l()
-], b.prototype, "_busHealth", 2);
+], _.prototype, "_busHealth", 2);
 x([
   l()
-], b.prototype, "_busload", 2);
+], _.prototype, "_busload", 2);
 x([
   l()
-], b.prototype, "_health", 2);
+], _.prototype, "_health", 2);
 x([
   l()
-], b.prototype, "_longTerm", 2);
+], _.prototype, "_longTerm", 2);
 x([
   l()
-], b.prototype, "_bursts", 2);
+], _.prototype, "_bursts", 2);
 x([
   l()
-], b.prototype, "_sensitiveLog", 2);
+], _.prototype, "_sensitiveLog", 2);
 x([
   l()
-], b.prototype, "_busAnalysisEnabled", 2);
+], _.prototype, "_busAnalysisEnabled", 2);
 x([
   l()
-], b.prototype, "_busAnalysisLoaded", 2);
+], _.prototype, "_busAnalysisLoaded", 2);
 x([
   l()
-], b.prototype, "_apiErrors", 2);
+], _.prototype, "_apiErrors", 2);
 x([
   l()
-], b.prototype, "_apiErrorsDismissed", 2);
+], _.prototype, "_apiErrorsDismissed", 2);
 x([
   l()
-], b.prototype, "_silence", 2);
+], _.prototype, "_silence", 2);
 x([
   l()
-], b.prototype, "_orphans", 2);
+], _.prototype, "_orphans", 2);
 x([
   l()
-], b.prototype, "_alarms", 2);
+], _.prototype, "_alarms", 2);
 x([
   l()
-], b.prototype, "_top", 2);
+], _.prototype, "_top", 2);
 x([
   l()
-], b.prototype, "_topBySource", 2);
+], _.prototype, "_topBySource", 2);
 x([
   l()
-], b.prototype, "_timeline", 2);
+], _.prototype, "_timeline", 2);
 x([
   l()
-], b.prototype, "_selectedGa", 2);
+], _.prototype, "_selectedGa", 2);
 x([
   l()
-], b.prototype, "_detail", 2);
+], _.prototype, "_detail", 2);
 x([
   l()
-], b.prototype, "_detailLoading", 2);
+], _.prototype, "_detailLoading", 2);
 x([
   l()
-], b.prototype, "_loading", 2);
+], _.prototype, "_loading", 2);
 x([
   l()
-], b.prototype, "_error", 2);
+], _.prototype, "_error", 2);
 x([
   l()
-], b.prototype, "_toast", 2);
-b = x([
+], _.prototype, "_toast", 2);
+_ = x([
   $("stats-knx-view")
-], b);
+], _);
 var ra = Object.defineProperty, ia = Object.getOwnPropertyDescriptor, Ve = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? ia(e, s) : e, o = t.length - 1, n; o >= 0; o--)
     (n = t[o]) && (r = (a ? n(e, s, r) : n(r)) || r);
@@ -8113,8 +8132,8 @@ let ve = class extends w {
     )}
         </nav>
         <div class="body">
-          ${this._tab === "live" ? i`<stats-live-view .api=${this.api}></stats-live-view>` : c}
-          ${this._tab === "knx" ? i`<stats-knx-view .api=${this.api}></stats-knx-view>` : c}
+          ${this._tab === "live" ? i`<stats-live-view .api=${this.api}></stats-live-view>` : h}
+          ${this._tab === "knx" ? i`<stats-knx-view .api=${this.api}></stats-knx-view>` : h}
         </div>
       </div>
     `;
@@ -8346,7 +8365,7 @@ Diese Aktion kann nicht rueckgaengig gemacht werden. Ein neuer Eintrag 'audit_cl
                           <span>${this._renderActionPill(e.action)}</span>
                           <span class="target">
                             <code class="target-type">${e.target_type}</code>
-                            ${e.target_id !== null && e.target_id !== void 0 ? i`<code class="target-id">#${e.target_id}</code>` : c}
+                            ${e.target_id !== null && e.target_id !== void 0 ? i`<code class="target-id">#${e.target_id}</code>` : h}
                           </span>
                           <span class="details-inline">
                             ${this._renderDetailsSummary(e.details)}
@@ -8355,7 +8374,7 @@ Diese Aktion kann nicht rueckgaengig gemacht werden. Ein neuer Eintrag 'audit_cl
                         </button>
                         ${a ? i`<div class="details-panel">
                               ${this._renderDetails(e.details)}
-                            </div>` : c}
+                            </div>` : h}
                       </div>
                     `;
     })}
@@ -8662,7 +8681,7 @@ let A = class extends w {
         await this._api.setMessageSeverity(e, s), this._showToast(`Severity geändert: ${a} → ${s}`);
       } catch (n) {
         this._items = this._items.map(
-          (h) => h.id === e ? { ...h, severity: a } : h
+          (d) => d.id === e ? { ...d, severity: a } : d
         ), ((o = this._selected) == null ? void 0 : o.id) === e && (this._selected = {
           ...this._selected,
           severity: a
