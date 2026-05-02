@@ -184,6 +184,74 @@ class TestComputeTop:
         assert by_ga["1/3/5"].recommended_rate == 2.0
 
 
+class TestComputeTrend:
+    @pytest.mark.asyncio
+    async def test_compares_current_to_previous_period(self, db: Database) -> None:
+        # Iter 67 / WR-I: aktuelle Periode 60-120, Vorperiode 0-60.
+        # GA "5/2/14": prev=5, now=15 -> delta_abs=+10, delta_pct=+200 %.
+        # GA "1/3/5": prev=10, now=10 -> delta_abs=0, kein Anstieg.
+        # GA "0/1/1": prev=0, now=8 -> delta_pct=None (neu).
+        # GA "9/9/9": prev=12, now=0 -> komplett verstummt.
+        for i in range(5):
+            await _insert_knx(db, ts=_ts(i), ga="5/2/14")
+        for i in range(15):
+            await _insert_knx(db, ts=_ts(60 + i), ga="5/2/14")
+        for i in range(10):
+            await _insert_knx(db, ts=_ts(i), ga="1/3/5")
+        for i in range(10):
+            await _insert_knx(db, ts=_ts(60 + i), ga="1/3/5")
+        for i in range(8):
+            await _insert_knx(db, ts=_ts(60 + i), ga="0/1/1")
+        for i in range(12):
+            await _insert_knx(db, ts=_ts(i), ga="9/9/9")
+
+        svc = KnxStatsService(KnxStatsRepository(db))
+        result = await svc.compute_trend(_ts(60), _ts(120), top_n=5)
+
+        assert result["period_minutes"] == 60
+        assert result["total_now"] == 33  # 15+10+8
+        assert result["total_prev"] == 27  # 5+10+12
+
+        # Anstiege: groesste delta_abs zuerst.
+        ups = result["top_increase"]
+        ga_5_2_14 = next(t for t in ups if t["ga"] == "5/2/14")
+        assert ga_5_2_14["delta_abs"] == 10
+        assert ga_5_2_14["delta_pct"] == 200.0
+
+        # Neuer GA: count_prev=0 -> delta_pct=None
+        ga_0_1_1 = next(t for t in ups if t["ga"] == "0/1/1")
+        assert ga_0_1_1["count_prev"] == 0
+        assert ga_0_1_1["delta_pct"] is None
+        assert ga_0_1_1["delta_abs"] == 8
+
+        # Abnahmen: 9/9/9 verstummt komplett.
+        downs = result["top_decrease"]
+        ga_9_9_9 = next(t for t in downs if t["ga"] == "9/9/9")
+        assert ga_9_9_9["count_now"] == 0
+        assert ga_9_9_9["count_prev"] == 12
+        assert ga_9_9_9["delta_abs"] == -12
+        assert ga_9_9_9["delta_pct"] == -100.0
+
+    @pytest.mark.asyncio
+    async def test_empty_periods_return_zero(self, db: Database) -> None:
+        svc = KnxStatsService(KnxStatsRepository(db))
+        result = await svc.compute_trend(_ts(60), _ts(120))
+        assert result["total_now"] == 0
+        assert result["total_prev"] == 0
+        assert result["total_delta_pct"] is None
+        assert result["top_increase"] == []
+        assert result["top_decrease"] == []
+
+    @pytest.mark.asyncio
+    async def test_top_n_capped(self, db: Database) -> None:
+        # 100 GAs in der aktuellen Periode -> top_n=3 darf nur 3 zurueckgeben.
+        for i in range(100):
+            await _insert_knx(db, ts=_ts(60), ga=f"1/0/{i + 1}")
+        svc = KnxStatsService(KnxStatsRepository(db))
+        result = await svc.compute_trend(_ts(60), _ts(120), top_n=3)
+        assert len(result["top_increase"]) == 3
+
+
 class TestComputeGaDetail:
     @pytest.mark.asyncio
     async def test_empty_returns_none(self, db: Database) -> None:

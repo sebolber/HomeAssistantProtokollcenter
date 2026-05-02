@@ -40,6 +40,23 @@ ORDER BY n DESC
 LIMIT ?
 """
 
+# Iter 67 / WR-I: Total pro GA fuer Trend-Vergleich. Kein LIMIT — wir
+# brauchen alle GAs einer Periode, damit der Merge mit der Vorperiode
+# auch GAs erfasst, die nur in einer der beiden Perioden auftauchen.
+# Hard-Cap im Service-Layer.
+_TOTAL_BY_GA_SQL = """
+SELECT
+    r.destination AS ga,
+    a.label       AS label,
+    a.dpt         AS dpt,
+    COUNT(*)      AS n
+FROM knx_raw_telegrams r
+LEFT JOIN knx_group_addresses a ON a.address = r.destination
+WHERE r.timestamp >= ?
+  AND r.timestamp <  ?
+GROUP BY r.destination, a.label, a.dpt
+"""
+
 _TOP_BY_SOURCE_SQL = """
 SELECT
     r.source AS dev_source,
@@ -210,6 +227,24 @@ class KnxStatsRepository:
     ) -> list[dict[str, Any]]:
         rows = await self._db.fetch_all(_TOP_SQL, (from_iso, to_iso, max(1, min(limit, 500))))
         return [self._row_to_top_dict(row) for row in rows]
+
+    async def total_by_ga_for_period(
+        self, from_iso: str, to_iso: str
+    ) -> list[dict[str, Any]]:
+        """Iter 67 / WR-I: Liefert COUNT pro GA + Label + DPT fuer einen
+        Zeitraum, ohne LIMIT. Aufrufer im Service merged zwei Perioden
+        zum Trend-Vergleich.
+        """
+        rows = await self._db.fetch_all(_TOTAL_BY_GA_SQL, (from_iso, to_iso))
+        return [
+            {
+                "ga": str(row["ga"]),
+                "label": row["label"],
+                "dpt": row["dpt"],
+                "count": int(row["n"]),
+            }
+            for row in rows
+        ]
 
     async def top_by_source(
         self, from_iso: str, to_iso: str, *, limit: int = 50

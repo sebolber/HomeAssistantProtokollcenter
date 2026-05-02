@@ -6,6 +6,25 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 67 — WR-I Trend-Vergleich heute-vs-Vorperiode)
+- **Neue Card „Trend gegenüber Vorperiode"** im KNX-Bus-Analyse-Tab
+  zwischen den Verwaisten-GAs und den Top-Sender. Vergleicht die
+  aktuelle Periode mit einer Vorperiode gleicher Länge unmittelbar
+  davor.
+- KPI-Header: aktuell/zuvor Telegramm-Total + Total-Delta in % (oder
+  „neu" bei prev=0). Card-Border-Color folgt 4-stufiger Ampel
+  (|Δ| < 25 % grün, < 100 % gelb, < 300 % orange, sonst rot).
+- Zwei Spalten: Größte Anstiege (warning-soft Hintergrund) und Größte
+  Rückgänge (success-soft) mit jeweils bis zu 5 GAs. Pro Zeile: GA,
+  Label, absolute + relative Differenz. „neu" bei count_prev=0,
+  „verstummt" bei count_now=0.
+- Backend: neue Repo-Methode `total_by_ga_for_period` (kein LIMIT) +
+  Service-Methode `compute_trend(from, to, top_n)` mit Bulk-Merge
+  über beide Perioden + neuer API-Endpoint
+  `GET /api/messagehub/knx-stats/trend`. Hard-Cap top_n=50.
+- 3 neue Backend-Tests (delta_abs/pct/None für „neu" + verstummt,
+  empty periods, top_n cap) + Mock-Stubs in 2 Frontend-Test-Dateien.
+
 ### Hinzugefügt (Iter 66 — WR-V Multi-byte-ASCII-Decoder für DPT 16.x)
 - **Byte-Tupel werden als String dekodiert** im KNX-Wert-Formatter.
   Vorher zeigte eine DPT-16.x-Nachricht „Alarm = (32, 32, 37, 32, 84,

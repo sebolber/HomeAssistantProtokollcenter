@@ -83,6 +83,25 @@ class SiblingGa:
 
 
 @dataclass(frozen=True, slots=True)
+class TrendRow:
+    """Iter 67 / WR-I: Eine Zeile fuer den Trend-Vergleich.
+
+    Zeigt fuer eine GA, wieviel Telegramme in der aktuellen Periode
+    angefallen sind und wie das Verhaeltnis zur Vorperiode (gleicher
+    Laenge) ist. delta_pct=None wenn Vorperiode 0 (Division durch 0
+    waere irrefuehrend); UI zeigt das als "neu".
+    """
+
+    ga: str
+    label: str | None
+    dpt: str | None
+    count_now: int
+    count_prev: int
+    delta_abs: int
+    delta_pct: float | None
+
+
+@dataclass(frozen=True, slots=True)
 class GaDetail:
     """Detail-Sicht einer GA inkl. Recommendation + Findings + Siblings."""
 
@@ -508,6 +527,116 @@ class KnxStatsService:
         result["from"] = from_iso
         result["to"] = to_iso
         return result
+
+    async def compute_trend(
+        self,
+        from_iso: str,
+        to_iso: str,
+        *,
+        top_n: int = 10,
+    ) -> dict[str, Any]:
+        """Iter 67 / WR-I: Trend-Vergleich zur Vorperiode.
+
+        Zeitfenster: aktuelle Periode (from..to), Vorperiode in der
+        gleichen Laenge unmittelbar davor.
+
+        Liefert:
+        - period_minutes: int — Laenge der Periode in Minuten,
+        - total_now / total_prev / delta_pct,
+        - top_increase: TrendRow[] (groesste Anstiege absolute),
+        - top_decrease: TrendRow[] (groesste Abnahmen absolute).
+
+        Anstiege mit count_prev=0 sind delta_pct=None ("neu"); werden
+        bei top_increase einsortiert sofern count_now >= 1, mit
+        delta_abs als Sortier-Schluessel.
+        """
+        from_dt = datetime.fromisoformat(from_iso)
+        to_dt = datetime.fromisoformat(to_iso)
+        delta = to_dt - from_dt
+        prev_from = (from_dt - delta).isoformat()
+        prev_to = from_iso
+
+        rows_now = await self._repo.total_by_ga_for_period(from_iso, to_iso)
+        rows_prev = await self._repo.total_by_ga_for_period(prev_from, prev_to)
+
+        prev_by_ga = {r["ga"]: r["count"] for r in rows_prev}
+        now_total = sum(r["count"] for r in rows_now)
+        prev_total = sum(r["count"] for r in rows_prev)
+
+        trend_rows: list[TrendRow] = []
+        seen_now: set[str] = set()
+        for r in rows_now:
+            ga = r["ga"]
+            seen_now.add(ga)
+            count_now = int(r["count"])
+            count_prev = int(prev_by_ga.get(ga, 0))
+            delta_abs = count_now - count_prev
+            delta_pct: float | None = (
+                None
+                if count_prev == 0
+                else round((delta_abs / count_prev) * 100.0, 1)
+            )
+            trend_rows.append(
+                TrendRow(
+                    ga=ga,
+                    label=r.get("label"),
+                    dpt=r.get("dpt"),
+                    count_now=count_now,
+                    count_prev=count_prev,
+                    delta_abs=delta_abs,
+                    delta_pct=delta_pct,
+                )
+            )
+        # GAs, die nur in der Vorperiode auftauchen (komplett verstummt).
+        for r in rows_prev:
+            ga = r["ga"]
+            if ga in seen_now:
+                continue
+            count_prev = int(r["count"])
+            trend_rows.append(
+                TrendRow(
+                    ga=ga,
+                    label=r.get("label"),
+                    dpt=r.get("dpt"),
+                    count_now=0,
+                    count_prev=count_prev,
+                    delta_abs=-count_prev,
+                    delta_pct=-100.0,
+                )
+            )
+
+        top_n = max(1, min(top_n, 50))
+        top_increase = sorted(
+            (t for t in trend_rows if t.delta_abs > 0),
+            key=lambda t: t.delta_abs,
+            reverse=True,
+        )[:top_n]
+        top_decrease = sorted(
+            (t for t in trend_rows if t.delta_abs < 0),
+            key=lambda t: t.delta_abs,
+        )[:top_n]
+
+        period_seconds = max(0, int(delta.total_seconds()))
+        period_minutes = period_seconds // 60
+        if prev_total == 0:
+            total_delta_pct: float | None = None
+        else:
+            total_delta_pct = round(
+                ((now_total - prev_total) / prev_total) * 100.0, 1
+            )
+        return {
+            "from": from_iso,
+            "to": to_iso,
+            "prev_from": prev_from,
+            "prev_to": prev_to,
+            "period_minutes": period_minutes,
+            "total_now": now_total,
+            "total_prev": prev_total,
+            "total_delta_abs": now_total - prev_total,
+            "total_delta_pct": total_delta_pct,
+            "top_increase": [asdict(t) for t in top_increase],
+            "top_decrease": [asdict(t) for t in top_decrease],
+        }
 
     async def evaluate_alarms(
         self,

@@ -42,6 +42,7 @@ from .knx_stats import (
     KnxStatsTimelineView,
     KnxStatsTopBySourceView,
     KnxStatsTopView,
+    KnxStatsTrendView,
 )
 
 if TYPE_CHECKING:
@@ -1217,6 +1218,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         KnxStatsBusAnalysisStateView,
         KnxStatsSilenceView,
         KnxStatsOrphansView,
+        KnxStatsTrendView,
         KnxStatsAlarmsView,
         KnxStatsAcknowledgeView,
         KnxStatsAcknowledgeBulkView,

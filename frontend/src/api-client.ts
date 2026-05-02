@@ -122,6 +122,32 @@ export interface KnxStatsTopRowDto {
   has_findings?: boolean;
 }
 
+/** Iter 67 / WR-I: Trend-Vergleich aktuelle Periode vs. Vorperiode. */
+export interface KnxStatsTrendRowDto {
+  ga: string;
+  label: string | null;
+  dpt: string | null;
+  count_now: number;
+  count_prev: number;
+  delta_abs: number;
+  /** null wenn Vorperiode 0 (= GA neu in dieser Periode). */
+  delta_pct: number | null;
+}
+
+export interface KnxStatsTrendDto {
+  from: string;
+  to: string;
+  prev_from: string;
+  prev_to: string;
+  period_minutes: number;
+  total_now: number;
+  total_prev: number;
+  total_delta_abs: number;
+  total_delta_pct: number | null;
+  top_increase: KnxStatsTrendRowDto[];
+  top_decrease: KnxStatsTrendRowDto[];
+}
+
 export interface KnxStatsRecommendationDto {
   severity: KnxRowSeverity;
   text: string;
@@ -937,6 +963,19 @@ export class ApiClient {
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxStatsAlarmsDto;
+  }
+
+  /** Iter 67 / WR-I: Trend-Vergleich aktueller Periode vs. Vorperiode. */
+  async getKnxStatsTrend(
+    f: KnxStatsFilters,
+    topN = 5,
+  ): Promise<KnxStatsTrendDto> {
+    const params = this._knxStatsParams(f);
+    params.set("top_n", String(topN));
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/trend?${params.toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsTrendDto;
   }
 
   async getKnxStatsOrphans(f: KnxStatsFilters): Promise<KnxStatsOrphansDto> {

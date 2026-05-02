@@ -23,6 +23,7 @@ import type {
   KnxStatsSummaryDto,
   KnxStatsTimelineDto,
   KnxStatsTopRowDto,
+  KnxStatsTrendDto,
 } from "../api-client.js";
 import { tokens, cards, pills, buttons } from "../styles/tokens.js";
 import "./knx-timeline-chart.js";
@@ -200,6 +201,8 @@ export class StatsKnxView extends LitElement {
   @state() private _longTerm: KnxStatsLongTermDto | null = null;
   @state() private _bursts: KnxStatsBurstsDto | null = null;
   @state() private _sensitiveLog: KnxStatsSensitiveLogDto | null = null;
+  // Iter 67 / WR-I: Trend-Vergleich aktuelle Periode vs. Vorperiode.
+  @state() private _trend: KnxStatsTrendDto | null = null;
   // Iter 49 (N1): Bus-Analyse-Toggle. true = Listener nimmt Telegramme
   // weiter auf; false = ressourcen-sparend, aber keine neuen Daten.
   @state() private _busAnalysisEnabled: boolean = true;
@@ -275,6 +278,7 @@ export class StatsKnxView extends LitElement {
       "sensitive-log": "Sicherheits-Audit",
       orphans: "Verwaiste GAs",
       alarms: "Alarme",
+      trend: "Trend-Vergleich",
     };
     const labeled = failed.map((k) => labels[k] || k).join(", ");
     return html`
@@ -391,6 +395,7 @@ export class StatsKnxView extends LitElement {
         longTerm,
         bursts,
         sensitiveLog,
+        trend,
       ] = await Promise.all([
         this.api.getKnxStatsSummary(fRaw),
         this.api.getKnxStatsTop(fRaw),
@@ -412,6 +417,7 @@ export class StatsKnxView extends LitElement {
           : Promise.resolve(null),
         captureError("bursts", this.api.getKnxStatsBursts(fRaw)),
         captureError("sensitive-log", this.api.getKnxStatsSensitiveLog(fRaw)),
+        captureError("trend", this.api.getKnxStatsTrend(fRaw, 5)),
       ]);
       this._summary = summary;
       this._top = top.items;
@@ -425,6 +431,7 @@ export class StatsKnxView extends LitElement {
       this._longTerm = longTerm;
       this._bursts = bursts;
       this._sensitiveLog = sensitiveLog;
+      this._trend = trend;
       // Iter 51: Errors-Snapshot setzen (Reassignment triggert Re-Render).
       this._apiErrors = errors;
       this._apiErrorsDismissed = false;
@@ -456,6 +463,7 @@ export class StatsKnxView extends LitElement {
       this._longTerm = null;
       this._bursts = null;
       this._sensitiveLog = null;
+      this._trend = null;
     } finally {
       this._loading = false;
     }
@@ -1090,6 +1098,11 @@ export class StatsKnxView extends LitElement {
           ? this._renderOrphans()
           : nothing}
 
+        ${this._trend !== null &&
+        (this._trend.total_now > 0 || this._trend.total_prev > 0)
+          ? this._renderTrend()
+          : nothing}
+
         <section class="mh-card">
           <header class="card-head">
             <h3>Top-Sender (Gruppenadressen)</h3>
@@ -1669,6 +1682,99 @@ export class StatsKnxView extends LitElement {
     return fields.some(
       (f) => typeof f === "string" && f.toLowerCase().includes(needle),
     );
+  }
+
+  /**
+   * Iter 67 / WR-I: Trend-Vergleich aktuelle Periode vs. Vorperiode.
+   * Eine Card mit Total-Delta + Top-3 Anstiege + Top-3 Abnahmen.
+   * Vorperiode hat dieselbe Laenge unmittelbar davor.
+   */
+  private _renderTrend(): TemplateResult {
+    const t = this._trend!;
+    const totalDelta =
+      t.total_delta_pct !== null
+        ? `${t.total_delta_pct > 0 ? "+" : ""}${t.total_delta_pct.toLocaleString(
+            "de-DE",
+            { minimumFractionDigits: 1, maximumFractionDigits: 1 },
+          )} %`
+        : "neu";
+    const fmtRowPct = (row: { delta_pct: number | null; delta_abs: number }): string => {
+      if (row.delta_pct === null) {
+        return row.delta_abs > 0 ? "neu" : "verstummt";
+      }
+      const sign = row.delta_pct > 0 ? "+" : "";
+      return `${sign}${row.delta_pct.toLocaleString("de-DE", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1,
+      })} %`;
+    };
+    const totalSeverity = this._classifyTrendSeverity(t.total_delta_pct);
+    return html`
+      <section class=${`mh-card trend trend--${totalSeverity}`}>
+        <header class="card-head">
+          <h3>Trend gegenüber Vorperiode</h3>
+          <span class="muted small">
+            Aktuell ${t.total_now.toLocaleString("de-DE")} Telegramme ·
+            zuvor ${t.total_prev.toLocaleString("de-DE")} ·
+            <strong>${totalDelta}</strong>
+          </span>
+        </header>
+        <div class="trend-grid">
+          <div class="trend-col">
+            <strong>Größte Anstiege</strong>
+            ${t.top_increase.length === 0
+              ? html`<p class="muted small">Keine signifikanten Anstiege.</p>`
+              : html`<ul class="trend-list trend-list--up">
+                  ${t.top_increase.slice(0, 5).map(
+                    (row) => html`<li>
+                      <code class="ga">${row.ga}</code>
+                      <span class="trend-label muted"
+                        >${row.label ?? "—"}</span
+                      >
+                      <span class="trend-delta trend-delta--up"
+                        >+${row.delta_abs.toLocaleString("de-DE")} ·
+                        ${fmtRowPct(row)}</span
+                      >
+                    </li>`,
+                  )}
+                </ul>`}
+          </div>
+          <div class="trend-col">
+            <strong>Größte Rückgänge</strong>
+            ${t.top_decrease.length === 0
+              ? html`<p class="muted small">Keine signifikanten Rückgänge.</p>`
+              : html`<ul class="trend-list trend-list--down">
+                  ${t.top_decrease.slice(0, 5).map(
+                    (row) => html`<li>
+                      <code class="ga">${row.ga}</code>
+                      <span class="trend-label muted"
+                        >${row.label ?? "—"}</span
+                      >
+                      <span class="trend-delta trend-delta--down"
+                        >${row.delta_abs.toLocaleString("de-DE")} ·
+                        ${fmtRowPct(row)}</span
+                      >
+                    </li>`,
+                  )}
+                </ul>`}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  /**
+   * Iter 67: Ampel-Schwellen fuer den Total-Trend. Konservativ:
+   * |delta| < 25 % = green (normales Atmen), 25-100 % = yellow,
+   * 100-300 % = orange, > 300 % = red.
+   */
+  private _classifyTrendSeverity(deltaPct: number | null): string {
+    if (deltaPct === null) return "yellow"; // erste Daten oder neu
+    const abs = Math.abs(deltaPct);
+    if (abs < 25) return "green";
+    if (abs < 100) return "yellow";
+    if (abs < 300) return "orange";
+    return "red";
   }
 
   private _renderOrphans(): TemplateResult {
@@ -2572,6 +2678,70 @@ export class StatsKnxView extends LitElement {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+      /* Iter 67 / WR-I: Trend-Card. Color-Border je nach Total-Severity. */
+      .trend {
+        border-left: 3px solid var(--mh-divider);
+      }
+      .trend--green {
+        border-left-color: var(--mh-success);
+      }
+      .trend--yellow {
+        border-left-color: var(--mh-caution);
+      }
+      .trend--orange {
+        border-left-color: var(--mh-warning);
+      }
+      .trend--red {
+        border-left-color: var(--mh-error);
+      }
+      .trend-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--mh-space-4);
+      }
+      .trend-col strong {
+        display: block;
+        margin-bottom: var(--mh-space-2);
+      }
+      .trend-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .trend-list li {
+        display: grid;
+        grid-template-columns: minmax(70px, auto) 1fr auto;
+        gap: var(--mh-space-2);
+        padding: 4px var(--mh-space-2);
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-sm);
+        align-items: center;
+      }
+      .trend-list--up li {
+        background: var(--mh-warning-soft);
+      }
+      .trend-list--down li {
+        background: var(--mh-success-soft);
+      }
+      .trend-delta {
+        font-weight: var(--mh-weight-semibold);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .trend-delta--up {
+        color: var(--mh-warning);
+      }
+      .trend-delta--down {
+        color: var(--mh-success);
+      }
+      .trend-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       /* Iter 64 / WR-P: Detail-Pane Schnell-Aktionen mit HA-Konfig +
          Forum-Link. Anchors als kompakte Liste, kein Button-Stil. */

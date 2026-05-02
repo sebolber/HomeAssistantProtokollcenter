@@ -256,6 +256,29 @@ class KnxStatsTimelineView(RequireAdminView):
         )
 
 
+class KnxStatsTrendView(RequireAdminView):
+    """Iter 67 / WR-I: Trend-Vergleich aktueller Periode vs. Vorperiode.
+
+    Endpoint: GET /api/messagehub/knx-stats/trend?from=&to=&top_n=10
+    """
+
+    url = "/api/messagehub/knx-stats/trend"
+    name = "api:messagehub:knx-stats:trend"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        svc = _service(request.app["hass"])
+        if svc is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        top_n = parse_int_param(
+            request.query, "top_n", 10, min_value=1, max_value=50
+        )
+        return self.json(await svc.compute_trend(from_iso, to_iso, top_n=top_n))
+
+
 class KnxStatsAlarmsView(RequireAdminView):
     """Iter 15 (QS-l): wertet Default-Alarm-Regeln aus + feuert
     HA-Eventbus-Event je triggered Alarm.
