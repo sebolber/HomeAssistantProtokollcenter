@@ -149,6 +149,24 @@ GROUP BY bucket
 ORDER BY bucket ASC
 """
 
+# Iter 40 (Feature C): Burst-Detector — Buckets mit >= telegrams_threshold
+# absteigend sortiert. Mit GA-/Source-Count fuer Diagnose im UI.
+_BURSTS_SQL = """
+SELECT
+    datetime((CAST(strftime('%s', timestamp) AS INTEGER) / ?) * ?, 'unixepoch')
+        AS bucket,
+    COUNT(*) AS telegrams,
+    COUNT(DISTINCT destination) AS ga_count,
+    COUNT(DISTINCT source) AS source_count
+FROM knx_raw_telegrams
+WHERE timestamp >= ?
+  AND timestamp <  ?
+GROUP BY bucket
+HAVING telegrams >= ?
+ORDER BY telegrams DESC, bucket ASC
+LIMIT ?
+"""
+
 
 class KnxStatsRepository:
     """SQL-Aggregate fuer den KNX-Stats-Tab.
@@ -358,6 +376,52 @@ class KnxStatsRepository:
                     "bucket": str(row["bucket"]),
                     "telegrams": telegrams,
                     "busload_pct": round(pct, 2),
+                }
+            )
+        return out
+
+    # --- Burst-Detector (Iter 40, Feature C) --------------------------------
+
+    async def burst_detect(
+        self,
+        from_iso: str,
+        to_iso: str,
+        *,
+        window_seconds: int = 5,
+        threshold_pct: float = 30.0,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        """Liefert Telegramm-Bursts ueber `threshold_pct` Buslast.
+
+        Bucketing per Unix-Sekunden — gleiches Schema wie busload_timeseries,
+        aber mit HAVING-Filter und Sortierung nach Burst-Hoehe absteigend.
+
+        Pro Bucket: telegrams, busload_pct, ga_count (verschiedene GAs),
+        source_count (verschiedene Geraete). Hilft, "10 Rolladen
+        gleichzeitig" von "ein chattiges Geraet" zu unterscheiden.
+        """
+        ws = max(1, int(window_seconds))
+        capped_limit = max(1, min(int(limit), 500))
+        threshold_count = int(
+            (max(0.01, threshold_pct) / 100.0) * (ws * KNX_TP_BAUDRATE_BPS) / KNX_AVG_TELEGRAM_BITS
+        )
+        threshold_count = max(threshold_count, 1)
+        rows = await self._db.fetch_all(
+            _BURSTS_SQL,
+            (ws, ws, from_iso, to_iso, threshold_count, capped_limit),
+        )
+        denom = ws * KNX_TP_BAUDRATE_BPS
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            telegrams = int(row["telegrams"] or 0)
+            pct = (telegrams * KNX_AVG_TELEGRAM_BITS / denom) * 100.0 if denom else 0.0
+            out.append(
+                {
+                    "bucket": str(row["bucket"]),
+                    "telegrams": telegrams,
+                    "busload_pct": round(pct, 2),
+                    "ga_count": int(row["ga_count"] or 0),
+                    "source_count": int(row["source_count"] or 0),
                 }
             )
         return out

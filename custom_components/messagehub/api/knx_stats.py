@@ -378,6 +378,47 @@ class KnxStatsSilenceView(RequireAdminView):
         )
 
 
+class KnxStatsBurstsView(RequireAdminView):
+    """Iter 40 (Feature C): Burst-Detector — kurze Telegrammfluten.
+
+    GET-Parameter:
+    - from / to (ISO-Periode, validiert)
+    - window_seconds (1..60, default 5)
+    - threshold_pct (1..100, default 30)
+    - limit (1..500, default 50)
+    """
+
+    url = "/api/messagehub/knx-stats/bursts"
+    name = "api:messagehub:knx-stats:bursts"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        svc = _service(request.app["hass"])
+        if svc is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        window_seconds = parse_int_param(
+            request.query, "window_seconds", 5, min_value=1, max_value=60
+        )
+        limit = parse_int_param(request.query, "limit", 50, min_value=1, max_value=500)
+        # threshold_pct als float manuell parsen — parse_int_param ist int-only
+        thr_raw = request.query.get("threshold_pct")
+        try:
+            threshold_pct = float(thr_raw) if thr_raw is not None else 30.0
+        except (TypeError, ValueError):
+            threshold_pct = 30.0
+        result = await svc.bursts(
+            from_iso=from_iso,
+            to_iso=to_iso,
+            window_seconds=window_seconds,
+            threshold_pct=threshold_pct,
+            limit=limit,
+        )
+        return self.json(result)
+
+
 class KnxStatsLongTermView(RequireAdminView):
     """Iter 38 (Feature B+J): Long-Term-Sicht aus Counter-Tabelle.
 
@@ -661,6 +702,7 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsBusloadView())
     hass.http.register_view(KnxStatsHealthScoreView())
     hass.http.register_view(KnxStatsLongTermView())
+    hass.http.register_view(KnxStatsBurstsView())
     hass.http.register_view(KnxStatsAcknowledgeView())
     hass.http.register_view(KnxStatsAcknowledgeBulkView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())

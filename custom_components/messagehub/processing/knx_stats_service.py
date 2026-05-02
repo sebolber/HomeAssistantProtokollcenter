@@ -305,6 +305,50 @@ class KnxStatsService:
     ) -> list[dict[str, Any]]:
         return await self._repo.timeline(from_iso, to_iso, gas=gas, bucket_minutes=bucket_minutes)
 
+    # --- Burst-Detector (Iter 40, Feature C) --------------------------------
+
+    BURST_DEFAULT_WINDOW_S: int = 5
+    BURST_DEFAULT_THRESHOLD_PCT: float = 30.0
+    BURST_MIN_THRESHOLD_PCT: float = 1.0
+    BURST_MAX_THRESHOLD_PCT: float = 100.0
+    BURST_DEFAULT_LIMIT: int = 50
+
+    async def bursts(
+        self,
+        *,
+        from_iso: str,
+        to_iso: str,
+        window_seconds: int | None = None,
+        threshold_pct: float | None = None,
+        limit: int | None = None,
+    ) -> dict[str, Any]:
+        """Findet kurze Telegrammfluten oberhalb threshold_pct Buslast.
+
+        Defaults gemaess Best-Practice: 5s-Fenster, 30% als 'auffaellig'-
+        Schwelle (KNX-Praxis: dauerhafte > 30% sind ungewoehnlich; kurze
+        Spitzen wie Sonnenautomatik treten haeufig auf).
+        """
+        ws = max(1, int(window_seconds or self.BURST_DEFAULT_WINDOW_S))
+        thr = float(
+            threshold_pct if threshold_pct is not None else self.BURST_DEFAULT_THRESHOLD_PCT
+        )
+        thr = max(self.BURST_MIN_THRESHOLD_PCT, min(self.BURST_MAX_THRESHOLD_PCT, thr))
+        lim = max(1, int(limit or self.BURST_DEFAULT_LIMIT))
+        bursts = await self._repo.burst_detect(
+            from_iso,
+            to_iso,
+            window_seconds=ws,
+            threshold_pct=thr,
+            limit=lim,
+        )
+        return {
+            "from": from_iso,
+            "to": to_iso,
+            "window_seconds": ws,
+            "threshold_pct": thr,
+            "bursts": bursts,
+        }
+
     # --- Long-Term-Sicht (Iter 38, Feature B+J) -----------------------------
 
     # Heuristik-Schwelle (Tage), ab der die Long-Term-Sicht von Hour-Buckets
