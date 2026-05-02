@@ -1177,6 +1177,99 @@ class MttrView(_RequireAdminView):
         )
 
 
+class SavedFiltersView(_RequireAdminView):
+    """Iter 92 / K1: Saved Filters serverseitig.
+
+    Endpoints:
+    - GET  /api/messagehub/saved-filters?scope=messages|knx-stats|audit
+    - POST /api/messagehub/saved-filters  body {name, scope, filters}
+    """
+
+    url = "/api/messagehub/saved-filters"
+    name = "api:messagehub:saved-filters"
+
+    async def get(self, request: web.Request) -> web.Response:
+        from ..storage.saved_filters_repo import (  # noqa: PLC0415
+            SavedFiltersRepository,
+            saved_filter_to_dict,
+        )
+
+        self._check_admin(request)
+        db = _get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
+        scope = request.query.get("scope", "messages")
+        try:
+            items = await SavedFiltersRepository(db).list_by_scope(scope)
+        except ValueError as err:
+            return self.json_message(str(err), status_code=400)
+        return self.json(
+            {"items": [saved_filter_to_dict(it) for it in items]}
+        )
+
+    async def post(self, request: web.Request) -> web.Response:
+        from ..storage.saved_filters_repo import (  # noqa: PLC0415
+            SavedFiltersRepository,
+            saved_filter_to_dict,
+        )
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
+        try:
+            data = await request.json()
+            item = await SavedFiltersRepository(db).upsert(
+                name=str(data["name"]),
+                scope=str(data["scope"]),
+                filters=data.get("filters") or {},
+            )
+        except (KeyError, ValueError, TypeError) as err:
+            return self.json_message(f"invalid: {err}", status_code=400)
+        await _audit(
+            hass,
+            request,
+            action="saved_filter_upsert",
+            target_type="saved_filter",
+            target_id=str(item.id),
+            details={"scope": item.scope, "name": item.name},
+        )
+        return self.json(saved_filter_to_dict(item))
+
+
+class SavedFilterDetailView(_RequireAdminView):
+    """Iter 92 / K1: DELETE /api/messagehub/saved-filters/{id}."""
+
+    url = "/api/messagehub/saved-filters/{filter_id}"
+    name = "api:messagehub:saved-filter-detail"
+
+    async def delete(
+        self, request: web.Request, filter_id: str
+    ) -> web.Response:
+        from ..storage.saved_filters_repo import SavedFiltersRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
+        try:
+            fid = int(filter_id)
+        except ValueError:
+            return self.json_message(_ERR_INVALID_ID, status_code=400)
+        if not await SavedFiltersRepository(db).delete(fid):
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
+        await _audit(
+            hass,
+            request,
+            action="saved_filter_delete",
+            target_type="saved_filter",
+            target_id=filter_id,
+        )
+        return self.json_message("deleted")
+
+
 class MetricsView(_RequireAdminView):
     """Iter 69 / K2: Prometheus-/metrics-Endpoint.
 
@@ -1252,6 +1345,8 @@ def async_register_views(hass: HomeAssistant) -> None:
         AuditLogView,
         ExportView,
         MetricsView,
+        SavedFiltersView,
+        SavedFilterDetailView,
         HeartbeatsView,
         SourcesView,
         StatsView,

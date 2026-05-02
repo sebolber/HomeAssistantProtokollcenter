@@ -6,6 +6,21 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 92 — K1 Saved Filters serverseitig, Backend)
+- **Neue Tabelle** `saved_filters` (Migration 0023). Spalten: `id`,
+  `name`, `scope`, `filters` (JSON), `created_at`, `updated_at`.
+  UNIQUE(scope, name) verhindert Duplikate.
+- **`SavedFiltersRepository`** mit `list_by_scope`, `get`, `upsert`,
+  `delete`. Validierung: scope ∈ {`messages`, `knx-stats`, `audit`},
+  name nicht leer + max 80 Zeichen, filters dict.
+- **REST-Endpoints**:
+  - `GET /api/messagehub/saved-filters?scope=...` — Liste.
+  - `POST /api/messagehub/saved-filters` body `{name, scope, filters}`
+    — Upsert.
+  - `DELETE /api/messagehub/saved-filters/{id}` — Löschen.
+- Audit-Log: `saved_filter_upsert`, `saved_filter_delete`.
+- 11 neue Backend-Tests in `test_saved_filters.py`.
+
 ### Hinzugefügt (Iter 91 — WR-G GA-Heatmap)
 - **Neuer Endpoint** `GET /api/messagehub/knx-stats/heatmap?from=&to=&top_n=10&bucket=60`
   liefert eine 2D-Matrix Top-N GAs × Zeit-Buckets. Service-Methode
