@@ -179,12 +179,19 @@ def async_register_knx_listener(hass: HomeAssistant, database: Any, repository: 
         try:
             queue = getattr(xknx, "telegram_queue", None) or getattr(xknx, "telegrams", None)
             if queue is not None and hasattr(queue, "register_telegram_received_cb"):
-
-                async def _on_telegram(telegram: Any) -> None:
+                # xknx erwartet Callable[[Telegram], None] (sync). Eine
+                # `async def`-Callback liefert nur eine Coroutine zurueck,
+                # die nie geawaited wird ("coroutine was never awaited").
+                # v0.10.2: sync-Wrapper, der die echte Ingest-Coroutine als
+                # HA-Task im Eventloop scheduled.
+                async def _handle_telegram(telegram: Any) -> None:
                     try:
                         await _ingest(KnxTelegramData.from_telegram(telegram))
                     except (ValueError, TypeError, KeyError) as err:
                         _LOGGER.debug("knx telegram ingest skipped: %s", err)
+
+                def _on_telegram(telegram: Any) -> None:
+                    hass.async_create_task(_handle_telegram(telegram))
 
                 queue.register_telegram_received_cb(_on_telegram)
                 _LOGGER.info(

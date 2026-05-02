@@ -4,6 +4,30 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.10.2] – 2026-05-02
+
+Kritischer Hotfix: KNX-Telegramme kamen nicht mehr in den Nachrichten an.
+
+### Behoben
+
+- **xknx-Callback war `async def`, xknx ruft aber sync auf.**
+  xknx 3.15.0 erwartet einen Callback der Signatur
+  `Callable[[Telegram], None]` und ruft ihn als
+  `callback.callback(telegram)` ohne `await` auf. Unsere
+  `async def _on_telegram(...)` lieferte nur eine Coroutine
+  zurueck, die mit der Warnung
+  `RuntimeWarning: coroutine '...' was never awaited`
+  stillschweigend verworfen wurde — die Telegramme verschwanden,
+  ohne dass im Log etwas von "Telegramm empfangen" stand.
+- **Fix**: Sync-Wrapper `_on_telegram(telegram)` registriert,
+  der intern `hass.async_create_task(_handle_telegram(telegram))`
+  aufruft. Damit wird die echte Ingest-Coroutine sauber als
+  Task im HA-Eventloop scheduled.
+- **Regressionstest** (`test_knx_listener_sync_wrapper.py`):
+  pruft per `inspect.iscoroutinefunction()` dass der bei xknx
+  registrierte Callback NICHT async ist und dass er ein
+  Telegramm via `async_create_task` an den Eventloop weiterreicht.
+
 ## [0.10.1] – 2026-05-02
 
 Hotfix fuer Repair-Issue-Translations.
