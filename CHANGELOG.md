@@ -4,6 +4,58 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.9.0] – 2026-05-02
+
+Konsolidierungs-Release. Bündelt alle Verbesserungen aus den 0.8.x-
+Patch-Tags zu einem klar abgegrenzten Minor-Release und ergänzt die
+Lovelace-Anbindung um die bisher fehlende „Geräte"-Eintrag in
+*Settings → Geräte & Dienste*. Alles aus 0.8.0–0.8.3 ist hier
+nochmal als Highlights zusammengefasst — die Detail-History für jeden
+Patch findet sich in den Sub-Sektionen darunter.
+
+### Highlights
+
+- **🎛 Sub-Tabs in den Einstellungen** — Webhooks, KNX-Bus, Channels,
+  MQTT, Heartbeats, Auto-Remediation als getrennte Tabs, persistierter
+  Tab-Zustand. KNX-Liste mit ihren bis zu 3000 Adressen blockiert nicht
+  mehr die anderen Sektionen.
+- **📊 6 neue Lovelace-Sensoren** — Severity-Counts (Errors/Warnings/Info/
+  Debug all-time) plus Time-Window-Counts (1 h / 7 d). Direkt in
+  Glance-, Gauge- und History-Cards nutzbar.
+- **🏷 „Zu Dashboard hinzufügen" funktioniert** — alle Entitäten sind
+  unter einem **Gerät** gruppiert. Settings → Geräte & Dienste → Message
+  Hub → Gerät listet alle 12 Entitäten und der HA-Standard-Knopf
+  schiebt sie als Card-Stack in eine Lovelace-View, wie bei
+  Forecast.Solar.
+- **🎨 App-Icon + Brand-Assets** — Inbox mit drei Severity-Dots auf
+  HA-Blau-Tile. PNGs in 256/512/1024 px für HACS, Panel-Header mit
+  Inline-SVG. `assets/brands/messagehub/` als fertiges Asset-Set für
+  einen [home-assistant/brands](https://github.com/home-assistant/brands)-PR
+  (siehe `docs/brand-pr.md`).
+- **⚡ Severity inline ändern** — Klick auf die Severity-Pille in der
+  Nachrichtenliste oder KNX-Adressliste öffnet ein Inline-Popover; die
+  Auswahl persistiert sofort, ohne den Detail-Dialog zu öffnen.
+- **🛠 SonarCloud-CI vollständig** — eigener `sonar.yml`-Workflow mit
+  SHA-pinned Actions (entspricht S7637), Properties-Excludes greifen
+  zuverlässig (Bundle-Lärm weg), pytest-asyncio + Test-IPs als
+  False-Positives unterdrückt.
+- **📝 Komplette User-Doku** — `README.md`, `docs/configuration.md`,
+  `docs/dashboard.md`, `docs/auto-update.md`, `docs/brand-pr.md`. Alle
+  6 Eingangskanäle, 6 Lovelace-Sensoren, 4 Lovelace-Karten-Bausteine,
+  3 Auto-Update-Varianten und der brands-PR-Workflow Schritt-für-Schritt.
+
+### Bekannte Einschränkungen
+
+- **Brand-Icon in HA-Settings-UI** zeigt weiterhin „icon not available"
+  bis der PR an `home-assistant/brands` gemerged ist (Lead-Time
+  1–3 Tage). HACS-UI und Panel-Header zeigen das Icon sofort.
+- **`actions/cache@v4`** läuft auf Node 20, deprecated von GitHub.
+  Wird intern von der Sonar-Action genutzt — wir können das nicht
+  direkt fixen, Sonar-Maintainer muss das in einer kommenden Version
+  aktualisieren. Workflow läuft aber bis September 2026 weiter.
+
+---
+
 ## [0.8.3] – 2026-05-02
 
 CI-Patch. Drei kleine Sonar-Workflow-Aufraeumungen, die im Run-Log

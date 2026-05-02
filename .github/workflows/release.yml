@@ -20,6 +20,7 @@ on:
   push:
     tags:
       - "v*"
+      - "[0-9]*"
   workflow_dispatch:
 
 permissions:
@@ -33,15 +34,17 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Check manifest version matches tag
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           set -euo pipefail
-          tag="${GITHUB_REF##refs/tags/v}"
+          # Strip optionalen "v"-Prefix — wir akzeptieren v0.9.0 wie auch 0.9.0.
+          tag="${GITHUB_REF##refs/tags/}"
+          tag="${tag#v}"
           version="$(python -c 'import json,sys; print(json.load(open("custom_components/messagehub/manifest.json"))["version"])')"
           echo "Tag version:      ${tag}"
           echo "Manifest version: ${version}"
           if [ "${tag}" != "${version}" ]; then
-            echo "::error::manifest.json version (${version}) does not match tag (v${tag})"
+            echo "::error::manifest.json version (${version}) does not match tag (${tag})"
             exit 1
           fi
 
@@ -81,7 +84,8 @@ jobs:
         id: notes
         run: |
           set -euo pipefail
-          version="${GITHUB_REF##refs/tags/v}"
+          tag="${GITHUB_REF##refs/tags/}"
+          version="${tag#v}"
           awk "/^## \\[$version\\]/{flag=1; next} /^## \\[/{flag=0} flag" CHANGELOG.md > release-notes.md
           if [ ! -s release-notes.md ]; then
             echo "Release $version (kein CHANGELOG-Eintrag gefunden)" > release-notes.md
