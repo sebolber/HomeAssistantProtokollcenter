@@ -1174,6 +1174,67 @@ class MttrView(_RequireAdminView):
         )
 
 
+class MetricsView(_RequireAdminView):
+    """Iter 69 / K2: Prometheus-/metrics-Endpoint.
+
+    Liefert messagehub-Counts im Prometheus-Text-Format. Auth: HA-Admin
+    (wie alle anderen Endpoints) — Prometheus-Scraper muss ein
+    Long-Lived Access Token via Bearer-Header schicken.
+    """
+
+    url = "/api/messagehub/metrics"
+    name = "api:messagehub:metrics"
+
+    async def get(self, request: web.Request) -> web.Response:
+        from datetime import UTC, datetime, timedelta  # noqa: PLC0415
+
+        from ..processing.prometheus import format_prometheus_metrics  # noqa: PLC0415
+
+        self._check_admin(request)
+        repos = _get_repos(request.app["hass"])
+        if repos is None:
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
+        msg_repo, wh_repo = repos
+
+        cutoff_24h = (datetime.now(UTC) - timedelta(hours=24)).isoformat(
+            timespec="seconds"
+        )
+        # Per Severity all-time + 24h: 4 + 4 = 8 SELECTs. Bei
+        # Scrape-Frequenz typisch alle 30-60 s ist das vertretbar.
+        # Wer Prometheus-Last ernsthaft skalieren will, kann die Counts
+        # in einer Materialized-View persistieren — bewusst nicht in
+        # dieser Iteration.
+        severity_total: dict[str, int] = {}
+        severity_24h: dict[str, int] = {}
+        for sev in ("debug", "info", "warning", "error"):
+            severity_total[sev] = await msg_repo.count_by_severity(sev)
+            severity_24h[sev] = await msg_repo.count_by_severity_since(
+                sev, cutoff_24h
+            )
+        total = await msg_repo.count_total()
+
+        # KNX-Telegramme im Logbuch (whitelist-gefiltert).
+        knx_total = await msg_repo.count_filtered(source="knx-bus")
+        # Webhook-Anzahl (active + inactive).
+        webhooks = await wh_repo.list_all()
+        webhook_total = len(webhooks)
+
+        body = format_prometheus_metrics(
+            total=total,
+            severity_total=severity_total,
+            severity_24h=severity_24h,
+            knx_total=knx_total,
+            webhook_total=webhook_total,
+        )
+        return web.Response(
+            body=body,
+            content_type="text/plain",
+            charset="utf-8",
+            # Prometheus-Spec verlangt Versions-Suffix im Content-Type.
+            headers={"Content-Type": "text/plain; version=0.0.4; charset=utf-8"},
+        )
+
+
 def async_register_views(hass: HomeAssistant) -> None:
     """Registriert alle API-Views (idempotent)."""
     for view_cls in (
@@ -1185,6 +1246,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         RunbookForView,
         AuditLogView,
         ExportView,
+        MetricsView,
         HeartbeatsView,
         SourcesView,
         StatsView,

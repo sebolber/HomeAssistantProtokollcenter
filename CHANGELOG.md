@@ -6,6 +6,25 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 69 — K2 Prometheus `/metrics`-Endpoint)
+- **Neuer Endpoint** `GET /api/messagehub/metrics` liefert Counts im
+  Prometheus-Text-Format. Pure Funktion `format_prometheus_metrics`
+  in `processing/prometheus.py` mit 7 Tests, View `MetricsView` in
+  `api/messages.py`.
+- Exposed Metrics:
+  - `messagehub_total` (counter) — Total Messages
+  - `messagehub_messages_total{severity}` (counter) — pro Severity all-time
+  - `messagehub_messages_24h{severity}` (gauge) — pro Severity letzte 24 h
+  - `messagehub_knx_telegrams_total` (counter)
+  - `messagehub_webhooks_total` (gauge)
+- Auth: `RequireAdminView` wie alle anderen Endpoints — Prometheus-
+  Scraper braucht ein Long-Lived Access Token via Bearer-Header.
+- `docs/configuration.md` um REST-API-Eintrag + Scrape-Config-Beispiel
+  ergänzt. README unverändert (Endpoint ist Power-User-Feature).
+- 8 SELECTs pro Scrape (4 Severities × 2 Zeiträume + total + knx +
+  webhook) — bei typischer 30–60 s-Frequenz vertretbar. Materialized-
+  View bewusst nicht jetzt; bei höherem Bedarf separat.
+
 ### Hinzugefügt (Iter 68 — WR-F GA-Werteverlauf-Export CSV/JSON)
 - **Neuer Endpoint** `GET /api/messagehub/knx-stats/ga/{ga}/export`
   liefert den Werteverlauf einer GA als CSV oder JSON. Query-Param

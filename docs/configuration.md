@@ -362,7 +362,33 @@ Alle Endpunkte erfordern Admin-Auth (`Authorization: Bearer <long-lived-token>`)
 | `POST` | `/api/messagehub/heartbeats` | Heartbeat-Quellen |
 | `GET` | `/api/messagehub/audit` | Audit-Log |
 | `GET` | `/api/messagehub/export` | Export (JSONL/CSV) |
+| `GET` | `/api/messagehub/metrics` | Prometheus-Text-Format (Severity-Counts, KNX, Webhooks) — Iter 69 |
 | `GET` | `/api/messagehub/runbook/{source}` | Runbook lesen |
+
+### Prometheus-Scrape-Config
+
+Endpoint `/api/messagehub/metrics` liefert messagehub-Counts im
+Prometheus-Text-Format. Beispiel-Job in `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: messagehub
+    metrics_path: /api/messagehub/metrics
+    scheme: https
+    static_configs:
+      - targets: ['homeassistant.local:8123']
+    authorization:
+      type: Bearer
+      credentials: <long-lived-access-token>
+```
+
+Exposed Metrics:
+
+- `messagehub_total` (counter) — Gesamt-Total Messages
+- `messagehub_messages_total{severity}` (counter) — pro Severity all-time
+- `messagehub_messages_24h{severity}` (gauge) — pro Severity letzte 24 h
+- `messagehub_knx_telegrams_total` (counter) — KNX-Bus-Telegramme im Logbuch
+- `messagehub_webhooks_total` (gauge) — konfigurierte Webhooks
 
 ## Eventbus
 
