@@ -74,6 +74,33 @@ def _classify_int_samples(int_values: list[int]) -> str | None:
     return None
 
 
+# Iter 63 / U13: Lightweight Anti-Pattern-Erkennung fuer den Top-Sender-
+# Listen-Badge. Voller Detector (`detect_patterns`) braucht
+# TelegramSample-Objekte mit ts + dev_source + telegramtype und ist im
+# Detail-Pane bereits da. Hier reicht eine binaere "hat etwas
+# Auffaelliges?"-Flag — der User klickt fuer Details.
+# Min-Samples kleiner als _CONSTANT_VALUE_MIN_SAMPLES (10) im vollen
+# Detector, weil hier nur die letzten 30 Bulk-Samples vorliegen.
+_LIGHTWEIGHT_CONSTANT_MIN: Final = 5
+
+
+def has_anti_pattern_in_samples(values: Sequence[object]) -> bool:
+    """True, wenn die Sample-Sequenz auf Konstant-Wert-Spam hindeutet.
+
+    Konstant-Wert-Spam: >= 5 Werte und alle identisch (z. B. Hörmann-
+    Tor-Gateway sendet zyklisch DPT 9.001 = 0). Andere Anti-Patterns
+    (Read-Burst, Mehrfach-Response, Heartbeat) brauchen ts/typ und
+    werden im Detail-Pane via `detect_patterns` ausgewertet.
+    """
+    if len(values) < _LIGHTWEIGHT_CONSTANT_MIN:
+        return False
+    sanitized = [v for v in values if v is not None]
+    if len(sanitized) < _LIGHTWEIGHT_CONSTANT_MIN:
+        return False
+    first = sanitized[0]
+    return all(v == first for v in sanitized[1:])
+
+
 def infer_dpt_from_samples(values: Sequence[object]) -> str | None:
     """Rät einen DPT aus den letzten Werten einer GA.
 

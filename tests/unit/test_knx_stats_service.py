@@ -133,6 +133,28 @@ class TestComputeTop:
         assert "1/2/3" in gas
 
     @pytest.mark.asyncio
+    async def test_marks_has_findings_for_constant_value_spam_iter63(
+        self, db: Database
+    ) -> None:
+        # Iter 63 / U13: Hoermann-Tor sendet wiederholt DPT-9.x = 0
+        # (Konstant-Wert-Spam) — TopRow.has_findings soll True sein.
+        # Kein DPT vom ETS, Werte alle 0.0 (Float, also 9.x).
+        for i in range(20):
+            await _insert_knx(
+                db, ts=_ts(i), ga="22/3/43", dpt=None, value=0.0
+            )
+        # Vergleichs-GA mit variierenden Werten: keine Findings.
+        for i in range(20):
+            await _insert_knx(
+                db, ts=_ts(i), ga="1/3/5", dpt="9.001", value=21.5 + i * 0.1
+            )
+        svc = KnxStatsService(KnxStatsRepository(db))
+        rows = await svc.compute_top(_ts(0), _ts(60), limit=10)
+        by_ga = {r.ga: r for r in rows}
+        assert by_ga["22/3/43"].has_findings is True
+        assert by_ga["1/3/5"].has_findings is False
+
+    @pytest.mark.asyncio
     async def test_infers_dpt_for_rows_without_etstype_iter62(
         self, db: Database
     ) -> None:

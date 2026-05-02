@@ -114,6 +114,12 @@ export interface KnxStatsTopRowDto {
    * (`infer_dpt_from_samples`). Frontend zeigt das mit Tooltip.
    */
   dpt_inferred?: boolean;
+  /**
+   * Iter 63 / U13: true, wenn fuer diese GA mindestens ein Anti-
+   * Pattern erkannt wurde (Lightweight-Check: Konstant-Wert-Spam ueber
+   * >= 5 Samples). Detail-Pane zeigt die volle Findings-Liste.
+   */
+  has_findings?: boolean;
 }
 
 export interface KnxStatsRecommendationDto {

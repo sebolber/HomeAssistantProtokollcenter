@@ -27,6 +27,7 @@ from .knx_stats import (
     classify_severity,
     compute_health_score,
     detect_patterns,
+    has_anti_pattern_in_samples,
     infer_dpt_from_samples,
     recommended_rate_for,
     safe_ratio,
@@ -51,6 +52,10 @@ class TopRow:
     dem ETS-Projekt stammt, sondern aus den Sample-Werten geraten wurde
     (siehe `infer_dpt_from_samples`). Frontend zeigt das mit Tooltip
     "geraten aus Werten".
+
+    Iter 63 / U13: `has_findings=True` markiert eine erkannte
+    Auffaelligkeit (heute: Konstant-Wert-Spam >= 5 identische Samples).
+    Volle Findings-Liste ist im Detail-Pane verfuegbar.
     """
 
     ga: str
@@ -64,6 +69,7 @@ class TopRow:
     severity: str
     acknowledged: bool
     dpt_inferred: bool = False
+    has_findings: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -207,19 +213,26 @@ class KnxStatsService:
         minutes = _period_minutes(from_dt, to_dt)
         ack_set = await self._repo.ack_active_set()
 
-        # Iter 62 / WR-T: GAs ohne DPT bekommen einen Inferenz-Versuch
-        # aus den letzten Sample-Werten. Bulk-Lookup begrenzt auf 100
-        # GAs (= max(limit, 100)), per-GA 30 Werte. Verhindert N+1.
-        gas_without_dpt = [r["ga"] for r in rows if not r.get("dpt")][:100]
+        # Iter 62 / WR-T + Iter 63 / U13: Bulk-Sample-Lookup fuer
+        # DPT-Inferenz UND Anti-Pattern-Lightweight-Check. Beide nutzen
+        # dieselben 30 letzten Werte pro GA — kostet nur eine zusaetzliche
+        # Query gegenueber dem Top-Listen-Lookup.
+        # GAs ohne DPT bekommen Inferenz; ALLE Top-GAs bekommen den
+        # Anti-Pattern-Check (Konstant-Wert-Spam tritt auch bei
+        # gepflegten DPTs auf — Hörmann-Tor mit DPT 9.x sendet 0).
+        all_top_gas = [r["ga"] for r in rows][:200]
         inferred_map: dict[str, str] = {}
-        if gas_without_dpt:
+        findings_set: set[str] = set()
+        if all_top_gas:
             samples_map = await self._repo.bulk_values_for_dpt_infer(
-                gas_without_dpt, from_iso, to_iso, per_ga_limit=30
+                all_top_gas, from_iso, to_iso, per_ga_limit=30
             )
             for ga, samples in samples_map.items():
                 guessed = infer_dpt_from_samples(samples)
                 if guessed is not None:
                     inferred_map[ga] = guessed
+                if has_anti_pattern_in_samples(samples):
+                    findings_set.add(ga)
 
         out: list[TopRow] = []
         for row in rows:
@@ -249,6 +262,7 @@ class KnxStatsService:
                     severity=classify_severity(rate, recommended),
                     acknowledged=is_ack,
                     dpt_inferred=dpt_inferred,
+                    has_findings=ga in findings_set,
                 )
             )
         return out

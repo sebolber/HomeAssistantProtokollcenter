@@ -1232,6 +1232,13 @@ export class StatsKnxView extends LitElement {
                     <span class="mh-pill__dot"></span>
                     ${this._severityLabel(row.severity)}
                   </span>
+                  ${row.has_findings
+                    ? html`<span
+                        class="finding-badge"
+                        title="Anti-Pattern erkannt — Detail-Pane zeigt mehr (z. B. Konstant-Wert-Spam, Read-Burst, Heartbeat)"
+                        >⚠ auffällig</span
+                      >`
+                    : nothing}
                   ${row.acknowledged
                     ? html`<span class="ack-pill" title="acknowledged">✓ bekannt</span>`
                     : nothing}
@@ -2523,6 +2530,21 @@ export class StatsKnxView extends LitElement {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+      /* Iter 63 / U13: Auffaelligkeit-Badge in Top-Sender-Status-Spalte.
+         Caution-Style (gelb), klein und neben der Severity-Pille. */
+      .finding-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        margin-left: 6px;
+        padding: 1px 6px;
+        border-radius: var(--mh-radius-pill);
+        background: var(--mh-caution-soft);
+        color: var(--mh-caution);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
+        cursor: help;
       }
       /* Iter 60 / U4: Acknowledge-Status als dezente Pille mit
          success-soft-Hintergrund. Vorher reiner muted Text — heute klar

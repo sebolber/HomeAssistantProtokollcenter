@@ -6,6 +6,23 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 63 — U13 Anti-Pattern-Badge in Top-Sender)
+- **Anti-Pattern-Badge in Top-Sender-Tabelle** als gelbe „⚠ auffällig"-
+  Pille neben der Severity-Pille, wenn für eine GA Konstant-Wert-Spam
+  erkannt wurde (>= 5 identische Samples). Tooltip „Anti-Pattern
+  erkannt — Detail-Pane zeigt mehr (z. B. Konstant-Wert-Spam, Read-
+  Burst, Heartbeat)". Volle Findings-Liste bleibt im Detail-Pane via
+  `detect_patterns`.
+- **Pure Helper `has_anti_pattern_in_samples`** (Modul-export) mit 9
+  Tests — Lightweight-Check ohne ts/typ, weil das Bulk-Sample-Lookup
+  aus Iter 62 nur Werte liefert. Konstante `_LIGHTWEIGHT_CONSTANT_MIN
+  = 5` (kleiner als `_CONSTANT_VALUE_MIN_SAMPLES = 10` im vollen
+  Detector, weil hier nur 30 Samples vorliegen).
+- **Service-Integration**: `compute_top` ruft den Lightweight-Check für
+  alle Top-GAs auf und befüllt `TopRow.has_findings`. Nutzt dasselbe
+  Bulk-Sample-Lookup wie WR-T DPT-Inferenz — kein zusätzlicher Query.
+  1 neuer Backend-Test.
+
 ### Hinzugefügt (Iter 62 — WR-T DPT-Auto-Erkennung)
 - **DPT-Auto-Erkennung im Top-Sender** für GAs ohne ETS-DPT. Heuristik
   konservativ: `1.001` (Schalten) bei reinen 0/1-Werten, `5.001`
