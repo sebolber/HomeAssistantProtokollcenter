@@ -7,7 +7,7 @@ Fuer unbekannte DPTs Fallback auf `str(value)`.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Final
 
 # Boolean-DPTs: (dpt-Family, on-Label, off-Label).
 _BOOL_DPT_LABELS: dict[str, tuple[str, str]] = {
@@ -79,11 +79,76 @@ _UNIT_BY_DPT: dict[str, str] = {
 }
 
 
+_PRINTABLE_ASCII_MIN: Final = 32  # space
+_PRINTABLE_ASCII_MAX: Final = 126  # tilde
+_BYTE_MAX: Final = 255  # 0xFF, obergrenze fuer einen Byte-Wert
+_DPT16_MIN_TUPLE_LEN: Final = 3  # weniger ist eher TimeOfDay/Date
+# Anteil printable Bytes, ab dem ein Bytes-Tupel als String interpretiert wird.
+_ASCII_PRINTABLE_THRESHOLD: Final = 0.7
+
+
+def _coerce_to_byte_list(value: Any) -> list[int] | None:
+    """Liefert die Werte als Liste von 0..255-Ints, falls moeglich.
+
+    None bei: kein Tupel/Liste, zu kurz, ein Element nicht int oder
+    out-of-range, oder bool (das ist int-subtype, aber Bytes brauchen
+    "echte" ints).
+    """
+    if not isinstance(value, tuple | list) or len(value) < _DPT16_MIN_TUPLE_LEN:
+        return None
+    out: list[int] = []
+    for b in value:
+        if isinstance(b, bool) or not isinstance(b, int):
+            return None
+        if not 0 <= b <= _BYTE_MAX:
+            return None
+        out.append(b)
+    return out
+
+
+def _try_decode_byte_tuple_as_string(value: Any) -> str | None:
+    """Iter 66 / WR-V: Versucht ein Tupel von Byte-Werten als String zu
+    dekodieren — typisch DPT 16.x (Character String, 14 Byte).
+
+    Nur erfolgreich, wenn:
+    - `value` ist tuple/list mit >= 3 Elementen,
+    - alle Elemente sind int 0..255,
+    - mind. 70 % der Bytes sind printable ASCII (32-126) oder 0
+      (Padding-Null).
+
+    Liefert None, wenn die Heuristik nicht greift — Aufrufer kann
+    fallback auf str(value) machen.
+    """
+    bytes_list = _coerce_to_byte_list(value)
+    if bytes_list is None:
+        return None
+
+    printable = sum(
+        1
+        for b in bytes_list
+        if b == 0 or _PRINTABLE_ASCII_MIN <= b <= _PRINTABLE_ASCII_MAX
+    )
+    if printable / len(bytes_list) < _ASCII_PRINTABLE_THRESHOLD:
+        return None
+
+    # latin-1 = 1:1 Byte-zu-Char-Mapping; Padding-Nullen abschneiden.
+    try:
+        decoded = bytes(bytes_list).decode("latin-1").rstrip("\x00").strip()
+    except (ValueError, UnicodeDecodeError):
+        return None
+    return decoded if decoded else None
+
+
 def format_value(dpt: str | None, value: Any) -> str:  # noqa: PLR0911, PLR0912
     """Liefert Wert als lesbaren String anhand des DPT."""
     if value is None:
         return ""
     if not dpt:
+        # Iter 66 / WR-V: Tupel von Byte-Werten als String dekodieren,
+        # wenn die Heuristik passt (z. B. unkonfigurierte DPT-16-Strings).
+        decoded = _try_decode_byte_tuple_as_string(value)
+        if decoded is not None:
+            return decoded
         return str(value)
 
     # 1.x — Boolean
@@ -103,6 +168,12 @@ def format_value(dpt: str | None, value: Any) -> str:  # noqa: PLR0911, PLR0912
 
     # 16.x — String (DPT 16.000 ASCII, 16.001 Latin-1)
     if dpt.startswith("16."):
+        # Iter 66 / WR-V: Wenn xknx ein Bytes-Tupel statt String liefert
+        # (haeufig bei direktem Telegram-Hook), dekodieren statt das
+        # rohe Tupel anzuzeigen.
+        decoded = _try_decode_byte_tuple_as_string(value)
+        if decoded is not None:
+            return decoded
         return str(value).strip()
 
     # 232.x — RGB

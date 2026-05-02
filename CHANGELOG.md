@@ -6,6 +6,23 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 66 — WR-V Multi-byte-ASCII-Decoder für DPT 16.x)
+- **Byte-Tupel werden als String dekodiert** im KNX-Wert-Formatter.
+  Vorher zeigte eine DPT-16.x-Nachricht „Alarm = (32, 32, 37, 32, 84,
+  111, 116, 97, 108, 32, 32, 32, 32, 37)" statt „  %  Total %". xknx
+  liefert Strings teilweise als Tupel von Byte-Werten — der Formatter
+  hat das vorher 1:1 als `str(tuple)` weitergegeben.
+- **Heuristik im `format_value`**: bei DPT 16.x oder bei DPT=None mit
+  Byte-Tupel >= 3 Elemente, wird via `_try_decode_byte_tuple_as_string`
+  dekodiert. Akzeptanzkriterium: alle Bytes 0–255, mind. 70 % printable
+  ASCII (32–126) oder Padding-Null. latin-1-Decode strippt
+  Null-Padding. Bei mehrheitlich nicht-printable Bytes (z. B. DPT 10.x
+  TimeOfDay = 3 Bytes mit kleinen Zahlen) bleibt die Tupel-
+  Repräsentation erhalten — kein Falschpositiv.
+- 8 neue Backend-Tests in `test_knx_dpt_string_decode.py` (Tupel-
+  Decode, Passthrough für Strings, Padding-Stripping, Out-of-Range,
+  Float-Tupel, Non-printable).
+
 ### Sicherheit (Iter 65 — P2-3 Rate-Limit für `/knx-stats/alarms`)
 - **Token-Bucket-Limiter** auf den Alarms-Endpoint. Jeder Aufruf
   feuert HA-Eventbus-Events für triggered Alarms — ein Admin-User
