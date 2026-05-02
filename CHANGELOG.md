@@ -6,6 +6,16 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Refactor (Iter 72 — CR-1 Helper-Duplikat-Refactor)
+- **`api/messages.py` 138 Zeilen lokaler Helper-Definitionen entfernt**
+  und durch Imports aus `api/_helpers.py` ersetzt (mit Aliases auf
+  die `_`-Names, damit der ~1100 Zeilen restliche Code unangetastet
+  bleibt). Vorher existierten `_msg_to_dict`/`_wh_to_dict`/`_get_repos`
+  /etc. parallel zu `msg_to_dict`/`wh_to_dict`/`get_repos` — Drift-
+  Risiko bei Änderungen an einer Stelle.
+- `_helpers.py` Modul-Docstring aktualisiert (CR-28).
+- 617 Tests bleiben grün — kein Verhaltensunterschied.
+
 ### Tests (Iter 71 — CR-37 Auth-Tests)
 - **8 neue Backend-Tests** für `assert_admin_user`. Pure Funktion in
   neuem Modul `api/_auth.py` (kein `homeassistant`-Import → ohne

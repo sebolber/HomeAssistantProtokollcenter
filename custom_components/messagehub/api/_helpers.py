@@ -2,15 +2,16 @@
 
 Dient als Single-Source-of-Truth fuer:
 - Standard-Error-Strings (verhindert Magic-Strings ueber Endpoints verstreut)
-- Admin-Check-Mixin (`_RequireAdminView`)
-- DB-/Repo-Lookups (`_get_repos`, `_get_database`)
-- Audit-Logging (`_audit`)
-- Param-Parsing (`_parse_int_param`)
-- Standard-Serializer (`_msg_to_dict`, `_wh_to_dict`)
+- Admin-Check-Mixin (`RequireAdminView`)
+- DB-/Repo-Lookups (`get_repos`, `get_database`)
+- Audit-Logging (`audit`)
+- Param-Parsing (`parse_int_param`)
+- Standard-Serializer (`msg_to_dict`, `wh_to_dict`)
 
-Zuvor lebten alle diese Helpers in api/messages.py (1382 Zeilen).
-Auslagerung erlaubt es, einzelne Resource-Bereiche (knx, channels, mqtt)
-in eigene Module zu schieben, ohne Imports zu duplizieren.
+Iter 72 / CR-1: Diese Helpers sind die einzige Implementation;
+api/messages.py importiert sie via Aliases auf `_`-Names, damit der
+restliche Code unangetastet bleibt. Zuvor existierten beide
+Definitionen parallel — Drift-Risiko.
 """
 
 from __future__ import annotations

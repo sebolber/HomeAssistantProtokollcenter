@@ -9,10 +9,9 @@ from __future__ import annotations
 
 import contextlib
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from aiohttp import web
-from homeassistant.components.http import HomeAssistantView
 
 from ..const import DOMAIN, EVENT_MESSAGE_DELETED
 from .knx import (
@@ -49,148 +48,30 @@ from .knx_stats import (
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-    from ..storage import Message, MessageRepository, WebhookConfig, WebhookConfigRepository
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_LIMIT = 100
-HARD_CAP_LIMIT = 1000
-
-# Standard-Error-Messages fuer JSON-Responses.
-# Sonst wuerden die duplizierten Literale (~30x dieselben Strings) als
-# Code-Smell aufschlagen. Konstanten machen die Fehlermeldungen ausserdem
-# austauschbar/uebersetzbar an einer Stelle.
-_ERR_NOT_INITIALISED = "not initialised"
-_ERR_NOT_INITIALISED_LONG = "messagehub not initialised"
-_ERR_NOT_FOUND = "not found"
-_ERR_INVALID_ID = "invalid id"
-_ERR_INVALID_REQUEST = "invalid request"
-_ERR_INVALID_JSON = "invalid json"
-
-
-def _msg_to_dict(msg: Message) -> dict[str, Any]:
-    return {
-        "id": msg.id,
-        "timestamp": msg.timestamp_iso,
-        "severity": msg.severity.value,
-        "source": msg.source,
-        "text": msg.text,
-        "metadata": msg.metadata,
-        "webhook_id": msg.webhook_id,
-    }
-
-
-def _wh_to_dict(cfg: WebhookConfig) -> dict[str, Any]:
-    return {
-        "id": cfg.id,
-        "name": cfg.name,
-        "webhook_id": cfg.webhook_id,
-        "default_severity": cfg.default_severity.value,
-        "default_source": cfg.default_source,
-        "field_map": cfg.field_map,
-        "enabled": cfg.enabled,
-        "created_at": cfg.created_at.isoformat(timespec="seconds"),
-    }
-
-
-def _get_repos(hass: HomeAssistant) -> tuple[MessageRepository, WebhookConfigRepository] | None:
-    domain_data = hass.data.get(DOMAIN, {})
-    if not domain_data:
-        return None
-    state = next(iter(domain_data.values()))
-    msg_repo: MessageRepository | None = state.get("repository")
-    wh_repo: WebhookConfigRepository | None = state.get("webhook_repository")
-    if msg_repo is None or wh_repo is None:
-        return None
-    return msg_repo, wh_repo
-
-
-def _get_database(hass: HomeAssistant) -> Any:
-    domain_data = hass.data.get(DOMAIN, {})
-    if not domain_data:
-        return None
-    state = next(iter(domain_data.values()))
-    return state.get("database")
-
-
-def _actor(request: web.Request) -> str:
-    user = request.get("hass_user")
-    if user is None:
-        return "anonymous"
-    return getattr(user, "name", None) or str(getattr(user, "id", "unknown"))
-
-
-def _parse_int_param(
-    params: Any,
-    name: str,
-    default: int,
-    *,
-    min_value: int = 0,
-    max_value: int | None = None,
-) -> int:
-    """Parst einen ganzzahligen Query-Param mit Logging bei Ungueltigkeit.
-
-    Vorher: 8x dasselbe try/except mit silent Fallback. Wenn ein Client
-    Mist schickt (z.B. limit=foo), bleibt das ohne diese Funktion komplett
-    unsichtbar — der User sieht nur 'das Limit wirkt nicht', der Admin
-    sieht im Log nichts.
-    """
-    raw = params.get(name)
-    if raw is None:
-        return default
-    try:
-        value = int(raw)
-    except (ValueError, TypeError):
-        _LOGGER.warning(
-            "invalid query param %s=%r — falling back to default %d",
-            name,
-            raw,
-            default,
-        )
-        return default
-    if value < min_value:
-        _LOGGER.warning("query param %s=%d below min %d — clamping", name, value, min_value)
-        value = min_value
-    if max_value is not None and value > max_value:
-        value = max_value
-    return value
-
-
-async def _audit(
-    hass: HomeAssistant,
-    request: web.Request,
-    *,
-    action: str,
-    target_type: str,
-    target_id: str | None = None,
-    details: dict[str, Any] | None = None,
-) -> None:
-    """Iter 44: Audit-Eintrag fuer alle administrativen API-Aktionen."""
-    from .audit import AuditRepository  # noqa: PLC0415
-
-    db = _get_database(hass)
-    if db is None:
-        return
-    try:
-        await AuditRepository(db).record(
-            actor=_actor(request),
-            action=action,
-            target_type=target_type,
-            target_id=target_id,
-            details=details,
-        )
-    except (ValueError, RuntimeError) as err:
-        _LOGGER.warning("audit log failed: %s", err)
-
-
-class _RequireAdminView(HomeAssistantView):
-    requires_auth = True
-
-    @staticmethod
-    def _check_admin(request: web.Request) -> None:
-        user = request.get("hass_user")
-        if user is None or not user.is_admin:
-            raise web.HTTPForbidden(reason="admin required")
+# Iter 72 / CR-1: Helpers aus api/_helpers.py importiert (mit
+# Aliases auf die hier gewohnten _-Names, damit das restliche Modul
+# ohne Massenaenderungen bleibt). Vorher waren die Definitionen
+# komplett dupliziert (siehe CR-1).
+from ._helpers import (  # noqa: E402, I001
+    DEFAULT_LIMIT,
+    HARD_CAP_LIMIT,
+    ERR_INVALID_ID as _ERR_INVALID_ID,
+    ERR_INVALID_JSON as _ERR_INVALID_JSON,
+    ERR_INVALID_REQUEST as _ERR_INVALID_REQUEST,
+    ERR_NOT_FOUND as _ERR_NOT_FOUND,
+    ERR_NOT_INITIALISED as _ERR_NOT_INITIALISED,
+    ERR_NOT_INITIALISED_LONG as _ERR_NOT_INITIALISED_LONG,
+    RequireAdminView as _RequireAdminView,
+    audit as _audit,
+    get_database as _get_database,
+    get_repos as _get_repos,
+    msg_to_dict as _msg_to_dict,
+    parse_int_param as _parse_int_param,
+    wh_to_dict as _wh_to_dict,
+)
 
 
 class MessagesListView(_RequireAdminView):
