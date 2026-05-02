@@ -169,6 +169,28 @@ abhören.
 
 Details: [docs/configuration.md → KNX](docs/configuration.md#knx-adressen-im-detail).
 
+#### KNX-Bus-Analyse (Statistik-Tab, ab 0.11.0)
+
+Unter **Statistik → KNX-Bus-Analyse** findest du eine Auswertung deines
+geloggten Bus-Verkehrs mit konkreten Empfehlungen zur Buslast-Reduktion.
+
+- **KPIs:** Telegramme im Zeitraum, aktive GAs, aktive Geräte,
+  geschätzte Buslast in % (Ampel: <10 % grün, <20 % erhöht, <30 %
+  Warnung, ≥30 % kritisch).
+- **Top-Sender-Tabelle:** sortiert nach Telegrammen/Min mit Soll-Rate
+  pro DPT-Klasse und 4-stufiger Ampel.
+- **Detail-Pane (Klick auf Zeile):** DPT-spezifische Empfehlung,
+  geschätzte Reduktion in %, erkannte Anti-Patterns (Konstant-Wert-Spam,
+  Read-Burst, Mehrfach-Response, Heartbeat-Spam).
+- **„Bekannt"-Markierung:** GAs als geprüft markieren (Default 90 Tage
+  Auto-Ablauf, dann zurück in die Top-Liste — Konfiguration explizit
+  via API möglich, sticky=0 sticky).
+- **Timeline-Sparkline:** Top-5 GAs als Linien-Chart, Bucket-Größe
+  passt sich der Periode an (1h→1min, 24h→10min, 7d/30d→60min).
+
+Konzept und Wissensbasis siehe
+[`docs/messagehub_knx_statistik.md`](docs/messagehub_knx_statistik.md).
+
 ### MQTT-Topics
 
 **Wozu:** auf MQTT-Pattern abonnieren, eingehende Payloads werden zu Messages.

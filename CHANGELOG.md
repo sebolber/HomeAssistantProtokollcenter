@@ -4,6 +4,35 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [Unreleased] – 0.11.0 (in Arbeit)
+
+### Hinzugefügt
+- **KNX-Bus-Analyse-Tab unter Statistik:** Neuer Sub-Tab mit
+  Empfehlungs-Engine, der überaktive Gruppenadressen identifiziert und
+  konkrete ETS-Anpassungs-Empfehlungen liefert. Konzept siehe
+  `docs/messagehub_knx_statistik.md`.
+- DPT-Wissensbasis (`KNX_RECOMMENDED_RATES_PER_MIN`) mit 15+ Geräteklassen
+  und 4-stufiger Ampel-Klassifizierung (grün/gelb/orange/rot).
+- Anti-Pattern-Detector: Konstant-Wert-Spam, Read-Burst, Mehrfach-Response,
+  Heartbeat-Spam — alle aus realem User-Log validiert.
+- HTTP-API unter `/api/messagehub/knx-stats/`: summary, top, top-by-source,
+  ga/{ga} (Detail mit Empfehlung + Findings), timeline, acknowledge.
+- Frontend-Sub-Tabs „Live-Status" (= bisheriger Inhalt) + „KNX-Bus-Analyse"
+  (neu) mit Filter-Bar, KPIs, Top-Tabelle, Detail-Pane, SVG-Sparkline-
+  Timeline.
+- Acknowledgement-Mechanismus mit konfigurierbarem Auto-Ablauf
+  (Default 90 Tage, sticky möglich).
+- Neue DB-Tabellen: `knx_ga_acknowledgements`, `knx_telegram_counters`
+  (Phase-2-Schema vorbereitet), partieller Index
+  `idx_messages_knx_bus_timestamp`.
+
+### Sicherheit
+- Alle KNX-Stats-Endpoints sind Admin-only (`RequireAdminView`).
+- Period-Validierung mit Hard-Cap MAX_PERIOD_DAYS=90 (DoS-Schutz).
+- GA-Format-Validierung per Regex.
+- Hard-Limits: `top<=500`, `timeline-gas<=20`, `bucket<=60min`.
+- Audit-Log für alle Mutationen (Acknowledge/Unacknowledge).
+
 ## [0.10.2] – 2026-05-02
 
 Kritischer Hotfix: KNX-Telegramme kamen nicht mehr in den Nachrichten an.
