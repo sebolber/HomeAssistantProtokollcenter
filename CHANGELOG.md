@@ -6,6 +6,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Tests (Iter 90 — CR-34 KNX-Listener-Crash-Resilienz)
+- **4 neue Backend-Tests** für `_record_bus_activity` mit gefakten
+  Repos: ValueError im `insert_raw`, RuntimeError im
+  `increment_counter`, Bus-Analyse-Flag aus → Skip, Flag an → beide
+  Repo-Methoden gerufen.
+- Sicherstellen, dass der KNX-Hot-Path bei DB-Lock o. ä. NIE crashed
+  — Telegramme aus der Whitelist gehen weiter ins Logbuch.
+
 ### Code-Hygiene (Iter 89 — CR-7 Bus-Analyse-Flag Single-Source-of-Truth)
 - **Backward-Compat-Fallback `_knx_shadow_counters_enabled` entfernt**
   in `listeners/knx.py:_record_bus_activity`. Iter 48 hat den Flag auf
