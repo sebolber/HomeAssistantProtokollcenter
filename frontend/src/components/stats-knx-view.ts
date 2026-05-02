@@ -123,6 +123,12 @@ export class StatsKnxView extends LitElement {
   // weiter auf; false = ressourcen-sparend, aber keine neuen Daten.
   @state() private _busAnalysisEnabled: boolean = true;
   @state() private _busAnalysisLoaded: boolean = false;
+  // Iter 51: Sichtbarkeit fuer einzeln gefailte Endpunkte. Vorher hat
+  // .catch(() => null) Fehler stillschweigend geschluckt — und der User
+  // sah leere Cards, ohne zu wissen warum. Jetzt: Banner mit Liste der
+  // gefailten Endpoints + Hinweise zu typischen Ursachen.
+  @state() private _apiErrors: Map<string, string> = new Map();
+  @state() private _apiErrorsDismissed: boolean = false;
   @state() private _silence: KnxStatsSilenceDto | null = null;
   @state() private _orphans: KnxStatsOrphansDto | null = null;
   @state() private _alarms: KnxStatsAlarmsDto | null = null;
@@ -156,6 +162,54 @@ export class StatsKnxView extends LitElement {
     } finally {
       this._busAnalysisLoaded = true;
     }
+  }
+
+  // Iter 51: zeigt einen warnenden Banner ueber gefailte Endpunkte +
+  // Hinweise zu typischen Ursachen. Banner ist dismissable (per Klick),
+  // aber kommt beim naechsten _load() wieder, falls die Endpoints noch
+  // immer failen. So bleibt der User nicht im Dunkeln, kann aber kurz
+  // wegklicken um die anderen Cards sauber zu sehen.
+  private _renderApiErrorBanner(): TemplateResult {
+    const failed = Array.from(this._apiErrors.keys()).sort();
+    const labels: Record<string, string> = {
+      "health-score": "Bus-Health-Score",
+      busload: "Buslast-KPI",
+      "long-term": "Long-Term-Sicht",
+      bursts: "Burst-Detector",
+      "sensitive-log": "Sicherheits-Audit",
+      orphans: "Verwaiste GAs",
+      alarms: "Alarme",
+    };
+    const labeled = failed.map((k) => labels[k] || k).join(", ");
+    return html`
+      <div class="api-error-banner" role="alert">
+        <div class="api-error-banner__head">
+          <strong>Folgende Statistik-Bereiche sind nicht erreichbar:</strong>
+          <button
+            class="api-error-banner__dismiss"
+            @click=${() => (this._apiErrorsDismissed = true)}
+            title="Banner schliessen"
+            aria-label="Banner schliessen"
+          >×</button>
+        </div>
+        <p class="api-error-banner__list">${labeled}</p>
+        <details class="api-error-banner__details">
+          <summary>Moegliche Ursachen + Diagnose</summary>
+          <ul>
+            <li>HACS-Update wurde noch nicht installiert (Backend kennt die neuen Endpunkte nicht).</li>
+            <li>Home-Assistant wurde nach dem Update nicht neu gestartet.</li>
+            <li>Browser-Cache haelt das alte Bundle vor — harter Reload (Strg+Shift+R) probieren.</li>
+            <li>Der HA-User hat keine Admin-Rechte (alle KNX-Stats-Endpoints sind Admin-only).</li>
+          </ul>
+          <p class="muted small">Original-Fehlermeldungen:</p>
+          <ul class="api-error-banner__raw">
+            ${Array.from(this._apiErrors.entries()).map(
+              ([k, msg]) => html`<li><code>${k}</code>: ${msg}</li>`
+            )}
+          </ul>
+        </details>
+      </div>
+    `;
   }
 
   private async _toggleBusAnalysis(): Promise<void> {
@@ -214,6 +268,14 @@ export class StatsKnxView extends LitElement {
     if (!this.api) return;
     this._loading = true;
     this._error = "";
+    // Iter 51: Fehler-Map pro Load zuruecksetzen — sonst wuerden
+    // dauerhafte Errors angezeigt selbst nachdem das Backend wieder lebt.
+    const errors = new Map<string, string>();
+    const captureError = <T>(name: string, p: Promise<T>): Promise<T | null> =>
+      p.catch((err) => {
+        errors.set(name, (err as Error).message);
+        return null;
+      });
     try {
       const longTermMode = this._isLongTermMode();
       const fLongTerm = this._apiFilters();
@@ -242,17 +304,18 @@ export class StatsKnxView extends LitElement {
           ...fRaw,
           maxSilenceMinutes: this._suggestSilenceMinutes(),
         }),
-        this.api.getKnxStatsOrphans(fRaw).catch(() => null),
-        this.api.getKnxStatsAlarms(fRaw).catch(() => null),
-        this.api
-          .getKnxStatsBusload(fRaw, this._suggestBusloadBucketSeconds())
-          .catch(() => null),
-        this.api.getKnxStatsHealthScore(fRaw).catch(() => null),
+        captureError("orphans", this.api.getKnxStatsOrphans(fRaw)),
+        captureError("alarms", this.api.getKnxStatsAlarms(fRaw)),
+        captureError(
+          "busload",
+          this.api.getKnxStatsBusload(fRaw, this._suggestBusloadBucketSeconds())
+        ),
+        captureError("health-score", this.api.getKnxStatsHealthScore(fRaw)),
         longTermMode
-          ? this.api.getKnxStatsLongTerm(fLongTerm).catch(() => null)
+          ? captureError("long-term", this.api.getKnxStatsLongTerm(fLongTerm))
           : Promise.resolve(null),
-        this.api.getKnxStatsBursts(fRaw).catch(() => null),
-        this.api.getKnxStatsSensitiveLog(fRaw).catch(() => null),
+        captureError("bursts", this.api.getKnxStatsBursts(fRaw)),
+        captureError("sensitive-log", this.api.getKnxStatsSensitiveLog(fRaw)),
       ]);
       this._summary = summary;
       this._top = top.items;
@@ -266,6 +329,9 @@ export class StatsKnxView extends LitElement {
       this._longTerm = longTerm;
       this._bursts = bursts;
       this._sensitiveLog = sensitiveLog;
+      // Iter 51: Errors-Snapshot setzen (Reassignment triggert Re-Render).
+      this._apiErrors = errors;
+      this._apiErrorsDismissed = false;
       // Timeline fuer Top-5 GAs (mehr Linien werden unleserlich).
       // Nutzt fRaw (kappiert auf 48h im Long-Term-Modus) — Timeline-Endpoint
       // liest aus knx_raw_telegrams.
@@ -856,6 +922,9 @@ export class StatsKnxView extends LitElement {
           landen zusaetzlich im Logbuch (Tab „Nachrichten").
         </div>
         ${this._renderFilterBar()}
+        ${this._apiErrors.size > 0 && !this._apiErrorsDismissed
+          ? this._renderApiErrorBanner()
+          : nothing}
         ${this._busAnalysisLoaded && !this._busAnalysisEnabled
           ? html`<div class="bus-analysis-banner">
               <strong>Bus-Analyse ist aus.</strong>
@@ -1782,6 +1851,51 @@ export class StatsKnxView extends LitElement {
       }
       .health-finding--critical .health-finding__dot {
         background: var(--mh-error);
+      }
+      /* Iter 51: API-Error-Banner — gefailte Endpoints + Diagnose */
+      .api-error-banner {
+        padding: var(--mh-space-3) var(--mh-space-4);
+        background: var(--mh-warning-soft, rgba(255, 165, 0, 0.12));
+        border-left: 3px solid var(--mh-warning);
+        border-radius: var(--mh-radius-md);
+        font-size: var(--mh-text-sm);
+        margin-bottom: var(--mh-space-3);
+      }
+      .api-error-banner__head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: var(--mh-space-3);
+      }
+      .api-error-banner__dismiss {
+        background: transparent;
+        border: 0;
+        font-size: 1.4em;
+        line-height: 1;
+        color: var(--mh-fg-muted);
+        cursor: pointer;
+        padding: 0 4px;
+      }
+      .api-error-banner__dismiss:hover {
+        color: var(--mh-fg);
+      }
+      .api-error-banner__list {
+        margin: var(--mh-space-2) 0 0 0;
+        font-weight: var(--mh-weight-semibold);
+      }
+      .api-error-banner__details {
+        margin-top: var(--mh-space-2);
+      }
+      .api-error-banner__details summary {
+        cursor: pointer;
+        color: var(--mh-fg-muted);
+      }
+      .api-error-banner__details ul {
+        margin: var(--mh-space-2) 0;
+        padding-left: var(--mh-space-4);
+      }
+      .api-error-banner__raw code {
+        font-family: var(--mh-font-mono, monospace);
       }
       /* Iter 49 (N1): Bus-Analyse-Toggle-Banner, sichtbar wenn aus */
       .bus-analysis-banner {

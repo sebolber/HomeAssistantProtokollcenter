@@ -200,6 +200,39 @@ describe("stats-knx-view filter bar", () => {
     expect(text).toContain("6,4");
   });
 
+  it("Iter 51: API-Error-Banner zeigt gefailte Endpunkte", async () => {
+    // Erzwinge Fehler bei zwei optionalen Endpoints und mounte dann.
+    document.body.innerHTML = "";
+    const el = document.createElement("stats-knx-view") as HTMLElement & {
+      api?: ApiClient;
+      updateComplete: Promise<unknown>;
+    };
+    const baseApi = makeApi();
+    const failingApi = {
+      ...baseApi,
+      getKnxStatsHealthScore: vi.fn(async () => {
+        throw new Error("HTTP 500: backend not reloaded");
+      }),
+      getKnxStatsBusload: vi.fn(async () => {
+        throw new Error("HTTP 404: endpoint missing");
+      }),
+    } as unknown as ApiClient;
+    el.api = failingApi;
+    document.body.appendChild(el);
+    for (let i = 0; i < 5; i++) {
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    const banner = el.shadowRoot!.querySelector(".api-error-banner");
+    expect(banner).not.toBeNull();
+    const text = banner!.textContent ?? "";
+    // Beide Labels muessen drinstehen
+    expect(text).toContain("Bus-Health-Score");
+    expect(text).toContain("Buslast-KPI");
+    // Diagnose-Hinweise sind expandierbar
+    expect(banner!.querySelector(".api-error-banner__details")).not.toBeNull();
+  });
+
   it("Iter 49: Bus-Analyse-Toggle in der Filter-Bar", async () => {
     const el = await mount();
     // Toggle ist die zweite Checkbox (1. = "Bekannte ausblenden",
