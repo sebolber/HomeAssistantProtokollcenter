@@ -489,6 +489,53 @@ export class ApiClient {
     };
   }
 
+  // Iter 47 (N4): intelligenter Abgleich mit Vorschau (apply=false) +
+  // Anwendung (apply=true). Aenderungen siehe Backend-Doc-String.
+  async syncKnxProject(
+    items: Array<{ address: string; name: string; dpt: string | null }>,
+    apply: boolean
+  ): Promise<{
+    plan: {
+      add: Array<{ address: string; label: string; dpt: string | null }>;
+      update: Array<{
+        address: string;
+        label: string;
+        dpt: string | null;
+        old_label: string;
+        old_dpt: string | null;
+      }>;
+      delete: Array<{ address: string; label: string }>;
+      keep: string[];
+    };
+    counts:
+      | { add: number; update: number; delete: number; keep: number }
+      | { added: number; updated: number; deleted: number };
+  }> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/sync`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ items, apply }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as {
+      plan: {
+        add: Array<{ address: string; label: string; dpt: string | null }>;
+        update: Array<{
+          address: string;
+          label: string;
+          dpt: string | null;
+          old_label: string;
+          old_dpt: string | null;
+        }>;
+        delete: Array<{ address: string; label: string }>;
+        keep: string[];
+      };
+      counts:
+        | { add: number; update: number; delete: number; keep: number }
+        | { added: number; updated: number; deleted: number };
+    };
+  }
+
   async listKnxAddresses(): Promise<KnxAddressDto[]> {
     const res = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
       headers: this.headers(),

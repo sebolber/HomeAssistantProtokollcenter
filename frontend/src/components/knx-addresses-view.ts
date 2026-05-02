@@ -88,40 +88,55 @@ export class KnxAddressesView extends LitElement {
     }
   }
 
-  private async _bulkImportFromProject(): Promise<void> {
+  // Iter 47 (N4): Smart-Sync statt Wipe-and-Replace.
+  // Schritt 1: Backend rechnet den Plan (apply=false) — keine Mutation.
+  // Schritt 2: User bekommt eine Zusammenfassung (add/update/delete/keep).
+  // Schritt 3: Bei Bestaetigung wird der Plan angewendet (apply=true).
+  // Bei "update" wird die User-Config zurueckgesetzt, bei "delete" wird
+  // die Zeile entfernt — das wird im Confirm-Dialog explizit erklaert.
+  private async _syncFromProject(): Promise<void> {
     if (!this.api || this._discovery.length === 0) return;
-    const existing = new Set(this._items.map((i) => i.address));
-    const fresh = this._discovery.filter((d) => !existing.has(d.address));
-    if (fresh.length === 0) {
-      this._showToast("Alle Projekt-GAs sind bereits angelegt");
+    let preview: Awaited<ReturnType<typeof this.api.syncKnxProject>>;
+    try {
+      preview = await this.api.syncKnxProject(this._discovery, false);
+    } catch (err) {
+      this._showToast((err as Error).message);
       return;
     }
-    if (
-      !window.confirm(
-        `${fresh.length} fehlende Projekt-GAs anlegen? (Logging bleibt zunächst aus, Severity-Mapping kannst du danach pro Adresse setzen.)`
-      )
-    ) {
+    const counts = preview.counts as {
+      add: number;
+      update: number;
+      delete: number;
+      keep: number;
+    };
+    if (counts.add === 0 && counts.update === 0 && counts.delete === 0) {
+      this._showToast("Projekt ist bereits synchron — nichts zu tun");
       return;
     }
-    let imported = 0;
-    for (const d of fresh) {
-      try {
-        await this.api.upsertKnxAddress({
-          address: d.address,
-          label: d.name || d.address,
-          dpt: d.dpt,
-          log_enabled: false,
-          // Iter 44 (N2): Default-Severity Warning, sobald der Eintrag
-          // ueberhaupt zum Logging vorgesehen ist. Bewusst hoch gewaehlt
-          // damit kritische GAs nicht im Info-Rauschen untergehen.
-          log_severity: "warning",
-        });
-        imported += 1;
-      } catch {
-        // einzelne Fehler ignorieren, weiter machen
-      }
+    const summary =
+      `Abgleich mit ETS-Projekt anwenden?\n\n` +
+      `${counts.add} neue Eintraege anlegen\n` +
+      `${counts.update} Eintraege aktualisieren ` +
+      `(label/dpt geaendert -> Logging-Konfig wird zurueckgesetzt)\n` +
+      `${counts.delete} Eintraege loeschen ` +
+      `(in ETS nicht mehr vorhanden -> Lauschen wird beendet)\n` +
+      `${counts.keep} unveraenderte Eintraege bleiben bestehen.`;
+    if (!window.confirm(summary)) {
+      return;
     }
-    this._showToast(`${imported} aus ETS-Projekt übernommen`);
+    try {
+      const applied = await this.api.syncKnxProject(this._discovery, true);
+      const r = applied.counts as {
+        added: number;
+        updated: number;
+        deleted: number;
+      };
+      this._showToast(
+        `Synchronisiert: +${r.added} angelegt, ${r.updated} aktualisiert, ${r.deleted} geloescht`
+      );
+    } catch (err) {
+      this._showToast(`Fehler beim Anwenden: ${(err as Error).message}`);
+    }
     await this._load();
   }
 
@@ -485,10 +500,10 @@ export class KnxAddressesView extends LitElement {
             ${this._discovery.length > 0
               ? html`<button
                   class="mh-btn mh-btn--primary"
-                  title=${`${this._discovery.length} GAs aus dem in HA hinterlegten ETS-Projekt`}
-                  @click=${() => void this._bulkImportFromProject()}
+                  title=${`Intelligenter Abgleich: ${this._discovery.length} GAs aus ETS — neue anlegen, geaenderte aktualisieren, fehlende loeschen, unveraenderte unangetastet`}
+                  @click=${() => void this._syncFromProject()}
                 >
-                  ✨ ${this._discovery.length} aus HA-KNX-Projekt übernehmen
+                  Mit ETS-Projekt synchronisieren
                 </button>`
               : null}
             <label class="mh-btn csv-upload">

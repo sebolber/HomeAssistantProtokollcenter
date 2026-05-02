@@ -284,9 +284,9 @@ te.elementStyles = [], te.shadowRootOptions = { mode: "open" }, te[he("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ce = globalThis, Ze = (t) => t, Te = ce.trustedTypes, Xe = Te ? Te.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, wt = "$lit$", F = `lit$${Math.random().toFixed(9).slice(2)}$`, $t = "?" + F, Ut = `<${$t}>`, V = document, pe = () => V.createComment(""), me = (t) => t === null || typeof t != "object" && typeof t != "function", Be = Array.isArray, Rt = (t) => Be(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Oe = `[ 	
+const ce = globalThis, Ze = (t) => t, Te = ce.trustedTypes, Xe = Te ? Te.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, wt = "$lit$", F = `lit$${Math.random().toFixed(9).slice(2)}$`, yt = "?" + F, Ut = `<${yt}>`, V = document, pe = () => V.createComment(""), me = (t) => t === null || typeof t != "object" && typeof t != "function", Be = Array.isArray, Rt = (t) => Be(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Oe = `[ 	
 \f\r]`, ne = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, et = /-->/g, tt = />/g, B = RegExp(`>|${Oe}(?:([^\\s"'>=/]+)(${Oe}*=${Oe}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), st = /'/g, at = /"/g, yt = /^(?:script|style|textarea|title)$/i, Bt = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), o = Bt(1), q = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), rt = /* @__PURE__ */ new WeakMap(), G = V.createTreeWalker(V, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), st = /'/g, at = /"/g, $t = /^(?:script|style|textarea|title)$/i, Bt = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), o = Bt(1), q = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), rt = /* @__PURE__ */ new WeakMap(), G = V.createTreeWalker(V, 129);
 function kt(t, e) {
   if (!Be(t) || !t.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return Xe !== void 0 ? Xe.createHTML(e) : e;
@@ -297,7 +297,7 @@ const Kt = (t, e) => {
   for (let h = 0; h < s; h++) {
     const d = t[h];
     let m, b, p = -1, v = 0;
-    for (; v < d.length && (n.lastIndex = v, b = n.exec(d), b !== null); ) v = n.lastIndex, n === ne ? b[1] === "!--" ? n = et : b[1] !== void 0 ? n = tt : b[2] !== void 0 ? (yt.test(b[2]) && (r = RegExp("</" + b[2], "g")), n = B) : b[3] !== void 0 && (n = B) : n === B ? b[0] === ">" ? (n = r ?? ne, p = -1) : b[1] === void 0 ? p = -2 : (p = n.lastIndex - b[2].length, m = b[1], n = b[3] === void 0 ? B : b[3] === '"' ? at : st) : n === at || n === st ? n = B : n === et || n === tt ? n = ne : (n = B, r = void 0);
+    for (; v < d.length && (n.lastIndex = v, b = n.exec(d), b !== null); ) v = n.lastIndex, n === ne ? b[1] === "!--" ? n = et : b[1] !== void 0 ? n = tt : b[2] !== void 0 ? ($t.test(b[2]) && (r = RegExp("</" + b[2], "g")), n = B) : b[3] !== void 0 && (n = B) : n === B ? b[0] === ">" ? (n = r ?? ne, p = -1) : b[1] === void 0 ? p = -2 : (p = n.lastIndex - b[2].length, m = b[1], n = b[3] === void 0 ? B : b[3] === '"' ? at : st) : n === at || n === st ? n = B : n === et || n === tt ? n = ne : (n = B, r = void 0);
     const g = n === B && t[h + 1].startsWith("/>") ? " " : "";
     i += n === ne ? d + Ut : p >= 0 ? (a.push(m), d.slice(0, p) + wt + d.slice(p) + F + g) : d + F + (p === -2 ? h : g);
   }
@@ -319,7 +319,7 @@ class ue {
           const v = b[n++], g = r.getAttribute(p).split(F), u = /([.?@])?(.*)/.exec(v);
           d.push({ type: 1, index: i, name: u[2], strings: g, ctor: u[1] === "." ? Wt : u[1] === "?" ? Vt : u[1] === "@" ? qt : Pe }), r.removeAttribute(p);
         } else p.startsWith(F) && (d.push({ type: 6, index: i }), r.removeAttribute(p));
-        if (yt.test(r.tagName)) {
+        if ($t.test(r.tagName)) {
           const p = r.textContent.split(F), v = p.length - 1;
           if (v > 0) {
             r.textContent = Te ? Te.emptyScript : "";
@@ -327,7 +327,7 @@ class ue {
             r.append(p[v], pe());
           }
         }
-      } else if (r.nodeType === 8) if (r.data === $t) d.push({ type: 2, index: i });
+      } else if (r.nodeType === 8) if (r.data === yt) d.push({ type: 2, index: i });
       else {
         let p = -1;
         for (; (p = r.data.indexOf(F, p + 1)) !== -1; ) d.push({ type: 7, index: i }), p += F.length - 1;
@@ -601,7 +601,7 @@ function f(t) {
 function l(t) {
   return f({ ...t, state: !0, attribute: !1 });
 }
-function y(t) {
+function $(t) {
   const e = Zt(t);
   return (s, a) => customElements.get(t) ? s : e(s, a);
 }
@@ -705,6 +705,17 @@ class ts {
     });
     if (!e.ok) throw new Error(`HTTP ${e.status}`);
     return await e.json();
+  }
+  // Iter 47 (N4): intelligenter Abgleich mit Vorschau (apply=false) +
+  // Anwendung (apply=true). Aenderungen siehe Backend-Doc-String.
+  async syncKnxProject(e, s) {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/sync`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ items: e, apply: s })
+    });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
   async listKnxAddresses() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
@@ -1739,7 +1750,7 @@ _e([
   l()
 ], J.prototype, "_popoverPos", 2);
 J = _e([
-  y("message-table")
+  $("message-table")
 ], J);
 var gs = Object.defineProperty, vs = Object.getOwnPropertyDescriptor, Pt = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? vs(e, s) : e, i = t.length - 1, n; i >= 0; i--)
@@ -1862,7 +1873,7 @@ Pt([
   f({ attribute: !1 })
 ], Ae.prototype, "selected", 2);
 Ae = Pt([
-  y("severity-filter")
+  $("severity-filter")
 ], Ae);
 var fs = Object.defineProperty, bs = Object.getOwnPropertyDescriptor, Ee = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? bs(e, s) : e, i = t.length - 1, n; i >= 0; i--)
@@ -1919,7 +1930,7 @@ Ee([
   l()
 ], ae.prototype, "_sources", 2);
 ae = Ee([
-  y("source-filter")
+  $("source-filter")
 ], ae);
 var _s = Object.defineProperty, xs = Object.getOwnPropertyDescriptor, Ge = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? xs(e, s) : e, i = t.length - 1, n; i >= 0; i--)
@@ -1969,10 +1980,10 @@ Ge([
   f({ attribute: !1 })
 ], ge.prototype, "toIso", 2);
 ge = Ge([
-  y("time-range-filter")
+  $("time-range-filter")
 ], ge);
-var ws = Object.defineProperty, $s = Object.getOwnPropertyDescriptor, R = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? $s(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+var ws = Object.defineProperty, ys = Object.getOwnPropertyDescriptor, R = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? ys(e, s) : e, i = t.length - 1, n; i >= 0; i--)
     (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
   return a && r && ws(e, s, r), r;
 };
@@ -2391,12 +2402,12 @@ R([
   l()
 ], O.prototype, "_busy", 2);
 O = R([
-  y("detail-pane")
+  $("detail-pane")
 ], O);
-var ys = Object.defineProperty, ks = Object.getOwnPropertyDescriptor, C = (t, e, s, a) => {
+var $s = Object.defineProperty, ks = Object.getOwnPropertyDescriptor, C = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? ks(e, s) : e, i = t.length - 1, n; i >= 0; i--)
     (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
-  return a && r && ys(e, s, r), r;
+  return a && r && $s(e, s, r), r;
 };
 const Ss = ["debug", "info", "warning", "error"], Ts = JSON.stringify(
   {
@@ -2738,7 +2749,7 @@ C([
   l()
 ], z.prototype, "_saving", 2);
 z = C([
-  y("webhook-form")
+  $("webhook-form")
 ], z);
 var Ps = Object.defineProperty, Es = Object.getOwnPropertyDescriptor, P = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Es(e, s) : e, i = t.length - 1, n; i >= 0; i--)
@@ -2788,33 +2799,43 @@ let k = class extends x {
     const s = this._discovery.find((a) => a.address === e);
     s && (this._newLabel.trim() || (this._newLabel = s.name), !this._newDpt.trim() && s.dpt && (this._newDpt = s.dpt));
   }
-  async _bulkImportFromProject() {
+  // Iter 47 (N4): Smart-Sync statt Wipe-and-Replace.
+  // Schritt 1: Backend rechnet den Plan (apply=false) — keine Mutation.
+  // Schritt 2: User bekommt eine Zusammenfassung (add/update/delete/keep).
+  // Schritt 3: Bei Bestaetigung wird der Plan angewendet (apply=true).
+  // Bei "update" wird die User-Config zurueckgesetzt, bei "delete" wird
+  // die Zeile entfernt — das wird im Confirm-Dialog explizit erklaert.
+  async _syncFromProject() {
     if (!this.api || this._discovery.length === 0) return;
-    const t = new Set(this._items.map((a) => a.address)), e = this._discovery.filter((a) => !t.has(a.address));
-    if (e.length === 0) {
-      this._showToast("Alle Projekt-GAs sind bereits angelegt");
+    let t;
+    try {
+      t = await this.api.syncKnxProject(this._discovery, !1);
+    } catch (a) {
+      this._showToast(a.message);
       return;
     }
-    if (!window.confirm(
-      `${e.length} fehlende Projekt-GAs anlegen? (Logging bleibt zunächst aus, Severity-Mapping kannst du danach pro Adresse setzen.)`
-    ))
+    const e = t.counts;
+    if (e.add === 0 && e.update === 0 && e.delete === 0) {
+      this._showToast("Projekt ist bereits synchron — nichts zu tun");
       return;
-    let s = 0;
-    for (const a of e)
+    }
+    const s = `Abgleich mit ETS-Projekt anwenden?
+
+${e.add} neue Eintraege anlegen
+${e.update} Eintraege aktualisieren (label/dpt geaendert -> Logging-Konfig wird zurueckgesetzt)
+${e.delete} Eintraege loeschen (in ETS nicht mehr vorhanden -> Lauschen wird beendet)
+${e.keep} unveraenderte Eintraege bleiben bestehen.`;
+    if (window.confirm(s)) {
       try {
-        await this.api.upsertKnxAddress({
-          address: a.address,
-          label: a.name || a.address,
-          dpt: a.dpt,
-          log_enabled: !1,
-          // Iter 44 (N2): Default-Severity Warning, sobald der Eintrag
-          // ueberhaupt zum Logging vorgesehen ist. Bewusst hoch gewaehlt
-          // damit kritische GAs nicht im Info-Rauschen untergehen.
-          log_severity: "warning"
-        }), s += 1;
-      } catch {
+        const r = (await this.api.syncKnxProject(this._discovery, !0)).counts;
+        this._showToast(
+          `Synchronisiert: +${r.added} angelegt, ${r.updated} aktualisiert, ${r.deleted} geloescht`
+        );
+      } catch (a) {
+        this._showToast(`Fehler beim Anwenden: ${a.message}`);
       }
-    this._showToast(`${s} aus ETS-Projekt übernommen`), await this._load();
+      await this._load();
+    }
   }
   async _add() {
     if (this._error = "", !this.api) return;
@@ -3092,10 +3113,10 @@ let k = class extends x {
           <div class="header-actions">
             ${this._discovery.length > 0 ? o`<button
                   class="mh-btn mh-btn--primary"
-                  title=${`${this._discovery.length} GAs aus dem in HA hinterlegten ETS-Projekt`}
-                  @click=${() => void this._bulkImportFromProject()}
+                  title=${`Intelligenter Abgleich: ${this._discovery.length} GAs aus ETS — neue anlegen, geaenderte aktualisieren, fehlende loeschen, unveraenderte unangetastet`}
+                  @click=${() => void this._syncFromProject()}
                 >
-                  ✨ ${this._discovery.length} aus HA-KNX-Projekt übernehmen
+                  Mit ETS-Projekt synchronisieren
                 </button>` : null}
             <label class="mh-btn csv-upload">
               <input type="file" accept=".csv,text/csv" @change=${this._onCsvFile} />
@@ -3771,7 +3792,7 @@ P([
   l()
 ], k.prototype, "_error", 2);
 k = P([
-  y("knx-addresses-view")
+  $("knx-addresses-view")
 ], k);
 var Ds = Object.defineProperty, Ls = Object.getOwnPropertyDescriptor, xe = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ls(e, s) : e, i = t.length - 1, n; i >= 0; i--)
@@ -4252,7 +4273,7 @@ xe([
   l()
 ], Y.prototype, "_toast", 2);
 Y = xe([
-  y("channels-view")
+  $("channels-view")
 ], Y);
 var Ms = Object.defineProperty, Ns = Object.getOwnPropertyDescriptor, S = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ns(e, s) : e, i = t.length - 1, n; i >= 0; i--)
@@ -4478,7 +4499,7 @@ S([
   l()
 ], U.prototype, "_newSeverity", 2);
 U = S([
-  y("mqtt-topics-view")
+  $("mqtt-topics-view")
 ], U);
 let Q = class extends x {
   constructor() {
@@ -4560,7 +4581,7 @@ S([
   l()
 ], Q.prototype, "_newInterval", 2);
 Q = S([
-  y("heartbeats-view")
+  $("heartbeats-view")
 ], Q);
 let M = class extends x {
   constructor() {
@@ -4678,7 +4699,7 @@ S([
   l()
 ], M.prototype, "_newAuto", 2);
 M = S([
-  y("remediation-view")
+  $("remediation-view")
 ], M);
 var Hs = Object.defineProperty, Is = Object.getOwnPropertyDescriptor, I = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Is(e, s) : e, i = t.length - 1, n; i >= 0; i--)
@@ -5310,7 +5331,7 @@ I([
   l()
 ], D.prototype, "_activeTab", 2);
 D = I([
-  y("settings-view")
+  $("settings-view")
 ], D);
 var js = Object.defineProperty, Us = Object.getOwnPropertyDescriptor, Z = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Us(e, s) : e, i = t.length - 1, n; i >= 0; i--)
@@ -5620,14 +5641,14 @@ Z([
   l()
 ], N.prototype, "_loading", 2);
 N = Z([
-  y("stats-live-view")
+  $("stats-live-view")
 ], N);
 var Bs = Object.defineProperty, Ks = Object.getOwnPropertyDescriptor, ze = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ks(e, s) : e, i = t.length - 1, n; i >= 0; i--)
     (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
   return a && r && Bs(e, s, r), r;
 };
-const $e = [
+const ye = [
   "var(--mh-error)",
   "var(--mh-warning)",
   "var(--mh-info)",
@@ -5668,7 +5689,7 @@ let re = class extends x {
         ${t.map((d, m) => {
       const b = d.values.map(
         (v, g) => `${n(g)},${h(v)}`
-      ).join(" "), p = $e[m % $e.length];
+      ).join(" "), p = ye[m % ye.length];
       return o`<polyline
             points=${b}
             class="series"
@@ -5683,7 +5704,7 @@ let re = class extends x {
       (d, m) => o`<span class="legend-item">
             <span
               class="dot"
-              style=${`background: ${$e[m % $e.length]}`}
+              style=${`background: ${ye[m % ye.length]}`}
             ></span>
             <code>${d.ga}</code>
           </span>`
@@ -5768,7 +5789,7 @@ ze([
   f({ type: Number })
 ], re.prototype, "height", 2);
 re = ze([
-  y("knx-timeline-chart")
+  $("knx-timeline-chart")
 ], re);
 var Gs = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, De = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ws(e, s) : e, i = t.length - 1, n; i >= 0; i--)
@@ -5880,10 +5901,10 @@ De([
   f({ type: Number })
 ], ie.prototype, "height", 2);
 ie = De([
-  y("knx-value-sparkline")
+  $("knx-value-sparkline")
 ], ie);
 const qs = "";
-var Js = Object.defineProperty, Ys = Object.getOwnPropertyDescriptor, $ = (t, e, s, a) => {
+var Js = Object.defineProperty, Ys = Object.getOwnPropertyDescriptor, y = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ys(e, s) : e, i = t.length - 1, n; i >= 0; i--)
     (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
   return a && r && Js(e, s, r), r;
@@ -7803,71 +7824,71 @@ _.styles = [
       }
     `
 ];
-$([
+y([
   f({ attribute: !1 })
 ], _.prototype, "api", 2);
-$([
+y([
   l()
 ], _.prototype, "_filters", 2);
-$([
+y([
   l()
 ], _.prototype, "_summary", 2);
-$([
+y([
   l()
 ], _.prototype, "_busHealth", 2);
-$([
+y([
   l()
 ], _.prototype, "_busload", 2);
-$([
+y([
   l()
 ], _.prototype, "_health", 2);
-$([
+y([
   l()
 ], _.prototype, "_longTerm", 2);
-$([
+y([
   l()
 ], _.prototype, "_bursts", 2);
-$([
+y([
   l()
 ], _.prototype, "_sensitiveLog", 2);
-$([
+y([
   l()
 ], _.prototype, "_silence", 2);
-$([
+y([
   l()
 ], _.prototype, "_orphans", 2);
-$([
+y([
   l()
 ], _.prototype, "_alarms", 2);
-$([
+y([
   l()
 ], _.prototype, "_top", 2);
-$([
+y([
   l()
 ], _.prototype, "_topBySource", 2);
-$([
+y([
   l()
 ], _.prototype, "_timeline", 2);
-$([
+y([
   l()
 ], _.prototype, "_selectedGa", 2);
-$([
+y([
   l()
 ], _.prototype, "_detail", 2);
-$([
+y([
   l()
 ], _.prototype, "_detailLoading", 2);
-$([
+y([
   l()
 ], _.prototype, "_loading", 2);
-$([
+y([
   l()
 ], _.prototype, "_error", 2);
-$([
+y([
   l()
 ], _.prototype, "_toast", 2);
-_ = $([
-  y("stats-knx-view")
+_ = y([
+  $("stats-knx-view")
 ], _);
 var sa = Object.defineProperty, aa = Object.getOwnPropertyDescriptor, Ve = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? aa(e, s) : e, i = t.length - 1, n; i >= 0; i--)
@@ -7984,7 +8005,7 @@ Ve([
   l()
 ], ve.prototype, "_tab", 2);
 ve = Ve([
-  y("stats-view")
+  $("stats-view")
 ], ve);
 var ia = Object.defineProperty, oa = Object.getOwnPropertyDescriptor, X = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? oa(e, s) : e, i = t.length - 1, n; i >= 0; i--)
@@ -8430,14 +8451,14 @@ X([
   l()
 ], H.prototype, "_now", 2);
 H = X([
-  y("audit-view")
+  $("audit-view")
 ], H);
 var la = Object.defineProperty, da = Object.getOwnPropertyDescriptor, E = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? da(e, s) : e, i = t.length - 1, n; i >= 0; i--)
     (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
   return a && r && la(e, s, r), r;
 };
-const bt = "messagehub.filters", ye = {
+const bt = "messagehub.filters", $e = {
   severity: ["error", "warning", "info"],
   source: "",
   search: ""
@@ -8501,10 +8522,10 @@ let A = class extends x {
   _loadFilters() {
     try {
       const t = localStorage.getItem(bt);
-      if (t) return { ...ye, ...JSON.parse(t) };
+      if (t) return { ...$e, ...JSON.parse(t) };
     } catch {
     }
-    return { ...ye };
+    return { ...$e };
   }
   _persistFilters() {
     try {
@@ -8513,7 +8534,7 @@ let A = class extends x {
     }
   }
   _resetFilters() {
-    this._filters = { ...ye }, this._persistFilters(), this._reload();
+    this._filters = { ...$e }, this._persistFilters(), this._reload();
   }
   async _reload() {
     this._loading = !0;
@@ -8585,7 +8606,7 @@ let A = class extends x {
     }, 300);
   }
   _hasActiveFilters() {
-    return this._filters.severity.length !== ye.severity.length || this._filters.source !== "" || this._filters.search !== "" || this._filters.fromIso !== void 0;
+    return this._filters.severity.length !== $e.severity.length || this._filters.source !== "" || this._filters.search !== "" || this._filters.fromIso !== void 0;
   }
   _exportUrl(t) {
     return this._api.exportUrl({
@@ -9149,7 +9170,7 @@ E([
   l()
 ], A.prototype, "_overflowOpen", 2);
 A = E([
-  y("messagehub-panel")
+  $("messagehub-panel")
 ], A);
 export {
   A as MessageHubPanel
