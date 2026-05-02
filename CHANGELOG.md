@@ -4,6 +4,39 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.8.3] – 2026-05-02
+
+CI-Patch. Drei kleine Sonar-Workflow-Aufraeumungen, die im Run-Log
+des erfolgreichen v0.8.2-Scans aufschlugen.
+
+### Behoben
+
+- **Security-Update für SonarQube-Scan-Action.**
+  `SonarSource/sonarqube-scan-action@v4` → `@v6`. Sonar selbst meldete
+  CVE in v4/v5 und empfiehlt v6.
+- **PL/SQL-Falscherkennung auf Migrations-Files.**
+  Sonar hat `custom_components/messagehub/storage/sql/0006_fts5.sql` als
+  PL/SQL geparst und drei „Parse error"-Warnings erzeugt — die Datei
+  ist aber SQLite-FTS5-Dialekt. Fix: `storage/sql/**` aus
+  `sonar.exclusions` (SQL-Migrationen sind Daten-Definitionen, kein
+  Review-Material).
+- **Coverage-Reports referenzierten nicht-existente Pfade.**
+  `sonar.python.coverage.reportPaths=coverage.xml` und
+  `sonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info`
+  zeigten auf Files, die der CI-Workflow nicht generiert →
+  `WARN No report was found`. Auskommentiert mit Hinweis, wann
+  aktivieren.
+
+### Hinweis: Python-Version-Warning in der UI
+
+Die Warning „compatible with all Python 3 versions by default" stammt
+mit hoher Wahrscheinlichkeit aus einem Automatic-Analysis-Run **vor**
+dem CI-Setup. Sobald in **SonarCloud → Project → Administration →
+Analysis Method** „Automatic" deaktiviert und „GitHub Actions" allein
+aktiv ist, verschwindet sie beim nächsten CI-Lauf. Der Properties-
+Eintrag `sonar.python.version=3.12,3.13` greift gemäß Workflow-Log
+ab v0.8.3 sauber.
+
 ## [0.8.2] – 2026-05-02
 
 Patch-Release. Behebt zwei UI-Stolpersteine: Brand-Icon-Vorbereitung und
