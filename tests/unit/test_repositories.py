@@ -167,5 +167,5 @@ async def test_set_severity_returns_false_for_unknown_id(repo: MessageRepository
 @pytest.mark.asyncio
 async def test_set_severity_rejects_invalid_value(repo: MessageRepository) -> None:
     new_id = await repo.insert(_msg())
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="invalid severity"):
         await repo.set_severity(new_id, "fatal")

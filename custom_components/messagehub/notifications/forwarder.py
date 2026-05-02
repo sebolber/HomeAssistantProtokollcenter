@@ -37,7 +37,7 @@ class ChannelConfig:
     config: dict[str, Any] | None = None
 
 
-SendFn: TypeAlias = Callable[[ChannelConfig, "Message"], Awaitable[None]]
+SendFn: TypeAlias = Callable[[ChannelConfig, "Message"], Awaitable[None]]  # noqa: UP040
 
 
 class Forwarder:

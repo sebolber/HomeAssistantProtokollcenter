@@ -90,6 +90,42 @@ def _actor(request: web.Request) -> str:
     return getattr(user, "name", None) or str(getattr(user, "id", "unknown"))
 
 
+def _parse_int_param(
+    params: Any,
+    name: str,
+    default: int,
+    *,
+    min_value: int = 0,
+    max_value: int | None = None,
+) -> int:
+    """Parst einen ganzzahligen Query-Param mit Logging bei Ungueltigkeit.
+
+    Vorher: 8x dasselbe try/except mit silent Fallback. Wenn ein Client
+    Mist schickt (z.B. limit=foo), bleibt das ohne diese Funktion komplett
+    unsichtbar — der User sieht nur 'das Limit wirkt nicht', der Admin
+    sieht im Log nichts.
+    """
+    raw = params.get(name)
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except (ValueError, TypeError):
+        _LOGGER.warning(
+            "invalid query param %s=%r — falling back to default %d",
+            name,
+            raw,
+            default,
+        )
+        return default
+    if value < min_value:
+        _LOGGER.warning("query param %s=%d below min %d — clamping", name, value, min_value)
+        value = min_value
+    if max_value is not None and value > max_value:
+        value = max_value
+    return value
+
+
 async def _audit(
     hass: HomeAssistant,
     request: web.Request,
@@ -162,14 +198,10 @@ class MessagesListView(_RequireAdminView):
         msg_repo, _ = repos
 
         params = request.query
-        try:
-            limit = min(int(params.get("limit", DEFAULT_LIMIT)), HARD_CAP_LIMIT)
-        except ValueError:
-            limit = DEFAULT_LIMIT
-        try:
-            offset = max(0, int(params.get("offset", 0)))
-        except ValueError:
-            offset = 0
+        limit = _parse_int_param(
+            params, "limit", DEFAULT_LIMIT, min_value=1, max_value=HARD_CAP_LIMIT
+        )
+        offset = _parse_int_param(params, "offset", 0, min_value=0)
         severities = (
             [s.strip() for s in params["severity"].split(",") if s.strip()]
             if "severity" in params
@@ -556,10 +588,7 @@ class AuditLogView(_RequireAdminView):
         db = _get_database(request.app["hass"])
         if db is None:
             return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
-        try:
-            limit = min(int(request.query.get("limit", 200)), 1000)
-        except ValueError:
-            limit = 200
+        limit = _parse_int_param(request.query, "limit", 200, min_value=1, max_value=1000)
         items = await AuditRepository(db).list_recent(limit=limit)
         return self.json({"items": items})
 
@@ -580,10 +609,7 @@ class ExportView(_RequireAdminView):
         msg_repo, _ = repos
         params = request.query
         fmt = params.get("format", "jsonl").lower()
-        try:
-            limit = min(int(params.get("limit", 1000)), 100_000)
-        except ValueError:
-            limit = 1000
+        limit = _parse_int_param(params, "limit", 1000, min_value=1, max_value=100_000)
         severities = (
             [s.strip() for s in params["severity"].split(",") if s.strip()]
             if "severity" in params
@@ -816,9 +842,10 @@ async def _load_from_storage_file(hass: HomeAssistant) -> list[dict[str, Any]]:
             if p.is_file():
                 try:
                     parsed: dict[str, Any] = _json.loads(p.read_text(encoding="utf-8"))
-                    return parsed
                 except (OSError, ValueError):
                     continue
+                else:
+                    return parsed
         return None
 
     raw = await hass.async_add_executor_job(_read_first)

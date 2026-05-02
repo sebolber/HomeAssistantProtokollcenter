@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import fields
 from pathlib import Path
 
 import pytest
@@ -152,8 +153,6 @@ def test_to_dict_covers_all_dataclass_fields() -> None:
     """Contract-Test: wenn jemand der KnxAddress ein Feld hinzufuegt,
     soll dieser Test sofort schlagen, falls er es in to_dict() vergisst.
     So bleibt das JSON-Schema strukturell mit dem Modell synchron."""
-    from dataclasses import fields
-
     addr = KnxAddress(address="1/2/3", label="x")
     expected_keys = {f.name for f in fields(KnxAddress)}
     actual_keys = set(addr.to_dict().keys())
