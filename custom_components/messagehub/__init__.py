@@ -590,9 +590,15 @@ def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository:
     xknx-Instance nicht ueber hass.data zugaenglich ist (z. B.
     HA-Versionen mit anderer KNX-Modul-Struktur).
     """
+    from .processing.knx_cache import KnxWhitelistCache  # noqa: PLC0415
     from .processing.knx_repo import KnxAddressRepository  # noqa: PLC0415
 
     knx_repo = KnxAddressRepository(database)
+    cache = KnxWhitelistCache(knx_repo)
+    # Cache als Singleton in hass.data ablegen — der API-Endpoint
+    # invalidiert ihn beim CRUD, damit der Listener Konfig-Aenderungen
+    # ohne TTL-Wartezeit sieht.
+    hass.data.setdefault(DOMAIN, {}).setdefault("_knx_whitelist_cache", cache)
     seen_first = {"flag": False}
 
     async def _ingest(data: dict[str, Any]) -> None:
@@ -601,7 +607,7 @@ def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository:
         _log_knx_event(seen_first, ga, data)
         if not ga:
             return
-        cfg = await knx_repo.get(ga)
+        cfg = await cache.get(ga)
         if cfg is None:
             _LOGGER.debug("knx %s: GA nicht in messagehub-Whitelist", ga)
             return

@@ -6,6 +6,7 @@ Aktualisierung bei Eventbus-Event messagehub_message_added.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
@@ -60,8 +61,25 @@ async def async_setup_entry(  # NOSONAR: HA-Plattform-Hook, Signatur durch HA-AP
     async_add_entities(sensors, update_before_add=True)
 
 
+REFRESH_DEBOUNCE_SECONDS = 0.5
+"""Coalescing-Fenster fuer Sensor-Refresh.
+
+Pro EVENT_MESSAGE_ADDED-Event will jeder der 11 Sensoren eigentlich neu
+abfragen. Bei einem Burst (z. B. 100 Telegramme/Sek aus KNX) waere das
+1100 SELECTs/Sek + 11 Frontend-WebSocket-Broadcasts pro Telegramm. Mit
+500-ms-Debounce werden burstige Events zu hoechstens zwei Updates pro
+Sekunde zusammengezogen — Augen-friendly und DB-friendly.
+"""
+
+
 class _BaseMessageSensor(SensorEntity):
-    """Gemeinsame Basis: lauscht auf Event und triggert async_update."""
+    """Gemeinsame Basis: lauscht auf Event und triggert async_update.
+
+    Refresh-Coalescing: pro Sensor-Instanz wird hoechstens alle
+    REFRESH_DEBOUNCE_SECONDS einmal aktualisiert, auch wenn 100 Events
+    in der Zwischenzeit feuern. Der naechste Event nach dem Fenster
+    triggert dann einen frischen Refresh.
+    """
 
     _attr_has_entity_name = True
     _attr_should_poll = False
@@ -72,13 +90,16 @@ class _BaseMessageSensor(SensorEntity):
         self._attr_unique_id = f"{DOMAIN}_{entry_id}_{key}"
         self._attr_device_info = build_device_info(entry_id)
         self._unsub_listeners: list[Callable[[], None]] = []
+        self._refresh_pending = False
+        self._refresh_handle: asyncio.TimerHandle | None = None
 
     async def async_added_to_hass(self) -> None:
-        async def _refresh(_event: Event | None = None) -> None:
-            await self.async_update_ha_state(force_refresh=True)
-
-        self._unsub_listeners.append(self.hass.bus.async_listen(EVENT_MESSAGE_ADDED, _refresh))
-        self._unsub_listeners.append(self.hass.bus.async_listen(EVENT_MESSAGE_DELETED, _refresh))
+        self._unsub_listeners.append(
+            self.hass.bus.async_listen(EVENT_MESSAGE_ADDED, self._on_event)
+        )
+        self._unsub_listeners.append(
+            self.hass.bus.async_listen(EVENT_MESSAGE_DELETED, self._on_event)
+        )
         self._unsub_listeners.append(
             async_track_time_interval(self.hass, self._tick, REFRESH_INTERVAL)
         )
@@ -87,8 +108,28 @@ class _BaseMessageSensor(SensorEntity):
         for unsub in self._unsub_listeners:
             unsub()
         self._unsub_listeners.clear()
+        if self._refresh_handle is not None:
+            self._refresh_handle.cancel()
+            self._refresh_handle = None
+
+    async def _on_event(self, _event: Event | None = None) -> None:
+        """Plant einen Refresh ein — coalesced ueber REFRESH_DEBOUNCE_SECONDS."""
+        if self._refresh_pending:
+            return
+        self._refresh_pending = True
+        loop = asyncio.get_event_loop()
+        self._refresh_handle = loop.call_later(
+            REFRESH_DEBOUNCE_SECONDS, lambda: asyncio.ensure_future(self._do_refresh())
+        )
+
+    async def _do_refresh(self) -> None:
+        self._refresh_pending = False
+        self._refresh_handle = None
+        await self.async_update_ha_state(force_refresh=True)
 
     async def _tick(self, _now: datetime) -> None:
+        # Sicherheits-Tick alle 5 Min — falls ein Event-Listener still
+        # versagt, sind die Sensoren spaetestens dann wieder synchron.
         await self.async_update_ha_state(force_refresh=True)
 
 

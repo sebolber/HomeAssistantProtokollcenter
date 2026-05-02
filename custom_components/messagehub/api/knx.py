@@ -11,8 +11,11 @@ ohne aiohttp-Abhaengigkeit, daher unit-testbar.
 
 from __future__ import annotations
 
+from typing import Any
+
 from aiohttp import web
 
+from ..const import DOMAIN
 from ..processing.knx_discovery import discover_knx_project
 from ._helpers import (
     ERR_INVALID_JSON,
@@ -22,6 +25,16 @@ from ._helpers import (
     audit,
     get_database,
 )
+
+
+def _invalidate_knx_cache(hass: Any) -> None:
+    """Markiert den Hot-Path-Cache als veraltet — naechster Listener-
+    Lookup laedt frisch. Wird von jedem CRUD-Endpoint aufgerufen, der
+    knx_group_addresses aendert, damit Aenderungen sofort wirken statt
+    erst nach TTL-Ablauf."""
+    cache = hass.data.get(DOMAIN, {}).get("_knx_whitelist_cache")
+    if cache is not None:
+        cache.invalidate()
 
 
 class KnxProjectDiscoveryView(RequireAdminView):
@@ -73,6 +86,7 @@ class KnxAddressesView(RequireAdminView):
         csv_content = data.get("csv") if isinstance(data, dict) else None
         if isinstance(csv_content, str) and csv_content.strip():
             stats = await repo.bulk_import_csv(csv_content)
+            _invalidate_knx_cache(request.app["hass"])
             await audit(
                 request.app["hass"],
                 request,
@@ -97,6 +111,7 @@ class KnxAddressesView(RequireAdminView):
             await repo.upsert(item)
         except (KeyError, ValueError, TypeError) as err:
             return self.json_message(f"invalid: {err}", status_code=400)
+        _invalidate_knx_cache(request.app["hass"])
         await audit(
             request.app["hass"],
             request,
@@ -121,6 +136,7 @@ class KnxAddressDetailView(RequireAdminView):
             return self.json_message(ERR_NOT_INITIALISED, status_code=503)
         if not await KnxAddressRepository(db).delete(address):
             return self.json_message(ERR_NOT_FOUND, status_code=404)
+        _invalidate_knx_cache(request.app["hass"])
         await audit(
             request.app["hass"],
             request,
