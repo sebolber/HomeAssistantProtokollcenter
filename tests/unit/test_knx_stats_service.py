@@ -1,0 +1,181 @@
+"""Iter 5: KnxStatsService — Orchestrierung Repo+Engine."""
+
+from __future__ import annotations
+
+import json
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+import pytest
+
+from custom_components.messagehub.processing.knx_stats_service import (
+    KnxStatsService,
+    estimate_busload_pct,
+)
+from custom_components.messagehub.storage.database import Database
+from custom_components.messagehub.storage.knx_stats_repo import KnxStatsRepository
+from custom_components.messagehub.storage.migrations import MigrationRunner
+
+
+@pytest.fixture
+async def db(tmp_path: Path) -> Database:
+    path = tmp_path / "messages.db"
+    database = Database(str(path))
+    await database.open()
+    runner = MigrationRunner(database)
+    await runner.run()
+    yield database
+    await database.close()
+
+
+def _ts(offset_min: float) -> str:
+    base = datetime(2026, 5, 2, 12, 0, 0, tzinfo=UTC)
+    return (base + timedelta(minutes=offset_min)).isoformat(timespec="seconds")
+
+
+async def _insert_knx(
+    db: Database,
+    *,
+    ts: str,
+    ga: str,
+    dpt: str | None = "9.001",
+    label: str = "Test",
+    dev_source: str = "1.1.5",
+    value: object = 21.5,
+    telegramtype: str = "GroupValueWrite",
+) -> None:
+    metadata = {
+        "knx_ga": ga,
+        "knx_dpt": dpt,
+        "knx_label": label,
+        "knx_source": dev_source,
+        "knx_value": value,
+        "knx_telegramtype": telegramtype,
+    }
+    await db.execute(
+        "INSERT INTO messages "
+        "(timestamp, severity, source, text, metadata, fingerprint, "
+        " count, first_seen, last_seen, status) "
+        "VALUES (?, 'info', 'knx-bus', ?, ?, ?, 1, ?, ?, 'new')",
+        (
+            ts,
+            f"{label} = {value}",
+            json.dumps(metadata),
+            f"fp-{ts}-{ga}",
+            ts,
+            ts,
+        ),
+    )
+
+
+class TestEstimateBusload:
+    def test_zero_telegrams_returns_zero(self) -> None:
+        assert estimate_busload_pct(0, 60.0) == 0.0
+
+    def test_zero_period_returns_zero(self) -> None:
+        assert estimate_busload_pct(100, 0.0) == 0.0
+
+    def test_50_per_sec_returns_around_91pct(self) -> None:
+        # 50 Tel/s * 22 Byte * 8 Bit / 9600 bit/s = ~91.7 %
+        load = estimate_busload_pct(50, 1.0)
+        assert 90 < load < 95
+
+
+class TestComputeSummary:
+    @pytest.mark.asyncio
+    async def test_empty_returns_zero_busload(self, db: Database) -> None:
+        svc = KnxStatsService(KnxStatsRepository(db))
+        s = await svc.compute_summary(_ts(0), _ts(60))
+        assert s["total_telegrams"] == 0
+        assert s["estimated_busload_pct"] == 0.0
+        assert s["counts_by_severity"] == {
+            "green": 0, "yellow": 0, "orange": 0, "red": 0
+        }
+
+    @pytest.mark.asyncio
+    async def test_includes_period_and_classifies(self, db: Database) -> None:
+        # 60 Telegramme in 60 Minuten = 1/Min — bei DPT 9.001 (Soll 2/Min) green
+        for i in range(60):
+            await _insert_knx(db, ts=_ts(i), ga="1/2/3", dpt="9.001")
+        svc = KnxStatsService(KnxStatsRepository(db))
+        s = await svc.compute_summary(_ts(0), _ts(60))
+        assert s["total_telegrams"] == 60
+        assert s["counts_by_severity"]["green"] == 1
+
+
+class TestComputeTop:
+    @pytest.mark.asyncio
+    async def test_classifies_red_for_overactive_ga(self, db: Database) -> None:
+        # 700 Telegramme in 60 Min = 11.67/Min, DPT 9.001 (Soll 2) → ratio 5.83 → red
+        for i in range(700):
+            await _insert_knx(db, ts=_ts(i / 12), ga="5/2/14", dpt="9.001")
+        svc = KnxStatsService(KnxStatsRepository(db))
+        rows = await svc.compute_top(_ts(0), _ts(60), limit=10)
+        assert len(rows) == 1
+        assert rows[0].severity == "red"
+        assert rows[0].rate_per_min > 10.0
+
+    @pytest.mark.asyncio
+    async def test_filters_below_min_rate(self, db: Database) -> None:
+        await _insert_knx(db, ts=_ts(0), ga="1/2/3", dpt="9.001")  # 1 in 60 min
+        svc = KnxStatsService(KnxStatsRepository(db))
+        rows = await svc.compute_top(
+            _ts(0), _ts(60), limit=10, min_rate_per_min=1.0
+        )
+        assert rows == []
+
+    @pytest.mark.asyncio
+    async def test_marks_acknowledged(self, db: Database) -> None:
+        for i in range(10):
+            await _insert_knx(db, ts=_ts(i), ga="5/2/14")
+        repo = KnxStatsRepository(db)
+        await repo.ack_set("5/2/14", note="bekannt")
+        svc = KnxStatsService(repo)
+        rows = await svc.compute_top(_ts(0), _ts(60), limit=10)
+        assert rows[0].acknowledged is True
+
+    @pytest.mark.asyncio
+    async def test_excludes_acknowledged_when_flag_false(self, db: Database) -> None:
+        for i in range(10):
+            await _insert_knx(db, ts=_ts(i), ga="5/2/14")
+        await _insert_knx(db, ts=_ts(20), ga="1/2/3")
+        repo = KnxStatsRepository(db)
+        await repo.ack_set("5/2/14")
+        svc = KnxStatsService(repo)
+        rows = await svc.compute_top(
+            _ts(0), _ts(60), limit=10, include_acknowledged=False
+        )
+        gas = {r.ga for r in rows}
+        assert "5/2/14" not in gas
+        assert "1/2/3" in gas
+
+
+class TestComputeGaDetail:
+    @pytest.mark.asyncio
+    async def test_empty_returns_none(self, db: Database) -> None:
+        svc = KnxStatsService(KnxStatsRepository(db))
+        d = await svc.compute_ga_detail("1/2/3", _ts(0), _ts(60))
+        assert d is None
+
+    @pytest.mark.asyncio
+    async def test_returns_detail_with_recommendation(self, db: Database) -> None:
+        for i in range(120):
+            await _insert_knx(db, ts=_ts(i / 2), ga="5/2/14", dpt="9.004", value=12)
+        svc = KnxStatsService(KnxStatsRepository(db))
+        d = await svc.compute_ga_detail("5/2/14", _ts(0), _ts(60))
+        assert d is not None
+        assert d.ga == "5/2/14"
+        assert d.dpt == "9.004"
+        # 120 in 60 min = 2/min — bei Soll 2 → green oder leicht darueber
+        assert d.recommendation is not None
+
+    @pytest.mark.asyncio
+    async def test_includes_findings_for_constant_value(self, db: Database) -> None:
+        # 15 Werte alle gleich → constant_value Finding
+        for i in range(15):
+            await _insert_knx(db, ts=_ts(i), ga="22/3/43", dpt="9.001", value=0.0)
+        svc = KnxStatsService(KnxStatsRepository(db))
+        d = await svc.compute_ga_detail("22/3/43", _ts(0), _ts(60))
+        assert d is not None
+        kinds = {f.kind for f in d.findings}
+        assert "constant_value" in kinds
