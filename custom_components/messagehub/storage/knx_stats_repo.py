@@ -317,6 +317,38 @@ class KnxStatsRepository:
             )
         return out
 
+    # --- Schatten-Counter (Iter 16, Phase-2-Vorbereitung) -------------------
+
+    async def increment_counter(self, ga: str, hour_bucket: str) -> None:
+        """UPSERT-Increment fuer (ga, hour_bucket).
+
+        Phase-2-Schema: erlaubt schnelle Long-Term-Aggregation, ohne
+        json_extract auf der grossen messages-Tabelle. Wird vom KNX-
+        Listener nach erfolgreichem Insert aufgerufen.
+        """
+        await self._db.execute(
+            """
+            INSERT INTO knx_telegram_counters (ga, hour_bucket, count)
+            VALUES (?, ?, 1)
+            ON CONFLICT(ga, hour_bucket) DO UPDATE SET
+                count = count + 1
+            """,
+            (ga, hour_bucket),
+        )
+
+    async def counter_total_for_ga(
+        self, ga: str, from_iso: str, to_iso: str
+    ) -> int:
+        """Liest aufsummierte Counter fuer eine GA aus dem Schatten-Cache."""
+        row = await self._db.fetch_one(
+            "SELECT SUM(count) AS n FROM knx_telegram_counters "
+            "WHERE ga = ? AND hour_bucket >= ? AND hour_bucket < ?",
+            (ga, from_iso, to_iso),
+        )
+        if row is None:
+            return 0
+        return int(row["n"] or 0)
+
     # --- Acknowledgements ---------------------------------------------------
 
     async def ack_set(

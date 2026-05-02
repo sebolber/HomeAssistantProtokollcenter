@@ -134,6 +134,55 @@ def _build_knx_message(cfg: Any, data: dict[str, Any] | KnxTelegramData) -> Any:
     )
 
 
+# ISO-Format minimum laenge fuer "YYYY-MM-DDTHH" — fuer Bucket-Truncation.
+_ISO_HOUR_PREFIX_LEN = 13
+
+
+def _build_listener_state(hass: HomeAssistant, database: Any) -> tuple[Any, Any]:
+    """Initialisiert Whitelist-Cache + Schatten-Counter-Repo.
+
+    Phase-2-Vorbereitung: counters_repo wird vom Listener nach jedem
+    erfolgreichen Insert befuellt — der Aufwand ist ein UPSERT pro
+    Telegramm und kann via hass.data[DOMAIN]['_knx_shadow_counters_enabled']
+    deaktiviert werden.
+    """
+    from ..storage.knx_stats_repo import KnxStatsRepository  # noqa: PLC0415
+
+    knx_repo = KnxAddressRepository(database)
+    cache = KnxWhitelistCache(knx_repo)
+    hass.data.setdefault(DOMAIN, {}).setdefault("_knx_whitelist_cache", cache)
+    counters_repo = KnxStatsRepository(database)
+    return cache, counters_repo
+
+
+async def _maybe_increment_shadow_counter(
+    hass: HomeAssistant, counters_repo: Any, destination: str, msg: Any
+) -> None:
+    """Iter 16: pflegt den Schatten-Counter-Cache — opt-out via hass.data."""
+    if not hass.data.get(DOMAIN, {}).get("_knx_shadow_counters_enabled", True):
+        return
+    try:
+        hour_bucket = _hour_bucket_now(msg)
+        await counters_repo.increment_counter(destination, hour_bucket)
+    except (ValueError, RuntimeError) as err:
+        # Counter-Pflege darf NIE den Hot-Path brechen — nur loggen
+        _LOGGER.debug("shadow counter update skipped: %s", err)
+
+
+def _hour_bucket_now(msg: Any) -> str:
+    """Liefert den Stunden-Bucket-String fuer den Schatten-Counter.
+
+    Format: ISO-Stunde (z. B. "2026-05-02T16:00:00") — kompatibel mit
+    BETWEEN-Filtern in der counter-Query.
+    """
+    from datetime import UTC, datetime  # noqa: PLC0415
+
+    ts = msg.timestamp_iso if hasattr(msg, "timestamp_iso") else None
+    if ts is None or not isinstance(ts, str) or len(ts) < _ISO_HOUR_PREFIX_LEN:
+        return datetime.now(UTC).strftime("%Y-%m-%dT%H:00:00")
+    return ts[:_ISO_HOUR_PREFIX_LEN] + ":00:00"
+
+
 def _get_xknx_instance(hass: HomeAssistant) -> Any:
     """Best-effort: holt die xknx-Instance aus der HA-KNX-Integration."""
     knx_data = hass.data.get("knx")
@@ -149,9 +198,7 @@ def _get_xknx_instance(hass: HomeAssistant) -> Any:
 
 def async_register_knx_listener(hass: HomeAssistant, database: Any, repository: Any) -> Any:
     """Registriert den KNX-Listener — primaer xknx-Hook, Fallback knx_event."""
-    knx_repo = KnxAddressRepository(database)
-    cache = KnxWhitelistCache(knx_repo)
-    hass.data.setdefault(DOMAIN, {}).setdefault("_knx_whitelist_cache", cache)
+    cache, counters_repo = _build_listener_state(hass, database)
     seen_first = {"flag": False}
 
     async def _ingest(td: KnxTelegramData) -> None:
@@ -177,6 +224,7 @@ def async_register_knx_listener(hass: HomeAssistant, database: Any, repository: 
             return
         msg = _build_knx_message(cfg, td)
         await repository.insert_or_aggregate(msg, window_minutes=10)
+        await _maybe_increment_shadow_counter(hass, counters_repo, td.destination, msg)
         fire_message_added(hass, msg)
         _LOGGER.info("messagehub knx-bus: %s -> %s [%s]", td.destination, msg.text, msg.severity)
 
