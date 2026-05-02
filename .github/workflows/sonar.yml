@@ -1,0 +1,45 @@
+name: SonarCloud
+
+# CI-basierte Sonar-Analyse. Sobald dieser Workflow einmal mit gueltigem
+# SONAR_TOKEN durchgelaufen ist, schaltet SonarCloud "Automatic Analysis"
+# fuer dieses Repo automatisch ab — ab dann wird ausschliesslich diese
+# CI-Analyse genutzt und sonar-project.properties (im Repo-Root) wird
+# zuverlaessig gelesen. Ergebnis: alle frontend_dist/-Findings sind weg.
+#
+# Voraussetzung (einmalig):
+#   1. https://sonarcloud.io/account/security/ -> Token erzeugen
+#      (Name z. B. "messagehub-ci")
+#   2. GitHub: Settings -> Secrets and variables -> Actions ->
+#      "New repository secret" -> Name SONAR_TOKEN, Wert = dein Token
+#   3. dann: nichts weiter, der naechste Push auf main triggert den Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  scan:
+    name: Scan with SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Sonar braucht volle Historie fuer "new code"-Berechnung
+          fetch-depth: 0
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        # Der Scanner liest sonar-project.properties aus dem Repo-Root
+        # und beachtet damit:
+        #   - sonar.exclusions (frontend_dist/, build/, cache/...)
+        #   - sonar.python.version (3.12,3.13)
+        #   - sonar.issue.ignore.multicriteria (Test-IPs, async-Tests)
