@@ -51,6 +51,60 @@ def messages_to_csv(messages: Iterable[Message]) -> str:
     return buf.getvalue()
 
 
+# Iter 80 / CR-18: Pure Helpers fuer Streaming-Export. Vorher wurden
+# bei limit=100 000 mehrere hundert MB im Memory aufgebaut — DoS-
+# Vektor. Jetzt Header-Funktion + Per-Row-Encoder, die der Streaming-
+# View pro Page ruft und sofort an den HTTP-Stream weiterreicht.
+
+CSV_HEADER_ROW: list[str] = [
+    "id",
+    "timestamp",
+    "severity",
+    "source",
+    "text",
+    "metadata",
+    "webhook_id",
+]
+
+
+def csv_header_line() -> str:
+    """Liefert die CSV-Header-Zeile inkl. LF."""
+    buf = io.StringIO()
+    csv.writer(buf, lineterminator="\n").writerow(CSV_HEADER_ROW)
+    return buf.getvalue()
+
+
+def message_to_csv_line(m: Message) -> str:
+    """Liefert eine einzelne CSV-Zeile inkl. LF."""
+    buf = io.StringIO()
+    csv.writer(buf, lineterminator="\n").writerow(
+        [
+            m.id,
+            m.timestamp_iso,
+            m.severity.value,
+            m.source,
+            m.text,
+            json.dumps(m.metadata) if m.metadata is not None else "",
+            m.webhook_id or "",
+        ]
+    )
+    return buf.getvalue()
+
+
+def message_to_jsonl_line(m: Message) -> str:
+    """Liefert eine einzelne JSONL-Zeile inkl. LF."""
+    record = {
+        "id": m.id,
+        "timestamp": m.timestamp_iso,
+        "severity": m.severity.value,
+        "source": m.source,
+        "text": m.text,
+        "metadata": m.metadata,
+        "webhook_id": m.webhook_id,
+    }
+    return json.dumps(record, ensure_ascii=False) + "\n"
+
+
 def build_forensic_bundle(
     messages: Iterable[Message],
     *,

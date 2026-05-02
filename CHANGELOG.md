@@ -6,6 +6,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Sicherheit + Performance (Iter 80 — CR-18 Streaming-Export)
+- **`ExportView` streamt jetzt page-by-page** statt alles im Memory
+  zu bauen. Bei `limit=100 000` wurden vorher mehrere hundert MB
+  aufgebaut → DoS-Vektor gegen die HA-Instanz.
+- **Pure Helpers** in `api/export.py`: `csv_header_line()`,
+  `message_to_csv_line(m)`, `message_to_jsonl_line(m)`. Page-Size
+  1000 Messages, jeder Page wird sofort an den HTTP-Stream geschrieben.
+- 3 neue Backend-Tests (Header-Line + Per-Row Format-Identitaet zu
+  `messages_to_csv` und `messages_to_jsonl`, plus CSV-Quoting für
+  Sonderzeichen).
+
 ### Performance (Iter 79 — CR-11 Cache + CR-13 Index)
 - **CR-11 TTL-Cache für `discover_knx_devices`** (5 min). Wird in
   `KnxStatsTopBySourceView` und `KnxStatsGaDetailView` bei jedem

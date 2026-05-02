@@ -119,6 +119,48 @@ async def test_export_csv_has_header_and_rows() -> None:
     assert "warning" in lines[1]
 
 
+def test_iter80_csv_header_line_matches_full_export() -> None:
+    """Iter 80 / CR-18: header_line + per-Row-Encoder muessen
+    identisches Output zu messages_to_csv geben — Streaming darf nichts
+    am Format aendern.
+    """
+    from custom_components.messagehub.api.export import (
+        csv_header_line,
+        message_to_csv_line,
+    )
+
+    msgs = [
+        Message(severity=Severity.INFO, source="x", text="hi"),
+        Message(severity=Severity.WARNING, source="y", text="ho"),
+    ]
+    streamed = csv_header_line() + "".join(message_to_csv_line(m) for m in msgs)
+    full = messages_to_csv(msgs)
+    assert streamed == full
+
+
+def test_iter80_jsonl_per_row_matches_full_export() -> None:
+    from custom_components.messagehub.api.export import message_to_jsonl_line
+
+    msgs = [
+        Message(severity=Severity.INFO, source="x", text="hi"),
+        Message(severity=Severity.WARNING, source="y", text="ho"),
+    ]
+    streamed = "".join(message_to_jsonl_line(m) for m in msgs)
+    full = messages_to_jsonl(msgs)
+    assert streamed == full
+
+
+def test_iter80_message_to_csv_line_quotes_special_characters() -> None:
+    from custom_components.messagehub.api.export import message_to_csv_line
+
+    m = Message(
+        severity=Severity.INFO, source="x", text='line with, comma and "quote"'
+    )
+    line = message_to_csv_line(m)
+    # CSV-Quoting: Komma und " innerhalb Werten muessen escapet sein.
+    assert "\"line with, comma and \"\"quote\"\"\"" in line
+
+
 def test_forensic_bundle_contains_all_artifacts() -> None:
     msgs = [Message(severity=Severity.ERROR, source="x", text="hi")]
     payload = build_forensic_bundle(msgs, config={"version": "1"})

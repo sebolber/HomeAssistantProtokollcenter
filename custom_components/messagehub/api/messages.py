@@ -537,18 +537,28 @@ class AuditLogView(_RequireAdminView):
 
 
 class ExportView(_RequireAdminView):
-    """Iter 45: Stream-Export im Format jsonl oder csv."""
+    """Iter 45 + Iter 80: Streaming-Export im Format jsonl oder csv.
+
+    Iter 80 / CR-18: Bei limit=100 000 wurden vorher mehrere hundert MB
+    im Memory aufgebaut. Jetzt iterieren wir in 1000er-Pages und
+    schreiben jede Page direkt in die StreamResponse — Peak-Memory
+    bleibt unter wenigen MB.
+    """
 
     url = "/api/messagehub/export"
     name = "api:messagehub:export"
 
     async def get(self, request: web.Request) -> web.StreamResponse:
-        from .export import messages_to_csv, messages_to_jsonl  # noqa: PLC0415
+        from .export import (  # noqa: PLC0415
+            csv_header_line,
+            message_to_csv_line,
+            message_to_jsonl_line,
+        )
 
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
         if repos is None:
-            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
+            return self.json_message(_ERR_NOT_INITIALISED_LONG, status_code=503)
         msg_repo, _ = repos
         params = request.query
         fmt = params.get("format", "jsonl").lower()
@@ -558,29 +568,52 @@ class ExportView(_RequireAdminView):
             if "severity" in params
             else None
         )
-        items = await msg_repo.list_filtered(
-            severities=severities,
-            source=params.get("source"),
-            search=params.get("search"),
-            from_iso=params.get("from"),
-            to_iso=params.get("to"),
-            limit=limit,
-        )
         if fmt == "csv":
-            body = messages_to_csv(items)
             content_type = "text/csv; charset=utf-8"
             filename = "messagehub-export.csv"
+            row_encoder = message_to_csv_line
+            header = csv_header_line()
         else:
-            body = messages_to_jsonl(items)
             content_type = "application/x-ndjson; charset=utf-8"
             filename = "messagehub-export.jsonl"
-        return web.Response(
-            text=body,
+            row_encoder = message_to_jsonl_line
+            header = ""
+
+        response = web.StreamResponse(
+            status=200,
             headers={
                 "Content-Type": content_type,
                 "Content-Disposition": f'attachment; filename="{filename}"',
             },
         )
+        await response.prepare(request)
+        if header:
+            await response.write(header.encode("utf-8"))
+
+        # Page-by-page-Iteration. PAGE_SIZE=1000 ist ein guter Trade-off
+        # zwischen Memory-Footprint und SQL-Roundtrip-Anzahl.
+        page_size = 1000
+        offset = 0
+        sent = 0
+        while sent < limit:
+            chunk_limit = min(page_size, limit - sent)
+            items = await msg_repo.list_filtered(
+                severities=severities,
+                source=params.get("source"),
+                search=params.get("search"),
+                from_iso=params.get("from"),
+                to_iso=params.get("to"),
+                limit=chunk_limit,
+                offset=offset,
+            )
+            if not items:
+                break
+            buf: list[str] = [row_encoder(m) for m in items]
+            await response.write("".join(buf).encode("utf-8"))
+            sent += len(items)
+            offset += len(items)
+        await response.write_eof()
+        return response
 
 
 class HeartbeatsView(_RequireAdminView):
