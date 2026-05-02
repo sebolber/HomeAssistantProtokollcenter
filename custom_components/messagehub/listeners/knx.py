@@ -9,6 +9,7 @@ HA-KNX braucht keine 'event:'-Konfig — wir filtern selbst.
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from ..const import DOMAIN
@@ -18,6 +19,54 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True, slots=True)
+class KnxTelegramData:
+    """Typsichere Repraesentation eines KNX-Telegramms im Hot-Path.
+
+    Vereint die zwei Eingangsquellen (HA-Eventbus 'knx_event' und xknx-
+    Telegram-Hook) in ein einheitliches Schema, damit `_build_knx_message`
+    und `_ingest` mit konkretem Typ statt `dict[str, Any]` arbeiten.
+    """
+
+    destination: str
+    source: str
+    telegramtype: str | None
+    value: Any
+    raw: Any
+
+    @classmethod
+    def from_event_data(cls, data: dict[str, Any]) -> KnxTelegramData:
+        """Adapter fuer den HA-Eventbus 'knx_event' (Fallback-Pfad)."""
+        return cls(
+            destination=str(data.get("destination") or "").strip(),
+            source=str(data.get("source") or ""),
+            telegramtype=data.get("telegramtype"),
+            value=data.get("value"),
+            raw=data.get("data"),
+        )
+
+    @classmethod
+    def from_telegram(cls, telegram: Any) -> KnxTelegramData:
+        """Adapter fuer den primaeren xknx-Telegram-Hook."""
+        payload = getattr(telegram, "payload", None)
+        payload_type = type(payload).__name__ if payload is not None else None
+        telegramtype = (
+            payload_type if payload_type and payload_type.startswith("GroupValue") else None
+        )
+        return cls(
+            destination=str(getattr(telegram, "destination_address", "")).strip(),
+            source=str(getattr(telegram, "source_address", "")),
+            telegramtype=telegramtype,
+            value=getattr(payload, "value", None),
+            raw=getattr(payload, "raw_value", None) or getattr(payload, "value_raw", None),
+        )
+
+    def best_value(self) -> Any:
+        """Liefert payload.value bevorzugt, sonst raw bytes — wie sie der
+        DPT-Formatter und Severity-Resolver erwarten."""
+        return self.value if self.value is not None else self.raw
 
 
 def _log_knx_event(seen_first: dict[str, bool], ga: str, data: dict[str, Any]) -> None:
@@ -34,52 +83,50 @@ def _log_knx_event(seen_first: dict[str, bool], ga: str, data: dict[str, Any]) -
 
 
 def _telegram_to_knx_event_data(telegram: Any) -> dict[str, Any]:
-    """Wandelt ein xknx-Telegram-Objekt in das knx_event-Datenschema um.
-
-    Damit kann _build_knx_message() weiterhin auf einer einheitlichen
-    Datenstruktur arbeiten — egal ob das Telegramm aus dem
-    HA-Eventbus oder direkt aus dem xknx-Telegram-Hook kommt.
-    """
-    payload = getattr(telegram, "payload", None)
-    payload_type = type(payload).__name__ if payload is not None else None
-    telegramtype = (
-        payload_type if payload_type and payload_type.startswith("GroupValue") else None
-    )
-    value = getattr(payload, "value", None)
-    raw = getattr(payload, "raw_value", None) or getattr(payload, "value_raw", None)
+    """Backward-compat-Adapter: liefert dict-Form fuer Tests, die das alte
+    knx_event-Schema erwarten. Neue Code-Pfade nutzen KnxTelegramData direkt."""
+    td = KnxTelegramData.from_telegram(telegram)
     return {
-        "destination": str(getattr(telegram, "destination_address", "")),
-        "source": str(getattr(telegram, "source_address", "")),
-        "telegramtype": telegramtype,
-        "value": value,
-        "data": raw,
+        "destination": td.destination,
+        "source": td.source,
+        "telegramtype": td.telegramtype,
+        "value": td.value,
+        "data": td.raw,
     }
 
 
-def _build_knx_message(cfg: Any, data: dict[str, Any]) -> Any:
-    """Baut die Message-DTO aus knx_event-Payload + GA-Konfiguration."""
+def _build_knx_message(cfg: Any, data: dict[str, Any] | KnxTelegramData) -> Any:
+    """Baut die Message-DTO aus Telegram-Daten + GA-Konfiguration.
+
+    Akzeptiert sowohl die typed KnxTelegramData (neuer Hot-Path) als auch
+    das alte dict-Schema (Backward-Compat fuer bestehende Tests).
+    """
     from ..processing.knx_dpt import format_value as format_knx_value  # noqa: PLC0415
     from ..processing.knx_repo import resolve_severity  # noqa: PLC0415
     from ..storage import Message, Severity  # noqa: PLC0415
 
-    telegramtype = data.get("telegramtype")
-    value = data.get("value") if data.get("value") is not None else data.get("data")
+    if isinstance(data, KnxTelegramData):
+        td = data
+    else:
+        td = KnxTelegramData.from_event_data(data)
+
+    value = td.best_value()
     severity = Severity.normalise(resolve_severity(cfg, value))
     formatted = format_knx_value(cfg.dpt, value)
     text = f"{cfg.label} = {formatted}" if formatted else cfg.label
-    if telegramtype and telegramtype != "GroupValueWrite":
-        text = f"{text} ({telegramtype})"
+    if td.telegramtype and td.telegramtype != "GroupValueWrite":
+        text = f"{text} ({td.telegramtype})"
     return Message(
         severity=severity,
         source="knx-bus",
         text=text,
         metadata={
-            "knx_ga": data.get("destination"),
+            "knx_ga": td.destination,
             "knx_label": cfg.label,
             "knx_dpt": cfg.dpt,
             "knx_value": value,
-            "knx_source": data.get("source"),
-            "knx_telegramtype": telegramtype,
+            "knx_source": td.source,
+            "knx_telegramtype": td.telegramtype,
         },
     )
 
@@ -109,22 +156,31 @@ def async_register_knx_listener(
     hass.data.setdefault(DOMAIN, {}).setdefault("_knx_whitelist_cache", cache)
     seen_first = {"flag": False}
 
-    async def _ingest(data: dict[str, Any]) -> None:
-        ga = str(data.get("destination") or "").strip()
-        _log_knx_event(seen_first, ga, data)
-        if not ga:
+    async def _ingest(td: KnxTelegramData) -> None:
+        if not seen_first["flag"]:
+            seen_first["flag"] = True
+            _LOGGER.info(
+                "messagehub: erstes KNX-Telegramm empfangen — ga=%s type=%s",
+                td.destination,
+                td.telegramtype,
+            )
+        else:
+            _LOGGER.debug("knx telegram ga=%s type=%s value=%s",
+                          td.destination, td.telegramtype, td.value)
+        if not td.destination:
             return
-        cfg = await cache.get(ga)
+        cfg = await cache.get(td.destination)
         if cfg is None:
-            _LOGGER.debug("knx %s: GA nicht in messagehub-Whitelist", ga)
+            _LOGGER.debug("knx %s: GA nicht in messagehub-Whitelist", td.destination)
             return
         if not cfg.log_enabled:
-            _LOGGER.debug("knx %s: log_enabled=0, skip", ga)
+            _LOGGER.debug("knx %s: log_enabled=0, skip", td.destination)
             return
-        msg = _build_knx_message(cfg, data)
+        msg = _build_knx_message(cfg, td)
         await repository.insert_or_aggregate(msg, window_minutes=10)
         fire_message_added(hass, msg)
-        _LOGGER.info("messagehub knx-bus: %s -> %s [%s]", ga, msg.text, msg.severity)
+        _LOGGER.info("messagehub knx-bus: %s -> %s [%s]",
+                     td.destination, msg.text, msg.severity)
 
     xknx = _get_xknx_instance(hass)
     if xknx is not None:
@@ -134,7 +190,7 @@ def async_register_knx_listener(
 
                 async def _on_telegram(telegram: Any) -> None:
                     try:
-                        await _ingest(_telegram_to_knx_event_data(telegram))
+                        await _ingest(KnxTelegramData.from_telegram(telegram))
                     except (ValueError, TypeError, KeyError) as err:
                         _LOGGER.debug("knx telegram ingest skipped: %s", err)
 
@@ -165,7 +221,7 @@ def async_register_knx_listener(
 
     async def _on_knx_event(event: Any) -> None:
         try:
-            await _ingest(dict(event.data))
+            await _ingest(KnxTelegramData.from_event_data(dict(event.data)))
         except (ValueError, TypeError, KeyError) as err:
             _LOGGER.debug("knx_event ingest skipped: %s", err)
 

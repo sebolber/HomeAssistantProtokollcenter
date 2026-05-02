@@ -23,11 +23,25 @@ class MessageRepository:
 
     def __init__(self, database: Database) -> None:
         self._db = database
-        # v0.3 / Review #1: asyncio.Lock serialisiert insert_or_aggregate-
-        # Aufrufe pro Repository-Instanz. aiosqlite oeffnet eigene
-        # Auto-Transaktionen, daher BEGIN IMMEDIATE nicht nutzbar — der
-        # Lock garantiert, dass SELECT+INSERT/UPDATE atomar ablaufen.
-        self._aggregate_lock = asyncio.Lock()
+        # Per-Fingerprint-Lock statt Repository-weitem Lock (Architektur-
+        # Review W1): unterschiedliche Sources koennen parallel inserten,
+        # nur Aggregate auf identischen Fingerprint serialisieren.
+        # aiosqlite kann keine BEGIN IMMEDIATE-Transaktion fuer SELECT+
+        # UPDATE-Atomaritaet, deshalb der Python-seitige Lock.
+        self._fingerprint_locks: dict[str, asyncio.Lock] = {}
+        self._lock_dict_guard = asyncio.Lock()
+
+    async def _acquire_fingerprint_lock(self, fp: str) -> asyncio.Lock:
+        """Liefert den Lock fuer einen Fingerprint — erzeugt ihn lazy.
+
+        Das aeussere Guard-Lock schuetzt das dict-mutation race.
+        """
+        async with self._lock_dict_guard:
+            lock = self._fingerprint_locks.get(fp)
+            if lock is None:
+                lock = asyncio.Lock()
+                self._fingerprint_locks[fp] = lock
+        return lock
 
     async def insert(self, message: Message) -> int:
         """Fuegt eine Nachricht ein und gibt die generierte ID zurueck."""
@@ -86,7 +100,11 @@ class MessageRepository:
             timespec="seconds"
         )
 
-        async with self._aggregate_lock:
+        # Per-Fingerprint-Lock: parallele Inserts auf verschiedenen
+        # Fingerprints sind nicht serialisiert, nur Aggregate auf
+        # identischen Fingerprint blockieren einander.
+        lock = await self._acquire_fingerprint_lock(fp)
+        async with lock:
             row = await self._select_active_dup(fp, cutoff)
             if row is None:
                 new_id = await self._insert_in_tx(message, fp)

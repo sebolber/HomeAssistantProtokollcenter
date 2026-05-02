@@ -184,6 +184,30 @@ async def test_count_by_severity_all_time(repo: MessageRepository) -> None:
 
 
 @pytest.mark.asyncio
+async def test_per_fingerprint_locks_parallelisieren_unterschiedliche_sources(
+    repo: MessageRepository,
+) -> None:
+    """Inserts auf zwei verschiedenen Fingerprints muessen NICHT serialisiert
+    werden — nur Aggregate auf identischen Fingerprint blockieren einander.
+
+    Wir pruefen das indirekt: nach 10 parallelen Inserts auf 5 unterschiedlichen
+    Sources liegt der Lock-dict-Inhalt korrekt vor (5 verschiedene Fingerprints,
+    nicht ein globaler Lock fuer alle Inserts)."""
+    sources = ["src.a", "src.b", "src.c", "src.d", "src.e"]
+    # Pro Source eine eindeutige Message — wir wollen pro Source genau einen
+    # Fingerprint-Lock sehen (Source + Severity + normalisierter-Text).
+    inserts = [_msg(source=src, text="hallo welt") for src in sources]
+
+    import asyncio  # noqa: PLC0415
+
+    await asyncio.gather(*[repo.insert_or_aggregate(m, window_minutes=10) for m in inserts])
+
+    # Nach den Inserts sollten 5 verschiedene Fingerprint-Locks existieren
+    # (einer pro unique source — gleiche severity, gleicher Text).
+    assert len(repo._fingerprint_locks) == 5
+
+
+@pytest.mark.asyncio
 async def test_count_since_aggregates_all_severities(repo: MessageRepository) -> None:
     """count_since zaehlt severity-uebergreifend ab dem Cutoff."""
     base = datetime(2026, 5, 1, 12, 0, 0, tzinfo=UTC)
