@@ -5,6 +5,11 @@ liefern, aber jetzt seit >1.5*X stumm sind).
 
 Anomaly: vergleicht den 1-Min-Bucket-Count pro Source mit EWMA-Mean +
 3-sigma-Schwelle und meldet Bursts.
+
+Iter 24: knx-stats-Cleanup laeuft alle 6 Stunden — loescht
+knx_raw_telegrams aelter als DEFAULT_KNX_RAW_RETENTION_HOURS,
+knx_telegram_counters aelter als DEFAULT_KNX_COUNTER_RETENTION_DAYS,
+plus Hard-Cap KNX_RAW_HARD_CAP_ROWS.
 """
 
 from __future__ import annotations
@@ -13,6 +18,11 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from ..const import (
+    DEFAULT_KNX_COUNTER_RETENTION_DAYS,
+    DEFAULT_KNX_RAW_RETENTION_HOURS,
+    KNX_RAW_HARD_CAP_ROWS,
+)
 from ..helpers import fire_message_added
 from ..processing.anomaly import SourceMetricsRepository, is_anomaly, update
 from ..processing.heartbeat import HeartbeatRepository, is_silent
@@ -99,8 +109,36 @@ async def _run_anomaly_tick(
         _LOGGER.warning("anomaly tick failed: %s", err)
 
 
+async def _run_knx_stats_cleanup(database: Any) -> None:
+    """Iter 24: cleanup-Job fuer knx_raw_telegrams + knx_telegram_counters."""
+    from ..storage.knx_stats_repo import KnxStatsRepository  # noqa: PLC0415
+
+    repo = KnxStatsRepository(database)
+    now = datetime.now(UTC)
+    raw_cutoff = (now - timedelta(hours=DEFAULT_KNX_RAW_RETENTION_HOURS)).isoformat(
+        timespec="seconds"
+    )
+    counter_cutoff = (now - timedelta(days=DEFAULT_KNX_COUNTER_RETENTION_DAYS)).strftime(
+        "%Y-%m-%dT%H:00:00"
+    )
+    try:
+        deleted_raw = await repo.cleanup_raw_older_than(raw_cutoff)
+        deleted_capped = await repo.cleanup_raw_hard_cap(KNX_RAW_HARD_CAP_ROWS)
+        deleted_counter = await repo.cleanup_counters_older_than(counter_cutoff)
+        if deleted_raw or deleted_capped or deleted_counter:
+            _LOGGER.info(
+                "knx-stats cleanup: raw=%d (cap=%d), counters=%d",
+                deleted_raw,
+                deleted_capped,
+                deleted_counter,
+            )
+    except (ValueError, RuntimeError) as err:
+        _LOGGER.warning("knx-stats cleanup failed: %s", err)
+
+
 def async_register_periodic_jobs(hass: HomeAssistant, database: Any, repository: Any) -> Any:
-    """Registriert Heartbeat + Anomaly-Tick (alle 60 s)."""
+    """Registriert Heartbeat + Anomaly-Tick (alle 60 s) + KNX-Stats-Cleanup
+    (alle 6 h)."""
     # HA-Eventbus-Helper bleibt lazy: Tests instanziieren Periodic-Jobs
     # ohne vollstaendigen HA-Stack.
     from homeassistant.helpers.event import async_track_time_interval  # noqa: PLC0415
@@ -114,11 +152,18 @@ def async_register_periodic_jobs(hass: HomeAssistant, database: Any, repository:
     async def _anomaly_tick(_now: Any) -> None:
         await _run_anomaly_tick(hass, repository, database, metrics_repo)
 
+    async def _knx_cleanup_tick(_now: Any) -> None:
+        await _run_knx_stats_cleanup(database)
+
     unsub_hb = async_track_time_interval(hass, _heartbeat_tick, timedelta(seconds=60))
     unsub_an = async_track_time_interval(hass, _anomaly_tick, timedelta(seconds=60))
+    unsub_cleanup = async_track_time_interval(
+        hass, _knx_cleanup_tick, timedelta(hours=6)
+    )
 
     def _unsub() -> None:
         unsub_hb()
         unsub_an()
+        unsub_cleanup()
 
     return _unsub

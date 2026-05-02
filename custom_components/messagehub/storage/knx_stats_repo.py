@@ -312,6 +312,52 @@ class KnxStatsRepository:
             )
         return out
 
+    # --- Cleanup (Iter 24) --------------------------------------------------
+
+    async def cleanup_raw_older_than(self, cutoff_iso: str) -> int:
+        """Loescht alle knx_raw_telegrams aelter als cutoff_iso.
+
+        Liefert die Anzahl der geloeschten Zeilen — fuer Logging.
+        """
+        cursor = await self._db.connection.execute(
+            "DELETE FROM knx_raw_telegrams WHERE timestamp < ?", (cutoff_iso,)
+        )
+        await self._db.connection.commit()
+        deleted = cursor.rowcount or 0
+        await cursor.close()
+        return int(deleted)
+
+    async def cleanup_raw_hard_cap(self, max_rows: int) -> int:
+        """DoS-Schutz: behaelt nur die juengsten max_rows Zeilen.
+
+        Wird zusaetzlich zur Zeit-basierten Retention angewandt.
+        """
+        if max_rows <= 0:
+            return 0
+        cursor = await self._db.connection.execute(
+            "DELETE FROM knx_raw_telegrams WHERE id IN ("
+            "  SELECT id FROM knx_raw_telegrams "
+            "  ORDER BY timestamp DESC, id DESC "
+            "  LIMIT -1 OFFSET ?"
+            ")",
+            (max_rows,),
+        )
+        await self._db.connection.commit()
+        deleted = cursor.rowcount or 0
+        await cursor.close()
+        return int(deleted)
+
+    async def cleanup_counters_older_than(self, cutoff_iso: str) -> int:
+        """Loescht knx_telegram_counters mit hour_bucket < cutoff_iso."""
+        cursor = await self._db.connection.execute(
+            "DELETE FROM knx_telegram_counters WHERE hour_bucket < ?",
+            (cutoff_iso,),
+        )
+        await self._db.connection.commit()
+        deleted = cursor.rowcount or 0
+        await cursor.close()
+        return int(deleted)
+
     # --- Raw-Erfassung (Iter 21, bus-weit) ----------------------------------
 
     async def insert_raw(
