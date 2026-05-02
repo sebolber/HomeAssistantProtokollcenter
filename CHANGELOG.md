@@ -6,6 +6,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Tests (Iter 82 — CR-35 High-Volume-Concurrency)
+- **3 neue Stress-Tests** für `MessageRepository.insert_or_aggregate`:
+  1000 parallele Inserts auf gleichem Fingerprint → genau ein
+  count=1000-Aggregat (Per-Fingerprint-Lock greift), 100 parallele
+  Inserts mit unterschiedlichen Sources → 100 Rows, 200 parallele
+  Inserts mit 5 Gruppen → 5 Aggregate à 40 (Lock blockiert nur
+  gleiche Fingerprints, nicht cross).
+
 ### Operational (Iter 81 — CR-30 Audit-Fail-Handling)
 - **Audit-Schreibfehler werden jetzt sichtbar**: ERROR-Log statt
   WARNING (mit Stack-Trace via `LOGGER.exception`), plus

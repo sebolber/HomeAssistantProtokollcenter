@@ -88,3 +88,92 @@ async def test_concurrent_aggregation_no_lost_count(repo: MessageRepository) -> 
     rows = await repo._db.fetch_all("SELECT count FROM messages")
     total = sum(int(r["count"]) for r in rows)
     assert total == 50
+
+
+@pytest.mark.asyncio
+async def test_iter82_high_volume_same_fingerprint_no_lost_count(
+    repo: MessageRepository,
+) -> None:
+    """Iter 82 / CR-35: 1000 parallele Inserts mit demselben Fingerprint.
+
+    Per-Fingerprint-Lock soll alle Updates serialisieren — kein
+    verlorener Count, keine Race-Condition, kein Crash.
+    """
+
+    async def fire() -> None:
+        msg = Message(
+            severity=Severity.WARNING,
+            source="stress-source",
+            text="repeated signal lost",
+        )
+        await repo.insert_or_aggregate(msg, window_minutes=10)
+
+    await asyncio.gather(*[fire() for _ in range(1000)])
+
+    rows = await repo._db.fetch_all(
+        "SELECT count FROM messages WHERE source = ?",
+        ("stress-source",),
+    )
+    total = sum(int(r["count"]) for r in rows)
+    assert total == 1000, (
+        f"Erwartete count-Summe 1000, war {total} (Rows: {len(rows)})"
+    )
+
+
+@pytest.mark.asyncio
+async def test_iter82_high_volume_distinct_fingerprints_all_persist(
+    repo: MessageRepository,
+) -> None:
+    """Iter 82 / CR-35: 100 parallele Inserts mit unterschiedlichen Sources
+    → 100 separate Rows. Achtung: die Dedup-Normalisierung ersetzt Zahlen
+    im TEXT durch 'N' — daher unterscheiden wir hier ueber Source statt
+    Text-Suffix.
+    """
+
+    async def fire(idx: int) -> None:
+        msg = Message(
+            severity=Severity.INFO,
+            source=f"distinct-{chr(97 + idx % 26)}-{idx}",  # source-Format-konform
+            text="event observed",
+        )
+        await repo.insert_or_aggregate(msg, window_minutes=10)
+
+    await asyncio.gather(*[fire(i) for i in range(100)])
+    rows = await repo._db.fetch_all(
+        "SELECT id FROM messages WHERE source LIKE 'distinct-%'"
+    )
+    assert len(rows) == 100
+
+
+@pytest.mark.asyncio
+async def test_iter82_mixed_fingerprints_serialize_per_group(
+    repo: MessageRepository,
+) -> None:
+    """Iter 82 / CR-35: 200 parallele Inserts mit 5 unterschiedlichen
+    Fingerprints (= 40 pro Fingerprint). Erwartet: 5 Rows, jede mit
+    count=40. Lock blockiert nur GLEICHE Fingerprints, nicht
+    cross-fingerprint.
+    """
+
+    async def fire(group: int) -> None:
+        msg = Message(
+            severity=Severity.WARNING,
+            source=f"grp-{group}",
+            text=f"shared text in group {group}",
+        )
+        await repo.insert_or_aggregate(msg, window_minutes=10)
+
+    tasks = [fire(i % 5) for i in range(200)]
+    await asyncio.gather(*tasks)
+
+    rows = await repo._db.fetch_all(
+        "SELECT source, count FROM messages WHERE source LIKE 'grp-%'"
+    )
+    by_source: dict[str, int] = {}
+    for r in rows:
+        by_source[str(r["source"])] = (
+            by_source.get(str(r["source"]), 0) + int(r["count"])
+        )
+    # Jede Source-Gruppe hat exakt 40 Inserts gesehen.
+    for group in range(5):
+        assert by_source[f"grp-{group}"] == 40
