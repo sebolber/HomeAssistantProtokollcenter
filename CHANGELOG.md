@@ -4,6 +4,110 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.6.0] – 2026-05-02
+
+Quality-/Architektur-Release. Kein neues UI-Feature — dafür breite
+Code-Hygiene-Iteration: Sonar-Sweep, Cognitive-Complexity-Refactors
+und ein neuer REST-Endpoint für gezielte MTTR-Abfragen.
+
+### Hinzugefügt
+
+- **REST-Endpoint** `GET /api/messagehub/mttr?days=N` (default 30, max 365)
+  liefert Mean-Time-To-Resolution pro Source als eigener Endpoint.
+  Frontends/Skripte können MTTR jetzt abfragen, ohne den ganzen
+  `stats-extended`-Block zu laden.
+- **HACS-Polish**: `info.md` (HACS-Beschreibung) und
+  `strings.json`-Translations für den Config-Flow.
+- **`processing/knx_discovery.py`**: KNX-Discovery-Logik aus dem
+  HTTP-Layer in den Business-Logic-Layer extrahiert. Pure Funktionen
+  ohne aiohttp-Abhängigkeit, damit unit-testbar.
+
+### Geändert (Refactor)
+
+- **api/knx.py** schrumpft von 292 LOC auf 130 LOC — alle Discovery-
+  Helfer in `processing/knx_discovery.py` ausgelagert.
+- **api/_helpers.py**: gemeinsame View-Basis (`RequireAdminView`,
+  Error-Konstanten, Audit-Helper) für alle API-Module.
+- **`__init__.py`** drei high-Cognitive-Complexity-Funktionen zerlegt:
+  - `_async_register_remediation_listener` (22 → unter 15) durch
+    `_RemediationHookCache` und `_execute_remediation_hook`.
+  - `_async_register_knx_listener` (19 → unter 15) durch
+    `_log_knx_event` und `_build_knx_message`.
+  - `_async_register_periodic_jobs` (24 → unter 15) durch vier
+    benannte Helfer (`_run_heartbeat_tick`, `_handle_silent_heartbeat`,
+    `_run_anomaly_tick`, `_handle_anomaly_row`).
+- **`KnxAddress.to_dict()`** ist jetzt single source of truth für
+  JSON-Serialisierung — kein duplizierter Code mehr in den Views.
+- **`processing/knx_dpt.py`**: Magic-Numbers durch benannte Konstanten
+  ersetzt (DPT-IDs, Boolean-Bitmask, Datum-Offsets).
+- **`api/_parse_int_param`**: gemeinsamer Helfer für Query-Parameter-
+  Parsing mit Range-Validierung und Logging bei Silent-Fallback.
+- **Bash-Skripte** unter `scripts/`: 35× `[ ... ]` → `[[ ... ]]` (Sonar
+  S6294); compound `[ A ] && [ B ]` zu `[[ A && B ]]` zusammengezogen.
+
+### Behoben
+
+- **Frontend-Bug** in `messagehub-panel.ts:_bulkDelete`: redundante
+  Ternary `scope === "all" ? this._total : this._total` (beide Zweige
+  gaben dasselbe). Confirm-Label spricht jetzt korrekt von „bis zu N"
+  bei gefiltertem Scope.
+- **TypeScript-Build-Bug** in `tests/knx-filter.test.ts`: `Promise<boolean>`
+  vs. `Promise<void>`-Mismatch durch korrektes async/await behoben.
+- **`String.replace(/regex/g, ...)`** an 6 Stellen auf `replaceAll(...)`
+  umgestellt (`webhook-form.ts`, `detail-pane.ts`).
+- **`Array(24).fill(0)`** in `stats-view.ts` durch
+  `Array.from({length:24}, () => 0)` ersetzt (Sonar S6479).
+- **3 echte async-ohne-await-Findings**:
+  - `_fire_added_async`-Wrapper entfernt (war redundant um sync
+    `_fire_added`).
+  - `_async_register_services` zu `_register_services` umbenannt
+    (sync), `await` beim Aufrufer entfernt.
+  - HA-Plattform-Hooks (`async_setup_entry` in `binary_sensor.py` und
+    `sensor.py`) mit `// NOSONAR` markiert — Signatur durch HA-API
+    erzwungen, kein await möglich.
+- **`telegram_handler`** (Channel-Forwarder-Polymorphismus mit
+  pushover/ntfy/notify) ebenfalls mit `// NOSONAR` annotiert.
+- **`Math.random()` im Test-Message-Picker** mit `// NOSONAR S2245` und
+  Begründung markiert (nicht-kryptographisch, nur Demo-Variation).
+- **`api/messages.py`**: 6 Error-String-Konstanten am Modul-Anfang
+  ersetzen ~70 duplizierte Literale (`"not initialised"` 30×, `"not
+  found"` 14×, `"invalid id"` 9× etc. — Sonar S1192).
+- **`mypy --strict`** wieder grün: `KnxAddress.to_dict()`-Typ und mehrere
+  `no-any-return`-Issues korrigiert.
+
+### Sicherheit
+
+- **Sonar-Pragmas** für legitime Use-Cases dokumentiert: hardcoded IPs
+  in Tests (S1313 — Tests prüfen IP-Erkennung), `Math.random` in
+  UI-Demo (S2245 — keine Krypto), HA-Plattform-Hooks (HA-API erzwingt
+  async-Signatur).
+- **`sonar-project.properties`** erweitert um pytest-asyncio-False-
+  Positives (S7488 / S6822 für `tests/**/*.py`).
+
+### Tests
+
+- **+25 neue Unit-Tests** in `tests/unit/test_knx_discovery.py` für die
+  acht extrahierten Helfer (find_knx_state, find_project,
+  find_raw_groups, extract_items_from_groups, extract_group_address_entry,
+  extract_dpt, ga_sort_key, discover_knx_project mit allen 4
+  Fallback-Stati).
+- **+1 neuer Frontend-Regression-Test** für den „nur aktive"-Filter in
+  der KNX-Adressliste.
+- **+aiohttp-Mock-Suite** für `notifications/native_adapters.py` —
+  Telegram, Pushover, ntfy ohne echte Netz-Calls testbar.
+- **Stand:** 242 Backend-Tests grün, 80 Frontend-Tests grün.
+
+### Doku
+
+- **README** um „SonarCloud-Setup" für Maintainer ergänzt — erklärt,
+  warum Properties evtl. nicht greifen (Automatic vs. CI-based Analysis)
+  und wie man umstellt.
+- **`docs/configuration.md`** REST-API-Tabelle um den neuen `mttr`-
+  Endpoint ergänzt.
+- **Release-Workflow** mit `softprops/action-gh-release@v2`-Job zum
+  automatischen Anlegen des GitHub-Release aus dem CHANGELOG-Block
+  beim nächsten v*-Tag.
+
 ## [0.5.0] – 2026-05-01
 
 Großes UI-Redesign-Release. Das Panel zieht jetzt durchgängig

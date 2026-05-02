@@ -349,6 +349,7 @@ Alle Endpunkte erfordern Admin-Auth (`Authorization: Bearer <long-lived-token>`)
 | `GET` | `/api/messagehub/sources` | Distinct-Sources-Liste |
 | `GET` | `/api/messagehub/stats` | Total + Severity-Counts (24 h) |
 | `GET` | `/api/messagehub/stats-extended` | Heatmap, Top-Sources |
+| `GET` | `/api/messagehub/mttr?days=N` | Mean-Time-To-Resolution pro Source (default 30 Tage, max 365) |
 | `GET`/`POST` | `/api/messagehub/webhooks` | Webhooks-Liste / Anlegen |
 | `GET`/`PUT`/`DELETE` | `/api/messagehub/webhooks/{id}` | Webhook-Detail |
 | `GET`/`POST` | `/api/messagehub/knx-addresses` | KNX-Adressen / Anlegen / CSV-Import |
