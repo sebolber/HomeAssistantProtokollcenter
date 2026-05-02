@@ -31,10 +31,19 @@ def _invalidate_knx_cache(hass: Any) -> None:
     """Markiert den Hot-Path-Cache als veraltet — naechster Listener-
     Lookup laedt frisch. Wird von jedem CRUD-Endpoint aufgerufen, der
     knx_group_addresses aendert, damit Aenderungen sofort wirken statt
-    erst nach TTL-Ablauf."""
+    erst nach TTL-Ablauf.
+
+    Iter 79 / CR-11: invalidiert auch den Discover-Devices-TTL-Cache,
+    damit ein frisches ETS-Projekt sofort durchschlaegt.
+    """
     cache = hass.data.get(DOMAIN, {}).get("_knx_whitelist_cache")
     if cache is not None:
         cache.invalidate()
+    from ..processing.knx_discovery import (  # noqa: PLC0415
+        invalidate_knx_devices_cache,
+    )
+
+    invalidate_knx_devices_cache()
 
 
 class KnxProjectDiscoveryView(RequireAdminView):

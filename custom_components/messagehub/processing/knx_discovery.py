@@ -217,23 +217,62 @@ def extract_devices(raw_devices: Any) -> list[dict[str, Any]]:
     return items
 
 
+# Iter 79 / CR-11: TTL-Cache fuer discover_knx_devices.
+# discover_knx_devices wird in TopBySource und GaDetail bei jeder
+# Anfrage frisch geparst. Bei 100+ Devices und 3000+ GAs bedeutet das
+# pro Request ein nicht-trivialer Aufwand. ETS-Projekt aendert sich
+# selten — 5 min TTL ist eine sichere Default-Cache-Dauer.
+_KNX_DEVICES_CACHE_TTL_SEC: int = 300
+_knx_devices_cache: dict[int, tuple[float, dict[str, dict[str, Any]]]] = {}
+
+
+def _cache_now() -> float:
+    """Indirection fuer Tests."""
+    import time  # noqa: PLC0415
+
+    return time.monotonic()
+
+
+def invalidate_knx_devices_cache() -> None:
+    """Cache leeren — z. B. nach KnxProjectSyncView (User hat das
+    Projekt aktualisiert).
+    """
+    _knx_devices_cache.clear()
+
+
 async def discover_knx_devices(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
     """Iter 34: Liefert ein Mapping `individual_address -> {manufacturer, name, product}`.
 
     Leeres Dict bei nicht verfuegbarem Projekt — robust gegen fehlende
     KNX-Integration. Wird vom Top-Geraete-Endpoint gerufen, um die
     Source-Adressen zu annotieren.
+
+    Iter 79 / CR-11: TTL-Cache (5 min) auf hass-Identitaet als Key.
     """
+    cache_key = id(hass)
+    cached = _knx_devices_cache.get(cache_key)
+    now = _cache_now()
+    if cached is not None and now - cached[0] < _KNX_DEVICES_CACHE_TTL_SEC:
+        return cached[1]
+
     knx_state = find_knx_state(hass)
     if knx_state is None:
-        return {}
-    project = find_project(knx_state)
-    if project is None:
-        return {}
-    raw = find_raw_devices(project)
-    if not raw:
-        return {}
-    return {entry["individual_address"]: entry for entry in extract_devices(raw)}
+        result: dict[str, dict[str, Any]] = {}
+    else:
+        project = find_project(knx_state)
+        if project is None:
+            result = {}
+        else:
+            raw = find_raw_devices(project)
+            if not raw:
+                result = {}
+            else:
+                result = {
+                    entry["individual_address"]: entry
+                    for entry in extract_devices(raw)
+                }
+    _knx_devices_cache[cache_key] = (now, result)
+    return result
 
 
 async def discover_knx_project(hass: HomeAssistant) -> tuple[list[dict[str, Any]], str]:

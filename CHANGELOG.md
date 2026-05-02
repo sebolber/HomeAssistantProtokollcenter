@@ -6,6 +6,20 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Performance (Iter 79 — CR-11 Cache + CR-13 Index)
+- **CR-11 TTL-Cache für `discover_knx_devices`** (5 min). Wird in
+  `KnxStatsTopBySourceView` und `KnxStatsGaDetailView` bei jedem
+  Request gerufen — bei 100+ Devices vorher pro Request frisch
+  geparst. Cache-Key = `id(hass)`. Invalidierung beim
+  `_invalidate_knx_cache`-Pfad (KNX-Project-Sync, GA-Edit, etc.) →
+  ETS-Änderungen schlagen sofort durch.
+- 5 neue Backend-Tests in `test_knx_discovery_cache.py`.
+- **CR-13 Partieller Index** auf `knx_ga_acknowledgements.expires_at`
+  WHERE expires_at IS NOT NULL (Migration 0022). `ack_active_set`
+  filtert über `expires_at IS NULL OR expires_at >= ?` — der
+  NOT-NULL-Branch profitiert vom Index. Partiell, weil sticky-Acks
+  (NULL) eh den IS-NULL-Branch nutzen.
+
 ### Performance (Iter 78 — CR-9 Bulk-INSERT für `ack_set_bulk`)
 - **`Database.executemany`** als neue Bulk-Variante zu `execute` (ein
   einziger fsync-Commit über N Rows). Bei `ack_set_bulk` mit 100 GAs
