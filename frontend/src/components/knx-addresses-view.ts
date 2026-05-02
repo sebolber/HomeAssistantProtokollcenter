@@ -1120,8 +1120,8 @@ export class KnxAddressesView extends LitElement {
       th {
         background: var(--mh-bg);
         font-size: var(--mh-text-xs);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        /* Iter 57: Sentence-Case statt CAPS-Lock — leserlicher */
+        letter-spacing: 0.02em;
         color: var(--mh-fg-muted);
         font-weight: var(--mh-weight-semibold);
         position: sticky;

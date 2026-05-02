@@ -241,6 +241,43 @@ describe("stats-knx-view top table + detail pane", () => {
     expect(ackPill!.textContent).toContain("bekannt");
   });
 
+  it("Iter 57: Top-Geraete-Tabelle hat sortierbare Header", async () => {
+    const api = makeApi();
+    const el = await mount(api);
+    // Top-Geraete ist die zweite Tabelle (erscheint, wenn topBySource items hat)
+    const tables = el.shadowRoot!.querySelectorAll(".table-wrap table");
+    expect(tables.length).toBeGreaterThanOrEqual(2);
+    const devicesTable = tables[1];
+    const sortableHeaders = devicesTable.querySelectorAll("th.sortable");
+    // 3 sortierbar: Geraet, GAs, Telegramme
+    expect(sortableHeaders.length).toBe(3);
+    // Default-Sortierung ist count desc -> Pfeil ▼ in Telegramme-Header
+    const arrows = devicesTable.querySelectorAll("th .sort-arrow");
+    expect(arrows.length).toBe(1);
+    expect(arrows[0].textContent).toBe("▼");
+  });
+
+  it("Iter 57: Klick auf 'Geraet'-Header sortiert nach Source asc", async () => {
+    const api = makeApi();
+    const el = await mount(api);
+    const tables = el.shadowRoot!.querySelectorAll(".table-wrap table");
+    const devicesTable = tables[1];
+    const headers = Array.from(devicesTable.querySelectorAll("th.sortable"));
+    const geraetHeader = headers[0] as HTMLElement;
+    geraetHeader.click();
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    // Erste Zeile sollte 1.1.220 sein (lex-kleiner als 1.1.5 — string-Sort!)
+    // Mock-Daten: 1.1.220 (count 600), 1.1.5 (count 50). String-asc:
+    // "1.1.220" < "1.1.5" laut localeCompare -> 1.1.220 zuerst.
+    const firstRowGa = devicesTable.querySelector(
+      "tbody tr code.ga"
+    )?.textContent;
+    expect(firstRowGa).toBe("1.1.220");
+    const arrows = devicesTable.querySelectorAll("th .sort-arrow");
+    // Pfeil sollte jetzt am Geraet-Header haengen, asc
+    expect(arrows[0].textContent).toBe("▲");
+  });
+
   it("oeffnet Detail-Pane bei Klick auf Zeile", async () => {
     const api = makeApi();
     const el = await mount(api);

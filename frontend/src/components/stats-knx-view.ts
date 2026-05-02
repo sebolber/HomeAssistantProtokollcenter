@@ -123,6 +123,10 @@ export class StatsKnxView extends LitElement {
   // weiter auf; false = ressourcen-sparend, aber keine neuen Daten.
   @state() private _busAnalysisEnabled: boolean = true;
   @state() private _busAnalysisLoaded: boolean = false;
+  // Iter 57: Sortierung der Top-Geraete-Tabelle. Default: count desc
+  // (haeufigster Sender oben).
+  @state() private _devicesSortKey: "dev_source" | "ga_count" | "count" = "count";
+  @state() private _devicesSortDir: "asc" | "desc" = "desc";
   // Iter 51: Sichtbarkeit fuer einzeln gefailte Endpunkte. Vorher hat
   // .catch(() => null) Fehler stillschweigend geschluckt — und der User
   // sah leere Cards, ohne zu wissen warum. Jetzt: Banner mit Liste der
@@ -1266,25 +1270,79 @@ export class StatsKnxView extends LitElement {
     `;
   }
 
+  // Iter 57: Sortier-Klick toggelt Richtung bei gleichem Key, sonst
+  // wechselt auf den neuen Key mit desc als Default (haeufigste Werte
+  // oben — typisch fuer "Top-N"-Tabellen).
+  private _toggleDevicesSort(
+    key: "dev_source" | "ga_count" | "count"
+  ): void {
+    if (this._devicesSortKey === key) {
+      this._devicesSortDir = this._devicesSortDir === "desc" ? "asc" : "desc";
+    } else {
+      this._devicesSortKey = key;
+      this._devicesSortDir = key === "dev_source" ? "asc" : "desc";
+    }
+  }
+
+  private _sortArrow(
+    activeKey: string,
+    columnKey: string,
+    dir: "asc" | "desc"
+  ): TemplateResult | typeof nothing {
+    if (activeKey !== columnKey) return nothing;
+    return html`<span class="sort-arrow" aria-hidden="true">${dir === "desc" ? "▼" : "▲"}</span>`;
+  }
+
   private _renderTopBySource(): TemplateResult {
     // Iter 45 (N6): Slice nutzt jetzt topNDevices statt fester 25.
+    // Iter 57: vor dem Slice noch sortieren — Backend liefert per
+    // count desc, aber der User soll Telegramme/GAs/Source frei waehlen.
     const limit = this._filters.topNDevices;
+    const sortKey = this._devicesSortKey;
+    const sortDir = this._devicesSortDir;
+    const sorted = [...this._topBySource].sort((a, b) => {
+      let cmp: number;
+      if (sortKey === "dev_source") {
+        cmp = a.dev_source.localeCompare(b.dev_source);
+      } else {
+        cmp = (a[sortKey] || 0) - (b[sortKey] || 0);
+      }
+      return sortDir === "desc" ? -cmp : cmp;
+    });
     return html`
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>Geraet (Source)</th>
+              <th
+                class="sortable"
+                @click=${() => this._toggleDevicesSort("dev_source")}
+                title="Nach Source-Adresse sortieren"
+              >
+                Geraet (Source)${this._sortArrow(sortKey, "dev_source", sortDir)}
+              </th>
               <th>Hersteller / Modell</th>
-              <th class="num">GAs</th>
-              <th class="num">Telegramme</th>
+              <th
+                class="num sortable"
+                @click=${() => this._toggleDevicesSort("ga_count")}
+                title="Nach GA-Anzahl sortieren"
+              >
+                GAs${this._sortArrow(sortKey, "ga_count", sortDir)}
+              </th>
+              <th
+                class="num sortable"
+                @click=${() => this._toggleDevicesSort("count")}
+                title="Nach Telegramm-Anzahl sortieren"
+              >
+                Telegramme${this._sortArrow(sortKey, "count", sortDir)}
+              </th>
               <th class="num">Anteil</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            ${this._topBySource.slice(0, limit).map((row, idx) => {
+            ${sorted.slice(0, limit).map((row, idx) => {
               const total = this._summary?.total_telegrams ?? 0;
               const pct = total > 0 ? (row.count / total) * 100 : 0;
               const manufacturer = row.manufacturer ?? "";
@@ -1594,8 +1652,8 @@ export class StatsKnxView extends LitElement {
       .filter-label {
         font-size: var(--mh-text-xs);
         color: var(--mh-fg-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+        /* Iter 57: Sentence-Case statt CAPS-Lock */
+        letter-spacing: 0.02em;
         font-weight: var(--mh-weight-semibold);
       }
       .seg {
@@ -1702,8 +1760,8 @@ export class StatsKnxView extends LitElement {
       .kpi-label {
         font-size: var(--mh-text-xs);
         color: var(--mh-fg-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        /* Iter 57: Sentence-Case statt CAPS-Lock */
+        letter-spacing: 0.02em;
         font-weight: var(--mh-weight-semibold);
       }
       .kpi-value {
@@ -2109,12 +2167,25 @@ export class StatsKnxView extends LitElement {
       th {
         background: var(--mh-surface);
         font-size: var(--mh-text-xs);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        /* Iter 57: Sentence-Case statt uppercase — liest sich ruhiger
+         * und harmoniert besser mit dem deutschen Label-Set. */
+        letter-spacing: 0.02em;
         color: var(--mh-fg-muted);
         font-weight: var(--mh-weight-semibold);
         position: sticky;
         top: 0;
+      }
+      /* Iter 57: sortierbare Header — visueller Hint via Cursor + Sort-Pfeil */
+      th.sortable {
+        cursor: pointer;
+        user-select: none;
+      }
+      th.sortable:hover {
+        color: var(--mh-fg);
+      }
+      th.sortable .sort-arrow {
+        margin-left: 4px;
+        opacity: 0.6;
       }
       tbody tr {
         cursor: pointer;
