@@ -4,6 +4,39 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.9.5] – 2026-05-02
+
+KNX-Listener-Refactor. Beseitigt die laestige Doppelt-Konfiguration
+zwischen messagehub-GA-Whitelist und HA-KNX `event:`-Liste.
+
+### Geändert
+
+- **KNX-Listener haengt direkt am xknx-Telegram-Stream** statt am
+  HA-Eventbus `knx_event`. Die HA-KNX-Integration legt eine
+  `xknx`-Instance in `hass.data["knx"]` ab, dort registrieren wir
+  via `xknx.telegram_queue.register_telegram_received_cb()` einen
+  Callback. Damit:
+  - **Keine `event:`-Konfig in `configuration.yaml` mehr noetig** — die
+    messagehub-GA-Whitelist ist single source of truth.
+  - **Kein "event: \"*\"" mehr noetig** — du erfaesst exakt die GAs,
+    die du im Panel auf "Loggen=ON" gestellt hast.
+  - **Kein Performance-Spam** — alle anderen Telegramme werden im
+    Adapter direkt verworfen, bevor sie zum HA-Eventbus durchschlagen.
+- **Fallback** auf den alten `knx_event`-Listener, falls die xknx-
+  Instance auf einer ungewohnten HA-Version nicht erreichbar ist.
+  In dem Fall steht jetzt eine WARN-Zeile im Log mit Konfig-Hinweis.
+
+### Hinzugefügt
+
+- **`_telegram_to_knx_event_data()`**: Adapter zwischen xknx-Telegram-
+  Objekten und dem knx_event-Schema, damit `_build_knx_message()`
+  beide Quellen einheitlich verarbeitet.
+- **`_get_xknx_instance()`**: Best-effort-Lookup der xknx-Instance
+  aus `hass.data["knx"]` (KNXModule-Attribut oder dict-Form).
+- **7 neue Unit-Tests** in `tests/unit/test_knx_telegram_adapter.py`
+  (GroupValueWrite/Read/Response, raw-Value-Fallback, fehlende
+  Payloads, unbekannte Payload-Typen).
+
 ## [0.9.4] – 2026-05-02
 
 Setup-Stabilitaets-Patch.

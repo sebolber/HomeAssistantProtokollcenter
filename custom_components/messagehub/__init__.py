@@ -505,6 +505,29 @@ def _log_knx_event(seen_first: dict[str, bool], ga: str, data: dict[str, Any]) -
         _LOGGER.debug("knx_event ga=%s data=%s", ga, data)
 
 
+def _telegram_to_knx_event_data(telegram: Any) -> dict[str, Any]:
+    """Wandelt ein xknx-Telegram-Objekt in das knx_event-Datenschema um.
+
+    Damit kann _build_knx_message() weiterhin auf einer einheitlichen
+    Datenstruktur arbeiten — egal ob das Telegramm aus dem
+    HA-Eventbus oder direkt aus dem xknx-Telegram-Hook kommt.
+    """
+    payload = getattr(telegram, "payload", None)
+    payload_type = type(payload).__name__ if payload is not None else None
+    # Telegram-Typ-Strings wie sie HA-KNX im knx_event verwendet:
+    # "GroupValueWrite", "GroupValueRead", "GroupValueResponse"
+    telegramtype = payload_type if payload_type and payload_type.startswith("GroupValue") else None
+    value = getattr(payload, "value", None)
+    raw = getattr(payload, "raw_value", None) or getattr(payload, "value_raw", None)
+    return {
+        "destination": str(getattr(telegram, "destination_address", "")),
+        "source": str(getattr(telegram, "source_address", "")),
+        "telegramtype": telegramtype,
+        "value": value,
+        "data": raw,
+    }
+
+
 def _build_knx_message(cfg: Any, data: dict[str, Any]) -> Any:
     """Baut die Message-DTO aus knx_event-Payload + GA-Konfiguration."""
     from .processing.knx_dpt import format_value as format_knx_value  # noqa: PLC0415
@@ -533,37 +556,105 @@ def _build_knx_message(cfg: Any, data: dict[str, Any]) -> Any:
     )
 
 
+def _get_xknx_instance(hass: HomeAssistant) -> Any:
+    """Best-effort: holt die xknx-Instance aus der HA-KNX-Integration.
+
+    HA-KNX legt eine KNXModule-Instanz mit .xknx in hass.data['knx'] ab.
+    Aeltere Versionen nutzen ein dict mit key 'xknx' direkt.
+    Wenn nichts gefunden wird, kommt None zurueck — Caller faellt
+    dann auf den knx_event-Bus zurueck.
+    """
+    knx_data = hass.data.get("knx")
+    if knx_data is None:
+        return None
+    # Variante 1: KNXModule-Objekt mit Attribut xknx
+    xknx = getattr(knx_data, "xknx", None)
+    if xknx is not None:
+        return xknx
+    # Variante 2: dict-Form
+    if isinstance(knx_data, dict):
+        return knx_data.get("xknx")
+    return None
+
+
 def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository: Any) -> Any:
-    """Iter 48: lauscht auf knx_event und loggt nur GAs, die in
+    """Lauscht auf KNX-Telegramme und loggt nur GAs, die in
     knx_group_addresses mit log_enabled=1 hinterlegt sind.
 
-    Voraussetzung: HA-KNX-Integration ist mit IP-Tunneling/Routing
-    konfiguriert. Sie feuert pro Telegramm 'knx_event' mit den Feldern
-    destination (Gruppenadresse), source (Geraete-Adresse), telegramtype,
-    value, data."""
+    Primaer: direkter Hook in xknx.telegram_queue — damit braucht der
+    User keine 'event:'-Konfiguration in der HA-KNX-Integration. Die
+    messagehub-GA-Whitelist ist single source of truth, kein Doppelt-
+    Pflegen, kein 'event: "*"'-Spam.
+
+    Fallback: HA-Eventbus 'knx_event' — fuer Faelle, in denen die
+    xknx-Instance nicht ueber hass.data zugaenglich ist (z. B.
+    HA-Versionen mit anderer KNX-Modul-Struktur).
+    """
     from .processing.knx_repo import KnxAddressRepository  # noqa: PLC0415
 
     knx_repo = KnxAddressRepository(database)
-    seen_first_event = {"flag": False}
+    seen_first = {"flag": False}
+
+    async def _ingest(data: dict[str, Any]) -> None:
+        """Gemeinsamer Pfad fuer Telegram-Data — egal aus welcher Quelle."""
+        ga = str(data.get("destination") or "").strip()
+        _log_knx_event(seen_first, ga, data)
+        if not ga:
+            return
+        cfg = await knx_repo.get(ga)
+        if cfg is None:
+            _LOGGER.debug("knx %s: GA nicht in messagehub-Whitelist", ga)
+            return
+        if not cfg.log_enabled:
+            _LOGGER.debug("knx %s: log_enabled=0, skip", ga)
+            return
+        msg = _build_knx_message(cfg, data)
+        await repository.insert_or_aggregate(msg, window_minutes=10)
+        _fire_added(hass, msg)
+        _LOGGER.info("messagehub knx-bus: %s -> %s [%s]", ga, msg.text, msg.severity)
+
+    # ---- Primaer: xknx-Telegram-Hook ----
+    xknx = _get_xknx_instance(hass)
+    if xknx is not None:
+        try:
+            queue = getattr(xknx, "telegram_queue", None) or getattr(xknx, "telegrams", None)
+            if queue is not None and hasattr(queue, "register_telegram_received_cb"):
+
+                async def _on_telegram(telegram: Any) -> None:
+                    try:
+                        await _ingest(_telegram_to_knx_event_data(telegram))
+                    except (ValueError, TypeError, KeyError) as err:
+                        _LOGGER.debug("knx telegram ingest skipped: %s", err)
+
+                queue.register_telegram_received_cb(_on_telegram)
+                _LOGGER.info(
+                    "messagehub: KNX-Listener via xknx-Telegram-Hook aktiv "
+                    "(keine 'event:'-Konfig in HA-KNX noetig)"
+                )
+
+                def _unsub_xknx() -> None:
+                    try:
+                        queue.unregister_telegram_received_cb(_on_telegram)
+                    except (ValueError, AttributeError, TypeError) as err:
+                        _LOGGER.debug("xknx unregister skipped: %s", err)
+
+                return _unsub_xknx
+        except (AttributeError, TypeError) as err:
+            _LOGGER.warning(
+                "messagehub: xknx-Hook nicht verfuegbar (%s) — "
+                "falle auf knx_event-Bus zurueck",
+                err,
+            )
+
+    # ---- Fallback: HA-Eventbus 'knx_event' ----
+    _LOGGER.warning(
+        "messagehub: kein xknx-Hook moeglich — falle auf knx_event-Bus zurueck. "
+        "Damit Telegramme ankommen, in configuration.yaml 'knx: event: <ga-liste>' eintragen."
+    )
 
     async def _on_knx_event(event: Any) -> None:
         try:
-            data = dict(event.data)
-            ga = str(data.get("destination") or "").strip()
-            _log_knx_event(seen_first_event, ga, data)
-            if not ga:
-                return
-            cfg = await knx_repo.get(ga)
-            if cfg is None:
-                _LOGGER.debug("knx_event %s: GA nicht in messagehub-Whitelist", ga)
-                return
-            if not cfg.log_enabled:
-                _LOGGER.debug("knx_event %s: log_enabled=0, skip", ga)
-                return
-            msg = _build_knx_message(cfg, data)
-            await repository.insert_or_aggregate(msg, window_minutes=10)
-            _fire_added(hass, msg)
-            _LOGGER.info("messagehub knx-bus: %s -> %s [%s]", ga, msg.text, msg.severity)
+            await _ingest(dict(event.data))
         except (ValueError, TypeError, KeyError) as err:
             _LOGGER.debug("knx_event ingest skipped: %s", err)
 

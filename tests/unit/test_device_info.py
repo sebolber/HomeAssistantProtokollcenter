@@ -27,7 +27,7 @@ def test_build_device_info_carries_metadata() -> None:
     assert info["name"] == DEVICE_NAME
     assert info["manufacturer"] == DEVICE_MANUFACTURER
     assert info["model"] == DEVICE_MODEL
-    assert info["configuration_url"] == "/messagehub"
+    assert info["configuration_url"] == "homeassistant://navigate/messagehub"
 
 
 def test_build_device_info_is_consistent_across_calls() -> None:
