@@ -139,44 +139,57 @@ def format_value(dpt: str | None, value: Any) -> str:  # noqa: PLR0911, PLR0912
 
 _DOW_LABELS = ["", "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 
+# DPT 10.001 / 11.001 — feste Tupel-Laengen
+_TIME_TUPLE_LEN = 3
+_DATE_TUPLE_LEN = 3
+# DPT 19.001 — mindestens 6 Byte (year, month, day, b3, min, sec); Bytes 7+8 sind Flags
+_DATETIME_TUPLE_MIN_LEN = 6
+# Datums-Pivot fuer 2-stellige Jahre: <90 -> 20xx, sonst 19xx
+_YEAR_PIVOT_2DIGIT = 90
+# Wochentag-Codes 1..7 (Mo..So); 0 bedeutet "kein Wochentag in Telegramm"
+_DOW_MIN = 1
+_DOW_MAX = 7
+
 
 def _format_time_of_day(value: Any) -> str:
     """DPT 10.001: (byte0, min, sec) — byte0 = (dow<<5) | hour."""
-    if isinstance(value, tuple) and len(value) == 3:
+    if isinstance(value, tuple) and len(value) == _TIME_TUPLE_LEN:
         try:
             b0, mins, secs = (int(v) for v in value)
         except (TypeError, ValueError):
             return str(value)
         dow = (b0 >> 5) & 0x07
         hours = b0 & 0x1F
-        prefix = f"{_DOW_LABELS[dow]} " if 1 <= dow <= 7 else ""
+        prefix = f"{_DOW_LABELS[dow]} " if _DOW_MIN <= dow <= _DOW_MAX else ""
         return f"{prefix}{hours:02d}:{mins:02d}:{secs:02d}"
     return str(value)
 
 
 def _format_date(value: Any) -> str:
     """DPT 11.001: (day, month, year_2digit)."""
-    if isinstance(value, tuple) and len(value) == 3:
+    if isinstance(value, tuple) and len(value) == _DATE_TUPLE_LEN:
         try:
             day, month, year = (int(v) for v in value)
         except (TypeError, ValueError):
             return str(value)
-        full_year = 2000 + year if year < 90 else 1900 + year
+        full_year = 2000 + year if year < _YEAR_PIVOT_2DIGIT else 1900 + year
         return f"{day:02d}.{month:02d}.{full_year}"
     return str(value)
 
 
 def _format_datetime(value: Any) -> str:
     """DPT 19.001: 8 Byte (year-1900, month, day, dow|hour, min, sec, flags1, flags2)."""
-    if isinstance(value, tuple) and len(value) >= 6:
+    if isinstance(value, tuple) and len(value) >= _DATETIME_TUPLE_MIN_LEN:
         try:
-            year_off, month, day, b3, mins, secs = (int(v) for v in value[:6])
+            year_off, month, day, b3, mins, secs = (
+                int(v) for v in value[:_DATETIME_TUPLE_MIN_LEN]
+            )
         except (TypeError, ValueError):
             return str(value)
         full_year = 1900 + year_off
         dow = (b3 >> 5) & 0x07
         hours = b3 & 0x1F
-        prefix = f"{_DOW_LABELS[dow]} " if 1 <= dow <= 7 else ""
+        prefix = f"{_DOW_LABELS[dow]} " if _DOW_MIN <= dow <= _DOW_MAX else ""
         return f"{prefix}{day:02d}.{month:02d}.{full_year} {hours:02d}:{mins:02d}:{secs:02d}"
     return str(value)
 
