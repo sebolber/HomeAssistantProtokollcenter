@@ -48,10 +48,14 @@ const PERIOD_PRESETS: ReadonlyArray<{ id: string; label: string; days: number }>
 const LONG_TERM_PERIOD_IDS: ReadonlySet<string> = new Set(["7d", "30d", "365d"]);
 
 const TOP_N_OPTIONS = [10, 25, 50, 100] as const;
+// Iter 45 (N6): zwei separate Top-N-Einstellungen, eine fuer die
+// Adress-Tabelle und eine fuer die Geraete-Tabelle. Werden im
+// localStorage persistiert wie alle anderen Filter.
 
 interface UiFilters {
   periodId: string; // einer der PERIOD_PRESETS.id oder "custom"
-  topN: number;
+  topN: number; // Anzahl GAs in "Top-Sender (Gruppenadressen)"
+  topNDevices: number; // Anzahl Geraete in "Top-Geraete (Source-Adressen)"
   minRate: number;
   includeAck: boolean;
 }
@@ -59,6 +63,7 @@ interface UiFilters {
 const DEFAULT_FILTERS: UiFilters = {
   periodId: "24h",
   topN: 50,
+  topNDevices: 25,
   minRate: 1.0,
   includeAck: true,
 };
@@ -175,6 +180,8 @@ export class StatsKnxView extends LitElement {
       const longTermMode = this._isLongTermMode();
       const fLongTerm = this._apiFilters();
       const fRaw = this._liveFiltersForRaw();
+      // Geraete-Tabelle nutzt separate Top-N-Einstellung (Iter 45).
+      const fRawDevices: KnxStatsFilters = { ...fRaw, limit: this._filters.topNDevices };
       const [
         summary,
         top,
@@ -191,7 +198,7 @@ export class StatsKnxView extends LitElement {
       ] = await Promise.all([
         this.api.getKnxStatsSummary(fRaw),
         this.api.getKnxStatsTop(fRaw),
-        this.api.getKnxStatsTopBySource(fRaw),
+        this.api.getKnxStatsTopBySource(fRawDevices),
         this.api.getKnxStatsBusHealth(fRaw),
         this.api.getKnxStatsSilence({
           ...fRaw,
@@ -373,6 +380,30 @@ export class StatsKnxView extends LitElement {
     void this._load();
   }
 
+  private _onTopNDevices(topNDevices: number): void {
+    this._filters = { ...this._filters, topNDevices };
+    saveFilters(this._filters);
+    void this._load();
+  }
+
+  private _renderInlineTopN(
+    current: number,
+    onChange: (n: number) => void
+  ): TemplateResult {
+    return html`
+      <span class="inline-topn" role="group" aria-label="Anzahl Eintraege">
+        ${TOP_N_OPTIONS.map(
+          (n) => html`<button
+            class=${`inline-topn__btn ${current === n ? "active" : ""}`}
+            @click=${() => onChange(n)}
+          >
+            ${n}
+          </button>`
+        )}
+      </span>
+    `;
+  }
+
   private _onMinRate(value: number): void {
     this._filters = { ...this._filters, minRate: Math.max(0, value) };
     saveFilters(this._filters);
@@ -397,20 +428,6 @@ export class StatsKnxView extends LitElement {
                 @click=${() => this._onPeriod(p.id)}
               >
                 ${p.label}
-              </button>`
-            )}
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <span class="filter-label">Top-N</span>
-          <div class="seg">
-            ${TOP_N_OPTIONS.map(
-              (n) => html`<button
-                class=${`seg-btn ${this._filters.topN === n ? "active" : ""}`}
-                @click=${() => this._onTopN(n)}
-              >
-                ${n}
               </button>`
             )}
           </div>
@@ -833,7 +850,10 @@ export class StatsKnxView extends LitElement {
         <section class="mh-card">
           <header class="card-head">
             <h3>Top-Sender (Gruppenadressen)</h3>
-            <span class="muted small">${this._top.length} sichtbar</span>
+            <div class="card-head__meta">
+              ${this._renderInlineTopN(this._filters.topN, (n) => this._onTopN(n))}
+              <span class="muted small">${this._top.length} sichtbar</span>
+            </div>
           </header>
           ${this._renderTopTable()}
         </section>
@@ -842,9 +862,14 @@ export class StatsKnxView extends LitElement {
           ? html`<section class="mh-card">
               <header class="card-head">
                 <h3>Top-Geraete (Source-Adressen)</h3>
-                <span class="muted small">
-                  Welches physische Geraet erzeugt am meisten Last?
-                </span>
+                <div class="card-head__meta">
+                  ${this._renderInlineTopN(this._filters.topNDevices, (n) =>
+                    this._onTopNDevices(n)
+                  )}
+                  <span class="muted small">
+                    Welches physische Geraet erzeugt am meisten Last?
+                  </span>
+                </div>
               </header>
               ${this._renderTopBySource()}
             </section>`
@@ -1117,6 +1142,8 @@ export class StatsKnxView extends LitElement {
   }
 
   private _renderTopBySource(): TemplateResult {
+    // Iter 45 (N6): Slice nutzt jetzt topNDevices statt fester 25.
+    const limit = this._filters.topNDevices;
     return html`
       <div class="table-wrap">
         <table>
@@ -1132,7 +1159,7 @@ export class StatsKnxView extends LitElement {
             </tr>
           </thead>
           <tbody>
-            ${this._topBySource.slice(0, 25).map((row, idx) => {
+            ${this._topBySource.slice(0, limit).map((row, idx) => {
               const total = this._summary?.total_telegrams ?? 0;
               const pct = total > 0 ? (row.count / total) * 100 : 0;
               const manufacturer = row.manufacturer ?? "";
@@ -1489,6 +1516,38 @@ export class StatsKnxView extends LitElement {
         align-items: center;
         gap: var(--mh-space-3);
         margin-bottom: var(--mh-space-3);
+        flex-wrap: wrap;
+      }
+      /* Iter 45 (N6): Inline-Top-N-Selektor in Card-Headern */
+      .card-head__meta {
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-3);
+        flex-wrap: wrap;
+      }
+      .inline-topn {
+        display: inline-flex;
+        gap: 0;
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm);
+        overflow: hidden;
+      }
+      .inline-topn__btn {
+        background: transparent;
+        border: 0;
+        padding: 2px 8px;
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        cursor: pointer;
+        font-variant-numeric: tabular-nums;
+      }
+      .inline-topn__btn:hover {
+        background: var(--mh-bg-hover, rgba(0, 0, 0, 0.04));
+      }
+      .inline-topn__btn.active {
+        background: var(--mh-primary);
+        color: var(--mh-on-primary, white);
+        font-weight: var(--mh-weight-semibold);
       }
       h3 {
         margin: 0;

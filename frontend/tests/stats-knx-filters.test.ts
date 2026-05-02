@@ -163,15 +163,25 @@ describe("stats-knx-view filter bar", () => {
     }
   });
 
-  it("zeigt sieben Periode-Presets, vier Top-N-Optionen und Bekannte-Toggle", async () => {
+  it("zeigt sieben Periode-Presets, Inline-Top-N pro Card und Bekannte-Toggle", async () => {
     // Iter 39: 4 Live-Perioden (1h/6h/24h/48h) + 3 Long-Term (7d/30d/365d)
+    // Iter 45: Top-N ist nicht mehr in der Filter-Bar — pro Card-Header
+    // ein Inline-Selektor mit jeweils 4 Optionen.
     const el = await mount();
     const periods = el.shadowRoot!.querySelectorAll(".filter-group:nth-child(1) .seg-btn");
     expect(periods.length).toBe(7);
-    const topN = el.shadowRoot!.querySelectorAll(".filter-group:nth-child(2) .seg-btn");
-    expect(topN.length).toBe(4);
     const ackToggle = el.shadowRoot!.querySelector("input[type=checkbox]");
     expect(ackToggle).not.toBeNull();
+  });
+
+  it("Iter 45: Inline-Top-N im Header der Top-Sender-Card", async () => {
+    const el = await mount();
+    const inlineTopns = el.shadowRoot!.querySelectorAll(".inline-topn");
+    // Mind. eine fuer Top-Sender (Top-Geraete-Card erscheint nur, wenn
+    // topBySource Items hat — Mock liefert leeres Array)
+    expect(inlineTopns.length).toBeGreaterThanOrEqual(1);
+    const buttons = inlineTopns[0].querySelectorAll(".inline-topn__btn");
+    expect(buttons.length).toBe(4); // 10 / 25 / 50 / 100
   });
 
   it("rendert KPI-Karten aus dem Summary-Result", async () => {
