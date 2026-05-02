@@ -161,3 +161,8 @@ class RequireAdminView(HomeAssistantView):
         user = request.get("hass_user")
         if user is None or not user.is_admin:
             raise web.HTTPForbidden(reason="admin required")
+
+
+# Validatoren liegen in _validation.py (HA-frei, separat testbar).
+# Code, der parse_iso_period/validate_knx_ga braucht, importiert direkt
+# aus ._validation — siehe api/knx_stats.py.
