@@ -4,6 +4,20 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [Unreleased]
+
+### Behoben
+- **KNX-Statistik-Bereiche Burst-Detector, Buslast-KPI, Bus-Health-Score
+  und Sicherheits-Audit lieferten 404.** Die zugehörigen View-Klassen
+  (`KnxStatsBurstsView`, `KnxStatsBusloadView`, `KnxStatsHealthScoreView`,
+  `KnxStatsSensitiveLogView`, `KnxStatsSensitiveSetView`,
+  `KnxStatsLongTermView`, `KnxStatsBusAnalysisStateView`) waren in
+  `api/messages.async_register_views` nicht im Registrierungs-Tuple
+  enthalten und wurden daher beim Setup nie beim HA-HTTP-Layer
+  registriert. Regressionstest (`test_api_view_registration.py`)
+  spiegelt jetzt jede in `api/knx_stats.py` definierte `KnxStats*View`
+  gegen das Registrierungs-Tuple.
+
 ## [0.12.0] – 2026-05-02
 
 Großer KNX-Stats-Release mit 49 Iterationen seit 0.10.2. Komplett
