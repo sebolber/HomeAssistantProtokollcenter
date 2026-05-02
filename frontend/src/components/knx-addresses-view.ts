@@ -13,6 +13,27 @@ const GA_PATTERN = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/;
 const SEVERITY_OPTIONS = ["debug", "info", "warning", "error"] as const;
 const LOG_SEVERITY_OPTIONS = [...SEVERITY_OPTIONS, "auto"] as const;
 
+// Iter 53: Default-Filter "nur aktive". Bei 3000+ GAs sieht der User
+// sonst zuerst tausende inaktive Eintraege und muss scrollen, um
+// seine 45 aktiven zu finden. Wahl wird in localStorage persistiert.
+const STORAGE_KEY_ONLY_ENABLED = "messagehub.knx-addresses.only-enabled";
+
+function loadOnlyEnabled(): boolean {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ONLY_ENABLED);
+    if (raw === null) return true; // Default beim ersten Aufruf
+    return raw === "1" || raw === "true";
+  } catch {
+    return true;
+  }
+}
+
+// Iter 53: ETS-Platzhalter-Eintraege (Label nur aus Strichen oder leer)
+// als Noise filtern. Beispiele aus realen Projekten: "----------",
+// "----", "----- ----- -----". Auch nuetzlich gegen versehentlich
+// importierte Trenner-GAs.
+const PLACEHOLDER_LABEL_RE = /^[\s\-_=]*$/;
+
 @customElement("knx-addresses-view")
 export class KnxAddressesView extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
@@ -20,7 +41,10 @@ export class KnxAddressesView extends LitElement {
   @state() private _items: KnxAddressDto[] = [];
   @state() private _loading = false;
   @state() private _filter = "";
-  @state() private _onlyEnabled = false;
+  @state() private _onlyEnabled = loadOnlyEnabled();
+  // Iter 53: Toggle, ob ETS-Platzhalter-GAs (Label nur Striche/leer)
+  // angezeigt werden. Default: aus, weil sie meist Noise sind.
+  @state() private _hidePlaceholders = true;
   @state() private _newAddr = "";
   @state() private _newLabel = "";
   @state() private _newDpt = "";
@@ -336,6 +360,13 @@ export class KnxAddressesView extends LitElement {
   private _filtered(): KnxAddressDto[] {
     let items = this._items;
     if (this._onlyEnabled) items = items.filter((i) => Boolean(i.log_enabled));
+    if (this._hidePlaceholders) {
+      // Iter 53: ETS-Platzhalter raus, ausser sie sind log_enabled
+      // (User hat sie bewusst aktiv geschaltet — dann nicht filtern).
+      items = items.filter(
+        (i) => Boolean(i.log_enabled) || !PLACEHOLDER_LABEL_RE.test(i.label || "")
+      );
+    }
     const f = this._filter.trim().toLowerCase();
     if (!f) return items;
     return items.filter(
@@ -499,7 +530,7 @@ export class KnxAddressesView extends LitElement {
           <div class="header-actions">
             ${this._discovery.length > 0
               ? html`<button
-                  class="mh-btn mh-btn--primary"
+                  class="mh-btn"
                   title=${`Intelligenter Abgleich: ${this._discovery.length} GAs aus ETS — neue anlegen, geaenderte aktualisieren, fehlende loeschen, unveraenderte unangetastet`}
                   @click=${() => void this._syncFromProject()}
                 >
@@ -581,10 +612,28 @@ export class KnxAddressesView extends LitElement {
             <input
               type="checkbox"
               .checked=${this._onlyEnabled}
-              @change=${(e: Event) =>
-                (this._onlyEnabled = (e.target as HTMLInputElement).checked)}
+              @change=${(e: Event) => {
+                this._onlyEnabled = (e.target as HTMLInputElement).checked;
+                try {
+                  localStorage.setItem(
+                    STORAGE_KEY_ONLY_ENABLED,
+                    this._onlyEnabled ? "1" : "0"
+                  );
+                } catch {
+                  // localStorage nicht verfuegbar -> Wahl nur fuer diese Session
+                }
+              }}
             />
             <span>nur aktive</span>
+          </label>
+          <label class="toggle" title="ETS-Platzhalter ohne Label (z. B. '-----') ausblenden">
+            <input
+              type="checkbox"
+              .checked=${this._hidePlaceholders}
+              @change=${(e: Event) =>
+                (this._hidePlaceholders = (e.target as HTMLInputElement).checked)}
+            />
+            <span>Platzhalter ausblenden</span>
           </label>
           <span class="muted">${items.length} sichtbar</span>
         </div>

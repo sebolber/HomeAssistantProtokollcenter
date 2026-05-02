@@ -64,6 +64,13 @@ async function setOnlyEnabled(el: KnxAddressesView, on: boolean): Promise<void> 
 describe("knx-addresses-view filter 'nur aktive'", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
+    // Iter 53: Default ist jetzt "nur aktive"=true. Tests, die alle
+    // Eintraege sehen wollen, schalten explizit aus.
+    try {
+      localStorage.removeItem("messagehub.knx-addresses.only-enabled");
+    } catch {
+      // ignore
+    }
   });
 
   it("zeigt alle Eintraege wenn Filter aus", async () => {
@@ -71,6 +78,8 @@ describe("knx-addresses-view filter 'nur aktive'", () => {
       makeAddr({ address: "0/0/1", log_enabled: true }),
       makeAddr({ address: "0/0/2", log_enabled: false }),
     ]);
+    // Iter 53: Default ist on -> explizit ausschalten
+    await setOnlyEnabled(el, false);
     const addrs = visibleAddresses(el);
     expect(addrs).toContain("0/0/1");
     expect(addrs).toContain("0/0/2");
@@ -81,7 +90,7 @@ describe("knx-addresses-view filter 'nur aktive'", () => {
       makeAddr({ address: "0/0/1", log_enabled: true }),
       makeAddr({ address: "0/0/2", log_enabled: false }),
     ]);
-    await setOnlyEnabled(el, true);
+    // Default ist on — Filter braucht nicht extra geschaltet werden
     const addrs = visibleAddresses(el);
     expect(addrs).toContain("0/0/1");
     expect(addrs).not.toContain("0/0/2");
@@ -95,7 +104,6 @@ describe("knx-addresses-view filter 'nur aktive'", () => {
       { ...makeAddr({ address: "0/0/2" }), log_enabled: 0 as unknown as boolean },
     ];
     const el = await mount(items);
-    await setOnlyEnabled(el, true);
     const addrs = visibleAddresses(el);
     expect(addrs).toContain("0/0/1");
     expect(addrs).not.toContain("0/0/2");
@@ -106,7 +114,49 @@ describe("knx-addresses-view filter 'nur aktive'", () => {
       makeAddr({ address: "0/0/1", log_enabled: false }),
       makeAddr({ address: "0/0/2", log_enabled: false }),
     ]);
-    await setOnlyEnabled(el, true);
+    // Default-Filter ist on; beide inaktiv -> leer
     expect(visibleAddresses(el)).toEqual([]);
+  });
+
+  it("Iter 53: Default-Filter ist 'nur aktive' beim ersten Aufruf", async () => {
+    const el = await mount([
+      makeAddr({ address: "0/0/1", log_enabled: true }),
+      makeAddr({ address: "0/0/2", log_enabled: false }),
+    ]);
+    const cb = el.shadowRoot!.querySelector(
+      'input[type="checkbox"]'
+    ) as HTMLInputElement;
+    expect(cb.checked).toBe(true);
+  });
+
+  it("Iter 53: Persistiert den Filter-Status in localStorage", async () => {
+    const el = await mount([makeAddr({ address: "0/0/1", log_enabled: true })]);
+    await setOnlyEnabled(el, false);
+    expect(localStorage.getItem("messagehub.knx-addresses.only-enabled")).toBe("0");
+    await setOnlyEnabled(el, true);
+    expect(localStorage.getItem("messagehub.knx-addresses.only-enabled")).toBe("1");
+  });
+
+  it("Iter 53: Filtert ETS-Platzhalter-Labels (z. B. '------')", async () => {
+    const el = await mount([
+      makeAddr({ address: "0/0/1", log_enabled: false, label: "Echtes Label" }),
+      makeAddr({ address: "0/0/2", log_enabled: false, label: "----------" }),
+      makeAddr({ address: "0/0/3", log_enabled: false, label: "  --- ---  " }),
+    ]);
+    // Filter "nur aktive" muss aus, sonst sehen wir nichts (alle false).
+    await setOnlyEnabled(el, false);
+    const addrs = visibleAddresses(el);
+    expect(addrs).toContain("0/0/1");
+    expect(addrs).not.toContain("0/0/2");
+    expect(addrs).not.toContain("0/0/3");
+  });
+
+  it("Iter 53: Aktive GAs werden NICHT als Platzhalter ausgeblendet", async () => {
+    // User hat eine "----"-GA bewusst aktiv geschaltet -> behalten.
+    const el = await mount([
+      makeAddr({ address: "0/0/1", log_enabled: true, label: "----------" }),
+    ]);
+    await setOnlyEnabled(el, false);
+    expect(visibleAddresses(el)).toContain("0/0/1");
   });
 });
