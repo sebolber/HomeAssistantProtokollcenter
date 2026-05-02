@@ -79,6 +79,19 @@ WHERE destination = ?
 ORDER BY timestamp ASC
 """
 
+# Iter 62 / WR-T: Bulk-Sample-Query fuer DPT-Auto-Erkennung. Liefert pro
+# GA die letzten N (default 30) Werte aus dem Live-Window. Ein einziges
+# SELECT statt eines pro GA — wichtig, weil compute_top bis zu 500 Rows
+# verarbeitet. {placeholders} wird zur Laufzeit mit "?,?,..." gefuellt.
+_BULK_VALUES_SQL = """
+SELECT destination AS ga, value
+FROM knx_raw_telegrams
+WHERE destination IN ({placeholders})
+  AND timestamp >= ?
+  AND timestamp <  ?
+ORDER BY destination, timestamp DESC
+"""
+
 _BUS_HEALTH_SQL = """
 SELECT
     COUNT(*) AS total,
@@ -212,6 +225,52 @@ class KnxStatsRepository:
             }
             for row in rows
         ]
+
+    async def bulk_values_for_dpt_infer(
+        self,
+        gas: list[str],
+        from_iso: str,
+        to_iso: str,
+        *,
+        per_ga_limit: int = 30,
+    ) -> dict[str, list[Any]]:
+        """Liefert pro GA die letzten Werte als decoded Python-Werte.
+
+        Iter 62 / WR-T: Bulk-Lookup zur DPT-Auto-Erkennung. Genauer als
+        ga_samples wenn man fuer viele GAs gleichzeitig nur die Werte
+        braucht (kein telegramtype/dev_source noetig). Per-GA-Limit
+        verhindert, dass eine sehr aktive GA das gesamte Resultat
+        dominiert.
+
+        Hard-Cap GAs=200 als DoS-Schutz; aufrufender Service reicht
+        sowieso nur Top-N rein.
+        """
+        import contextlib  # noqa: PLC0415
+        import json as _json  # noqa: PLC0415
+
+        if not gas:
+            return {}
+        # Hard-Cap: vor SQL-Injection brauchts hier nichts (Bind-Params),
+        # aber Anzahl der Placeholders begrenzen, damit der Query nicht
+        # explodiert.
+        capped = list(dict.fromkeys(gas))[:200]
+        placeholders = ",".join("?" * len(capped))
+        sql = _BULK_VALUES_SQL.format(placeholders=placeholders)
+        params: list[Any] = [*capped, from_iso, to_iso]
+        rows = await self._db.fetch_all(sql, params)
+        out: dict[str, list[Any]] = {ga: [] for ga in capped}
+        for row in rows:
+            ga = str(row["ga"])
+            if ga not in out:
+                continue
+            if len(out[ga]) >= per_ga_limit:
+                continue
+            raw_value: Any = row["value"]
+            if isinstance(raw_value, str):
+                with contextlib.suppress(ValueError, TypeError):
+                    raw_value = _json.loads(raw_value)
+            out[ga].append(raw_value)
+        return out
 
     async def ga_samples(self, ga: str, from_iso: str, to_iso: str) -> list[dict[str, Any]]:
         import contextlib  # noqa: PLC0415

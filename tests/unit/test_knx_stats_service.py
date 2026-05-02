@@ -132,6 +132,35 @@ class TestComputeTop:
         assert "5/2/14" not in gas
         assert "1/2/3" in gas
 
+    @pytest.mark.asyncio
+    async def test_infers_dpt_for_rows_without_etstype_iter62(
+        self, db: Database
+    ) -> None:
+        # Iter 62 / WR-T: GA ohne DPT in ETS (z. B. Hörmann-Tor mit
+        # Default-Werten) wird per Heuristik geraten.
+        # Boolean-GA mit nur 0/1-Werten -> 1.001 (Schalten).
+        for i in range(20):
+            await _insert_knx(db, ts=_ts(i), ga="0/1/1", dpt=None, value=i % 2)
+        # Float-GA mit Temperatur-Werten -> 9.x (generisch).
+        for i in range(20):
+            await _insert_knx(db, ts=_ts(i), ga="1/3/5", dpt=None, value=21.5 + i * 0.1)
+        # ETS-DPT bleibt unangetastet, wenn vorhanden.
+        for i in range(20):
+            await _insert_knx(db, ts=_ts(i), ga="2/4/6", dpt="9.004", value=300 + i)
+        svc = KnxStatsService(KnxStatsRepository(db))
+        rows = await svc.compute_top(_ts(0), _ts(60), limit=10)
+        by_ga = {r.ga: r for r in rows}
+        assert by_ga["0/1/1"].dpt == "1.001"
+        assert by_ga["0/1/1"].dpt_inferred is True
+        assert by_ga["1/3/5"].dpt == "9.x"
+        assert by_ga["1/3/5"].dpt_inferred is True
+        # ETS-DPT bleibt
+        assert by_ga["2/4/6"].dpt == "9.004"
+        assert by_ga["2/4/6"].dpt_inferred is False
+        # Soll-Rate folgt dem inferierten DPT (1.001 -> 1.0, 9.x -> 9.001=2.0).
+        assert by_ga["0/1/1"].recommended_rate == 1.0
+        assert by_ga["1/3/5"].recommended_rate == 2.0
+
 
 class TestComputeGaDetail:
     @pytest.mark.asyncio

@@ -6,6 +6,21 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 62 — WR-T DPT-Auto-Erkennung)
+- **DPT-Auto-Erkennung im Top-Sender** für GAs ohne ETS-DPT. Heuristik
+  konservativ: `1.001` (Schalten) bei reinen 0/1-Werten, `5.001`
+  (8-bit unsigned) bei Integer 0–255 ohne reinen 0/1-Anteil, `9.x`
+  (2-byte Float, generisch) bei nicht-integer Floats. Unentscheidbare
+  Mischungen bleiben `null`. Pure Helper `infer_dpt_from_samples` mit
+  13 Tests, plus Integration in `compute_top` mit Bulk-Lookup
+  `bulk_values_for_dpt_infer` (max 200 GAs, 30 Werte pro GA — verhindert
+  N+1).
+- **TopRow + DTO** bekommen `dpt_inferred: bool`. Frontend rendert
+  inferierte DPTs italic + dotted underline + „?"-Suffix mit Tooltip
+  „DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)".
+- **`recommended_rate_for("9.x")` mappt auf 9.001-Soll** (2,0 Tel/Min) —
+  alle 9.x-Subtypen liegen im selben Bereich, daher unkritisch.
+
 ### Hinzugefügt / Geändert (Iter 61 — UX-Quick-Wins Frontend-Logik)
 - **U3 Verwaiste-GAs-Card mit Suche + Pagination** — vorher hartes Cap
   auf 15 Einträge mit „und N weitere" (bei 3000+ GAs unhandlich). Jetzt

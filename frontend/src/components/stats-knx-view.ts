@@ -1214,7 +1214,15 @@ export class StatsKnxView extends LitElement {
                 </td>
                 <td>
                   ${row.dpt
-                    ? html`<code class="dpt">${row.dpt}</code>`
+                    ? html`<code
+                        class=${`dpt ${row.dpt_inferred ? "dpt--inferred" : ""}`}
+                        title=${row.dpt_inferred
+                          ? "DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)"
+                          : ""}
+                        >${row.dpt}${row.dpt_inferred
+                          ? html`<span class="dpt__hint" aria-hidden="true">?</span>`
+                          : nothing}</code
+                      >`
                     : html`<span class="muted">—</span>`}
                 </td>
                 <td class="num strong">${row.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
@@ -2489,6 +2497,18 @@ export class StatsKnxView extends LitElement {
         font-size: var(--mh-text-sm);
         font-weight: var(--mh-weight-semibold);
         color: var(--mh-fg);
+      }
+      /* Iter 62 / WR-T: Geraten-DPT visuell als gepunktet markieren,
+         damit User auf einen Blick sieht "das ist nicht aus ETS". */
+      code.dpt--inferred {
+        font-style: italic;
+        opacity: 0.85;
+        border-bottom: 1px dotted var(--mh-fg-muted);
+      }
+      .dpt__hint {
+        margin-left: 2px;
+        font-size: 0.85em;
+        color: var(--mh-fg-muted);
       }
       code.dpt {
         font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);

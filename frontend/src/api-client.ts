@@ -108,6 +108,12 @@ export interface KnxStatsTopRowDto {
   ratio: number;
   severity: KnxRowSeverity;
   acknowledged: boolean;
+  /**
+   * Iter 62 / WR-T: true, wenn der DPT nicht aus dem ETS-Projekt
+   * stammt, sondern aus den Sample-Werten geraten wurde
+   * (`infer_dpt_from_samples`). Frontend zeigt das mit Tooltip.
+   */
+  dpt_inferred?: boolean;
 }
 
 export interface KnxStatsRecommendationDto {

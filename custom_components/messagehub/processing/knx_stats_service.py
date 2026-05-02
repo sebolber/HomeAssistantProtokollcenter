@@ -27,6 +27,7 @@ from .knx_stats import (
     classify_severity,
     compute_health_score,
     detect_patterns,
+    infer_dpt_from_samples,
     recommended_rate_for,
     safe_ratio,
 )
@@ -44,7 +45,13 @@ _TP1_BITRATE: float = float(KNX_TP_BAUDRATE_BPS)
 
 @dataclass(frozen=True, slots=True)
 class TopRow:
-    """Eine Zeile fuer die Top-Sender-Tabelle, post-classified."""
+    """Eine Zeile fuer die Top-Sender-Tabelle, post-classified.
+
+    Iter 62 / WR-T: `dpt_inferred=True` markiert, dass der DPT nicht aus
+    dem ETS-Projekt stammt, sondern aus den Sample-Werten geraten wurde
+    (siehe `infer_dpt_from_samples`). Frontend zeigt das mit Tooltip
+    "geraten aus Werten".
+    """
 
     ga: str
     dpt: str | None
@@ -56,6 +63,7 @@ class TopRow:
     ratio: float
     severity: str
     acknowledged: bool
+    dpt_inferred: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -199,6 +207,20 @@ class KnxStatsService:
         minutes = _period_minutes(from_dt, to_dt)
         ack_set = await self._repo.ack_active_set()
 
+        # Iter 62 / WR-T: GAs ohne DPT bekommen einen Inferenz-Versuch
+        # aus den letzten Sample-Werten. Bulk-Lookup begrenzt auf 100
+        # GAs (= max(limit, 100)), per-GA 30 Werte. Verhindert N+1.
+        gas_without_dpt = [r["ga"] for r in rows if not r.get("dpt")][:100]
+        inferred_map: dict[str, str] = {}
+        if gas_without_dpt:
+            samples_map = await self._repo.bulk_values_for_dpt_infer(
+                gas_without_dpt, from_iso, to_iso, per_ga_limit=30
+            )
+            for ga, samples in samples_map.items():
+                guessed = infer_dpt_from_samples(samples)
+                if guessed is not None:
+                    inferred_map[ga] = guessed
+
         out: list[TopRow] = []
         for row in rows:
             rate = row["count"] / minutes
@@ -208,11 +230,16 @@ class KnxStatsService:
             is_ack = ga in ack_set
             if not include_acknowledged and is_ack:
                 continue
-            recommended = recommended_rate_for(row["dpt"])
+            row_dpt = row["dpt"]
+            dpt_inferred = False
+            if not row_dpt and ga in inferred_map:
+                row_dpt = inferred_map[ga]
+                dpt_inferred = True
+            recommended = recommended_rate_for(row_dpt)
             out.append(
                 TopRow(
                     ga=ga,
-                    dpt=row["dpt"],
+                    dpt=row_dpt,
                     label=row["label"],
                     dev_source=row["dev_source"],
                     count=row["count"],
@@ -221,6 +248,7 @@ class KnxStatsService:
                     ratio=safe_ratio(rate, recommended),
                     severity=classify_severity(rate, recommended),
                     acknowledged=is_ack,
+                    dpt_inferred=dpt_inferred,
                 )
             )
         return out

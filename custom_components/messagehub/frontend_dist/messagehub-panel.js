@@ -7087,7 +7087,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   ${a.label ?? o`<span class="muted">—</span>`}
                 </td>
                 <td>
-                  ${a.dpt ? o`<code class="dpt">${a.dpt}</code>` : o`<span class="muted">—</span>`}
+                  ${a.dpt ? o`<code
+                        class=${`dpt ${a.dpt_inferred ? "dpt--inferred" : ""}`}
+                        title=${a.dpt_inferred ? "DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)" : ""}
+                        >${a.dpt}${a.dpt_inferred ? o`<span class="dpt__hint" aria-hidden="true">?</span>` : h}</code
+                      >` : o`<span class="muted">—</span>`}
                 </td>
                 <td class="num strong">${a.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
                 <td class="num muted">${a.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
@@ -8226,6 +8230,18 @@ f.styles = [
         font-size: var(--mh-text-sm);
         font-weight: var(--mh-weight-semibold);
         color: var(--mh-fg);
+      }
+      /* Iter 62 / WR-T: Geraten-DPT visuell als gepunktet markieren,
+         damit User auf einen Blick sieht "das ist nicht aus ETS". */
+      code.dpt--inferred {
+        font-style: italic;
+        opacity: 0.85;
+        border-bottom: 1px dotted var(--mh-fg-muted);
+      }
+      .dpt__hint {
+        margin-left: 2px;
+        font-size: 0.85em;
+        color: var(--mh-fg-muted);
       }
       code.dpt {
         font-family: var(--ha-font-family-code, ui-monospace, SFMono-Regular, monospace);

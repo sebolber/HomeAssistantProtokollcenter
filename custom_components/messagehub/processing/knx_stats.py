@@ -36,13 +36,82 @@ def recommended_rate_for(dpt: str | None) -> float:
     DPT-Strings haben das ETS-Format `<main>.<sub>` (z. B. "9.001"); wir
     matchen exakt — Phase-2 koennte einen Main-Type-Fallback ergaenzen,
     wenn Bedarf entsteht.
+
+    Iter 62 / WR-T: Generischer "9.x"-Hinweis aus `infer_dpt_from_samples`
+    wird wie `9.001` (Temperatur) behandelt — gleiche Soll-Rate, weil
+    alle 9.x-Werte (Temperatur/Helligkeit/Wind/Feuchte/CO2) im Bereich
+    1-4 Tel/Min liegen.
     """
     if not dpt:
         return KNX_RECOMMENDED_RATES_PER_MIN[_DEFAULT_RATE_KEY]
+    if dpt == "9.x":
+        return KNX_RECOMMENDED_RATES_PER_MIN.get(
+            "9.001",
+            KNX_RECOMMENDED_RATES_PER_MIN[_DEFAULT_RATE_KEY],
+        )
     return KNX_RECOMMENDED_RATES_PER_MIN.get(
         dpt,
         KNX_RECOMMENDED_RATES_PER_MIN[_DEFAULT_RATE_KEY],
     )
+
+
+# Iter 62 / WR-T: DPT-Auto-Erkennung aus Werte-Samples. Heuristik
+# konservativ — lieber kein DPT raten als falsch. Der DPT-String ist
+# Eingabe fuer recommended_rate_for + build_recommendation, ein falscher
+# Treffer wuerde dem User irrefuehrende Empfehlungen geben.
+_DPT_5001_BYTE_MAX: Final = 255  # 8-bit unsigned upper bound (DPT 5.x).
+
+
+def _classify_int_samples(int_values: list[int]) -> str | None:
+    """Helfer fuer infer_dpt_from_samples — nur Integer-Branche.
+
+    Trennung halt cognitive complexity in der Hauptfunktion gering.
+    """
+    if all(v in (0, 1) for v in int_values):
+        return "1.001"
+    if all(0 <= v <= _DPT_5001_BYTE_MAX for v in int_values):
+        return "5.001"
+    return None
+
+
+def infer_dpt_from_samples(values: Sequence[object]) -> str | None:
+    """Rät einen DPT aus den letzten Werten einer GA.
+
+    - 1.001 (Schalten): alle Werte aus {0, 1, True, False}.
+    - 5.001 (8-bit unsigned, z. B. Dimmwert): alle Werte int in
+      [0, _DPT_5001_BYTE_MAX] und nicht ausschliesslich 0/1
+      (sonst greift 1.001).
+    - 9.x (2-byte Float, generisch): irgendein Wert ist nicht-integer
+      Float. Konkreter Subtyp (9.001/9.004/...) braucht Sensor-Kontext
+      und wird nicht erraten.
+    - None: gemischt, leer, Strings oder out-of-range — nicht entscheidbar.
+    """
+    if not values:
+        return None
+    sanitized = [v for v in values if v is not None]
+    if not sanitized:
+        return None
+
+    has_float = False
+    int_values: list[int] = []
+    for v in sanitized:
+        # bool ist subtype von int — getrennt zuerst pruefen.
+        if isinstance(v, bool):
+            int_values.append(int(v))
+        elif isinstance(v, int):
+            int_values.append(v)
+        elif isinstance(v, float):
+            if v.is_integer():
+                int_values.append(int(v))
+            else:
+                has_float = True
+        else:
+            # String, list, dict, etc. — nicht entscheidbar.
+            return None
+
+    if has_float:
+        return "9.x"
+    return _classify_int_samples(int_values)
 
 
 def classify_severity(rate: float, recommended: float) -> KnxSeverity:
