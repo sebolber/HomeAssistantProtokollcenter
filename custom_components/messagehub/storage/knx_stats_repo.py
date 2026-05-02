@@ -580,6 +580,19 @@ class KnxStatsRepository:
             for row in rows
         ]
 
+    async def is_sensitive(self, ga: str) -> bool:
+        """Iter 75 / CR-19: Liefert True, wenn die GA als is_sensitive=1
+        markiert ist. Wird im Export-Pfad genutzt, um Audit-Eintrag
+        mit zusaetzlichem Severity-Hinweis zu schreiben.
+        """
+        rows = await self._db.fetch_all(
+            "SELECT is_sensitive FROM knx_group_addresses WHERE address = ? LIMIT 1",
+            (ga,),
+        )
+        if not rows:
+            return False
+        return bool(rows[0]["is_sensitive"])
+
     async def set_sensitive(self, ga: str, *, sensitive: bool) -> None:
         """Schaltet das is_sensitive-Flag fuer eine GA.
 

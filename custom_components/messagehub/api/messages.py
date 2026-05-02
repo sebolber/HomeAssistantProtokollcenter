@@ -659,6 +659,10 @@ class ChannelsView(_RequireAdminView):
             ChannelRepository,
             channel_to_dict,
         )
+        from ._channel_validation import (  # noqa: PLC0415
+            ChannelConfigError,
+            validate_channel_config,
+        )
 
         self._check_admin(request)
         hass = request.app["hass"]
@@ -667,19 +671,27 @@ class ChannelsView(_RequireAdminView):
             return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             data = await request.json()
+            channel_type = str(data["channel_type"])
+            config = data.get("config")
+            # Iter 75 / CR-21: Channel-Type-spezifische Validation.
+            # Verhindert SSRF (webhook → private IPs) und ungueltige
+            # Provider-Tokens.
+            validate_channel_config(channel_type, config)
             ch = Channel(
                 id=None,
                 name=str(data["name"]),
-                channel_type=str(data["channel_type"]),
+                channel_type=channel_type,
                 enabled=bool(data.get("enabled", True)),
                 severity_threshold=str(data.get("severity_threshold", "warning")),
                 quiet_start=data.get("quiet_start"),
                 quiet_end=data.get("quiet_end"),
                 quiet_bypass_error=bool(data.get("quiet_bypass_error", True)),
                 throttle_seconds=int(data.get("throttle_seconds", 600)),
-                config=data.get("config"),
+                config=config,
             )
             await ChannelRepository(db).add(ch)
+        except ChannelConfigError as err:
+            return self.json_message(f"invalid config: {err}", status_code=400)
         except (KeyError, ValueError, TypeError) as err:
             return self.json_message(f"invalid: {err}", status_code=400)
         await _reload_dispatch(hass)
@@ -757,6 +769,10 @@ class ChannelDetailView(_RequireAdminView):
             ChannelRepository,
             channel_to_dict,
         )
+        from ._channel_validation import (  # noqa: PLC0415
+            ChannelConfigError,
+            validate_channel_config,
+        )
 
         self._check_admin(request)
         hass = request.app["hass"]
@@ -765,19 +781,25 @@ class ChannelDetailView(_RequireAdminView):
             return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         try:
             data = await request.json()
+            channel_type = str(data["channel_type"])
+            config = data.get("config")
+            # Iter 75 / CR-21: Channel-Type-spezifische Validation.
+            validate_channel_config(channel_type, config)
             ch = Channel(
                 id=int(channel_id),
                 name=str(data["name"]),
-                channel_type=str(data["channel_type"]),
+                channel_type=channel_type,
                 enabled=bool(data.get("enabled", True)),
                 severity_threshold=str(data.get("severity_threshold", "warning")),
                 quiet_start=data.get("quiet_start"),
                 quiet_end=data.get("quiet_end"),
                 quiet_bypass_error=bool(data.get("quiet_bypass_error", True)),
                 throttle_seconds=int(data.get("throttle_seconds", 600)),
-                config=data.get("config"),
+                config=config,
             )
             await ChannelRepository(db).update(ch)
+        except ChannelConfigError as err:
+            return self.json_message(f"invalid config: {err}", status_code=400)
         except (KeyError, ValueError, TypeError) as err:
             return self.json_message(f"invalid: {err}", status_code=400)
         await _reload_dispatch(hass)

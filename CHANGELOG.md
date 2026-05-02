@@ -6,6 +6,29 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Sicherheit (Iter 75 — CR-19 + CR-21: Sensitive-Export-Audit + Channels-SSRF)
+- **CR-19 KNX-GA-Export markiert sensitive GAs im Audit**:
+  `KnxStatsRepository.is_sensitive(ga)` prüft das `is_sensitive=1`-
+  Flag, der Export-View schreibt entweder `knx_stats_ga_export` oder
+  `knx_stats_ga_export_sensitive` als Audit-Action plus
+  `is_sensitive`-Detail. Export wird nicht blockiert (Admin-User),
+  aber lauter geloggt.
+- **CR-21 Channel-Config-Validation gegen SSRF + Config-Bombs**: Neues
+  HA-frei testbares Modul `api/_channel_validation.py` mit
+  `validate_channel_config(channel_type, config)`.
+  - **webhook**: URL muss http(s) auf public Host zeigen — blockiert
+    `localhost`, `*.local`, IPv4-Private (RFC 1918), Loopback,
+    Link-Local, Multicast. Max 1024 Zeichen.
+  - **telegram**: bot_token im Format `<id>:<chars>` (Regex), chat_id
+    pflicht.
+  - **pushover**: 30-stellige alphanumerische user_key + api_token.
+  - **ntfy**: server-URL public, topic non-empty.
+  - **notify**: service-Name ohne Dots.
+- 24 neue Tests in `test_channel_validation.py` (alle Channel-Types,
+  alle Block-Pfade).
+- `ChannelsView.post` und `ChannelDetailView.put` rufen die Validation
+  vor dem DB-Insert.
+
 ### Sicherheit (Iter 74 — CR-16 FTS5-Injection / DoS gefixt)
 - **FTS5-MATCH-Klausel** in `_build_filter_where` wrappt User-Input
   jetzt in doppelte Anführungszeichen + escapt interne `"`.

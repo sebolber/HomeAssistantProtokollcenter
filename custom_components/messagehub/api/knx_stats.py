@@ -288,17 +288,25 @@ class KnxStatsGaExportView(RequireAdminView):
         fmt = request.query.get("format", "csv").lower()
         if fmt not in ("csv", "json"):
             raise web.HTTPBadRequest(reason="format must be csv or json")
-        samples = await KnxStatsRepository(db).ga_samples(ga, from_iso, to_iso)
+        repo = KnxStatsRepository(db)
+        # Iter 75 / CR-19: Sensitive-GA-Pruefung VOR dem Sample-Lookup,
+        # damit das Audit-Detail klar markiert ist. Export wird nicht
+        # blockiert (User ist Admin), aber lauter geloggt.
+        is_sensitive = await repo.is_sensitive(ga)
+        samples = await repo.ga_samples(ga, from_iso, to_iso)
         capped = cap_samples(samples)
         audit(
             request.app["hass"],
-            "knx_stats_ga_export",
+            "knx_stats_ga_export"
+            if not is_sensitive
+            else "knx_stats_ga_export_sensitive",
             target_id=ga,
             details={
                 "format": fmt,
                 "from": from_iso,
                 "to": to_iso,
                 "count": len(capped),
+                "is_sensitive": is_sensitive,
             },
         )
         if fmt == "csv":
