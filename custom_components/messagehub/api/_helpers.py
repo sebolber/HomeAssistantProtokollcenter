@@ -158,9 +158,10 @@ class RequireAdminView(HomeAssistantView):
 
     @staticmethod
     def _check_admin(request: web.Request) -> None:
-        user = request.get("hass_user")
-        if user is None or not user.is_admin:
-            raise web.HTTPForbidden(reason="admin required")
+        # Iter 71 / CR-37: Delegiert an die HA-frei-testbare Funktion.
+        from ._auth import assert_admin_user  # noqa: PLC0415
+
+        assert_admin_user(request.get("hass_user"))
 
 
 # Validatoren liegen in _validation.py (HA-frei, separat testbar).

@@ -6,6 +6,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Tests (Iter 71 — CR-37 Auth-Tests)
+- **8 neue Backend-Tests** für `assert_admin_user`. Pure Funktion in
+  neuem Modul `api/_auth.py` (kein `homeassistant`-Import → ohne
+  HA-Test-Stack testbar). `RequireAdminView._check_admin` delegiert
+  jetzt an die Funktion.
+- Decken alle Bypass-Pfade ab: `None`-User (anonymous), Object ohne
+  `is_admin`-Attribut, `is_admin=False`, `is_admin=True`, plus
+  defensive Tests gegen truthy non-bool und leere Strings.
+
 ### Tests / Refactor (Iter 70 — CR-32 GA-Export-Tests)
 - **18 neue Backend-Tests** für GA-Werteverlauf-Export (Iter 68 hatte
   Endpoint inline ohne Tests). Pure Helpers in
