@@ -32,6 +32,24 @@ class KnxAddress:
     severity_on_true: str | None = None
     severity_on_false: str | None = None
 
+    def to_dict(self) -> dict[str, Any]:
+        """Einheitliche JSON-Serialisierung fuer API-Antworten.
+
+        Eine Quelle der Wahrheit verhindert Drift zwischen GET/POST-Handlern
+        (vgl. Bugfix 1a4349b: GET hatte log_enabled-Felder weggelassen, was
+        den UI-Filter 'nur aktive' brach).
+        """
+        return {
+            "address": self.address,
+            "label": self.label,
+            "dpt": self.dpt,
+            "description": self.description,
+            "log_enabled": bool(self.log_enabled),
+            "log_severity": self.log_severity,
+            "severity_on_true": self.severity_on_true,
+            "severity_on_false": self.severity_on_false,
+        }
+
 
 def validate_address(value: str) -> str:
     if not _GA_PATTERN.fullmatch(value):

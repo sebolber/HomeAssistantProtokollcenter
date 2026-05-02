@@ -111,3 +111,38 @@ async def test_upsert_rejects_invalid(repo: KnxAddressRepository) -> None:
         await repo.upsert(KnxAddress(address="bad", label="x"))
     with pytest.raises(ValueError, match="empty"):
         await repo.upsert(KnxAddress(address="1/2/3", label="  "))
+
+
+def test_to_dict_contains_all_log_fields() -> None:
+    """Regression-Lock fuer Bugfix 1a4349b: GET-Handler hatte log_enabled-
+    Felder weggelassen. Jeder API-Handler soll to_dict() benutzen, damit
+    eine zentrale Stelle die Schema-Vollstaendigkeit garantiert."""
+    addr = KnxAddress(
+        address="5/0/12",
+        label="Stoer Heizung",
+        dpt="1.005",
+        description="Mein Test",
+        log_enabled=True,
+        log_severity="auto",
+        severity_on_true="error",
+        severity_on_false="info",
+    )
+    assert addr.to_dict() == {
+        "address": "5/0/12",
+        "label": "Stoer Heizung",
+        "dpt": "1.005",
+        "description": "Mein Test",
+        "log_enabled": True,
+        "log_severity": "auto",
+        "severity_on_true": "error",
+        "severity_on_false": "info",
+    }
+
+
+def test_to_dict_normalizes_log_enabled_to_bool() -> None:
+    """SQLite gibt INTEGER 0/1 zurueck, Frontend erwartet Boolean.
+    to_dict() muss casten, sonst bricht der UI-Filter 'nur aktive'."""
+    addr = KnxAddress(address="1/2/3", label="x", log_enabled=1)  # type: ignore[arg-type]
+    assert addr.to_dict()["log_enabled"] is True
+    addr2 = KnxAddress(address="1/2/4", label="y", log_enabled=0)  # type: ignore[arg-type]
+    assert addr2.to_dict()["log_enabled"] is False

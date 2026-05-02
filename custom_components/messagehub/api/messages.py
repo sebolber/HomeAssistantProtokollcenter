@@ -845,23 +845,7 @@ class KnxAddressesView(_RequireAdminView):
         if db is None:
             return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         items = await KnxAddressRepository(db).list_all()
-        return self.json(
-            {
-                "items": [
-                    {
-                        "address": it.address,
-                        "label": it.label,
-                        "dpt": it.dpt,
-                        "description": it.description,
-                        "log_enabled": bool(it.log_enabled),
-                        "log_severity": it.log_severity,
-                        "severity_on_true": it.severity_on_true,
-                        "severity_on_false": it.severity_on_false,
-                    }
-                    for it in items
-                ]
-            }
-        )
+        return self.json({"items": [it.to_dict() for it in items]})
 
     async def post(self, request: web.Request) -> web.Response:
         from ..processing.knx_repo import (  # noqa: PLC0415
@@ -915,16 +899,7 @@ class KnxAddressesView(_RequireAdminView):
             target_id=item.address,
             details={"label": item.label, "log_enabled": item.log_enabled},
         )
-        return self.json(
-            {
-                "address": item.address,
-                "label": item.label,
-                "log_enabled": item.log_enabled,
-                "log_severity": item.log_severity,
-                "severity_on_true": item.severity_on_true,
-                "severity_on_false": item.severity_on_false,
-            }
-        )
+        return self.json(item.to_dict())
 
 
 class KnxAddressDetailView(_RequireAdminView):
