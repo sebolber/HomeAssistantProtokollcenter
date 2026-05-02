@@ -585,6 +585,76 @@ class KnxStatsService:
         result["to"] = to_iso
         return result
 
+    async def compute_heatmap(
+        self,
+        from_iso: str,
+        to_iso: str,
+        *,
+        top_n: int = 10,
+        bucket_minutes: int = 60,
+    ) -> dict[str, Any]:
+        """Iter 91 / WR-G: Heatmap-Daten — Top-N GAs x Bucket-Zeitachse.
+
+        Liefert eine 2D-Matrix:
+          {
+            "gas": [{ga, label, total}],     # Top-N nach Total-Count
+            "buckets": [iso_string],         # Zeit-Achse
+            "matrix": [[count_ij]],          # gas x buckets
+            "from", "to", "bucket_minutes"
+          }
+
+        Hard-Cap: top_n <= 30, bucket_minutes 1..60 (mit Konsistenz zu
+        timeline-Endpoint).
+        """
+        top_n = max(1, min(top_n, 30))
+        bucket_minutes = max(1, min(bucket_minutes, 60))
+        # 1) Top-N GAs nach Total-Count waehlen.
+        top_rows = await self._repo.top_by_ga(from_iso, to_iso, limit=top_n)
+        gas = [r["ga"] for r in top_rows]
+        if not gas:
+            return {
+                "from": from_iso,
+                "to": to_iso,
+                "bucket_minutes": bucket_minutes,
+                "gas": [],
+                "buckets": [],
+                "matrix": [],
+            }
+
+        # 2) Timeline-Daten fuer diese GAs abfragen.
+        timeline_rows = await self._repo.timeline(
+            from_iso, to_iso, gas=gas, bucket_minutes=bucket_minutes
+        )
+        # 3) Matrix bauen: gas-Index x bucket-Index -> count.
+        bucket_set: set[str] = set()
+        per_ga: dict[str, dict[str, int]] = {ga: {} for ga in gas}
+        for row in timeline_rows:
+            ga = row["ga"]
+            bucket = row["bucket"]
+            bucket_set.add(bucket)
+            per_ga.setdefault(ga, {})[bucket] = int(row["count"])
+        buckets = sorted(bucket_set)
+        matrix: list[list[int]] = []
+        for ga in gas:
+            row_counts = per_ga.get(ga, {})
+            matrix.append([row_counts.get(b, 0) for b in buckets])
+        gas_meta = [
+            {
+                "ga": r["ga"],
+                "label": r["label"],
+                "total": int(r["count"]),
+            }
+            for r in top_rows
+        ]
+        return {
+            "from": from_iso,
+            "to": to_iso,
+            "bucket_minutes": bucket_minutes,
+            "gas": gas_meta,
+            "buckets": buckets,
+            "matrix": matrix,
+        }
+
     async def compute_trend(
         self,
         from_iso: str,

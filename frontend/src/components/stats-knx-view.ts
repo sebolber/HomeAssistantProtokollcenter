@@ -21,6 +21,7 @@ import type {
   KnxStatsSensitiveLogDto,
   KnxStatsSilenceDto,
   KnxStatsSummaryDto,
+  KnxStatsHeatmapDto,
   KnxStatsTimelineDto,
   KnxStatsTopRowDto,
   KnxStatsTrendDto,
@@ -209,6 +210,8 @@ export class StatsKnxView extends LitElement {
   @state() private _sensitiveLog: KnxStatsSensitiveLogDto | null = null;
   // Iter 67 / WR-I: Trend-Vergleich aktuelle Periode vs. Vorperiode.
   @state() private _trend: KnxStatsTrendDto | null = null;
+  // Iter 91 / WR-G: Heatmap-Daten (Top-N GAs x Bucket-Zeitachse).
+  @state() private _heatmap: KnxStatsHeatmapDto | null = null;
   // Iter 49 (N1): Bus-Analyse-Toggle. true = Listener nimmt Telegramme
   // weiter auf; false = ressourcen-sparend, aber keine neuen Daten.
   @state() private _busAnalysisEnabled: boolean = true;
@@ -285,6 +288,7 @@ export class StatsKnxView extends LitElement {
       orphans: "Verwaiste GAs",
       alarms: "Alarme",
       trend: "Trend-Vergleich",
+      heatmap: "Aktivitäts-Heatmap",
     };
     const labeled = failed.map((k) => labels[k] || k).join(", ");
     return html`
@@ -402,6 +406,7 @@ export class StatsKnxView extends LitElement {
         bursts,
         sensitiveLog,
         trend,
+        heatmap,
       ] = await Promise.all([
         this.api.getKnxStatsSummary(fRaw),
         this.api.getKnxStatsTop(fRaw),
@@ -424,6 +429,10 @@ export class StatsKnxView extends LitElement {
         captureError("bursts", this.api.getKnxStatsBursts(fRaw)),
         captureError("sensitive-log", this.api.getKnxStatsSensitiveLog(fRaw)),
         captureError("trend", this.api.getKnxStatsTrend(fRaw, 5)),
+        captureError(
+          "heatmap",
+          this.api.getKnxStatsHeatmap(fRaw, 10, 60),
+        ),
       ]);
       this._summary = summary;
       this._top = top.items;
@@ -438,6 +447,7 @@ export class StatsKnxView extends LitElement {
       this._bursts = bursts;
       this._sensitiveLog = sensitiveLog;
       this._trend = trend;
+      this._heatmap = heatmap;
       // Iter 51: Errors-Snapshot setzen (Reassignment triggert Re-Render).
       this._apiErrors = errors;
       this._apiErrorsDismissed = false;
@@ -470,6 +480,7 @@ export class StatsKnxView extends LitElement {
       this._bursts = null;
       this._sensitiveLog = null;
       this._trend = null;
+      this._heatmap = null;
     } finally {
       this._loading = false;
     }
@@ -1107,6 +1118,10 @@ export class StatsKnxView extends LitElement {
         ${this._trend !== null &&
         (this._trend.total_now > 0 || this._trend.total_prev > 0)
           ? this._renderTrend()
+          : nothing}
+
+        ${this._heatmap !== null && this._heatmap.gas.length > 0
+          ? this._renderHeatmap()
           : nothing}
 
         <section class="mh-card">
@@ -1809,6 +1824,73 @@ export class StatsKnxView extends LitElement {
     if (abs < TREND_DELTA_PCT_YELLOW_MAX) return "yellow";
     if (abs < TREND_DELTA_PCT_ORANGE_MAX) return "orange";
     return "red";
+  }
+
+  /**
+   * Iter 91 / WR-G: GA-Heatmap als CSS-Grid. Zeilen = Top-N GAs,
+   * Spalten = Zeit-Buckets, Zellen = Telegramm-Counts mit Color-Intensity
+   * relativ zum Maximum. SVG-frei (CSS-Grid + color-mix).
+   */
+  private _renderHeatmap(): TemplateResult {
+    const h = this._heatmap!;
+    if (h.gas.length === 0 || h.buckets.length === 0) return html``;
+    const maxCount = h.matrix
+      .flat()
+      .reduce((mx, v) => (v > mx ? v : mx), 1);
+    const formatBucketLabel = (iso: string): string => {
+      // Backend liefert "YYYY-MM-DDTHH:MM:SS"; nur HH:MM zeigen.
+      const t = iso.slice(11, 16);
+      return t || iso;
+    };
+    return html`
+      <section class="mh-card heatmap-card">
+        <header class="card-head">
+          <h3>Aktivitäts-Heatmap</h3>
+          <span class="muted small">
+            Top-${h.gas.length} GAs × ${h.buckets.length} ${
+              h.bucket_minutes
+            }-Min-Buckets · Maximum ${maxCount} Telegramme/Bucket
+          </span>
+        </header>
+        <div class="heatmap-grid"
+          style=${`--heatmap-cols: ${h.buckets.length};`}
+        >
+          <div class="heatmap-row heatmap-row--header">
+            <div class="heatmap-cell heatmap-label"></div>
+            ${h.buckets.map(
+              (b) => html`<div
+                class="heatmap-cell heatmap-cell--bucket"
+                title=${b}
+              >
+                ${formatBucketLabel(b)}
+              </div>`,
+            )}
+          </div>
+          ${h.gas.map(
+            (gaMeta, rowIdx) => html`<div class="heatmap-row">
+              <div class="heatmap-cell heatmap-label" title=${gaMeta.label || ""}>
+                <code>${gaMeta.ga}</code>
+                <span class="muted small">${gaMeta.label ?? ""}</span>
+              </div>
+              ${h.matrix[rowIdx].map((count) => {
+                const intensity = count === 0 ? 0 : Math.round((count / maxCount) * 100);
+                return html`<div
+                  class="heatmap-cell heatmap-cell--data"
+                  style=${`background: color-mix(in srgb, var(--mh-warning) ${intensity}%, transparent);`}
+                  title=${`${count} Telegramme`}
+                >
+                  ${count > 0 ? count : ""}
+                </div>`;
+              })}
+            </div>`,
+          )}
+        </div>
+        <p class="muted small heatmap-legend">
+          Intensität proportional zum Maximum (${maxCount}). Klick auf
+          GA-Code öffnet Detail-Pane.
+        </p>
+      </section>
+    `;
   }
 
   private _renderOrphans(): TemplateResult {
@@ -2712,6 +2794,61 @@ export class StatsKnxView extends LitElement {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+      /* Iter 91 / WR-G: GA-Heatmap als CSS-Grid. */
+      .heatmap-grid {
+        display: grid;
+        grid-template-columns: minmax(180px, auto) repeat(var(--heatmap-cols, 24), 1fr);
+        gap: 1px;
+        background: var(--mh-divider);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm);
+        overflow: hidden;
+        font-size: var(--mh-text-xs);
+        margin-top: var(--mh-space-2);
+      }
+      .heatmap-row {
+        display: contents;
+      }
+      .heatmap-cell {
+        background: var(--mh-surface);
+        padding: 2px 4px;
+        text-align: center;
+        min-height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-variant-numeric: tabular-nums;
+      }
+      .heatmap-cell--bucket {
+        color: var(--mh-fg-muted);
+        font-size: 10px;
+        background: var(--mh-surface-2);
+      }
+      .heatmap-label {
+        background: var(--mh-surface-2);
+        text-align: left;
+        padding: 4px 8px;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 2px;
+        overflow: hidden;
+      }
+      .heatmap-label code {
+        font-weight: var(--mh-weight-semibold);
+      }
+      .heatmap-label .small {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+      .heatmap-cell--data {
+        font-size: 10px;
+      }
+      .heatmap-legend {
+        margin-top: var(--mh-space-2);
       }
       /* Iter 67 / WR-I: Trend-Card. Color-Border je nach Total-Severity. */
       .trend {

@@ -122,6 +122,16 @@ export interface KnxStatsTopRowDto {
   has_findings?: boolean;
 }
 
+/** Iter 91 / WR-G: GA-Heatmap (Top-N GAs x Zeit-Buckets). */
+export interface KnxStatsHeatmapDto {
+  from: string;
+  to: string;
+  bucket_minutes: number;
+  gas: Array<{ ga: string; label: string | null; total: number }>;
+  buckets: string[];
+  matrix: number[][];
+}
+
 /** Iter 67 / WR-I: Trend-Vergleich aktuelle Periode vs. Vorperiode. */
 export interface KnxStatsTrendRowDto {
   ga: string;
@@ -963,6 +973,21 @@ export class ApiClient {
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxStatsAlarmsDto;
+  }
+
+  /** Iter 91 / WR-G: GA-Heatmap (Top-N GAs x Zeit-Buckets). */
+  async getKnxStatsHeatmap(
+    f: KnxStatsFilters,
+    topN = 10,
+    bucketMinutes = 60,
+  ): Promise<KnxStatsHeatmapDto> {
+    const params = this._knxStatsParams(f);
+    params.set("top_n", String(topN));
+    params.set("bucket", String(bucketMinutes));
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/heatmap?${params.toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsHeatmapDto;
   }
 
   /** Iter 67 / WR-I: Trend-Vergleich aktueller Periode vs. Vorperiode. */

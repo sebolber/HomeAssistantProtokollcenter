@@ -6,6 +6,19 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 91 — WR-G GA-Heatmap)
+- **Neuer Endpoint** `GET /api/messagehub/knx-stats/heatmap?from=&to=&top_n=10&bucket=60`
+  liefert eine 2D-Matrix Top-N GAs × Zeit-Buckets. Service-Methode
+  `compute_heatmap` kombiniert `top_by_ga` (Top-N nach Total) mit
+  `timeline` (Bucket-Counts) zu einem `{gas, buckets, matrix}`-Wrapper.
+  Hard-Cap top_n=30, bucket 1–60 min.
+- **Heatmap-Card im Frontend** als CSS-Grid: Y-Achse Top-N GAs mit
+  Code + Label, X-Achse Zeit-Buckets (Stunde:Minute), Zellen mit
+  `color-mix(in srgb, var(--mh-warning) X%, transparent)` proportional
+  zum Maximum. Tooltip pro Zelle mit absolutem Count.
+- 4 neue Backend-Tests in `test_knx_stats_service.py::TestComputeHeatmap`.
+- `KnxStatsHeatmapView` registriert in `async_register_views`.
+
 ### Tests (Iter 90 — CR-34 KNX-Listener-Crash-Resilienz)
 - **4 neue Backend-Tests** für `_record_bus_activity` mit gefakten
   Repos: ValueError im `insert_raw`, RuntimeError im

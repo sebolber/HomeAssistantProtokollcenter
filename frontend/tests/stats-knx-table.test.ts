@@ -187,6 +187,14 @@ function makeApi(): MockApi {
       top_increase: [],
       top_decrease: [],
     })),
+    getKnxStatsHeatmap: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      bucket_minutes: 60,
+      gas: [],
+      buckets: [],
+      matrix: [],
+    })),
     getKnxBusAnalysisState: vi.fn(async () => ({ enabled: true })),
     setKnxBusAnalysisState: vi.fn(async (enabled: boolean) => ({
       ok: true,

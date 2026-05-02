@@ -184,6 +184,55 @@ class TestComputeTop:
         assert by_ga["1/3/5"].recommended_rate == 2.0
 
 
+class TestComputeHeatmap:
+    @pytest.mark.asyncio
+    async def test_returns_empty_when_no_telegrams(self, db: Database) -> None:
+        svc = KnxStatsService(KnxStatsRepository(db))
+        result = await svc.compute_heatmap(_ts(0), _ts(60))
+        assert result["gas"] == []
+        assert result["buckets"] == []
+        assert result["matrix"] == []
+
+    @pytest.mark.asyncio
+    async def test_includes_top_gas_with_label_and_total(self, db: Database) -> None:
+        # GA "5/2/14" mit 100 Telegrammen, "1/3/5" mit 30, "9/9/9" mit 5.
+        for i in range(100):
+            await _insert_knx(db, ts=_ts(i / 2), ga="5/2/14")
+        for i in range(30):
+            await _insert_knx(db, ts=_ts(i), ga="1/3/5")
+        for i in range(5):
+            await _insert_knx(db, ts=_ts(i * 5), ga="9/9/9")
+
+        svc = KnxStatsService(KnxStatsRepository(db))
+        result = await svc.compute_heatmap(_ts(0), _ts(60), top_n=2, bucket_minutes=10)
+        # Nur Top-2: 5/2/14 + 1/3/5 (9/9/9 ist drittstaerkster).
+        assert len(result["gas"]) == 2
+        ga_codes = [g["ga"] for g in result["gas"]]
+        assert "5/2/14" in ga_codes
+        assert "1/3/5" in ga_codes
+        assert "9/9/9" not in ga_codes
+        assert result["bucket_minutes"] == 10
+
+    @pytest.mark.asyncio
+    async def test_matrix_dimensions_match_gas_x_buckets(self, db: Database) -> None:
+        for i in range(20):
+            await _insert_knx(db, ts=_ts(i * 2), ga="1/0/1")
+        svc = KnxStatsService(KnxStatsRepository(db))
+        result = await svc.compute_heatmap(_ts(0), _ts(60), top_n=5, bucket_minutes=10)
+        assert len(result["matrix"]) == len(result["gas"])
+        for row in result["matrix"]:
+            assert len(row) == len(result["buckets"])
+
+    @pytest.mark.asyncio
+    async def test_top_n_capped_at_30(self, db: Database) -> None:
+        # Hard-Cap top_n=30. Mit top_n=999 sollten max 30 zurueckkommen.
+        for i in range(50):
+            await _insert_knx(db, ts=_ts(0), ga=f"1/0/{i + 1}")
+        svc = KnxStatsService(KnxStatsRepository(db))
+        result = await svc.compute_heatmap(_ts(0), _ts(60), top_n=999)
+        assert len(result["gas"]) <= 30
+
+
 class TestComputeTrend:
     @pytest.mark.asyncio
     async def test_compares_current_to_previous_period(self, db: Database) -> None:
