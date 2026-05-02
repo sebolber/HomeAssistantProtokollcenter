@@ -4,6 +4,37 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.9.3] – 2026-05-02
+
+HACS-Validation-Patch. Der 0.9.2-Release-Workflow scheiterte an drei
+HACS-Validation-Schritten.
+
+### Behoben
+
+- **`hacs.json`**: ungültiger Country-Code `'EN'` entfernt (das war
+  versehentlich Sprache statt Land), stattdessen ISO-Country-Codes
+  `DE, AT, CH, GB, US, NL, FR, ES, IT`. Außerdem `iot_class`-Key
+  entfernt — der gehört nur ins `manifest.json`, nicht ins `hacs.json`
+  (HACS lehnt extra keys ab).
+- **Brand-Icons** in `custom_components/messagehub/brand/`: HACS sucht
+  Brand-Assets in genau diesem Pfad. Kopiert aus
+  `assets/brands/messagehub/`: `icon.png`, `icon@2x.png`, `logo.png`,
+  `logo@2x.png`. Damit greift HACS auf das mitgelieferte Icon zurück,
+  ohne auf den brands-Repo-PR warten zu müssen.
+
+### Hinweis: GitHub-Repository-Metadata
+
+Zwei der ursprünglichen vier Fehler sind nicht code-fixbar — du musst
+auf GitHub einmalig setzen:
+
+- **Repository topics:** auf https://github.com/sebolber/HomeAssistantProtokollcenter
+  → ⚙️ neben "About" → Topics hinzufügen, z. B. `home-assistant`,
+  `hacs`, `home-assistant-custom-component`, `messagehub`,
+  `notifications`, `knx`.
+- **Repository description:** im selben "About"-Dialog die Beschreibung
+  setzen, z. B. "Zentrale Sammelstelle für strukturierte Nachrichten
+  in Home Assistant — Webhooks, MQTT, KNX, Syslog, Eventbus, Service".
+
 ## [0.9.2] – 2026-05-02
 
 Hassfest-Patch. Der 0.9.1-Workflow scheiterte an einer neuen
