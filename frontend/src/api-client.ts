@@ -148,6 +148,19 @@ export interface KnxStatsTopBySourceRowDto {
   ga_count: number;
 }
 
+export interface KnxStatsBusHealthDto {
+  from: string;
+  to: string;
+  summary: { total: number; repeated: number; ratio_pct: number };
+  per_ga: Array<{
+    ga: string;
+    label: string | null;
+    total: number;
+    repeated: number;
+    ratio_pct: number;
+  }>;
+}
+
 export interface KnxStatsFilters {
   from?: string;
   to?: string;
@@ -631,6 +644,13 @@ export class ApiClient {
       body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async getKnxStatsBusHealth(f: KnxStatsFilters): Promise<KnxStatsBusHealthDto> {
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/bus-health?${this._knxStatsParams(f).toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsBusHealthDto;
   }
 
   async unacknowledgeKnxGa(ga: string): Promise<void> {

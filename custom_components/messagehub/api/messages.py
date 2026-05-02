@@ -19,6 +19,7 @@ from .knx import KnxAddressDetailView, KnxAddressesView, KnxProjectDiscoveryView
 from .knx_stats import (
     KnxStatsAcknowledgeDetailView,
     KnxStatsAcknowledgeView,
+    KnxStatsBusHealthView,
     KnxStatsGaDetailView,
     KnxStatsSummaryView,
     KnxStatsTimelineView,
@@ -1155,6 +1156,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         KnxStatsTopBySourceView,
         KnxStatsGaDetailView,
         KnxStatsTimelineView,
+        KnxStatsBusHealthView,
         KnxStatsAcknowledgeView,
         KnxStatsAcknowledgeDetailView,
     ):

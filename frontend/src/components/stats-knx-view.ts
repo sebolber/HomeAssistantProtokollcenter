@@ -8,6 +8,7 @@ import { LitElement, css, html, nothing, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type {
   ApiClient,
+  KnxStatsBusHealthDto,
   KnxStatsFilters,
   KnxStatsGaDetailDto,
   KnxStatsSummaryDto,
@@ -77,6 +78,7 @@ export class StatsKnxView extends LitElement {
 
   @state() private _filters: UiFilters = loadFilters();
   @state() private _summary: KnxStatsSummaryDto | null = null;
+  @state() private _busHealth: KnxStatsBusHealthDto | null = null;
   @state() private _top: KnxStatsTopRowDto[] = [];
   @state() private _timeline: KnxStatsTimelineDto | null = null;
   @state() private _selectedGa: string | null = null;
@@ -107,12 +109,14 @@ export class StatsKnxView extends LitElement {
     this._error = "";
     try {
       const f = this._apiFilters();
-      const [summary, top] = await Promise.all([
+      const [summary, top, busHealth] = await Promise.all([
         this.api.getKnxStatsSummary(f),
         this.api.getKnxStatsTop(f),
+        this.api.getKnxStatsBusHealth(f),
       ]);
       this._summary = summary;
       this._top = top.items;
+      this._busHealth = busHealth;
       // Timeline fuer Top-5 GAs (mehr Linien werden unleserlich).
       const topGas = top.items.slice(0, 5).map((r) => r.ga);
       if (topGas.length > 0) {
@@ -129,6 +133,7 @@ export class StatsKnxView extends LitElement {
       this._summary = null;
       this._top = [];
       this._timeline = null;
+      this._busHealth = null;
     } finally {
       this._loading = false;
     }
@@ -376,6 +381,10 @@ export class StatsKnxView extends LitElement {
             : this._renderKpis()}
         </section>
 
+        ${this._busHealth !== null && this._busHealth.summary.total > 0
+          ? this._renderBusHealth()
+          : nothing}
+
         <section class="mh-card">
           <header class="card-head">
             <h3>Top-Sender</h3>
@@ -552,6 +561,65 @@ export class StatsKnxView extends LitElement {
                       ${f.kind}
                     </span>
                     <span>${f.text}</span>
+                  </li>`
+                )}
+              </ul>
+            </div>`
+          : nothing}
+      </section>
+    `;
+  }
+
+  private _renderBusHealth(): TemplateResult {
+    const h = this._busHealth!;
+    const ratio = h.summary.ratio_pct;
+    const cls =
+      ratio >= 1.0
+        ? "danger"
+        : ratio >= 0.5
+          ? "warning"
+          : ratio > 0
+            ? "elevated"
+            : "ok";
+    return html`
+      <section class="mh-card">
+        <header class="card-head">
+          <h3>Bus-Gesundheit (Wiederholrate)</h3>
+          <span class="muted small">
+            xknx-Repeated-Flag — hoher Wert deutet auf Verkabelung/EMV
+          </span>
+        </header>
+        <div class="kpis">
+          <div class=${`kpi busload busload--${cls}`}>
+            <span class="kpi-label">Wiederhol-Quote</span>
+            <span class="kpi-value">${ratio.toLocaleString("de-DE", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })} %</span>
+            <span class="kpi-hint">
+              ${h.summary.repeated.toLocaleString("de-DE")} von
+              ${h.summary.total.toLocaleString("de-DE")} Telegrammen
+            </span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Schwelle gesund</span>
+            <span class="kpi-value">&lt; 0,5 %</span>
+            <span class="kpi-hint">Empfehlung KNX-Praxis</span>
+          </div>
+        </div>
+        ${h.per_ga.length > 0
+          ? html`<div class="bus-health-list">
+              <strong>Top-GAs mit Wiederholungen:</strong>
+              <ul>
+                ${h.per_ga.slice(0, 5).map(
+                  (g) => html`<li>
+                    <code>${g.ga}</code>
+                    <span class="muted">${g.label ?? "—"}</span>
+                    <span class="num">${g.repeated} / ${g.total}</span>
+                    <span class="num">${g.ratio_pct.toLocaleString("de-DE", {
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 1,
+                    })} %</span>
                   </li>`
                 )}
               </ul>
@@ -883,6 +951,34 @@ export class StatsKnxView extends LitElement {
         background: var(--mh-surface-2);
         border-radius: var(--mh-radius-sm);
         font-size: var(--mh-text-sm);
+      }
+
+      /* Bus-Health-Liste */
+      .bus-health-list {
+        margin-top: var(--mh-space-3);
+      }
+      .bus-health-list ul {
+        list-style: none;
+        padding: 0;
+        margin: var(--mh-space-2) 0 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .bus-health-list li {
+        display: grid;
+        grid-template-columns: 80px 1fr auto auto;
+        gap: var(--mh-space-2);
+        padding: 4px var(--mh-space-2);
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-sm);
+        align-items: center;
+      }
+      .bus-health-list li code {
+        font-family: var(--ha-font-family-code, ui-monospace, monospace);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
       }
 
       /* Toast */

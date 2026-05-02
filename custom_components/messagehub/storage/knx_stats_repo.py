@@ -80,6 +80,34 @@ ORDER BY timestamp ASC
 # abgerundeter Minute. Beispiel: bucket_minutes=10 -> Minuten 0,10,20,30,40,50.
 # Eine einzige bucket_minutes-Bindung im SELECT (Modulo subtrahiert
 # ueberzaehlige Minuten).
+_BUS_HEALTH_SQL = """
+SELECT
+    COUNT(*) AS total,
+    SUM(CASE WHEN json_extract(metadata, '$.knx_repeated') IN (1, 'true', true)
+             THEN 1 ELSE 0 END) AS repeated_count
+FROM messages
+WHERE source = 'knx-bus'
+  AND timestamp >= ?
+  AND timestamp <  ?
+"""
+
+_BUS_HEALTH_PER_GA_SQL = """
+SELECT
+    json_extract(metadata, '$.knx_ga') AS ga,
+    json_extract(metadata, '$.knx_label') AS label,
+    COUNT(*) AS total,
+    SUM(CASE WHEN json_extract(metadata, '$.knx_repeated') IN (1, 'true', true)
+             THEN 1 ELSE 0 END) AS repeated_count
+FROM messages
+WHERE source = 'knx-bus'
+  AND timestamp >= ?
+  AND timestamp <  ?
+GROUP BY ga, label
+HAVING repeated_count > 0
+ORDER BY repeated_count DESC, total DESC
+LIMIT ?
+"""
+
 _TIMELINE_SQL = """
 SELECT
     json_extract(metadata, '$.knx_ga') AS ga,
@@ -186,6 +214,51 @@ class KnxStatsRepository:
             }
             for row in rows
         ]
+
+    # --- Bus-Health (Iter 12, QS-a) -----------------------------------------
+
+    async def bus_health(
+        self, from_iso: str, to_iso: str
+    ) -> dict[str, float]:
+        """Wiederhol-Quote ueber den Zeitraum.
+
+        Liefert {total, repeated, ratio_pct}. ratio_pct ist 0.0 bei
+        leerem Period.
+        """
+        row = await self._db.fetch_one(_BUS_HEALTH_SQL, (from_iso, to_iso))
+        if row is None:
+            return {"total": 0, "repeated": 0, "ratio_pct": 0.0}
+        total = int(row["total"] or 0)
+        repeated = int(row["repeated_count"] or 0)
+        ratio = (repeated / total * 100.0) if total > 0 else 0.0
+        return {
+            "total": total,
+            "repeated": repeated,
+            "ratio_pct": round(ratio, 2),
+        }
+
+    async def bus_health_per_ga(
+        self, from_iso: str, to_iso: str, *, limit: int = 20
+    ) -> list[dict[str, Any]]:
+        """Top-GAs mit der hoechsten Wiederhol-Quote (absolut + relativ)."""
+        rows = await self._db.fetch_all(
+            _BUS_HEALTH_PER_GA_SQL, (from_iso, to_iso, max(1, min(limit, 100)))
+        )
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            total = int(row["total"] or 0)
+            repeated = int(row["repeated_count"] or 0)
+            ratio = (repeated / total * 100.0) if total > 0 else 0.0
+            out.append(
+                {
+                    "ga": str(row["ga"] or ""),
+                    "label": row["label"],
+                    "total": total,
+                    "repeated": repeated,
+                    "ratio_pct": round(ratio, 2),
+                }
+            )
+        return out
 
     # --- Acknowledgements ---------------------------------------------------
 

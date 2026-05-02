@@ -40,6 +40,9 @@ class KnxTelegramData:
     telegramtype: str | None
     value: Any
     raw: Any
+    # Iter 12 (QS-a): xknx markiert Wiederholungs-Telegramme — wenn der
+    # erste Sendeversuch nicht ACKed wurde. Hohe Quote = Bus-Probleme.
+    repeated: bool = False
 
     @classmethod
     def from_event_data(cls, data: dict[str, Any]) -> KnxTelegramData:
@@ -50,6 +53,7 @@ class KnxTelegramData:
             telegramtype=data.get("telegramtype"),
             value=data.get("value"),
             raw=data.get("data"),
+            repeated=bool(data.get("repeated", False)),
         )
 
     @classmethod
@@ -66,6 +70,7 @@ class KnxTelegramData:
             telegramtype=telegramtype,
             value=getattr(payload, "value", None),
             raw=getattr(payload, "raw_value", None) or getattr(payload, "value_raw", None),
+            repeated=bool(getattr(telegram, "repeated", False)),
         )
 
     def best_value(self) -> Any:
@@ -124,6 +129,7 @@ def _build_knx_message(cfg: Any, data: dict[str, Any] | KnxTelegramData) -> Any:
             "knx_value": value,
             "knx_source": td.source,
             "knx_telegramtype": td.telegramtype,
+            "knx_repeated": td.repeated,
         },
     )
 

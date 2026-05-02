@@ -173,6 +173,30 @@ class KnxStatsTimelineView(RequireAdminView):
         })
 
 
+class KnxStatsBusHealthView(RequireAdminView):
+    """Iter 12 (QS-a): Wiederhol-Quote ueber den Zeitraum + Top-GAs."""
+
+    url = "/api/messagehub/knx-stats/bus-health"
+    name = "api:messagehub:knx-stats:bus-health"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        repo = KnxStatsRepository(db)
+        summary = await repo.bus_health(from_iso, to_iso)
+        per_ga = await repo.bus_health_per_ga(from_iso, to_iso, limit=20)
+        return self.json({
+            "from": from_iso, "to": to_iso,
+            "summary": summary,
+            "per_ga": per_ga,
+        })
+
+
 class KnxStatsAcknowledgeView(RequireAdminView):
     """POST: acknowledge anlegen/aktualisieren."""
 
@@ -238,5 +262,6 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsTopBySourceView())
     hass.http.register_view(KnxStatsGaDetailView())
     hass.http.register_view(KnxStatsTimelineView())
+    hass.http.register_view(KnxStatsBusHealthView())
     hass.http.register_view(KnxStatsAcknowledgeView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())
