@@ -511,7 +511,13 @@ gefiltert auf `messagehub`.
 ## Update
 
 Über **HACS:** Update-Banner erscheint, wenn ein neuer Tag im Repo liegt.
-Klick → Download → HA-Restart → Browser-Hard-Refresh.
+Klick → Download → HA-Restart. Der Cache-Buster im Panel-URL sorgt dafür,
+dass dein Browser das neue Bundle automatisch lädt — kein hartes
+`Cmd+Shift+R` nötig.
+
+**Vollautomatisch** (kein Klick mehr): Anleitung in
+[docs/auto-update.md](docs/auto-update.md) — HACS-Auto-Update-Schalter,
+Notification-only oder komplette Pipeline mit Auto-Restart in der Nacht.
 
 Migrationen laufen automatisch beim Setup. Datenbank-Schema-Versionen werden
 in der `schema_version`-Tabelle getrackt — Downgrades sind nicht unterstützt.
