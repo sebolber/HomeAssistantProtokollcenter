@@ -426,16 +426,38 @@ Mehr Beispiele inkl. Templating-Tricks: [docs/configuration.md → Cookbook](doc
 
 Die Integration legt automatisch diese Entitäten an:
 
-| Entity-ID | Was | Beispielwert |
-|---|---|---|
-| `sensor.messagehub_total_messages` | Gesamtzahl Messages in DB | `15234` |
-| `sensor.messagehub_errors_last_24h` | Errors der letzten 24 h | `3` |
-| `sensor.messagehub_warnings_last_24h` | Warnings 24 h | `12` |
-| `sensor.messagehub_worst_source_health` | Schlechtester Source-Health-Score (0–100 %) | `78%` |
-| `sensor.messagehub_last_message` | Zeitstempel der letzten Message | `2026-05-01T20:10:38Z` |
-| `binary_sensor.messagehub_has_unacknowledged_errors` | `on` solange unbestätigte Errors existieren | `on` / `off` |
+**All-time:**
 
-Beispiel-Lovelace-Karte:
+| Entity-ID | Was |
+|---|---|
+| `sensor.messagehub_total_messages` | Gesamtzahl Messages in DB |
+| `sensor.messagehub_errors_total` | Errors all-time |
+| `sensor.messagehub_warnings_total` | Warnings all-time |
+| `sensor.messagehub_info_total` | Info all-time |
+| `sensor.messagehub_debug_total` | Debug all-time |
+
+**Time-Windows:**
+
+| Entity-ID | Was |
+|---|---|
+| `sensor.messagehub_messages_last_1h` | Alle Nachrichten letzte 1 h |
+| `sensor.messagehub_errors_last_24h` | Errors letzte 24 h |
+| `sensor.messagehub_warnings_last_24h` | Warnings letzte 24 h |
+| `sensor.messagehub_messages_last_7d` | Alle Nachrichten letzte 7 Tage |
+
+**Status / Aggregate:**
+
+| Entity-ID | Was |
+|---|---|
+| `sensor.messagehub_worst_source_health` | Schlechtester Source-Health-Score (0–100 %) |
+| `sensor.messagehub_last_message` | Text der letzten Message + Attribute |
+| `binary_sensor.messagehub_has_unacknowledged_errors` | `on` solange unbestätigte Errors existieren |
+
+**Fertige Dashboard-Vorlagen:** [docs/dashboard.md](docs/dashboard.md) —
+KPI-Reihe, Severity-Verteilung, Health-Gauge, Trend-Graph,
+Conditional-Banner, alles zum Copy-Paste in eine Lovelace-View.
+
+Quick-Beispiel (eine Glance-Card):
 
 ```yaml
 type: glance

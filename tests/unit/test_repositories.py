@@ -169,3 +169,35 @@ async def test_set_severity_rejects_invalid_value(repo: MessageRepository) -> No
     new_id = await repo.insert(_msg())
     with pytest.raises(ValueError, match="invalid severity"):
         await repo.set_severity(new_id, "fatal")
+
+
+@pytest.mark.asyncio
+async def test_count_by_severity_all_time(repo: MessageRepository) -> None:
+    """count_by_severity zaehlt unabhaengig vom Zeitfenster alle Eintraege."""
+    for sev in (Severity.ERROR, Severity.ERROR, Severity.WARNING, Severity.INFO):
+        await repo.insert(_msg(severity=sev))
+
+    assert await repo.count_by_severity("error") == 2
+    assert await repo.count_by_severity("warning") == 1
+    assert await repo.count_by_severity("info") == 1
+    assert await repo.count_by_severity("debug") == 0
+
+
+@pytest.mark.asyncio
+async def test_count_since_aggregates_all_severities(repo: MessageRepository) -> None:
+    """count_since zaehlt severity-uebergreifend ab dem Cutoff."""
+    base = datetime(2026, 5, 1, 12, 0, 0, tzinfo=UTC)
+    # 2 alte (vor dem Cutoff) + 3 neue
+    for offset in (-120, -60, 5, 10, 30):
+        await repo.insert(
+            _msg(severity=Severity.INFO, timestamp=base + timedelta(minutes=offset))
+        )
+
+    cutoff = base.isoformat(timespec="seconds")
+    assert await repo.count_since(cutoff) == 3
+
+    cutoff_old = (base - timedelta(hours=3)).isoformat(timespec="seconds")
+    assert await repo.count_since(cutoff_old) == 5
+
+    cutoff_future = (base + timedelta(hours=3)).isoformat(timespec="seconds")
+    assert await repo.count_since(cutoff_future) == 0

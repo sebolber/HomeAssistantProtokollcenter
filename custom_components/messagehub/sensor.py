@@ -49,6 +49,13 @@ async def async_setup_entry(  # NOSONAR: HA-Plattform-Hook, Signatur durch HA-AP
         WarningsLast24hSensor(entry.entry_id, repo),
         LastMessageSensor(entry.entry_id, repo),
         SourceHealthSensor(entry.entry_id, repo, db),
+        # v0.8: Lovelace-Dashboard-Sensoren
+        ErrorsTotalSensor(entry.entry_id, repo),
+        WarningsTotalSensor(entry.entry_id, repo),
+        InfoTotalSensor(entry.entry_id, repo),
+        DebugTotalSensor(entry.entry_id, repo),
+        MessagesLast1hSensor(entry.entry_id, repo),
+        MessagesLast7dSensor(entry.entry_id, repo),
     ]
     async_add_entities(sensors, update_before_add=True)
 
@@ -158,6 +165,85 @@ class SourceHealthSensor(_BaseMessageSensor):
             "source_scores": scores,
             "worst_source": min(scores, key=lambda k: scores[k]) if scores else None,
         }
+
+
+class _SeverityTotalSensor(_BaseMessageSensor):
+    """Gemeinsame Basis fuer all-time Severity-Counts (Lovelace-Dashboard)."""
+
+    severity: str = ""
+
+    def __init__(self, entry_id: str, repo: MessageRepository, key: str) -> None:
+        super().__init__(entry_id, repo, key)
+        self._attr_state_class = SensorStateClass.TOTAL
+        self._attr_native_unit_of_measurement = "msg"
+        self._attr_native_value: int | None = None
+
+    async def async_update(self) -> None:
+        self._attr_native_value = await self._repo.count_by_severity(self.severity)
+
+
+class ErrorsTotalSensor(_SeverityTotalSensor):
+    severity = "error"
+    _attr_name = "Errors total"
+
+    def __init__(self, entry_id: str, repo: MessageRepository) -> None:
+        super().__init__(entry_id, repo, "errors_total")
+
+
+class WarningsTotalSensor(_SeverityTotalSensor):
+    severity = "warning"
+    _attr_name = "Warnings total"
+
+    def __init__(self, entry_id: str, repo: MessageRepository) -> None:
+        super().__init__(entry_id, repo, "warnings_total")
+
+
+class InfoTotalSensor(_SeverityTotalSensor):
+    severity = "info"
+    _attr_name = "Info total"
+
+    def __init__(self, entry_id: str, repo: MessageRepository) -> None:
+        super().__init__(entry_id, repo, "info_total")
+
+
+class DebugTotalSensor(_SeverityTotalSensor):
+    severity = "debug"
+    _attr_name = "Debug total"
+
+    def __init__(self, entry_id: str, repo: MessageRepository) -> None:
+        super().__init__(entry_id, repo, "debug_total")
+
+
+class _TimeWindowSensor(_BaseMessageSensor):
+    """Gemeinsame Basis fuer Time-Window-Counts ueber alle Severities."""
+
+    window: timedelta = timedelta(hours=1)
+
+    def __init__(self, entry_id: str, repo: MessageRepository, key: str) -> None:
+        super().__init__(entry_id, repo, key)
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_native_unit_of_measurement = "msg"
+        self._attr_native_value: int | None = None
+
+    async def async_update(self) -> None:
+        cutoff = (datetime.now(UTC) - self.window).isoformat(timespec="seconds")
+        self._attr_native_value = await self._repo.count_since(cutoff)
+
+
+class MessagesLast1hSensor(_TimeWindowSensor):
+    window = timedelta(hours=1)
+    _attr_name = "Messages last 1h"
+
+    def __init__(self, entry_id: str, repo: MessageRepository) -> None:
+        super().__init__(entry_id, repo, "messages_1h")
+
+
+class MessagesLast7dSensor(_TimeWindowSensor):
+    window = timedelta(days=7)
+    _attr_name = "Messages last 7d"
+
+    def __init__(self, entry_id: str, repo: MessageRepository) -> None:
+        super().__init__(entry_id, repo, "messages_7d")
 
 
 class LastMessageSensor(_BaseMessageSensor):

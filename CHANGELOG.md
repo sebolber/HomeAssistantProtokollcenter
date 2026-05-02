@@ -4,6 +4,39 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.8.0] – 2026-05-02
+
+Lovelace-Release. Sechs zusätzliche Sensoren machen die Integration in
+HA-Dashboards direkt nutzbar — alle Severity-Counts (all-time und
+1 h / 7 d) als eigene Entitäten, plus fertige Lovelace-Karten zum
+Copy-Paste.
+
+### Hinzugefügt
+
+- **6 neue Sensoren** für Lovelace-Dashboards:
+  - `sensor.messagehub_errors_total`, `_warnings_total`, `_info_total`,
+    `_debug_total` — Severity-Counts über den gesamten Zeitraum
+    (state-class `total`, damit HA sie in der Statistik-DB ablegt)
+  - `sensor.messagehub_messages_last_1h`, `_messages_last_7d` —
+    severity-übergreifende Time-Window-Counts
+- **`docs/dashboard.md`** mit fertigen Lovelace-YAML-Karten:
+  KPI-Reihe (Glance), Severity-Verteilung (Horizontal-Stack),
+  Health-Gauge, Conditional-Error-Banner, History-Graph,
+  Mini-Graph-Card-Beispiel.
+- 5 neue Backend-Tests für die neuen Repo-Methoden und Sensor-Logik.
+
+### Geändert
+
+- **`README.md`** Sensor-Sektion in drei Tabellen aufgeteilt
+  (All-time / Time-Windows / Status), Verweis auf `docs/dashboard.md`.
+
+### Backend
+
+- **`MessageRepository.count_by_severity(severity)`** — all-time-Count
+  pro Severity (für die neuen Sensoren).
+- **`MessageRepository.count_since(since_iso)`** — severity-übergreifender
+  Count ab Cutoff.
+
 ## [0.7.1] – 2026-05-02
 
 Patch-Release. Eine reine CI-Konfigurations-Aenderung, kein Code- oder

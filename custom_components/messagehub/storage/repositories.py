@@ -486,6 +486,23 @@ class MessageRepository:
         )
         return int(row["cnt"]) if row is not None else 0
 
+    async def count_by_severity(self, severity: str) -> int:
+        """Counter pro Severity ueber den gesamten Zeitraum (Lovelace-Sensoren)."""
+        row = await self._db.fetch_one(
+            "SELECT COUNT(*) AS cnt FROM messages WHERE severity = ?",
+            (severity,),
+        )
+        return int(row["cnt"]) if row is not None else 0
+
+    async def count_since(self, since_iso: str) -> int:
+        """Counter ueber alle Severities ab `since_iso` (inklusiv) — fuer
+        Lovelace-Time-Window-Sensoren (1h / 7d)."""
+        row = await self._db.fetch_one(
+            "SELECT COUNT(*) AS cnt FROM messages WHERE timestamp >= ?",
+            (since_iso,),
+        )
+        return int(row["cnt"]) if row is not None else 0
+
 
 class WebhookConfigRepository:
     """CRUD fuer Webhook-Konfigurationen."""
