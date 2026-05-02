@@ -513,6 +513,25 @@ export class ApiClient {
 
   // Iter 47 (N4): intelligenter Abgleich mit Vorschau (apply=false) +
   // Anwendung (apply=true). Aenderungen siehe Backend-Doc-String.
+  // Iter 56: Bulk-Patch fuer mehrere KNX-GAs in einem Request.
+  async bulkPatchKnxAddresses(
+    addresses: string[],
+    patch: {
+      log_enabled?: boolean;
+      log_severity?: string;
+      severity_on_true?: string | null;
+      severity_on_false?: string | null;
+    }
+  ): Promise<{ updated: number; address_count: number }> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/bulk`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ addresses, patch }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as { updated: number; address_count: number };
+  }
+
   async syncKnxProject(
     items: Array<{ address: string; name: string; dpt: string | null }>,
     apply: boolean

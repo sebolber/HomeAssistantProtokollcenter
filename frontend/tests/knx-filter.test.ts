@@ -48,8 +48,10 @@ async function mount(items: KnxAddressDto[]): Promise<KnxAddressesView> {
 }
 
 function visibleAddresses(el: KnxAddressesView): string[] {
+  // Iter 56b: erste td ist jetzt die col-select-Checkbox; GA steckt
+  // in code.ga oder im 2. td. Wir nehmen code.ga, das ist eindeutig.
   const rows = el.shadowRoot!.querySelectorAll("table tbody tr");
-  return Array.from(rows).map((r) => r.querySelector("td")?.textContent?.trim() || "");
+  return Array.from(rows).map((r) => r.querySelector("code.ga")?.textContent?.trim() || "");
 }
 
 async function setOnlyEnabled(el: KnxAddressesView, on: boolean): Promise<void> {
@@ -158,6 +160,132 @@ describe("knx-addresses-view filter 'nur aktive'", () => {
     ]);
     await setOnlyEnabled(el, false);
     expect(visibleAddresses(el)).toContain("0/0/1");
+  });
+});
+
+describe("knx-addresses-view Iter 56b: Bulk-Edit", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+    try {
+      localStorage.removeItem("messagehub.knx-addresses.only-enabled");
+    } catch {
+      // ignore
+    }
+  });
+
+  function makeApiCapture(
+    items: KnxAddressDto[]
+  ): { api: ApiClient; bulkCalls: Array<{ addresses: string[]; patch: object }> } {
+    const bulkCalls: Array<{ addresses: string[]; patch: object }> = [];
+    const api = {
+      listKnxAddresses: vi.fn(async () => items),
+      upsertKnxAddress: vi.fn(async (p: KnxAddressDto) => p),
+      discoverKnxFromProject: vi.fn(async () => ({ items: [], status: "ok" })),
+      bulkPatchKnxAddresses: vi.fn(
+        async (addresses: string[], patch: object) => {
+          bulkCalls.push({ addresses, patch });
+          return { updated: addresses.length, address_count: addresses.length };
+        }
+      ),
+    } as unknown as ApiClient;
+    return { api, bulkCalls };
+  }
+
+  async function mountWithApi(
+    api: ApiClient
+  ): Promise<KnxAddressesView> {
+    const el = document.createElement("knx-addresses-view") as KnxAddressesView;
+    el.api = api;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    await el.updateComplete;
+    return el;
+  }
+
+  it("Bulk-Toolbar erscheint sobald >=1 GA selektiert", async () => {
+    const { api } = makeApiCapture([
+      makeAddr({ address: "0/0/1", log_enabled: true }),
+      makeAddr({ address: "0/0/2", log_enabled: true }),
+    ]);
+    const el = await mountWithApi(api);
+    expect(el.shadowRoot!.querySelector(".bulk-toolbar")).toBeNull();
+    // Erste Row-Checkbox klicken (col-select)
+    const cb = el.shadowRoot!.querySelector(
+      "tbody .col-select input[type=checkbox]"
+    ) as HTMLInputElement;
+    cb.click();
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector(".bulk-toolbar")).not.toBeNull();
+    expect(el.shadowRoot!.querySelector(".bulk-toolbar__count")!.textContent).toContain(
+      "1"
+    );
+  });
+
+  it("'Alle sichtbaren auswaehlen'-Header-Checkbox toggelt alle", async () => {
+    const { api } = makeApiCapture([
+      makeAddr({ address: "0/0/1", log_enabled: true }),
+      makeAddr({ address: "0/0/2", log_enabled: true }),
+    ]);
+    const el = await mountWithApi(api);
+    const headerCb = el.shadowRoot!.querySelector(
+      "thead .col-select input[type=checkbox]"
+    ) as HTMLInputElement;
+    headerCb.click();
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector(".bulk-toolbar__count")!.textContent).toContain(
+      "2"
+    );
+  });
+
+  it("'Loggen aktivieren' ruft Bulk-Patch mit log_enabled=true", async () => {
+    const { api, bulkCalls } = makeApiCapture([
+      makeAddr({ address: "0/0/1", log_enabled: false }),
+    ]);
+    const el = await mountWithApi(api);
+    // Filter "nur aktive" deaktivieren — sonst sehen wir die GA nicht
+    await setOnlyEnabled(el, false);
+    // GA waehlen
+    (el.shadowRoot!.querySelector(
+      "tbody .col-select input[type=checkbox]"
+    ) as HTMLInputElement).click();
+    await el.updateComplete;
+    // Bulk-Aktion klicken
+    const btn = Array.from(
+      el.shadowRoot!.querySelectorAll(".bulk-toolbar button")
+    ).find((b) => (b.textContent || "").includes("Loggen aktivieren")) as HTMLButtonElement;
+    btn.click();
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    expect(bulkCalls.length).toBe(1);
+    expect(bulkCalls[0].addresses).toEqual(["0/0/1"]);
+    expect(bulkCalls[0].patch).toEqual({ log_enabled: true });
+  });
+
+  it("'Severity setzen' ruft Bulk-Patch mit log_severity", async () => {
+    const { api, bulkCalls } = makeApiCapture([
+      makeAddr({ address: "0/0/1", log_enabled: true }),
+    ]);
+    const el = await mountWithApi(api);
+    (el.shadowRoot!.querySelector(
+      "tbody .col-select input[type=checkbox]"
+    ) as HTMLInputElement).click();
+    await el.updateComplete;
+    // Severity-Dropdown auf "error"
+    const sel = el.shadowRoot!.querySelector(
+      ".bulk-toolbar__sev select"
+    ) as HTMLSelectElement;
+    sel.value = "error";
+    sel.dispatchEvent(new Event("change"));
+    await el.updateComplete;
+    // Setzen-Button
+    const setBtn = Array.from(
+      el.shadowRoot!.querySelectorAll(".bulk-toolbar button")
+    ).find((b) => (b.textContent || "").trim() === "Setzen") as HTMLButtonElement;
+    setBtn.click();
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    expect(bulkCalls[0].patch).toEqual({ log_severity: "error" });
   });
 });
 
@@ -281,9 +409,10 @@ describe("knx-addresses-view Iter 54 (N2): Toggle-On-Severity-Default", () => {
   }
 
   async function clickToggle(el: KnxAddressesView): Promise<void> {
-    // Toggle-Switch in der Tabellenzeile (input type=checkbox in tbody)
+    // Iter 56b: Erste Checkbox in tbody ist die col-select (Bulk-Edit).
+    // Toggle-Switch ist die ZWEITE — also explizit nicht-col-select.
     const toggle = el.shadowRoot!.querySelector(
-      "tbody input[type=checkbox]"
+      "tbody tr td:not(.col-select) input[type=checkbox]"
     ) as HTMLInputElement;
     toggle.click();
     await el.updateComplete;

@@ -52,6 +52,11 @@ export class KnxAddressesView extends LitElement {
   // Iter 55: Wie viele der gefilterten Rows aktuell gerendert werden.
   // Wird auf PAGE_SIZE zurueckgesetzt, wenn sich Filter aendern.
   @state() private _displayedCount = PAGE_SIZE;
+  // Iter 56b: Multi-Select fuer Bulk-Edit. Adressen-Strings statt
+  // Indizes, damit die Auswahl beim Filter-Wechsel stabil bleibt.
+  @state() private _selected: Set<string> = new Set();
+  @state() private _bulkSeverityValue: string = "warning";
+  @state() private _bulkActionRunning = false;
   @state() private _newAddr = "";
   @state() private _newLabel = "";
   @state() private _newDpt = "";
@@ -373,6 +378,110 @@ export class KnxAddressesView extends LitElement {
     this._toast = text;
     if (this._toastTimer) window.clearTimeout(this._toastTimer);
     this._toastTimer = window.setTimeout(() => (this._toast = ""), 2800);
+  }
+
+  // Iter 56b: Bulk-Toolbar erscheint, sobald >=1 GA ausgewaehlt ist.
+  // Drei Aktionen: Loggen an, Loggen aus, Severity setzen. Auswahl
+  // wird nach Erfolg geleert; bei Fehlern bleibt sie damit der User
+  // nochmal probieren kann.
+  private _renderBulkToolbar(): TemplateResult {
+    const count = this._selected.size;
+    return html`
+      <div class="bulk-toolbar" role="toolbar" aria-label="Bulk-Aktionen">
+        <span class="bulk-toolbar__count">${count} ausgewaehlt</span>
+        <button
+          class="mh-btn mh-btn--sm"
+          ?disabled=${this._bulkActionRunning}
+          @click=${() => void this._bulkApply({ log_enabled: true })}
+          title=${`${count} GAs zum Logging aktivieren`}
+        >
+          Loggen aktivieren
+        </button>
+        <button
+          class="mh-btn mh-btn--sm"
+          ?disabled=${this._bulkActionRunning}
+          @click=${() => void this._bulkApply({ log_enabled: false })}
+          title=${`${count} GAs vom Logging entfernen`}
+        >
+          Loggen deaktivieren
+        </button>
+        <label class="bulk-toolbar__sev">
+          <span>Severity:</span>
+          <select
+            .value=${this._bulkSeverityValue}
+            @change=${(e: Event) =>
+              (this._bulkSeverityValue = (e.target as HTMLSelectElement).value)}
+          >
+            <option value="debug">debug</option>
+            <option value="info">info</option>
+            <option value="warning">warning</option>
+            <option value="error">error</option>
+            <option value="auto">auto (Bool-Mapping)</option>
+          </select>
+          <button
+            class="mh-btn mh-btn--sm"
+            ?disabled=${this._bulkActionRunning}
+            @click=${() =>
+              void this._bulkApply({ log_severity: this._bulkSeverityValue })}
+          >
+            Setzen
+          </button>
+        </label>
+        <button
+          class="mh-btn mh-btn--sm mh-btn--ghost"
+          @click=${() => this._clearSelection()}
+        >
+          Auswahl aufheben
+        </button>
+      </div>
+    `;
+  }
+
+  // Iter 56b: Multi-Select-Helfer. Auswahl wird bewusst NICHT beim
+  // Filter-Wechsel zurueckgesetzt — wer "warm" 50 GAs ausgewaehlt hat
+  // und dann sucht, kann die Auswahl behalten.
+  private _toggleSelect(address: string): void {
+    const next = new Set(this._selected);
+    if (next.has(address)) next.delete(address);
+    else next.add(address);
+    this._selected = next;
+  }
+
+  private _toggleSelectAllVisible(visibleAddresses: string[]): void {
+    const allSelected = visibleAddresses.every((a) => this._selected.has(a));
+    const next = new Set(this._selected);
+    if (allSelected) {
+      for (const a of visibleAddresses) next.delete(a);
+    } else {
+      for (const a of visibleAddresses) next.add(a);
+    }
+    this._selected = next;
+  }
+
+  private _clearSelection(): void {
+    this._selected = new Set();
+  }
+
+  private async _bulkApply(patch: {
+    log_enabled?: boolean;
+    log_severity?: string;
+  }): Promise<void> {
+    if (!this.api || this._selected.size === 0) return;
+    if (this._bulkActionRunning) return;
+    const addrs = Array.from(this._selected);
+    this._bulkActionRunning = true;
+    try {
+      const result = await this.api.bulkPatchKnxAddresses(addrs, patch);
+      this._showToast(
+        `${result.updated} von ${result.address_count} GAs aktualisiert`
+      );
+      this._clearSelection();
+      await this._load();
+    } catch (err) {
+      this._showToast(`Bulk-Edit fehlgeschlagen: ${(err as Error).message}`);
+    } finally {
+      this._bulkActionRunning = false;
+    }
   }
 
   private _filtered(): KnxAddressDto[] {
@@ -702,10 +811,23 @@ export class KnxAddressesView extends LitElement {
                       </p>`}
               </div>`
             : html`
+                ${this._selected.size > 0 ? this._renderBulkToolbar() : nothing}
                 <div class="table-wrap">
                   <table>
                     <thead>
                       <tr>
+                        <th class="col-select">
+                          <input
+                            type="checkbox"
+                            aria-label="Alle sichtbaren auswaehlen"
+                            .checked=${items.length > 0 &&
+                            items.every((it) => this._selected.has(it.address))}
+                            @change=${() =>
+                              this._toggleSelectAllVisible(
+                                items.map((it) => it.address)
+                              )}
+                          />
+                        </th>
                         <th>GA</th>
                         <th>Label</th>
                         <th>DPT</th>
@@ -718,6 +840,14 @@ export class KnxAddressesView extends LitElement {
                       ${items.map(
                         (it) => html`
                           <tr class=${it.log_enabled ? "enabled" : ""}>
+                            <td class="col-select">
+                              <input
+                                type="checkbox"
+                                aria-label=${`${it.address} auswaehlen`}
+                                .checked=${this._selected.has(it.address)}
+                                @change=${() => this._toggleSelect(it.address)}
+                              />
+                            </td>
                             <td><code class="ga">${it.address}</code></td>
                             <td class="label-cell">${it.label}</td>
                             <td>
@@ -922,6 +1052,39 @@ export class KnxAddressesView extends LitElement {
         border-radius: var(--mh-radius-md);
         overflow: hidden;
         box-shadow: var(--mh-shadow-1);
+      }
+      /* Iter 56b: Bulk-Toolbar + Select-Spalte */
+      .bulk-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--mh-space-2);
+        padding: var(--mh-space-2) var(--mh-space-3);
+        margin-bottom: var(--mh-space-2);
+        background: var(--mh-info-soft, rgba(0, 120, 255, 0.08));
+        border: 1px solid var(--mh-info);
+        border-radius: var(--mh-radius-md);
+        font-size: var(--mh-text-sm);
+      }
+      .bulk-toolbar__count {
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-info);
+      }
+      .bulk-toolbar__sev {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--mh-space-1);
+      }
+      .bulk-toolbar__sev select {
+        padding: 4px 6px;
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm);
+        background: var(--mh-bg);
+        font-size: var(--mh-text-sm);
+      }
+      .col-select {
+        width: 32px;
+        text-align: center;
       }
       /* Iter 55: Load-more Footer fuer paginierte Liste */
       .load-more {
