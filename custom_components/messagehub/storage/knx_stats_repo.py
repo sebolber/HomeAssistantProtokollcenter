@@ -228,6 +228,53 @@ class KnxStatsRepository:
         rows = await self._db.fetch_all(_TOP_SQL, (from_iso, to_iso, max(1, min(limit, 500))))
         return [self._row_to_top_dict(row) for row in rows]
 
+    async def ga_meta_for_period(
+        self, ga: str, from_iso: str, to_iso: str
+    ) -> dict[str, Any] | None:
+        """Iter 73 / CR-8: Liefert dpt+label+count+source fuer EINE GA.
+
+        Vorher griff `_fetch_ga_meta` im Service auf `top_by_ga(limit=500)`
+        zurueck — eine SQL-Query die fuer alle Top-500 GAs aggregiert,
+        nur um eine GA zu finden. Bei der Detail-Pane-Klick-Frequenz
+        ist das ein N+1-aehnliches Pattern (jeder Klick = full
+        500er-Aggregat). Diese Methode trifft die Filter-Klausel
+        direkt auf die GA + uebernimmt das LEFT JOIN auf die Whitelist,
+        damit dpt/label korrekt sind.
+        """
+        rows = await self._db.fetch_all(
+            """
+            SELECT
+                r.destination AS ga,
+                a.dpt         AS dpt,
+                a.label       AS label,
+                r.source      AS dev_source,
+                COUNT(*)      AS n,
+                MIN(r.timestamp) AS first_seen,
+                MAX(r.timestamp) AS last_seen
+            FROM knx_raw_telegrams r
+            LEFT JOIN knx_group_addresses a ON a.address = r.destination
+            WHERE r.destination = ?
+              AND r.timestamp >= ?
+              AND r.timestamp <  ?
+            GROUP BY r.destination, a.dpt, a.label, r.source
+            ORDER BY n DESC
+            LIMIT 1
+            """,
+            (ga, from_iso, to_iso),
+        )
+        if not rows:
+            return None
+        row = rows[0]
+        return {
+            "ga": str(row["ga"]),
+            "dpt": row["dpt"],
+            "label": row["label"],
+            "dev_source": str(row["dev_source"] or ""),
+            "count": int(row["n"]),
+            "first_seen": str(row["first_seen"]),
+            "last_seen": str(row["last_seen"]),
+        }
+
     async def total_by_ga_for_period(
         self, from_iso: str, to_iso: str
     ) -> list[dict[str, Any]]:

@@ -6,6 +6,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Performance (Iter 73 — CR-8 N+1 in `compute_ga_detail` behoben)
+- **Neue Repo-Methode** `KnxStatsRepository.ga_meta_for_period(ga,
+  from, to)` mit direktem `WHERE r.destination = ?` + LIMIT 1.
+- **Vorher**: `_fetch_ga_meta` rief `top_by_ga(limit=500)` mit
+  Aggregat über alle Top-500 GAs auf, nur um eine zu finden — bei
+  jedem Detail-Pane-Klick. Linear-Scan in Python.
+- **Jetzt**: ein direkter Index-Hit via Filter-Klausel, plus LEFT
+  JOIN auf `knx_group_addresses` für dpt/label.
+- 617 Tests bleiben grün — bestehende `compute_ga_detail`-Tests
+  decken die Funktionalität ab.
+
 ### Refactor (Iter 72 — CR-1 Helper-Duplikat-Refactor)
 - **`api/messages.py` 138 Zeilen lokaler Helper-Definitionen entfernt**
   und durch Imports aus `api/_helpers.py` ersetzt (mit Aliases auf

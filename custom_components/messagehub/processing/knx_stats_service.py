@@ -759,12 +759,14 @@ class KnxStatsService:
         }
 
     async def _fetch_ga_meta(self, ga: str, from_iso: str, to_iso: str) -> dict[str, Any] | None:
-        """Holt dpt+label fuer eine einzelne GA — fuer compute_ga_detail."""
-        rows = await self._repo.top_by_ga(from_iso, to_iso, limit=500)
-        for row in rows:
-            if row["ga"] == ga:
-                return row
-        return None
+        """Iter 73 / CR-8: Holt dpt+label+count fuer eine einzelne GA.
+
+        Vorher: `top_by_ga(limit=500)` mit Linear-Scan in Python — eine
+        teure Aggregat-Query nur um EINE GA zu finden. Jetzt: dedizierte
+        Repo-Methode `ga_meta_for_period` mit `WHERE r.destination = ?`,
+        die direkt das richtige Tupel liefert.
+        """
+        return await self._repo.ga_meta_for_period(ga, from_iso, to_iso)
 
 
 # Public helpers fuer JSON-Serialisierung im API-Layer
