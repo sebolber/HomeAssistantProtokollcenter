@@ -119,6 +119,10 @@ export class StatsKnxView extends LitElement {
   @state() private _longTerm: KnxStatsLongTermDto | null = null;
   @state() private _bursts: KnxStatsBurstsDto | null = null;
   @state() private _sensitiveLog: KnxStatsSensitiveLogDto | null = null;
+  // Iter 49 (N1): Bus-Analyse-Toggle. true = Listener nimmt Telegramme
+  // weiter auf; false = ressourcen-sparend, aber keine neuen Daten.
+  @state() private _busAnalysisEnabled: boolean = true;
+  @state() private _busAnalysisLoaded: boolean = false;
   @state() private _silence: KnxStatsSilenceDto | null = null;
   @state() private _orphans: KnxStatsOrphansDto | null = null;
   @state() private _alarms: KnxStatsAlarmsDto | null = null;
@@ -139,7 +143,41 @@ export class StatsKnxView extends LitElement {
   @state() private _toast = "";
 
   override async firstUpdated(): Promise<void> {
-    await this._load();
+    await Promise.all([this._loadBusAnalysisState(), this._load()]);
+  }
+
+  private async _loadBusAnalysisState(): Promise<void> {
+    if (!this.api) return;
+    try {
+      const result = await this.api.getKnxBusAnalysisState();
+      this._busAnalysisEnabled = result.enabled;
+    } catch {
+      // API nicht erreichbar -> Default true belassen, kein Banner
+    } finally {
+      this._busAnalysisLoaded = true;
+    }
+  }
+
+  private async _toggleBusAnalysis(): Promise<void> {
+    if (!this.api) return;
+    const nextValue = !this._busAnalysisEnabled;
+    if (
+      !nextValue &&
+      !window.confirm(
+        "Bus-Analyse deaktivieren?\n\n" +
+          "Solange aus, schreibt das Plugin keine neuen Telegramme mehr in " +
+          "die Raw- oder Counter-Tabelle. Bestehende Daten bleiben sichtbar, " +
+          "altern aber nach 48 h (Raw) bzw. 365 Tagen (Counter)."
+      )
+    ) {
+      return;
+    }
+    try {
+      const result = await this.api.setKnxBusAnalysisState(nextValue);
+      this._busAnalysisEnabled = result.enabled;
+    } catch (err) {
+      window.alert(`Fehler: ${(err as Error).message}`);
+    }
   }
 
   private _apiFilters(): KnxStatsFilters {
@@ -453,6 +491,16 @@ export class StatsKnxView extends LitElement {
             @change=${this._onAckToggle}
           />
           <span>Bekannte ausblenden</span>
+        </label>
+
+        <label class="filter-group toggle">
+          <input
+            type="checkbox"
+            ?checked=${this._busAnalysisEnabled}
+            ?disabled=${!this._busAnalysisLoaded}
+            @change=${() => void this._toggleBusAnalysis()}
+          />
+          <span title="Schaltet die bus-weite Erfassung der Telegramme">Bus-Analyse aktiv</span>
         </label>
 
         <button
@@ -808,6 +856,14 @@ export class StatsKnxView extends LitElement {
           landen zusaetzlich im Logbuch (Tab „Nachrichten").
         </div>
         ${this._renderFilterBar()}
+        ${this._busAnalysisLoaded && !this._busAnalysisEnabled
+          ? html`<div class="bus-analysis-banner">
+              <strong>Bus-Analyse ist aus.</strong>
+              Es werden keine neuen Telegramme erfasst — bestehende Daten bleiben
+              sichtbar, altern aber raus (Raw 48 h, Counter 365 Tage). Toggle in
+              der Filter-Leiste oben rechts schaltet sie wieder ein.
+            </div>`
+          : nothing}
         ${this._error
           ? html`<div class="error">${this._error}</div>`
           : nothing}
@@ -1726,6 +1782,18 @@ export class StatsKnxView extends LitElement {
       }
       .health-finding--critical .health-finding__dot {
         background: var(--mh-error);
+      }
+      /* Iter 49 (N1): Bus-Analyse-Toggle-Banner, sichtbar wenn aus */
+      .bus-analysis-banner {
+        padding: var(--mh-space-3) var(--mh-space-4);
+        background: var(--mh-warning-soft, rgba(255, 165, 0, 0.12));
+        border-left: 3px solid var(--mh-warning);
+        border-radius: var(--mh-radius-md);
+        font-size: var(--mh-text-sm);
+        margin-bottom: var(--mh-space-3);
+      }
+      .bus-analysis-banner strong {
+        margin-right: var(--mh-space-2);
       }
       /* Iter 39: Long-Term-Modus */
       .long-term-banner {

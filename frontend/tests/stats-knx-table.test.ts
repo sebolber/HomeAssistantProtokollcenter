@@ -174,6 +174,11 @@ function makeApi(): MockApi {
       addresses: [],
       telegrams: [],
     })),
+    getKnxBusAnalysisState: vi.fn(async () => ({ enabled: true })),
+    setKnxBusAnalysisState: vi.fn(async (enabled: boolean) => ({
+      ok: true,
+      enabled,
+    })),
     getKnxStatsGaDetail: vi.fn(async (ga: string) => {
       if (ga !== "5/2/14") throw new Error("not found");
       return DETAIL;

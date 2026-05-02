@@ -134,6 +134,11 @@ function makeApi(spy?: { calls: KnxStatsSummaryDto[] }): ApiClient {
         },
       ],
     })),
+    getKnxBusAnalysisState: vi.fn(async () => ({ enabled: true })),
+    setKnxBusAnalysisState: vi.fn(async (enabled: boolean) => ({
+      ok: true,
+      enabled,
+    })),
   } as unknown as ApiClient;
 }
 
@@ -193,6 +198,19 @@ describe("stats-knx-view filter bar", () => {
     expect(text).toContain("312");
     expect(text).toContain("22");
     expect(text).toContain("6,4");
+  });
+
+  it("Iter 49: Bus-Analyse-Toggle in der Filter-Bar", async () => {
+    const el = await mount();
+    // Toggle ist die zweite Checkbox (1. = "Bekannte ausblenden",
+    // 2. = "Bus-Analyse aktiv")
+    const checkboxes = el.shadowRoot!.querySelectorAll("input[type=checkbox]");
+    expect(checkboxes.length).toBe(2);
+    const busToggle = checkboxes[1] as HTMLInputElement;
+    expect(busToggle.checked).toBe(true);
+    // Banner ist NICHT sichtbar wenn enabled=true
+    const banner = el.shadowRoot!.querySelector(".bus-analysis-banner");
+    expect(banner).toBeNull();
   });
 
   it("Iter 42: Sicherheits-Audit-Card listet GAs + Telegramme", async () => {

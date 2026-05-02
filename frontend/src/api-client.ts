@@ -466,6 +466,28 @@ export class ApiClient {
     return ((await res.json()) as { items: Array<Record<string, unknown>> }).items;
   }
 
+  async getKnxBusAnalysisState(): Promise<{ enabled: boolean }> {
+    const res = await fetch(
+      `${this.baseUrl}/api/messagehub/knx-stats/bus-analysis-state`,
+      { headers: this.headers() }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return (await res.json()) as { enabled: boolean };
+  }
+
+  async setKnxBusAnalysisState(enabled: boolean): Promise<{ ok: boolean; enabled: boolean }> {
+    const res = await fetch(
+      `${this.baseUrl}/api/messagehub/knx-stats/bus-analysis-state`,
+      {
+        method: "PUT",
+        headers: this.headers(),
+        body: JSON.stringify({ enabled }),
+      }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as { ok: boolean; enabled: boolean };
+  }
+
   async clearAuditLog(): Promise<{ ok: boolean; deleted: number }> {
     const res = await fetch(`${this.baseUrl}/api/messagehub/audit`, {
       method: "DELETE",
