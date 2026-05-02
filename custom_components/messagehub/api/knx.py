@@ -50,6 +50,101 @@ class KnxProjectDiscoveryView(RequireAdminView):
         return self.json({"items": items, "count": len(items), "status": status})
 
 
+# Iter 46 (N4): Hard-Cap fuer Sync-Items — typische ETS-Projekte haben
+# < 5000 GAs, alles darueber waere verdaechtig (DoS / Fehl-Aufruf).
+_SYNC_MAX_ITEMS = 10_000
+
+
+class KnxProjectSyncView(RequireAdminView):
+    """Iter 46 (N4): Intelligenter ETS-Projektdatei-Abgleich.
+
+    POST /api/messagehub/knx-addresses/sync
+
+    Body: {"items": [{address, name, dpt}, ...], "apply": bool}
+
+    apply=false (default): liefert nur den Plan {add, update, delete, keep}.
+    apply=true: wendet den Plan an und liefert {plan, counts}.
+
+    Vermeidet die alte Wipe-and-Replace-Bulk-Logik, bei der jeder Re-
+    Import die User-Konfiguration (log_enabled, severity_*) ueberschrieben
+    hat. Bei "update" wird die User-Config bewusst zurueckgesetzt — die
+    Semantik der GA hat sich geaendert, alte Severities passen nicht mehr.
+    """
+
+    url = "/api/messagehub/knx-addresses/sync"
+    name = "api:messagehub:knx-addresses:sync"
+
+    async def post(self, request: web.Request) -> web.Response:
+        from ..processing.knx_repo import (  # noqa: PLC0415
+            KnxAddressRepository,
+            compute_etssync_plan,
+        )
+
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        data, err = await self._parse_sync_body(request)
+        if err is not None:
+            return err
+
+        items = data["items"]
+        apply = bool(data.get("apply", False))
+
+        repo = KnxAddressRepository(db)
+        existing = [a.to_dict() for a in await repo.list_all()]
+        plan = compute_etssync_plan(db_addresses=existing, ets_items=items)
+
+        if not apply:
+            return self.json(
+                {
+                    "plan": plan,
+                    "counts": {
+                        "add": len(plan["add"]),
+                        "update": len(plan["update"]),
+                        "delete": len(plan["delete"]),
+                        "keep": len(plan["keep"]),
+                    },
+                }
+            )
+
+        try:
+            counts = await repo.apply_etssync_plan(plan)
+        except (ValueError, RuntimeError) as exc:
+            return self.json_message(f"sync failed: {exc}", status_code=400)
+        _invalidate_knx_cache(request.app["hass"])
+        await audit(
+            request.app["hass"],
+            request,
+            action="knx_etssync",
+            target_type="knx_address",
+            details={
+                "added": counts["added"],
+                "updated": counts["updated"],
+                "deleted": counts["deleted"],
+                "kept": len(plan["keep"]),
+            },
+        )
+        return self.json({"plan": plan, "counts": counts})
+
+    async def _parse_sync_body(
+        self, request: web.Request
+    ) -> tuple[dict[str, Any], web.Response | None]:
+        """Parst + validiert den Request-Body. Hilfsfunktion fuer post()
+        damit der eigentliche Handler unter PLR0911 (max 6 returns) bleibt.
+        """
+        try:
+            data = await request.json()
+        except (ValueError, TypeError):
+            return {}, self.json_message(ERR_INVALID_JSON, status_code=400)
+        items = data.get("items") if isinstance(data, dict) else None
+        if not isinstance(items, list):
+            return {}, self.json_message("body.items must be a list", status_code=400)
+        if len(items) > _SYNC_MAX_ITEMS:
+            return {}, self.json_message(f"too many items (max {_SYNC_MAX_ITEMS})", status_code=400)
+        return data, None
+
+
 class KnxAddressesView(RequireAdminView):
     """Iter 48 UI: KNX-Gruppenadressen verwalten + ETS-CSV-Import."""
 

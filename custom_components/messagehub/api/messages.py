@@ -15,7 +15,12 @@ from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
 
 from ..const import DOMAIN, EVENT_MESSAGE_DELETED
-from .knx import KnxAddressDetailView, KnxAddressesView, KnxProjectDiscoveryView
+from .knx import (
+    KnxAddressDetailView,
+    KnxAddressesView,
+    KnxProjectDiscoveryView,
+    KnxProjectSyncView,
+)
 from .knx_stats import (
     KnxStatsAcknowledgeBulkView,
     KnxStatsAcknowledgeDetailView,
@@ -1173,6 +1178,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         KnxAddressesView,
         KnxAddressDetailView,
         KnxProjectDiscoveryView,
+        KnxProjectSyncView,
         ChannelsView,
         ChannelDetailView,
         ChannelTestView,

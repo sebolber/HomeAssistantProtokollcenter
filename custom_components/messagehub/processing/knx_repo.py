@@ -159,6 +159,119 @@ class KnxAddressRepository:
                 skipped += 1
         return {"imported": imported, "skipped": skipped, "errors": errors}
 
+    # --- ETS-Sync (Iter 46, N4) ---------------------------------------------
+
+    async def apply_etssync_plan(self, plan: dict[str, Any]) -> dict[str, int]:
+        """Wendet einen vorher berechneten Sync-Plan an.
+
+        Verhalten pro Bucket:
+        - add: INSERT mit Defaults (log_enabled=False, severity=warning).
+        - update: ETS-Felder (label, dpt) setzen UND User-Config zuruecksetzen
+          — die Semantik der GA hat sich geaendert, alte Severities gelten
+          nicht mehr.
+        - delete: Zeile entfernen.
+        - keep: nichts tun, User-Config bleibt unveraendert.
+
+        Liefert {added, updated, deleted}-Counts fuer Audit-Log und Toast.
+        """
+        now = datetime.now(UTC).isoformat(timespec="seconds")
+        counts = {"added": 0, "updated": 0, "deleted": 0}
+
+        for item in plan.get("add", []):
+            await self.upsert(
+                KnxAddress(
+                    address=str(item["address"]),
+                    label=str(item.get("label") or item["address"]),
+                    dpt=item.get("dpt"),
+                    log_enabled=False,
+                    log_severity="warning",
+                )
+            )
+            counts["added"] += 1
+
+        for item in plan.get("update", []):
+            address = validate_address(str(item["address"]))
+            label = str(item.get("label") or address).strip()
+            if not label:
+                raise ValueError(f"label must not be empty for {address}")
+            await self._db.execute(
+                "UPDATE knx_group_addresses SET "
+                "label = ?, dpt = ?, "
+                "log_enabled = 0, log_severity = 'warning', "
+                "severity_on_true = NULL, severity_on_false = NULL, "
+                "updated_at = ? "
+                "WHERE address = ?",
+                (label, item.get("dpt"), now, address),
+            )
+            counts["updated"] += 1
+
+        for item in plan.get("delete", []):
+            address = validate_address(str(item["address"]))
+            cursor = await self._db.connection.execute(
+                "DELETE FROM knx_group_addresses WHERE address = ?", (address,)
+            )
+            if cursor.rowcount:
+                counts["deleted"] += 1
+            await cursor.close()
+
+        await self._db.connection.commit()
+        return counts
+
+
+def compute_etssync_plan(
+    *,
+    db_addresses: list[dict[str, Any]],
+    ets_items: list[dict[str, Any]],
+) -> dict[str, list[Any]]:
+    """Reine Diff-Funktion: vergleicht DB-Stand mit neuer ETS-Liste.
+
+    Liefert vier Buckets:
+    - add: ETS-Eintrag, der in der DB fehlt → wird angelegt.
+    - update: Adresse vorhanden, aber label oder dpt unterschiedlich →
+      wird aktualisiert UND die User-Config zurueckgesetzt.
+    - delete: DB-Eintrag, der nicht mehr in der ETS-Liste steht → wird
+      geloescht (inkl. dem Lausch-Flag).
+    - keep: identischer Eintrag (label + dpt unveraendert) → bleibt
+      vollstaendig erhalten, User-Config inklusive.
+
+    Pure: Keine IO-Calls; testbar mit beliebigen Eingangs-Listen.
+    """
+    db_by_addr = {str(a["address"]): a for a in db_addresses}
+    ets_by_addr = {str(e["address"]): e for e in ets_items}
+
+    add: list[dict[str, Any]] = []
+    update: list[dict[str, Any]] = []
+    delete: list[dict[str, Any]] = []
+    keep: list[str] = []
+
+    for addr, ets in ets_by_addr.items():
+        ets_label = str(ets.get("name") or "")
+        ets_dpt = ets.get("dpt") or None
+        db = db_by_addr.get(addr)
+        if db is None:
+            add.append({"address": addr, "label": ets_label, "dpt": ets_dpt})
+            continue
+        db_label = str(db.get("label") or "")
+        db_dpt = db.get("dpt") or None
+        if db_label == ets_label and (db_dpt or "") == (ets_dpt or ""):
+            keep.append(addr)
+        else:
+            update.append(
+                {
+                    "address": addr,
+                    "label": ets_label,
+                    "dpt": ets_dpt,
+                    "old_label": db_label,
+                    "old_dpt": db_dpt,
+                }
+            )
+
+    for addr, db in db_by_addr.items():
+        if addr not in ets_by_addr:
+            delete.append({"address": addr, "label": str(db.get("label") or "")})
+
+    return {"add": add, "update": update, "delete": delete, "keep": keep}
+
 
 def _row_to_address(row: Any) -> KnxAddress:
     return KnxAddress(
