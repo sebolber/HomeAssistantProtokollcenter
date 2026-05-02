@@ -150,6 +150,16 @@ KNX_RAW_HARD_CAP_ROWS: Final[int] = 5_000_000
 OPT_KNX_RAW_RETENTION_HOURS: Final = "knx_raw_retention_hours"
 OPT_KNX_COUNTER_RETENTION_DAYS: Final = "knx_counter_retention_days"
 
+# Iter 48 (N1): Bus-Analyse-Toggle. Liegt in messagehub_settings (DB),
+# damit der Wert ohne Config-Flow-Reload zwischen HA-Neustarts ueberlebt.
+# Default: aktiviert — wer die Analyse nicht braucht, schaltet sie ueber
+# das UI aus (spart Raw-Inserts + Counter-Increments pro Telegramm).
+SETTINGS_KEY_KNX_BUS_ANALYSIS: Final = "knx_bus_analysis_enabled"
+DEFAULT_KNX_BUS_ANALYSIS_ENABLED: Final[bool] = True
+
+# Hass-Data-Schluessel fuer den Listener-Guard (in __init__.py gesetzt).
+HASS_KEY_KNX_BUS_ANALYSIS: Final = "_knx_bus_analysis_enabled"
+
 # Iter 34: Hersteller-spezifische Hinweise fuer Detail-Pane.
 # Erweiterung pflegeleicht: Hersteller-String → kurze Tipps zur ETS-Konfig.
 # Keys werden case-insensitive gegen den ETS-Hersteller-String gematcht

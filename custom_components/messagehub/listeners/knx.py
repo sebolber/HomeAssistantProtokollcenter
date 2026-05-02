@@ -157,12 +157,23 @@ async def _record_bus_activity(
     """Iter 21: bus-weite Telegramm-Erfassung. Schreibt Raw-Eintrag +
     Counter-Increment fuer JEDE GA — unabhaengig von der Whitelist.
 
+    Iter 48 (N1): Wenn der Bus-Analyse-Toggle aus ist, wird der ganze
+    Pfad uebersprungen — keine Raw-Inserts, keine Counter-Increments.
+
     Hot-Path-sicher: Fehler hier brechen die Telegramm-Verarbeitung
     nicht ab, sondern werden nur als DEBUG geloggt.
     """
     from datetime import UTC, datetime  # noqa: PLC0415
 
-    if not hass.data.get(DOMAIN, {}).get("_knx_shadow_counters_enabled", True):
+    from ..const import HASS_KEY_KNX_BUS_ANALYSIS  # noqa: PLC0415
+
+    domain_data = hass.data.get(DOMAIN, {})
+    # Neue Variante (Iter 48) bevorzugen, alte als Backward-Compat. Wenn
+    # keiner gesetzt ist, gilt der hartcodierte Default (aktiviert).
+    enabled = domain_data.get(HASS_KEY_KNX_BUS_ANALYSIS)
+    if enabled is None:
+        enabled = domain_data.get("_knx_shadow_counters_enabled", True)
+    if not enabled:
         return
     now = datetime.now(UTC)
     timestamp = now.isoformat(timespec="seconds")

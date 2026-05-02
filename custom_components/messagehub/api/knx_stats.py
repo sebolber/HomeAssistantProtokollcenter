@@ -20,15 +20,19 @@ from aiohttp import web
 
 from ..const import (
     DEFAULT_KNX_ACK_EXPIRY_DAYS,
+    DEFAULT_KNX_BUS_ANALYSIS_ENABLED,
     DEFAULT_KNX_COUNTER_RETENTION_DAYS,
     DEFAULT_KNX_STATS_PERIOD_DAYS,
+    DOMAIN,
     EVENT_KNX_ALARM_TRIGGERED,
+    HASS_KEY_KNX_BUS_ANALYSIS,
     KNX_ALARM_BUSLOAD_PCT_DEFAULT,
     KNX_ALARM_REPEAT_RATE_PCT_DEFAULT,
     KNX_ALARM_SILENCE_COUNT_DEFAULT,
     KNX_BUSLOAD_DEFAULT_BUCKET_SECONDS,
     KNX_BUSLOAD_MAX_BUCKET_SECONDS,
     KNX_BUSLOAD_MIN_BUCKET_SECONDS,
+    SETTINGS_KEY_KNX_BUS_ANALYSIS,
 )
 from ..processing.knx_stats_service import (
     KnxStatsService,
@@ -526,6 +530,51 @@ class KnxStatsLongTermView(RequireAdminView):
         return self.json(result)
 
 
+class KnxStatsBusAnalysisStateView(RequireAdminView):
+    """Iter 48 (N1): Bus-Analyse-Toggle.
+
+    GET liefert {enabled: bool} aus dem Hass-Data-Cache (oder Default,
+    falls noch keine Setting gespeichert).
+    PUT body {enabled: bool} schreibt in messagehub_settings UND setzt
+    den Hass-Data-Flag — der Listener-Guard greift sofort, ohne Reload.
+    """
+
+    url = "/api/messagehub/knx-stats/bus-analysis-state"
+    name = "api:messagehub:knx-stats:bus-analysis-state"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        domain_data = request.app["hass"].data.get(DOMAIN, {})
+        enabled = bool(domain_data.get(HASS_KEY_KNX_BUS_ANALYSIS, DEFAULT_KNX_BUS_ANALYSIS_ENABLED))
+        return self.json({"enabled": enabled})
+
+    async def put(self, request: web.Request) -> web.Response:
+        from ..storage.settings_repo import SettingsRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        try:
+            data = await request.json()
+        except (ValueError, TypeError):
+            return self.json_message(ERR_INVALID_JSON, status_code=400)
+        enabled = bool(data.get("enabled", DEFAULT_KNX_BUS_ANALYSIS_ENABLED))
+        await SettingsRepository(db).set_bool(SETTINGS_KEY_KNX_BUS_ANALYSIS, enabled)
+        # Hass-Data-Flag direkt aktualisieren — Listener-Guard sieht den
+        # neuen Wert beim naechsten Telegramm, ohne Integration-Reload.
+        request.app["hass"].data.setdefault(DOMAIN, {})[HASS_KEY_KNX_BUS_ANALYSIS] = enabled
+        await audit(
+            request.app["hass"],
+            request,
+            action="knx_bus_analysis_toggle",
+            target_type="messagehub_setting",
+            target_id=SETTINGS_KEY_KNX_BUS_ANALYSIS,
+            details={"enabled": enabled},
+        )
+        return self.json({"ok": True, "enabled": enabled})
+
+
 class KnxStatsHealthScoreView(RequireAdminView):
     """Iter 37 (Feature K): Bus-Health-Score 0..100 + Findings.
 
@@ -761,6 +810,7 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsBurstsView())
     hass.http.register_view(KnxStatsSensitiveLogView())
     hass.http.register_view(KnxStatsSensitiveSetView())
+    hass.http.register_view(KnxStatsBusAnalysisStateView())
     hass.http.register_view(KnxStatsAcknowledgeView())
     hass.http.register_view(KnxStatsAcknowledgeBulkView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())

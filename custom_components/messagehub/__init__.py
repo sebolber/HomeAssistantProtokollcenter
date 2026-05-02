@@ -134,6 +134,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
     domain_data[entry.entry_id] = state
 
+    # Iter 48 (N1): Bus-Analyse-Toggle aus messagehub_settings laden,
+    # damit der Listener-Guard korrekt arbeitet — der Default kommt aus
+    # const.py, falls die Tabelle noch leer ist.
+    from .const import (  # noqa: PLC0415
+        DEFAULT_KNX_BUS_ANALYSIS_ENABLED,
+        HASS_KEY_KNX_BUS_ANALYSIS,
+        SETTINGS_KEY_KNX_BUS_ANALYSIS,
+    )
+    from .storage.settings_repo import SettingsRepository  # noqa: PLC0415
+
+    bus_analysis_enabled = await SettingsRepository(database).get_bool(
+        SETTINGS_KEY_KNX_BUS_ANALYSIS,
+        default=DEFAULT_KNX_BUS_ANALYSIS_ENABLED,
+    )
+    domain_data[HASS_KEY_KNX_BUS_ANALYSIS] = bus_analysis_enabled
+
     # v0.8.2: explizit das Geraet im Device-Registry anlegen, damit
     # bestehende Entitaeten aus aelteren Versionen (ohne device_info)
     # nach dem Update auch ohne Re-Setup mit dem Geraet verknuepft werden.
