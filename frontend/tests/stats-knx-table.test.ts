@@ -81,6 +81,12 @@ function makeApi(): MockApi {
       items: TOP_ROWS,
       total: TOP_ROWS.length,
     })),
+    getKnxStatsTimeline: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      bucket_minutes: 60,
+      items: [],
+    })),
     getKnxStatsGaDetail: vi.fn(async (ga: string) => {
       if (ga !== "5/2/14") throw new Error("not found");
       return DETAIL;

@@ -11,9 +11,11 @@ import type {
   KnxStatsFilters,
   KnxStatsGaDetailDto,
   KnxStatsSummaryDto,
+  KnxStatsTimelineDto,
   KnxStatsTopRowDto,
 } from "../api-client.js";
 import { tokens, cards, pills, buttons } from "../styles/tokens.js";
+import "./knx-timeline-chart.js";
 
 const STORAGE_KEY = "messagehub.knx-stats.filters";
 
@@ -76,6 +78,7 @@ export class StatsKnxView extends LitElement {
   @state() private _filters: UiFilters = loadFilters();
   @state() private _summary: KnxStatsSummaryDto | null = null;
   @state() private _top: KnxStatsTopRowDto[] = [];
+  @state() private _timeline: KnxStatsTimelineDto | null = null;
   @state() private _selectedGa: string | null = null;
   @state() private _detail: KnxStatsGaDetailDto | null = null;
   @state() private _detailLoading = false;
@@ -110,12 +113,38 @@ export class StatsKnxView extends LitElement {
       ]);
       this._summary = summary;
       this._top = top.items;
+      // Timeline fuer Top-5 GAs (mehr Linien werden unleserlich).
+      const topGas = top.items.slice(0, 5).map((r) => r.ga);
+      if (topGas.length > 0) {
+        this._timeline = await this.api.getKnxStatsTimeline({
+          ...f,
+          gas: topGas,
+          bucketMinutes: this._suggestBucketMinutes(),
+        });
+      } else {
+        this._timeline = null;
+      }
     } catch (err) {
       this._error = (err as Error).message;
       this._summary = null;
       this._top = [];
+      this._timeline = null;
     } finally {
       this._loading = false;
+    }
+  }
+
+  private _suggestBucketMinutes(): number {
+    // 1h -> 1min, 24h -> 10min, 7d -> 60min, 30d -> 60min
+    switch (this._filters.periodId) {
+      case "1h":
+        return 1;
+      case "24h":
+        return 10;
+      case "7d":
+      case "30d":
+      default:
+        return 60;
     }
   }
 
@@ -354,6 +383,19 @@ export class StatsKnxView extends LitElement {
           </header>
           ${this._renderTopTable()}
         </section>
+
+        ${this._timeline !== null && this._timeline.items.length > 0
+          ? html`<section class="mh-card">
+              <header class="card-head">
+                <h3>Tagesverlauf (Top-5, ${this._timeline.bucket_minutes}-Min-Buckets)</h3>
+              </header>
+              <knx-timeline-chart
+                .items=${this._timeline.items}
+                .width=${800}
+                .height=${140}
+              ></knx-timeline-chart>
+            </section>`
+          : nothing}
 
         ${this._detail !== null || this._detailLoading
           ? this._renderDetailPane()
