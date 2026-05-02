@@ -6,6 +6,21 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 68 — WR-F GA-Werteverlauf-Export CSV/JSON)
+- **Neuer Endpoint** `GET /api/messagehub/knx-stats/ga/{ga}/export`
+  liefert den Werteverlauf einer GA als CSV oder JSON. Query-Param
+  `format=csv|json` (Default `csv`) plus `from`/`to`. Hard-Cap 50 000
+  Samples pro Aufruf (DoS-Schutz).
+- **Audit-Log-Eintrag** `knx_stats_ga_export` mit Format, Periode und
+  Sample-Count — Export ist eine bewusste Wissensgefälle-Mutation und
+  bekommt einen Trail.
+- **Detail-Pane** im Frontend bekommt zwei neue Schnell-Aktionen-
+  Links: „⤓ CSV-Export" und „⤓ JSON-Export". HTML5-`download`-
+  Attribut sorgt für Download statt Inline-Anzeige; Filename folgt
+  dem Schema `ga-1-2-3.csv` (Slashes als Bindestriche).
+- View-Registrierung in `async_register_views`; Reflection-Test in
+  `test_api_view_registration` deckt das automatisch ab.
+
 ### Hinzugefügt (Iter 67 — WR-I Trend-Vergleich heute-vs-Vorperiode)
 - **Neue Card „Trend gegenüber Vorperiode"** im KNX-Bus-Analyse-Tab
   zwischen den Verwaisten-GAs und den Top-Sender. Vergleicht die

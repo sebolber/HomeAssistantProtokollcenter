@@ -256,6 +256,102 @@ class KnxStatsTimelineView(RequireAdminView):
         )
 
 
+class KnxStatsGaExportView(RequireAdminView):
+    """Iter 68 / WR-F: Werteverlauf-Export einer GA als CSV oder JSON.
+
+    Endpoint: GET /api/messagehub/knx-stats/ga/{ga}/export?format=csv&from=&to=
+    Hard-Cap: 50.000 Samples pro Aufruf.
+    """
+
+    url = "/api/messagehub/knx-stats/ga/{ga}/export"
+    name = "api:messagehub:knx-stats:ga-export"
+
+    async def get(self, request: web.Request) -> web.Response:
+        import csv  # noqa: PLC0415
+        import io  # noqa: PLC0415
+        import json  # noqa: PLC0415
+
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        ga = validate_knx_ga(request.match_info["ga"])
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        fmt = request.query.get("format", "csv").lower()
+        if fmt not in ("csv", "json"):
+            raise web.HTTPBadRequest(reason="format must be csv or json")
+        samples = await KnxStatsRepository(db).ga_samples(ga, from_iso, to_iso)
+        # Hard-Cap nach 50k — schuetzt vor Memory-Bombs.
+        capped = samples[:50_000]
+        # Audit-Log: Export ist eine bewusste Mutation des Wissens-Gefaelles.
+        audit(
+            request.app["hass"],
+            "knx_stats_ga_export",
+            target_id=ga,
+            details={
+                "format": fmt,
+                "from": from_iso,
+                "to": to_iso,
+                "count": len(capped),
+            },
+        )
+        # Sicherer Filename: GA-Format aus validate_knx_ga ist "n/n/n",
+        # Slashes ersetzen wir durch Bindestriche.
+        safe_ga = ga.replace("/", "-")
+        if fmt == "csv":
+            buf = io.StringIO()
+            writer = csv.writer(buf, lineterminator="\n")
+            writer.writerow(["ts", "ga", "dev_source", "telegramtype", "value"])
+            for s in capped:
+                writer.writerow(
+                    [
+                        s["ts"],
+                        ga,
+                        s["dev_source"],
+                        s["telegramtype"] or "",
+                        json.dumps(s["value"], ensure_ascii=False)
+                        if not isinstance(s["value"], (str, int, float, bool, type(None)))
+                        else (s["value"] if s["value"] is not None else ""),
+                    ]
+                )
+            return web.Response(
+                body=buf.getvalue(),
+                content_type="text/csv",
+                charset="utf-8",
+                headers={
+                    "Content-Disposition": f'attachment; filename="ga-{safe_ga}.csv"',
+                },
+            )
+        # JSON
+        return web.Response(
+            body=json.dumps(
+                {
+                    "ga": ga,
+                    "from": from_iso,
+                    "to": to_iso,
+                    "count": len(capped),
+                    "samples": [
+                        {
+                            "ts": s["ts"],
+                            "value": s["value"],
+                            "telegramtype": s["telegramtype"],
+                            "dev_source": s["dev_source"],
+                        }
+                        for s in capped
+                    ],
+                },
+                ensure_ascii=False,
+            ),
+            content_type="application/json",
+            charset="utf-8",
+            headers={
+                "Content-Disposition": f'attachment; filename="ga-{safe_ga}.json"',
+            },
+        )
+
+
 class KnxStatsTrendView(RequireAdminView):
     """Iter 67 / WR-I: Trend-Vergleich aktueller Periode vs. Vorperiode.
 

@@ -1390,9 +1390,8 @@ export class StatsKnxView extends LitElement {
   }
 
   /**
-   * Iter 64 / WR-P: Direktlinks aus dem Detail-Pane. Spart dem User
-   * den Weg "Settings → Geräte & Dienste → KNX → suchen" und macht
-   * das KNX-User-Forum als Recherche-Pfad sichtbar.
+   * Iter 64 / WR-P: Direktlinks aus dem Detail-Pane.
+   * Iter 68 / WR-F: + Werteverlauf-Export-Links (CSV/JSON).
    *
    * Tab-Wechsel innerhalb messagehub (z. B. zu Settings → KNX-Adressen
    * mit GA-Filter vorbefüllt) wuerde Top-Level-State-Sharing brauchen
@@ -1403,6 +1402,19 @@ export class StatsKnxView extends LitElement {
     const forumUrl = `https://knx-user-forum.de/forum/search?searchword=${encodeURIComponent(
       d.ga,
     )}`;
+    // Iter 68: from/to aus aktuellen Filtern uebernehmen, damit der
+    // Export denselben Zeitraum wie das Detail-Pane abdeckt. KnxStatsFilters
+    // kann from/to undefined enthalten (Vorwaert-Kompatibilitaet) — wir
+    // kappen leere Strings ab, der Endpoint nutzt dann den Default.
+    const f = this._apiFilters();
+    const exportParams = new URLSearchParams();
+    if (f.from) exportParams.set("from", f.from);
+    if (f.to) exportParams.set("to", f.to);
+    const exportBase = `/api/messagehub/knx-stats/ga/${encodeURIComponent(
+      d.ga,
+    )}/export?${exportParams.toString()}`;
+    const csvUrl = `${exportBase}&format=csv`;
+    const jsonUrl = `${exportBase}&format=json`;
     return html`
       <div class="ha-links">
         <strong>Schnell-Aktionen:</strong>
@@ -1422,6 +1434,22 @@ export class StatsKnxView extends LitElement {
               rel="noopener noreferrer"
               title="KNX-User-Forum nach GA-Code durchsuchen"
               >Im KNX-User-Forum suchen ↗</a
+            >
+          </li>
+          <li>
+            <a
+              href=${csvUrl}
+              download
+              title="Werteverlauf als CSV-Datei herunterladen (max 50.000 Samples)"
+              >⤓ CSV-Export</a
+            >
+          </li>
+          <li>
+            <a
+              href=${jsonUrl}
+              download
+              title="Werteverlauf als JSON-Datei herunterladen (max 50.000 Samples)"
+              >⤓ JSON-Export</a
             >
           </li>
         </ul>
