@@ -455,6 +455,10 @@ def detect_patterns(
 
     Nicht-anwendbare Detektoren liefern None und werden uebersprungen.
     Liefert die Liste der erkannten Findings (kann leer sein).
+
+    Iter 85 / CR-26: `dpt` aktuell nicht genutzt; Param bleibt fuer
+    spaetere DPT-spezifische Detektoren (z. B. Status-Schleife nur
+    fuer DPT 1.001). `noqa: ARG001` markiert das explizit.
     """
     if len(samples) < _MIN_PATTERN_SAMPLES:
         return []
@@ -469,9 +473,6 @@ def detect_patterns(
         result = detector(samples)
         if result is not None:
             findings.append(result)
-    # dpt aktuell nicht genutzt — zukunft: DPT-spezifische Detektoren
-    # (z. B. Status-Schleife nur fuer DPT 1.001).
-    _ = dpt
     return findings
 
 

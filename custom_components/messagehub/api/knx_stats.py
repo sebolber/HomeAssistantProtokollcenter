@@ -684,6 +684,11 @@ class KnxStatsBusAnalysisStateView(RequireAdminView):
 
     async def get(self, request: web.Request) -> web.Response:
         self._check_admin(request)
+        # Iter 85 / CR-6: 503-Pfad konsistent mit anderen Endpoints,
+        # damit Frontend bei Setup-Fehler eine eindeutige Fehlermeldung
+        # bekommt statt eines voreilig "enabled: True"-Defaults.
+        if get_database(request.app["hass"]) is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
         domain_data = request.app["hass"].data.get(DOMAIN, {})
         enabled = bool(domain_data.get(HASS_KEY_KNX_BUS_ANALYSIS, DEFAULT_KNX_BUS_ANALYSIS_ENABLED))
         return self.json({"enabled": enabled})

@@ -6,6 +6,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Code-Hygiene (Iter 85 — LOW-Findings Sammel)
+- **CR-6**: `KnxStatsBusAnalysisStateView.get` liefert jetzt 503 bei
+  fehlender DB-Init (konsistent mit anderen Endpoints).
+- **CR-26**: Dead `_ = dpt`-Zuweisung in `detect_patterns` entfernt;
+  Param mit `noqa: ARG001` markiert.
+- **CR-29**: Lokaler `from datetime import datetime as _dt`-Import in
+  `silence_detect` entfernt — Modul-Top-Import wird genutzt.
+
 ### Refactor (Iter 84 — CR-24 `format_value` Strategy-Pattern)
 - **`format_value` (KNX-DPT-Formatter) auf Dispatch-Tabelle umgestellt**.
   Vorher 8 Returns + 12 Branches mit `noqa: PLR0911, PLR0912`. Jetzt

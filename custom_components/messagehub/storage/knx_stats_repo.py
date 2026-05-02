@@ -421,15 +421,15 @@ class KnxStatsRepository:
         - silent_minutes: Minuten seit last_seen (rel. zu now_iso)
         - alarm: silent_minutes > max_silence_minutes
         """
-        from datetime import datetime as _dt  # noqa: PLC0415
-
+        # Iter 85 / CR-29: datetime ist schon am Modul-Top importiert,
+        # der lokale Alias war redundant.
         rows = await self._db.fetch_all(_SILENCE_DETECT_SQL, (from_iso, to_iso))
-        now = _dt.fromisoformat(now_iso)
+        now = datetime.fromisoformat(now_iso)
         out: list[dict[str, Any]] = []
         for row in rows:
             last_seen_str = str(row["last_seen"])
             try:
-                last_seen = _dt.fromisoformat(last_seen_str)
+                last_seen = datetime.fromisoformat(last_seen_str)
             except ValueError:
                 continue
             silent_min = (now - last_seen).total_seconds() / 60.0
