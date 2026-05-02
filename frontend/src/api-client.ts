@@ -235,6 +235,26 @@ export interface KnxStatsBusHealthDto {
   }>;
 }
 
+export interface KnxStatsBusloadBucket {
+  bucket: string;
+  telegrams: number;
+  busload_pct: number;
+}
+
+export interface KnxStatsBusloadDto {
+  from: string;
+  to: string;
+  bucket_seconds: number;
+  summary: {
+    current_pct: number;
+    max_pct: number;
+    avg_pct: number;
+    total_telegrams: number;
+    buckets: number;
+  };
+  series: KnxStatsBusloadBucket[];
+}
+
 export interface KnxStatsFilters {
   from?: string;
   to?: string;
@@ -752,6 +772,20 @@ export class ApiClient {
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxStatsBusHealthDto;
+  }
+
+  async getKnxStatsBusload(
+    f: KnxStatsFilters,
+    bucketSeconds?: number
+  ): Promise<KnxStatsBusloadDto> {
+    const params = this._knxStatsParams(f);
+    if (bucketSeconds && Number.isFinite(bucketSeconds) && bucketSeconds > 0) {
+      params.set("bucket_seconds", String(Math.trunc(bucketSeconds)));
+    }
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/busload?${params.toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsBusloadDto;
   }
 
   async unacknowledgeKnxGa(ga: string): Promise<void> {

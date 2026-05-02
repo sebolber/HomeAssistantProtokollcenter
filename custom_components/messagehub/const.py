@@ -119,6 +119,19 @@ DEFAULT_KNX_STATS_PERIOD_DAYS: Final[int] = 7
 KNX_ALARM_BUSLOAD_PCT_DEFAULT: Final[float] = 25.0  # > X% Buslast
 KNX_ALARM_REPEAT_RATE_PCT_DEFAULT: Final[float] = 0.5  # > X% Wiederholungen
 KNX_ALARM_SILENCE_COUNT_DEFAULT: Final[int] = 1  # >= X stumme Geraete
+
+# Iter 36: Buslast-%-Berechnung (Feature A).
+# KNX TP1 traegt 9600 bps physikalisch. Ein durchschnittliches Telegramm
+# belegt inkl. Inter-Frame-Pausen (50 Bit vor + 15 Bit nach) und ueblicher
+# Payload ca. 200 Bit — daraus ergibt sich theoretisch ~48 Telegramme/s
+# bei 100% Buslast. Wir rechnen Buslast als
+#   pct = (n_telegrams * KNX_AVG_TELEGRAM_BITS) / (window_s * KNX_TP_BAUDRATE_BPS) * 100
+# Standard-Fenster ist 10 s — gleicher Wert wie ETS (sliding window).
+KNX_TP_BAUDRATE_BPS: Final[int] = 9600
+KNX_AVG_TELEGRAM_BITS: Final[int] = 200
+KNX_BUSLOAD_DEFAULT_BUCKET_SECONDS: Final[int] = 10
+KNX_BUSLOAD_MIN_BUCKET_SECONDS: Final[int] = 5
+KNX_BUSLOAD_MAX_BUCKET_SECONDS: Final[int] = 3600
 # Eventbus-Schluessel fuer Alarm-Trigger
 EVENT_KNX_ALARM_TRIGGERED: Final = "messagehub_knx_alarm_triggered"
 

@@ -14,6 +14,8 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from ..const import KNX_AVG_TELEGRAM_BITS, KNX_TP_BAUDRATE_BPS
+
 if TYPE_CHECKING:
     from .database import Database
 
@@ -131,6 +133,20 @@ WHERE timestamp >= ?
   AND destination IN ({placeholders})
 GROUP BY ga, bucket
 ORDER BY bucket ASC, ga ASC
+"""
+
+# Iter 36 (Feature A): Buslast in N-Sekunden-Buckets. Nutzt Unix-Sekunden-
+# Arithmetik fuer beliebige Bucket-Groessen (10s wie ETS, oder 60s/300s).
+_BUSLOAD_TIMESERIES_SQL = """
+SELECT
+    datetime((CAST(strftime('%s', timestamp) AS INTEGER) / ?) * ?, 'unixepoch')
+        AS bucket,
+    COUNT(*) AS telegrams
+FROM knx_raw_telegrams
+WHERE timestamp >= ?
+  AND timestamp <  ?
+GROUP BY bucket
+ORDER BY bucket ASC
 """
 
 
@@ -308,6 +324,40 @@ class KnxStatsRepository:
                     "total": total,
                     "repeated": repeated,
                     "ratio_pct": round(ratio, 2),
+                }
+            )
+        return out
+
+    # --- Buslast-Zeitreihe (Iter 36, Feature A) -----------------------------
+
+    async def busload_timeseries(
+        self, from_iso: str, to_iso: str, *, bucket_seconds: int = 10
+    ) -> list[dict[str, Any]]:
+        """Liefert Buslast in % pro Zeit-Bucket.
+
+        Modell:
+            pct = telegrams * KNX_AVG_TELEGRAM_BITS
+                  / (bucket_seconds * KNX_TP_BAUDRATE_BPS) * 100
+
+        Default-Bucket = 10 s (ETS-Standard, sliding window). Buckets ohne
+        Telegramme tauchen NICHT auf — der Caller kann lueckenlose Series
+        bei Bedarf selbst auffuellen.
+        """
+        bucket_seconds = max(bucket_seconds, 1)
+        rows = await self._db.fetch_all(
+            _BUSLOAD_TIMESERIES_SQL,
+            (bucket_seconds, bucket_seconds, from_iso, to_iso),
+        )
+        out: list[dict[str, Any]] = []
+        denom = bucket_seconds * KNX_TP_BAUDRATE_BPS
+        for row in rows:
+            telegrams = int(row["telegrams"] or 0)
+            pct = (telegrams * KNX_AVG_TELEGRAM_BITS / denom) * 100.0 if denom else 0.0
+            out.append(
+                {
+                    "bucket": str(row["bucket"]),
+                    "telegrams": telegrams,
+                    "busload_pct": round(pct, 2),
                 }
             )
         return out

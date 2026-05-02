@@ -949,6 +949,13 @@ class ts {
     if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
     return await a.json();
   }
+  async getKnxStatsBusload(e, s) {
+    const a = this._knxStatsParams(e);
+    s && Number.isFinite(s) && s > 0 && a.set("bucket_seconds", String(Math.trunc(s)));
+    const r = `${this.baseUrl}/api/messagehub/knx-stats/busload?${a.toString()}`, i = await fetch(r, { headers: this.headers() });
+    if (!i.ok) throw new Error(`HTTP ${i.status}: ${await i.text()}`);
+    return await i.json();
+  }
   async unacknowledgeKnxGa(e) {
     const s = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge/${encodeURIComponent(e)}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
     if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
@@ -5879,7 +5886,7 @@ function vt(t) {
 }
 let w = class extends _ {
   constructor() {
-    super(...arguments), this._filters = Xs(), this._summary = null, this._busHealth = null, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._loading = !1, this._error = "", this._toast = "";
+    super(...arguments), this._filters = Xs(), this._summary = null, this._busHealth = null, this._busload = null, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._loading = !1, this._error = "", this._toast = "";
   }
   async firstUpdated() {
     await this._load();
@@ -5898,7 +5905,7 @@ let w = class extends _ {
     if (this.api) {
       this._loading = !0, this._error = "";
       try {
-        const t = this._apiFilters(), [e, s, a, r, i, n, c] = await Promise.all([
+        const t = this._apiFilters(), [e, s, a, r, i, n, c, d] = await Promise.all([
           this.api.getKnxStatsSummary(t),
           this.api.getKnxStatsTop(t),
           this.api.getKnxStatsTopBySource(t),
@@ -5908,17 +5915,18 @@ let w = class extends _ {
             maxSilenceMinutes: this._suggestSilenceMinutes()
           }),
           this.api.getKnxStatsOrphans(t).catch(() => null),
-          this.api.getKnxStatsAlarms(t).catch(() => null)
+          this.api.getKnxStatsAlarms(t).catch(() => null),
+          this.api.getKnxStatsBusload(t, this._suggestBusloadBucketSeconds()).catch(() => null)
         ]);
-        this._summary = e, this._top = s.items, this._topBySource = a.items, this._busHealth = r, this._silence = i, this._orphans = n, this._alarms = c;
-        const d = s.items.slice(0, 5).map((u) => u.ga);
-        d.length > 0 ? this._timeline = await this.api.getKnxStatsTimeline({
+        this._summary = e, this._top = s.items, this._topBySource = a.items, this._busHealth = r, this._silence = i, this._orphans = n, this._alarms = c, this._busload = d;
+        const u = s.items.slice(0, 5).map((b) => b.ga);
+        u.length > 0 ? this._timeline = await this.api.getKnxStatsTimeline({
           ...t,
-          gas: d,
+          gas: u,
           bucketMinutes: this._suggestBucketMinutes()
         }) : this._timeline = null;
       } catch (t) {
-        this._error = t.message, this._summary = null, this._top = [], this._topBySource = [], this._timeline = null, this._busHealth = null, this._silence = null, this._orphans = null, this._alarms = null;
+        this._error = t.message, this._summary = null, this._top = [], this._topBySource = [], this._timeline = null, this._busHealth = null, this._silence = null, this._orphans = null, this._alarms = null, this._busload = null;
       } finally {
         this._loading = !1;
       }
@@ -5935,6 +5943,25 @@ let w = class extends _ {
       case "48h":
       default:
         return 30;
+    }
+  }
+  // Iter 36 (Feature A): pro Periode passende Bucket-Groesse fuer Buslast-%
+  // damit das Frontend bei laengeren Perioden nicht 17280 Buckets bekommt.
+  // 1h -> 10s (ETS-Standard, 360 Punkte)
+  // 6h -> 60s (360 Punkte)
+  // 24h -> 5min (288 Punkte)
+  // 48h -> 10min (288 Punkte)
+  _suggestBusloadBucketSeconds() {
+    switch (this._filters.periodId) {
+      case "1h":
+        return 10;
+      case "6h":
+        return 60;
+      case "24h":
+        return 300;
+      case "48h":
+      default:
+        return 600;
     }
   }
   _suggestSilenceMinutes() {
@@ -6072,7 +6099,10 @@ let w = class extends _ {
     const t = this._summary;
     if (t === null)
       return o`<p class="muted">Keine Daten verfuegbar.</p>`;
-    const e = t.counts_by_severity, s = t.estimated_busload_pct >= 30 ? "danger" : t.estimated_busload_pct >= 20 ? "warning" : t.estimated_busload_pct >= 10 ? "elevated" : "ok";
+    const e = t.counts_by_severity, s = this._busload, a = s !== null ? s.summary.max_pct : t.estimated_busload_pct, r = a >= 30 ? "danger" : a >= 20 ? "warning" : a >= 10 ? "elevated" : "ok", i = (n) => n.toLocaleString("de-DE", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    });
     return o`
       <div class="kpis">
         <div class="kpi">
@@ -6090,24 +6120,28 @@ let w = class extends _ {
           <span class="kpi-value">${t.active_devices.toLocaleString("de-DE")}</span>
           <span class="kpi-hint">Source-Adressen</span>
         </div>
-        <div class=${`kpi busload busload--${s}`}>
-          <span class="kpi-label">Geschaetzte Buslast</span>
-          <span class="kpi-value">${t.estimated_busload_pct.toLocaleString(
-      "de-DE",
-      { minimumFractionDigits: 1, maximumFractionDigits: 1 }
-    )} %</span>
-          <span class="kpi-hint">Ø ueber Zeitraum</span>
+        <div class=${`kpi busload busload--${r}`}>
+          <span class="kpi-label">Buslast</span>
+          ${s === null ? o`<span class="kpi-value">${i(t.estimated_busload_pct)} %</span>
+                <span class="kpi-hint">Ø ueber Zeitraum</span>` : o`<span class="kpi-value">${i(s.summary.max_pct)} %</span>
+                <span class="kpi-hint">
+                  jetzt ${i(s.summary.current_pct)} % · Ø ${i(s.summary.avg_pct)} %
+                  · Bucket ${this._formatBucket(s.bucket_seconds)}
+                </span>`}
         </div>
       </div>
       <div class="severity-counts">
         ${["red", "orange", "yellow", "green"].map(
-      (a) => o`<span class=${`mh-pill mh-pill--${a === "red" ? "error" : a === "orange" ? "warning" : a === "yellow" ? "info" : "neutral"}`}>
+      (n) => o`<span class=${`mh-pill mh-pill--${n === "red" ? "error" : n === "orange" ? "warning" : n === "yellow" ? "info" : "neutral"}`}>
             <span class="mh-pill__dot"></span>
-            ${this._severityLabel(a)}: ${e[a] ?? 0}
+            ${this._severityLabel(n)}: ${e[n] ?? 0}
           </span>`
     )}
       </div>
     `;
+  }
+  _formatBucket(t) {
+    return t < 60 ? `${t}s` : t < 3600 ? `${Math.round(t / 60)}min` : `${Math.round(t / 3600)}h`;
   }
   _severityLabel(t) {
     switch (t) {
@@ -7160,6 +7194,9 @@ S([
 S([
   l()
 ], w.prototype, "_busHealth", 2);
+S([
+  l()
+], w.prototype, "_busload", 2);
 S([
   l()
 ], w.prototype, "_silence", 2);

@@ -58,6 +58,19 @@ function makeApi(spy?: { calls: KnxStatsSummaryDto[] }): ApiClient {
       alarms: [],
       triggered_count: 0,
     })),
+    getKnxStatsBusload: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      bucket_seconds: 10,
+      summary: {
+        current_pct: 6.4,
+        max_pct: 12.5,
+        avg_pct: 6.4,
+        total_telegrams: SUMMARY.total_telegrams,
+        buckets: 360,
+      },
+      series: [],
+    })),
   } as unknown as ApiClient;
 }
 
@@ -106,6 +119,20 @@ describe("stats-knx-view filter bar", () => {
     expect(text).toContain("312");
     expect(text).toContain("22");
     expect(text).toContain("6,4");
+  });
+
+  it("Iter 36: Busload-KPI zeigt max + jetzt + Avg + Bucket-Groesse", async () => {
+    const el = await mount();
+    const busloadKpi = el.shadowRoot!.querySelector(".kpi.busload");
+    expect(busloadKpi).not.toBeNull();
+    const text = busloadKpi!.textContent ?? "";
+    // max_pct 12.5 wird als Hauptwert angezeigt
+    expect(text).toContain("12,5");
+    // current_pct 6.4 erscheint im Hint mit "jetzt"
+    expect(text).toContain("jetzt");
+    expect(text).toContain("6,4");
+    // Bucket 10s
+    expect(text).toMatch(/10s|10 s/);
   });
 
   it("rendert Severity-Counts (rot/orange/gelb/gruen)", async () => {

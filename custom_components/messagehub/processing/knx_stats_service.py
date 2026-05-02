@@ -11,6 +11,13 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
+from ..const import (
+    KNX_AVG_TELEGRAM_BITS,
+    KNX_BUSLOAD_DEFAULT_BUCKET_SECONDS,
+    KNX_BUSLOAD_MAX_BUCKET_SECONDS,
+    KNX_BUSLOAD_MIN_BUCKET_SECONDS,
+    KNX_TP_BAUDRATE_BPS,
+)
 from .knx_stats import (
     Finding,
     Recommendation,
@@ -26,9 +33,11 @@ if TYPE_CHECKING:
     from ..storage.knx_stats_repo import KnxStatsRepository
 
 
-# Bus-Last-Konstanten — siehe Konzept §2.1 / §5.4.
-_AVG_TELEGRAM_BITS: float = 22.0 * 8.0  # 22 Byte ~ Standardtelegramm
-_TP1_BITRATE: float = 9600.0
+# Bus-Last-Konstanten zentral aus const.py — Iter 36 vereint die alte
+# Schaetzung (22 Byte ohne Pause) mit dem ETS-konformen Modell, das den
+# Inter-Frame-Overhead (50 + 15 Bit Pause) mitrechnet (~200 Bit/Telegramm).
+_AVG_TELEGRAM_BITS: float = float(KNX_AVG_TELEGRAM_BITS)
+_TP1_BITRATE: float = float(KNX_TP_BAUDRATE_BPS)
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,6 +101,62 @@ class KnxStatsService:
 
     def __init__(self, repo: KnxStatsRepository) -> None:
         self._repo = repo
+
+    # --- Buslast-Zeitreihe (Iter 36, Feature A) -----------------------------
+
+    @staticmethod
+    def compute_busload_summary(series: list[dict[str, Any]]) -> dict[str, Any]:
+        """Aggregiert eine Bucket-Zeitreihe zur Single-Glance-KPI.
+
+        - current_pct: Buslast im juengsten Bucket (oder 0.0 wenn leer)
+        - max_pct: groesste Buslast in der Zeitreihe
+        - avg_pct: arithmetisches Mittel ueber alle Buckets
+        - total_telegrams: Summe ueber die Periode
+        - buckets: Anzahl Buckets mit Telegrammen
+        """
+        if not series:
+            return {
+                "current_pct": 0.0,
+                "max_pct": 0.0,
+                "avg_pct": 0.0,
+                "total_telegrams": 0,
+                "buckets": 0,
+            }
+        pcts = [float(b["busload_pct"]) for b in series]
+        total_t = sum(int(b["telegrams"]) for b in series)
+        return {
+            "current_pct": round(pcts[-1], 2),
+            "max_pct": round(max(pcts), 2),
+            "avg_pct": round(sum(pcts) / len(pcts), 2),
+            "total_telegrams": total_t,
+            "buckets": len(series),
+        }
+
+    async def busload(
+        self,
+        from_iso: str,
+        to_iso: str,
+        *,
+        bucket_seconds: int = KNX_BUSLOAD_DEFAULT_BUCKET_SECONDS,
+    ) -> dict[str, Any]:
+        """Liefert Buslast-Zeitreihe + aggregierte Summary fuer den Tab.
+
+        DoS-Schutz: bucket_seconds wird in
+        [KNX_BUSLOAD_MIN_BUCKET_SECONDS, KNX_BUSLOAD_MAX_BUCKET_SECONDS]
+        geclippt — verhindert 1-Sek-Buckets ueber 90 Tage (~7.7M Buckets).
+        """
+        bs = max(
+            KNX_BUSLOAD_MIN_BUCKET_SECONDS,
+            min(int(bucket_seconds), KNX_BUSLOAD_MAX_BUCKET_SECONDS),
+        )
+        series = await self._repo.busload_timeseries(from_iso, to_iso, bucket_seconds=bs)
+        return {
+            "from": from_iso,
+            "to": to_iso,
+            "bucket_seconds": bs,
+            "summary": self.compute_busload_summary(series),
+            "series": series,
+        }
 
     async def compute_summary(self, from_iso: str, to_iso: str) -> dict[str, Any]:
         from_dt = datetime.fromisoformat(from_iso)

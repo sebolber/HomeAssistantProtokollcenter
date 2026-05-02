@@ -11,6 +11,7 @@ import type {
   ApiClient,
   KnxStatsAlarmsDto,
   KnxStatsBusHealthDto,
+  KnxStatsBusloadDto,
   KnxStatsFilters,
   KnxStatsGaDetailDto,
   KnxStatsOrphansDto,
@@ -88,6 +89,7 @@ export class StatsKnxView extends LitElement {
   @state() private _filters: UiFilters = loadFilters();
   @state() private _summary: KnxStatsSummaryDto | null = null;
   @state() private _busHealth: KnxStatsBusHealthDto | null = null;
+  @state() private _busload: KnxStatsBusloadDto | null = null;
   @state() private _silence: KnxStatsSilenceDto | null = null;
   @state() private _orphans: KnxStatsOrphansDto | null = null;
   @state() private _alarms: KnxStatsAlarmsDto | null = null;
@@ -128,7 +130,7 @@ export class StatsKnxView extends LitElement {
     this._error = "";
     try {
       const f = this._apiFilters();
-      const [summary, top, topBySource, busHealth, silence, orphans, alarms] =
+      const [summary, top, topBySource, busHealth, silence, orphans, alarms, busload] =
         await Promise.all([
           this.api.getKnxStatsSummary(f),
           this.api.getKnxStatsTop(f),
@@ -140,6 +142,9 @@ export class StatsKnxView extends LitElement {
           }),
           this.api.getKnxStatsOrphans(f).catch(() => null),
           this.api.getKnxStatsAlarms(f).catch(() => null),
+          this.api
+            .getKnxStatsBusload(f, this._suggestBusloadBucketSeconds())
+            .catch(() => null),
         ]);
       this._summary = summary;
       this._top = top.items;
@@ -148,6 +153,7 @@ export class StatsKnxView extends LitElement {
       this._silence = silence;
       this._orphans = orphans;
       this._alarms = alarms;
+      this._busload = busload;
       // Timeline fuer Top-5 GAs (mehr Linien werden unleserlich).
       const topGas = top.items.slice(0, 5).map((r) => r.ga);
       if (topGas.length > 0) {
@@ -169,6 +175,7 @@ export class StatsKnxView extends LitElement {
       this._silence = null;
       this._orphans = null;
       this._alarms = null;
+      this._busload = null;
     } finally {
       this._loading = false;
     }
@@ -185,6 +192,26 @@ export class StatsKnxView extends LitElement {
       case "48h":
       default:
         return 30;
+    }
+  }
+
+  // Iter 36 (Feature A): pro Periode passende Bucket-Groesse fuer Buslast-%
+  // damit das Frontend bei laengeren Perioden nicht 17280 Buckets bekommt.
+  // 1h -> 10s (ETS-Standard, 360 Punkte)
+  // 6h -> 60s (360 Punkte)
+  // 24h -> 5min (288 Punkte)
+  // 48h -> 10min (288 Punkte)
+  private _suggestBusloadBucketSeconds(): number {
+    switch (this._filters.periodId) {
+      case "1h":
+        return 10;
+      case "6h":
+        return 60;
+      case "24h":
+        return 300;
+      case "48h":
+      default:
+        return 600;
     }
   }
 
@@ -355,14 +382,23 @@ export class StatsKnxView extends LitElement {
       return html`<p class="muted">Keine Daten verfuegbar.</p>`;
     }
     const counts = s.counts_by_severity;
+    // Iter 36 (Feature A): Buslast bevorzugt aus dem 10s/60s/5m-Bucket-
+    // Endpoint (current/max/avg). Fallback auf den Period-Avg im Summary.
+    const bl = this._busload;
+    const refPct = bl !== null ? bl.summary.max_pct : s.estimated_busload_pct;
     const busloadClass =
-      s.estimated_busload_pct >= 30
+      refPct >= 30
         ? "danger"
-        : s.estimated_busload_pct >= 20
+        : refPct >= 20
           ? "warning"
-          : s.estimated_busload_pct >= 10
+          : refPct >= 10
             ? "elevated"
             : "ok";
+    const fmtPct = (p: number) =>
+      p.toLocaleString("de-DE", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      });
     return html`
       <div class="kpis">
         <div class="kpi">
@@ -381,12 +417,15 @@ export class StatsKnxView extends LitElement {
           <span class="kpi-hint">Source-Adressen</span>
         </div>
         <div class=${`kpi busload busload--${busloadClass}`}>
-          <span class="kpi-label">Geschaetzte Buslast</span>
-          <span class="kpi-value">${s.estimated_busload_pct.toLocaleString(
-            "de-DE",
-            { minimumFractionDigits: 1, maximumFractionDigits: 1 }
-          )} %</span>
-          <span class="kpi-hint">Ø ueber Zeitraum</span>
+          <span class="kpi-label">Buslast</span>
+          ${bl === null
+            ? html`<span class="kpi-value">${fmtPct(s.estimated_busload_pct)} %</span>
+                <span class="kpi-hint">Ø ueber Zeitraum</span>`
+            : html`<span class="kpi-value">${fmtPct(bl.summary.max_pct)} %</span>
+                <span class="kpi-hint">
+                  jetzt ${fmtPct(bl.summary.current_pct)} % · Ø ${fmtPct(bl.summary.avg_pct)} %
+                  · Bucket ${this._formatBucket(bl.bucket_seconds)}
+                </span>`}
         </div>
       </div>
       <div class="severity-counts">
@@ -398,6 +437,12 @@ export class StatsKnxView extends LitElement {
         )}
       </div>
     `;
+  }
+
+  private _formatBucket(seconds: number): string {
+    if (seconds < 60) return `${seconds}s`;
+    if (seconds < 3600) return `${Math.round(seconds / 60)}min`;
+    return `${Math.round(seconds / 3600)}h`;
   }
 
   private _severityLabel(sev: "green" | "yellow" | "orange" | "red"): string {

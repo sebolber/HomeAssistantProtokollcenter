@@ -25,6 +25,9 @@ from ..const import (
     KNX_ALARM_BUSLOAD_PCT_DEFAULT,
     KNX_ALARM_REPEAT_RATE_PCT_DEFAULT,
     KNX_ALARM_SILENCE_COUNT_DEFAULT,
+    KNX_BUSLOAD_DEFAULT_BUCKET_SECONDS,
+    KNX_BUSLOAD_MAX_BUCKET_SECONDS,
+    KNX_BUSLOAD_MIN_BUCKET_SECONDS,
 )
 from ..processing.knx_stats_service import (
     KnxStatsService,
@@ -374,6 +377,37 @@ class KnxStatsSilenceView(RequireAdminView):
         )
 
 
+class KnxStatsBusloadView(RequireAdminView):
+    """Iter 36 (Feature A): Buslast-%-KPI mit konfigurierbarem Bucket.
+
+    GET-Parameter:
+    - from / to: ISO-Periode (von parse_iso_period validiert)
+    - bucket_seconds: optional, default 10 (ETS-Standard).
+      Geclippt auf [KNX_BUSLOAD_MIN_BUCKET_SECONDS, KNX_BUSLOAD_MAX_BUCKET_SECONDS].
+    """
+
+    url = "/api/messagehub/knx-stats/busload"
+    name = "api:messagehub:knx-stats:busload"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        svc = _service(request.app["hass"])
+        if svc is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        bucket_seconds = parse_int_param(
+            request.query,
+            "bucket_seconds",
+            default=KNX_BUSLOAD_DEFAULT_BUCKET_SECONDS,
+            min_value=KNX_BUSLOAD_MIN_BUCKET_SECONDS,
+            max_value=KNX_BUSLOAD_MAX_BUCKET_SECONDS,
+        )
+        result = await svc.busload(from_iso=from_iso, to_iso=to_iso, bucket_seconds=bucket_seconds)
+        return self.json(result)
+
+
 class KnxStatsBusHealthView(RequireAdminView):
     """Iter 12 (QS-a): Wiederhol-Quote ueber den Zeitraum + Top-GAs."""
 
@@ -535,6 +569,7 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsOrphansView())
     hass.http.register_view(KnxStatsAlarmsView())
     hass.http.register_view(KnxStatsBusHealthView())
+    hass.http.register_view(KnxStatsBusloadView())
     hass.http.register_view(KnxStatsAcknowledgeView())
     hass.http.register_view(KnxStatsAcknowledgeBulkView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())

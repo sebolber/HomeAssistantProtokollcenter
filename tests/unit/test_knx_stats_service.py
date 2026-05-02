@@ -63,10 +63,11 @@ class TestEstimateBusload:
     def test_zero_period_returns_zero(self) -> None:
         assert estimate_busload_pct(100, 0.0) == 0.0
 
-    def test_50_per_sec_returns_around_91pct(self) -> None:
-        # 50 Tel/s * 22 Byte * 8 Bit / 9600 bit/s = ~91.7 %
+    def test_50_per_sec_returns_above_100pct(self) -> None:
+        # Iter 36: ETS-konformes Modell (200 Bit/Telegramm inkl. Pause).
+        # 50 Tel/s * 200 Bit / 9600 bit/s = ~104.2 %.
         load = estimate_busload_pct(50, 1.0)
-        assert 90 < load < 95
+        assert 100 < load < 110
 
 
 class TestComputeSummary:
@@ -76,9 +77,7 @@ class TestComputeSummary:
         s = await svc.compute_summary(_ts(0), _ts(60))
         assert s["total_telegrams"] == 0
         assert s["estimated_busload_pct"] == 0.0
-        assert s["counts_by_severity"] == {
-            "green": 0, "yellow": 0, "orange": 0, "red": 0
-        }
+        assert s["counts_by_severity"] == {"green": 0, "yellow": 0, "orange": 0, "red": 0}
 
     @pytest.mark.asyncio
     async def test_includes_period_and_classifies(self, db: Database) -> None:
@@ -107,9 +106,7 @@ class TestComputeTop:
     async def test_filters_below_min_rate(self, db: Database) -> None:
         await _insert_knx(db, ts=_ts(0), ga="1/2/3", dpt="9.001")  # 1 in 60 min
         svc = KnxStatsService(KnxStatsRepository(db))
-        rows = await svc.compute_top(
-            _ts(0), _ts(60), limit=10, min_rate_per_min=1.0
-        )
+        rows = await svc.compute_top(_ts(0), _ts(60), limit=10, min_rate_per_min=1.0)
         assert rows == []
 
     @pytest.mark.asyncio
@@ -130,9 +127,7 @@ class TestComputeTop:
         repo = KnxStatsRepository(db)
         await repo.ack_set("5/2/14")
         svc = KnxStatsService(repo)
-        rows = await svc.compute_top(
-            _ts(0), _ts(60), limit=10, include_acknowledged=False
-        )
+        rows = await svc.compute_top(_ts(0), _ts(60), limit=10, include_acknowledged=False)
         gas = {r.ga for r in rows}
         assert "5/2/14" not in gas
         assert "1/2/3" in gas
@@ -180,9 +175,7 @@ class TestComputeGaDetail:
     async def test_lists_sibling_gas_same_source(self, db: Database) -> None:
         # Geraet 1.1.220 sendet auf 3 GAs
         for i in range(2):
-            await _insert_knx(
-                db, ts=_ts(i), ga="22/3/43", dev_source="1.1.220", label="Temp"
-            )
+            await _insert_knx(db, ts=_ts(i), ga="22/3/43", dev_source="1.1.220", label="Temp")
         for i in range(5):
             await _insert_knx(
                 db, ts=_ts(10 + i), ga="22/3/44", dev_source="1.1.220", label="Feuchte"
