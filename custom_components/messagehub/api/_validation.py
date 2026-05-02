@@ -19,7 +19,12 @@ _KNX_GA_RE: Final = re.compile(r"^\d{1,2}/\d{1,2}/\d{1,3}$")
 _KNX_INDIVIDUAL_RE: Final = re.compile(r"^\d{1,2}\.\d{1,2}\.\d{1,3}$")
 
 
-def parse_iso_period(params: Any, *, default_days: int = 7) -> tuple[str, str]:
+def parse_iso_period(
+    params: Any,
+    *,
+    default_days: int = 7,
+    max_days: int = MAX_PERIOD_DAYS,
+) -> tuple[str, str]:
     """Parst `from`/`to` aus Query-Params.
 
     Beide leer → letzte default_days Tage bis jetzt.
@@ -30,7 +35,10 @@ def parse_iso_period(params: Any, *, default_days: int = 7) -> tuple[str, str]:
     Wirft web.HTTPBadRequest bei
     - ungueltigem ISO-Format,
     - to <= from,
-    - Periode > MAX_PERIOD_DAYS.
+    - Periode > max_days (Default: MAX_PERIOD_DAYS).
+
+    `max_days` kann fuer Long-Term-Endpunkte hochgesetzt werden, sollte
+    aber immer einen harten oberen Wert haben (Counter-Retention 365 d).
     """
     raw_from = params.get("from")
     raw_to = params.get("to")
@@ -46,8 +54,8 @@ def parse_iso_period(params: Any, *, default_days: int = 7) -> tuple[str, str]:
     if to_dt <= from_dt:
         raise web.HTTPBadRequest(reason="`to` must be greater than `from`")
 
-    if (to_dt - from_dt) > timedelta(days=MAX_PERIOD_DAYS):
-        raise web.HTTPBadRequest(reason=f"period exceeds maximum {MAX_PERIOD_DAYS} days")
+    if (to_dt - from_dt) > timedelta(days=max_days):
+        raise web.HTTPBadRequest(reason=f"period exceeds maximum {max_days} days")
 
     return (
         from_dt.isoformat(timespec="seconds"),

@@ -20,6 +20,7 @@ from aiohttp import web
 
 from ..const import (
     DEFAULT_KNX_ACK_EXPIRY_DAYS,
+    DEFAULT_KNX_COUNTER_RETENTION_DAYS,
     DEFAULT_KNX_STATS_PERIOD_DAYS,
     EVENT_KNX_ALARM_TRIGGERED,
     KNX_ALARM_BUSLOAD_PCT_DEFAULT,
@@ -377,6 +378,57 @@ class KnxStatsSilenceView(RequireAdminView):
         )
 
 
+class KnxStatsLongTermView(RequireAdminView):
+    """Iter 38 (Feature B+J): Long-Term-Sicht aus Counter-Tabelle.
+
+    Degradierter Modus fuer Perioden > 48 h: keine Source-Adressen,
+    keine Wertverlaeufe, nur Counts pro GA und Stunden-/Tages-Bucket.
+
+    GET-Parameter:
+    - from / to (ISO-Periode, validiert)
+    - limit (Top-GAs, default 50, max 500)
+    - bucket: "auto"/"hour"/"day" (default auto)
+    - gas: kommaseparierte GA-Liste (optional, max 50)
+    """
+
+    url = "/api/messagehub/knx-stats/long-term"
+    name = "api:messagehub:knx-stats:long-term"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        svc = _service(request.app["hass"])
+        if svc is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        # Counter-Retention erlaubt bis zu 365 Tage — fuer diesen
+        # Endpunkt heben wir das default-Period-Limit von 90d an.
+        from_iso, to_iso = parse_iso_period(
+            request.query,
+            default_days=DEFAULT_KNX_STATS_PERIOD_DAYS,
+            max_days=DEFAULT_KNX_COUNTER_RETENTION_DAYS,
+        )
+        limit = parse_int_param(
+            request.query, "limit", _DEFAULT_TOP_LIMIT, min_value=1, max_value=_HARD_TOP_LIMIT
+        )
+        bucket_raw = (request.query.get("bucket") or "auto").strip().lower()
+        bucket = bucket_raw if bucket_raw in {"auto", "hour", "day"} else "auto"
+        gas_raw = request.query.get("gas") or ""
+        gas: list[str] = []
+        if gas_raw:
+            gas = [validate_knx_ga(g.strip()) for g in gas_raw.split(",") if g.strip()]
+            if len(gas) > _HARD_TIMELINE_GAS:
+                return self.json_message(
+                    f"too many gas (max {_HARD_TIMELINE_GAS})", status_code=400
+                )
+        result = await svc.long_term_view(
+            from_iso=from_iso,
+            to_iso=to_iso,
+            top_limit=limit,
+            bucket=bucket,
+            gas=gas or None,
+        )
+        return self.json(result)
+
+
 class KnxStatsHealthScoreView(RequireAdminView):
     """Iter 37 (Feature K): Bus-Health-Score 0..100 + Findings.
 
@@ -608,6 +660,7 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsBusHealthView())
     hass.http.register_view(KnxStatsBusloadView())
     hass.http.register_view(KnxStatsHealthScoreView())
+    hass.http.register_view(KnxStatsLongTermView())
     hass.http.register_view(KnxStatsAcknowledgeView())
     hass.http.register_view(KnxStatsAcknowledgeBulkView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())

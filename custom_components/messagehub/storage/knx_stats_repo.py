@@ -507,6 +507,103 @@ class KnxStatsRepository:
             return 0
         return int(row["n"] or 0)
 
+    # --- Long-Term-Sicht (Iter 38, Feature B+J) -----------------------------
+    #
+    # Counter-Tabelle deckt bis zu 365 Tage ab — Raw-Tabelle nur 48h.
+    # Die folgenden Queries sind der "degradierte Modus" fuer Perioden
+    # > 48 h: keine Source-Adresse, keine Werte, nur Counts pro GA und
+    # Stunden-/Tages-Bucket.
+
+    async def counter_total(self, from_iso: str, to_iso: str) -> int:
+        """Period-Total ueber alle GAs aus der Counter-Tabelle."""
+        row = await self._db.fetch_one(
+            "SELECT SUM(count) AS n FROM knx_telegram_counters "
+            "WHERE hour_bucket >= ? AND hour_bucket < ?",
+            (from_iso, to_iso),
+        )
+        if row is None:
+            return 0
+        return int(row["n"] or 0)
+
+    async def counter_top_gas(
+        self, from_iso: str, to_iso: str, *, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        """Top-GAs nach Counter-Total im Zeitraum.
+
+        Liefert auch Label aus knx_group_addresses, falls gepflegt.
+        """
+        capped = max(1, min(limit, 500))
+        rows = await self._db.fetch_all(
+            """
+            SELECT
+                c.ga       AS ga,
+                a.label    AS label,
+                a.dpt      AS dpt,
+                SUM(c.count) AS n
+            FROM knx_telegram_counters c
+            LEFT JOIN knx_group_addresses a ON a.address = c.ga
+            WHERE c.hour_bucket >= ?
+              AND c.hour_bucket <  ?
+            GROUP BY c.ga, a.label, a.dpt
+            ORDER BY n DESC, c.ga ASC
+            LIMIT ?
+            """,
+            (from_iso, to_iso, capped),
+        )
+        return [
+            {
+                "ga": str(row["ga"]),
+                "label": row["label"],
+                "dpt": row["dpt"],
+                "count": int(row["n"] or 0),
+            }
+            for row in rows
+        ]
+
+    async def counter_timeseries(
+        self,
+        from_iso: str,
+        to_iso: str,
+        *,
+        bucket: str = "hour",
+        gas: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Zeitreihe der Counter, gruppiert nach hour oder day.
+
+        - bucket="hour": 1 Eintrag pro hour_bucket, ueber alle GAs summiert
+          (oder gefiltert, wenn `gas` gesetzt).
+        - bucket="day": Aggregation auf Tagesebene.
+        - sonst: Fallback auf "hour" (defensiv).
+        """
+        if bucket == "day":
+            bucket_expr = "substr(hour_bucket, 1, 10) || 'T00:00:00'"
+        else:
+            bucket_expr = "hour_bucket"
+
+        if gas:
+            placeholders = ",".join("?" * len(gas))
+            sql = (
+                f"SELECT {bucket_expr} AS bucket, SUM(count) AS n "
+                f"FROM knx_telegram_counters "
+                f"WHERE hour_bucket >= ? AND hour_bucket < ? "
+                f"  AND ga IN ({placeholders}) "
+                f"GROUP BY bucket "
+                f"ORDER BY bucket ASC"
+            )
+            params: list[Any] = [from_iso, to_iso, *gas]
+        else:
+            sql = (
+                f"SELECT {bucket_expr} AS bucket, SUM(count) AS n "
+                f"FROM knx_telegram_counters "
+                f"WHERE hour_bucket >= ? AND hour_bucket < ? "
+                f"GROUP BY bucket "
+                f"ORDER BY bucket ASC"
+            )
+            params = [from_iso, to_iso]
+
+        rows = await self._db.fetch_all(sql, params)
+        return [{"bucket": str(row["bucket"]), "count": int(row["n"] or 0)} for row in rows]
+
     # --- Acknowledgements ---------------------------------------------------
 
     async def ack_set_bulk(

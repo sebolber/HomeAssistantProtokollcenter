@@ -305,6 +305,57 @@ class KnxStatsService:
     ) -> list[dict[str, Any]]:
         return await self._repo.timeline(from_iso, to_iso, gas=gas, bucket_minutes=bucket_minutes)
 
+    # --- Long-Term-Sicht (Iter 38, Feature B+J) -----------------------------
+
+    # Heuristik-Schwelle (Tage), ab der die Long-Term-Sicht von Hour-Buckets
+    # auf Day-Buckets umschaltet. Bei 14 Tagen waeren das 336 Hour-Buckets
+    # — zu viele Punkte fuer eine UI-Sparkline; ab da Tagesaufloesung.
+    LONG_TERM_AUTO_DAY_THRESHOLD: int = 14
+
+    @staticmethod
+    def _resolve_long_term_bucket(from_iso: str, to_iso: str, requested: str) -> str:
+        """Waehlt 'hour' fuer kurze Perioden, 'day' fuer lange.
+
+        - "auto": Heuristik nach Periodendauer.
+        - "hour"/"day": Caller-Override (durch repo defensiv geclamped).
+        """
+        if requested in {"hour", "day"}:
+            return requested
+        from_dt = datetime.fromisoformat(from_iso)
+        to_dt = datetime.fromisoformat(to_iso)
+        days = max(0.0, (to_dt - from_dt).total_seconds() / 86400.0)
+        return "day" if days > KnxStatsService.LONG_TERM_AUTO_DAY_THRESHOLD else "hour"
+
+    async def long_term_view(
+        self,
+        *,
+        from_iso: str,
+        to_iso: str,
+        top_limit: int = 50,
+        bucket: str = "auto",
+        gas: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Aggregiert Counter-Tabelle fuer Perioden > 48h (degradierter Modus).
+
+        Liefert Total + Top-GAs + bucketierte Zeitreihe. Hat KEINE Source-
+        Adressen, KEINE Werteverlaeufe — Counter-Tabelle speichert nur
+        ga + hour_bucket + count.
+        """
+        resolved_bucket = self._resolve_long_term_bucket(from_iso, to_iso, bucket)
+        total = await self._repo.counter_total(from_iso, to_iso)
+        top_gas = await self._repo.counter_top_gas(from_iso, to_iso, limit=top_limit)
+        series = await self._repo.counter_timeseries(
+            from_iso, to_iso, bucket=resolved_bucket, gas=gas
+        )
+        return {
+            "from": from_iso,
+            "to": to_iso,
+            "bucket": resolved_bucket,
+            "total": total,
+            "top_gas": top_gas,
+            "series": series,
+        }
+
     # --- Bus-Health-Score (Iter 37, Feature K) ------------------------------
 
     async def health_score(
