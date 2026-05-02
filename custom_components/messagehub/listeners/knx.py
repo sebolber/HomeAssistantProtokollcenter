@@ -139,8 +139,8 @@ def _build_listener_state(hass: HomeAssistant, database: Any) -> tuple[Any, Any]
 
     Phase-2-Vorbereitung: counters_repo wird vom Listener nach jedem
     erfolgreichen Insert befuellt — der Aufwand ist ein UPSERT pro
-    Telegramm und kann via hass.data[DOMAIN]['_knx_shadow_counters_enabled']
-    deaktiviert werden.
+    Telegramm und kann via hass.data[DOMAIN][HASS_KEY_KNX_BUS_ANALYSIS]
+    deaktiviert werden (Iter 48 / N1 Toggle).
     """
     from ..storage.knx_stats_repo import KnxStatsRepository  # noqa: PLC0415
 
@@ -168,11 +168,11 @@ async def _record_bus_activity(
     from ..const import HASS_KEY_KNX_BUS_ANALYSIS  # noqa: PLC0415
 
     domain_data = hass.data.get(DOMAIN, {})
-    # Neue Variante (Iter 48) bevorzugen, alte als Backward-Compat. Wenn
-    # keiner gesetzt ist, gilt der hartcodierte Default (aktiviert).
-    enabled = domain_data.get(HASS_KEY_KNX_BUS_ANALYSIS)
-    if enabled is None:
-        enabled = domain_data.get("_knx_shadow_counters_enabled", True)
+    # Iter 89 / CR-7: Single-Source-of-Truth fuer Bus-Analyse-Flag. Der
+    # alte Backward-Compat-Pfad ueber _knx_shadow_counters_enabled
+    # wurde in Iter 48 abgeloest, ist seitdem nicht mehr beschrieben
+    # und kann jetzt entfernt werden — Drift-Risiko geht zurueck.
+    enabled = domain_data.get(HASS_KEY_KNX_BUS_ANALYSIS, True)
     if not enabled:
         return
     now = datetime.now(UTC)

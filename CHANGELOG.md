@@ -6,6 +6,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Code-Hygiene (Iter 89 — CR-7 Bus-Analyse-Flag Single-Source-of-Truth)
+- **Backward-Compat-Fallback `_knx_shadow_counters_enabled` entfernt**
+  in `listeners/knx.py:_record_bus_activity`. Iter 48 hat den Flag auf
+  `HASS_KEY_KNX_BUS_ANALYSIS` umgestellt; der alte Key war seither
+  ungeschrieben und nur passiv im Read-Pfad als Fallback. Jetzt: nur
+  noch eine Quelle, kein Drift mehr möglich.
+- Modul-Docstring entsprechend angepasst.
+
 ### Sicherheit (Iter 88 — CR-20 ChannelTestView Rate-Limit)
 - **Token-Bucket** auf `POST /channels/{id}/test`. Vorher konnte ein
   Admin per Klick einen externen Provider (Telegram, Pushover, ntfy)
