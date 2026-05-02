@@ -29,13 +29,13 @@ jobs:
     name: Scan with SonarCloud
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
         with:
           # Sonar braucht volle Historie fuer "new code"-Berechnung
           fetch-depth: 0
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602  # v6.0.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         # Der Scanner liest sonar-project.properties aus dem Repo-Root
@@ -43,4 +43,5 @@ jobs:
         #   - sonar.exclusions (frontend_dist/, build/, cache/...)
         #   - sonar.python.version (3.12,3.13)
         #   - sonar.issue.ignore.multicriteria (Test-IPs, async-Tests)
-        # v6 wegen Security-Patch (CVE in v4/v5 — Sonar-Empfehlung).
+        # SHA-Pinning entspricht der SonarCloud-Onboarding-Empfehlung
+        # und Sonar-Regel S7637.
