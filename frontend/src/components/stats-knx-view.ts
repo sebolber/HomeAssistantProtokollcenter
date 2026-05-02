@@ -11,6 +11,7 @@ import type {
   KnxStatsBusHealthDto,
   KnxStatsFilters,
   KnxStatsGaDetailDto,
+  KnxStatsOrphansDto,
   KnxStatsSilenceDto,
   KnxStatsSummaryDto,
   KnxStatsTimelineDto,
@@ -81,6 +82,7 @@ export class StatsKnxView extends LitElement {
   @state() private _summary: KnxStatsSummaryDto | null = null;
   @state() private _busHealth: KnxStatsBusHealthDto | null = null;
   @state() private _silence: KnxStatsSilenceDto | null = null;
+  @state() private _orphans: KnxStatsOrphansDto | null = null;
   @state() private _top: KnxStatsTopRowDto[] = [];
   @state() private _timeline: KnxStatsTimelineDto | null = null;
   @state() private _selectedGa: string | null = null;
@@ -111,7 +113,7 @@ export class StatsKnxView extends LitElement {
     this._error = "";
     try {
       const f = this._apiFilters();
-      const [summary, top, busHealth, silence] = await Promise.all([
+      const [summary, top, busHealth, silence, orphans] = await Promise.all([
         this.api.getKnxStatsSummary(f),
         this.api.getKnxStatsTop(f),
         this.api.getKnxStatsBusHealth(f),
@@ -119,11 +121,13 @@ export class StatsKnxView extends LitElement {
           ...f,
           maxSilenceMinutes: this._suggestSilenceMinutes(),
         }),
+        this.api.getKnxStatsOrphans(f).catch(() => null),
       ]);
       this._summary = summary;
       this._top = top.items;
       this._busHealth = busHealth;
       this._silence = silence;
+      this._orphans = orphans;
       // Timeline fuer Top-5 GAs (mehr Linien werden unleserlich).
       const topGas = top.items.slice(0, 5).map((r) => r.ga);
       if (topGas.length > 0) {
@@ -142,6 +146,7 @@ export class StatsKnxView extends LitElement {
       this._timeline = null;
       this._busHealth = null;
       this._silence = null;
+      this._orphans = null;
     } finally {
       this._loading = false;
     }
@@ -410,6 +415,11 @@ export class StatsKnxView extends LitElement {
         ${this._silence !== null && this._silence.alarm_count > 0
           ? this._renderSilenceAlarms()
           : nothing}
+        ${this._orphans !== null &&
+        (this._orphans.missing_in_log.length > 0 ||
+          this._orphans.extra_in_log.length > 0)
+          ? this._renderOrphans()
+          : nothing}
 
         <section class="mh-card">
           <header class="card-head">
@@ -592,6 +602,62 @@ export class StatsKnxView extends LitElement {
               </ul>
             </div>`
           : nothing}
+      </section>
+    `;
+  }
+
+  private _renderOrphans(): TemplateResult {
+    const o = this._orphans!;
+    return html`
+      <section class="mh-card">
+        <header class="card-head">
+          <h3>Verwaiste GAs (Projekt vs Realitaet)</h3>
+          <span class="muted small">
+            Projekt: ${o.project_total} • geloggt: ${o.log_total}
+          </span>
+        </header>
+        <div class="orphans-grid">
+          ${o.missing_in_log.length > 0
+            ? html`<div>
+                <strong>Im Projekt, nie gesehen (${o.missing_in_log.length})</strong>
+                <ul class="orphans-list muted-list">
+                  ${o.missing_in_log.slice(0, 15).map(
+                    (m) => html`<li>
+                      <code>${m.address}</code>
+                      <span>${m.name || "—"}</span>
+                      ${m.dpt
+                        ? html`<code class="dpt">${m.dpt}</code>`
+                        : nothing}
+                    </li>`
+                  )}
+                </ul>
+                ${o.missing_in_log.length > 15
+                  ? html`<p class="muted small">
+                      … und ${o.missing_in_log.length - 15} weitere
+                    </p>`
+                  : nothing}
+              </div>`
+            : nothing}
+          ${o.extra_in_log.length > 0
+            ? html`<div>
+                <strong>Geloggt, nicht im Projekt (${o.extra_in_log.length})</strong>
+                <ul class="orphans-list extra-list">
+                  ${o.extra_in_log.slice(0, 15).map(
+                    (e) => html`<li>
+                      <code>${e.address}</code>
+                      <span>${e.label ?? "—"}</span>
+                      <span class="muted num">${e.count}</span>
+                    </li>`
+                  )}
+                </ul>
+                ${o.extra_in_log.length > 15
+                  ? html`<p class="muted small">
+                      … und ${o.extra_in_log.length - 15} weitere
+                    </p>`
+                  : nothing}
+              </div>`
+            : nothing}
+        </div>
       </section>
     `;
   }
@@ -1023,6 +1089,41 @@ export class StatsKnxView extends LitElement {
         background: var(--mh-surface-2);
         border-radius: var(--mh-radius-sm);
         font-size: var(--mh-text-sm);
+      }
+
+      /* Orphans-Card */
+      .orphans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--mh-space-4);
+      }
+      .orphans-list {
+        list-style: none;
+        padding: 0;
+        margin: var(--mh-space-2) 0 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .orphans-list li {
+        display: grid;
+        grid-template-columns: 80px 1fr auto;
+        gap: var(--mh-space-2);
+        padding: 4px var(--mh-space-2);
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-sm);
+        align-items: center;
+      }
+      .orphans-list.muted-list li {
+        background: var(--mh-surface-2);
+      }
+      .orphans-list.extra-list li {
+        background: color-mix(in srgb, var(--mh-warning) 8%, transparent);
+      }
+      .orphans-list code {
+        font-family: var(--ha-font-family-code, ui-monospace, monospace);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
       }
 
       /* Silence-Card */

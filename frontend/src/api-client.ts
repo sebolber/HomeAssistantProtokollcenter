@@ -148,6 +148,16 @@ export interface KnxStatsTopBySourceRowDto {
   ga_count: number;
 }
 
+export interface KnxStatsOrphansDto {
+  from: string;
+  to: string;
+  missing_in_log: Array<{ address: string; name: string; dpt: string | null }>;
+  extra_in_log: Array<{ address: string; label: string | null; count: number }>;
+  project_total: number;
+  log_total: number;
+  discovery_status: string;
+}
+
 export interface KnxStatsSilenceItemDto {
   dev_source: string;
   last_seen: string;
@@ -660,6 +670,13 @@ export class ApiClient {
       body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async getKnxStatsOrphans(f: KnxStatsFilters): Promise<KnxStatsOrphansDto> {
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/orphans?${this._knxStatsParams(f).toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsOrphansDto;
   }
 
   async getKnxStatsSilence(

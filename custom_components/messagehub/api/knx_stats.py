@@ -173,6 +173,36 @@ class KnxStatsTimelineView(RequireAdminView):
         })
 
 
+class KnxStatsOrphansView(RequireAdminView):
+    """Iter 14 (QS-g): Verwaiste GAs.
+
+    Vergleicht die im HA-KNX-Projekt definierten Gruppenadressen mit den
+    im Zeitraum tatsaechlich gesehenen Telegrammen.
+    """
+
+    url = "/api/messagehub/knx-stats/orphans"
+    name = "api:messagehub:knx-stats:orphans"
+
+    async def get(self, request: web.Request) -> web.Response:
+        from ..processing.knx_discovery import discover_knx_project  # noqa: PLC0415
+
+        self._check_admin(request)
+        svc = _service(request.app["hass"])
+        if svc is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        project_gas, status = await discover_knx_project(request.app["hass"])
+        result = await svc.compute_orphans(
+            from_iso, to_iso, project_gas=project_gas
+        )
+        result["from"] = from_iso
+        result["to"] = to_iso
+        result["discovery_status"] = status
+        return self.json(result)
+
+
 class KnxStatsSilenceView(RequireAdminView):
     """Iter 13 (QS-c): Stille-Detector pro Source-Adresse.
 
@@ -301,6 +331,7 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsGaDetailView())
     hass.http.register_view(KnxStatsTimelineView())
     hass.http.register_view(KnxStatsSilenceView())
+    hass.http.register_view(KnxStatsOrphansView())
     hass.http.register_view(KnxStatsBusHealthView())
     hass.http.register_view(KnxStatsAcknowledgeView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())

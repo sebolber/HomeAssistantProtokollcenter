@@ -207,6 +207,51 @@ class KnxStatsService:
             from_iso, to_iso, gas=gas, bucket_minutes=bucket_minutes
         )
 
+    async def compute_orphans(
+        self,
+        from_iso: str,
+        to_iso: str,
+        *,
+        project_gas: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Iter 14 (QS-g): Vergleich Projekt-GAs vs reale Telegramme.
+
+        - missing_in_log: im Projekt definiert, aber im Zeitraum nie gesehen
+        - extra_in_log:  im Zeitraum gesehen, aber nicht im Projekt
+                        (alter Aktor / nicht dokumentiert / verwaist)
+
+        project_gas erwartet das Discovery-Format
+        [{address, name, dpt}, ...].
+        """
+        rows = await self._repo.top_by_ga(from_iso, to_iso, limit=500)
+        seen_addresses = {row["ga"] for row in rows}
+        project_addresses = {p["address"] for p in project_gas}
+
+        missing = [
+            {
+                "address": p["address"],
+                "name": p.get("name", ""),
+                "dpt": p.get("dpt"),
+            }
+            for p in project_gas
+            if p["address"] not in seen_addresses
+        ]
+        extra = [
+            {
+                "address": row["ga"],
+                "label": row["label"],
+                "count": row["count"],
+            }
+            for row in rows
+            if row["ga"] not in project_addresses
+        ]
+        return {
+            "missing_in_log": missing,
+            "extra_in_log": extra,
+            "project_total": len(project_addresses),
+            "log_total": len(seen_addresses),
+        }
+
     async def _fetch_ga_meta(
         self, ga: str, from_iso: str, to_iso: str
     ) -> dict[str, Any] | None:

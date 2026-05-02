@@ -37,6 +37,15 @@ function makeApi(spy?: { calls: KnxStatsSummaryDto[] }): ApiClient {
       items: [],
       alarm_count: 0,
     })),
+    getKnxStatsOrphans: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      missing_in_log: [],
+      extra_in_log: [],
+      project_total: 0,
+      log_total: 0,
+      discovery_status: "ok",
+    })),
   } as unknown as ApiClient;
 }
 
