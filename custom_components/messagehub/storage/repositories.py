@@ -359,8 +359,14 @@ class MessageRepository:
         from_iso: str | None = None,
         to_iso: str | None = None,
         trace_id: str | None = None,
+        hide_knx_read: bool = False,
     ) -> tuple[str, list[object]]:
-        """Gemeinsame Where-Klausel-Konstruktion fuer list/count/delete (Review #2)."""
+        """Gemeinsame Where-Klausel-Konstruktion fuer list/count/delete (Review #2).
+
+        Iter 61 / U15: hide_knx_read filtert KNX-GroupValueRead-Telegramme
+        ueber den Marker "(GroupValueRead)" im text. Werden vom KNX-Builder
+        immer mit diesem Suffix angehaengt — siehe processing/knx.py.
+        """
         clauses: list[str] = []
         params: list[object] = []
         if severities:
@@ -390,6 +396,9 @@ class MessageRepository:
         if trace_id:
             clauses.append("trace_id = ?")
             params.append(trace_id)
+        if hide_knx_read:
+            clauses.append("text NOT LIKE ?")
+            params.append("%(GroupValueRead)%")
         where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
         return where, params
 
@@ -402,6 +411,7 @@ class MessageRepository:
         from_iso: str | None = None,
         to_iso: str | None = None,
         trace_id: str | None = None,
+        hide_knx_read: bool = False,
         limit: int = 100,
         offset: int = 0,
         order: str = "desc",
@@ -414,6 +424,7 @@ class MessageRepository:
             from_iso=from_iso,
             to_iso=to_iso,
             trace_id=trace_id,
+            hide_knx_read=hide_knx_read,
         )
         direction = "DESC" if order.lower() != "asc" else "ASC"
         sql = (
@@ -432,6 +443,7 @@ class MessageRepository:
         search: str | None = None,
         from_iso: str | None = None,
         to_iso: str | None = None,
+        hide_knx_read: bool = False,
     ) -> int:
         where, params = self._build_filter_where(
             severities=severities,
@@ -439,6 +451,7 @@ class MessageRepository:
             search=search,
             from_iso=from_iso,
             to_iso=to_iso,
+            hide_knx_read=hide_knx_read,
         )
         row = await self._db.fetch_one(f"SELECT COUNT(*) AS cnt FROM messages {where}", params)
         return int(row["cnt"]) if row is not None else 0

@@ -15,6 +15,13 @@ import "./components/settings-view.js";
 import "./components/stats-view.js";
 import "./components/audit-view.js";
 
+// Iter 61 / U15: Erkennt KNX-GroupValueRead-Telegramme am Suffix
+// "(GroupValueRead)" im text. Wird vom KNX-Builder konsistent angehaengt.
+// Pure Funktion (export) fuer Tests + Wiederverwendung im Live-Filter.
+export function isKnxReadMessage(msg: { source: string; text: string }): boolean {
+  return msg.source === "knx-bus" && msg.text.includes("(GroupValueRead)");
+}
+
 interface HassLike {
   callApi?: (
     method: string,
@@ -43,12 +50,17 @@ interface UiFilters {
   search: string;
   fromIso?: string;
   toIso?: string;
+  // Iter 61 / U15: GroupValueRead-Telegramme ausblenden. KNX-HA pollt
+  // typisch viele Reads, die das Logbuch fluten. Default an, damit
+  // signifikante GroupValueWrite/Response sichtbar bleiben.
+  hideKnxRead: boolean;
 }
 
 const DEFAULT_FILTERS: UiFilters = {
   severity: ["error", "warning", "info"],
   source: "",
   search: "",
+  hideKnxRead: false,
 };
 
 @customElement("messagehub-panel")
@@ -106,6 +118,13 @@ export class MessageHubPanel extends LitElement {
     ) {
       return false;
     }
+    // Iter 61 / U15: GroupValueRead-Telegramme ausblenden, wenn Toggle
+    // aktiv. Erkennung anhand des Suffix "(GroupValueRead)" im text —
+    // wird im KNX-Builder gesetzt. Konservativ: wenn Erkennung
+    // unsicher (kein knx-bus), Filter greift nicht.
+    if (this._filters.hideKnxRead && isKnxReadMessage(msg)) {
+      return false;
+    }
     return true;
   }
 
@@ -142,6 +161,7 @@ export class MessageHubPanel extends LitElement {
         search: this._filters.search || undefined,
         from: this._filters.fromIso,
         to: this._filters.toIso,
+        hideKnxRead: this._filters.hideKnxRead,
         limit: 100,
       });
       this._items = res.items;
@@ -311,7 +331,8 @@ export class MessageHubPanel extends LitElement {
       this._filters.severity.length !== DEFAULT_FILTERS.severity.length ||
       this._filters.source !== "" ||
       this._filters.search !== "" ||
-      this._filters.fromIso !== undefined
+      this._filters.fromIso !== undefined ||
+      this._filters.hideKnxRead !== DEFAULT_FILTERS.hideKnxRead
     );
   }
 
@@ -382,6 +403,24 @@ export class MessageHubPanel extends LitElement {
           .toIso=${this._filters.toIso}
           @change=${this._onTimeRange}
         ></time-range-filter>
+        <!-- Iter 61 / U15: Toggle, der KNX-GroupValueRead-Telegramme
+             ausblendet. Polling-Spam reduzieren ohne Loggen-Konfig zu
+             ändern. State persistiert in den Filter-LocalStorage. -->
+        <label class="hide-knx-read" title="GroupValueRead-Telegramme (HA-Polling) ausblenden">
+          <input
+            type="checkbox"
+            .checked=${this._filters.hideKnxRead}
+            @change=${(e: Event) => {
+              this._filters = {
+                ...this._filters,
+                hideKnxRead: (e.target as HTMLInputElement).checked,
+              };
+              this._persistFilters();
+              void this._reload();
+            }}
+          />
+          <span>KNX-Reads ausblenden</span>
+        </label>
         ${this._hasActiveFilters()
           ? html`<button class="filter-reset" @click=${this._resetFilters}>
               Filter zurücksetzen
@@ -706,6 +745,26 @@ export class MessageHubPanel extends LitElement {
       .filter-reset:hover {
         background: var(--mh-surface-2);
         color: var(--mh-fg);
+      }
+      /* Iter 61 / U15: Hide-KNX-Read Toggle in der Filter-Bar. */
+      .hide-knx-read {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        cursor: pointer;
+        user-select: none;
+      }
+      .hide-knx-read:hover {
+        background: var(--mh-surface-2);
+        color: var(--mh-fg);
+      }
+      .hide-knx-read input {
+        accent-color: var(--mh-accent);
       }
 
       /* Status-Bar */

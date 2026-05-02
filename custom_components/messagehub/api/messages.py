@@ -240,6 +240,9 @@ class MessagesListView(_RequireAdminView):
         from_iso = params.get("from")
         to_iso = params.get("to")
         order = params.get("order", "desc")
+        # Iter 61 / U15: Optionaler Filter, der KNX-GroupValueRead-
+        # Telegramme ausblendet (typisch HA-Polling-Spam).
+        hide_knx_read = params.get("hide_knx_read", "").lower() in ("1", "true", "yes")
 
         items = await msg_repo.list_filtered(
             severities=severities,
@@ -247,6 +250,7 @@ class MessagesListView(_RequireAdminView):
             search=search,
             from_iso=from_iso,
             to_iso=to_iso,
+            hide_knx_read=hide_knx_read,
             limit=limit,
             offset=offset,
             order=order,
@@ -257,6 +261,7 @@ class MessagesListView(_RequireAdminView):
             search=search,
             from_iso=from_iso,
             to_iso=to_iso,
+            hide_knx_read=hide_knx_read,
         )
         return self.json(
             {

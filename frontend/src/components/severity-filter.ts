@@ -51,26 +51,33 @@ export class SeverityFilter extends LitElement {
         gap: 4px;
         flex-wrap: wrap;
       }
+      /* Iter 61 / U9: Inactive vs. Active visuell deutlicher
+         differenzieren. Vorher unterschieden sich die States nur durch
+         Hintergrundfarbe — bei Severity-Pills mit ohnehin farbigen Dots
+         wirkten alle "aktiv". Jetzt: Inactive = Outline-Style mit
+         deutlich gedämpftem Dot und gestrichelter Border; Active =
+         Filled-Style mit Hintergrund + farbiger Border + Dot voll. */
       .chip {
         display: inline-flex;
         align-items: center;
         gap: 6px;
         padding: 5px 12px;
         border-radius: var(--mh-radius-pill);
-        border: 1px solid var(--mh-divider);
-        background: var(--mh-surface);
+        border: 1px dashed var(--mh-divider);
+        background: transparent;
         cursor: pointer;
         font: inherit;
         font-size: var(--mh-text-sm);
         font-weight: var(--mh-weight-medium);
         color: var(--mh-fg-muted);
         text-transform: capitalize;
+        opacity: 0.6;
         transition: background var(--mh-transition-fast), color var(--mh-transition-fast),
-          border-color var(--mh-transition-fast);
+          border-color var(--mh-transition-fast), opacity var(--mh-transition-fast);
       }
       .chip:hover {
+        opacity: 0.85;
         background: var(--mh-surface-2);
-        color: var(--mh-fg);
       }
       .chip:focus-visible {
         outline: var(--mh-focus-ring);
@@ -81,44 +88,35 @@ export class SeverityFilter extends LitElement {
         height: 8px;
         border-radius: 50%;
         background: currentColor;
-        opacity: 0.6;
+        opacity: 0.5;
       }
       .chip.active {
-        color: var(--mh-fg);
-        border-color: transparent;
+        opacity: 1;
+        border-style: solid;
         font-weight: var(--mh-weight-semibold);
       }
-      .chip.sev-error .dot {
-        color: var(--mh-error);
+      .chip.active .dot {
         opacity: 1;
       }
       .chip.sev-error.active {
         background: var(--mh-error-soft);
         color: var(--mh-error);
-      }
-      .chip.sev-warning .dot {
-        color: var(--mh-warning);
-        opacity: 1;
+        border-color: var(--mh-error);
       }
       .chip.sev-warning.active {
         background: var(--mh-warning-soft);
         color: var(--mh-warning);
-      }
-      .chip.sev-info .dot {
-        color: var(--mh-info);
-        opacity: 1;
+        border-color: var(--mh-warning);
       }
       .chip.sev-info.active {
         background: var(--mh-info-soft);
         color: var(--mh-info);
-      }
-      .chip.sev-debug .dot {
-        color: var(--mh-debug);
-        opacity: 1;
+        border-color: var(--mh-info);
       }
       .chip.sev-debug.active {
         background: var(--mh-debug-soft);
         color: var(--mh-debug);
+        border-color: var(--mh-debug);
       }
     `,
   ];

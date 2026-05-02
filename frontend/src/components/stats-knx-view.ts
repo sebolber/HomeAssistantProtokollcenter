@@ -212,6 +212,13 @@ export class StatsKnxView extends LitElement {
   // Tel/Min desc (= heutige Reihenfolge vom Backend).
   @state() private _topSortKey: TopSenderSortKey = "rate_per_min";
   @state() private _topSortDir: "asc" | "desc" = "desc";
+  // Iter 61 / U3: Verwaiste-GAs-Card mit Suche + Pagination. Vorher
+  // hartes Cap auf 15 mit "und N weitere" — bei 3000+ Eintraegen
+  // unhandlich. Default-Page = 50.
+  @state() private _orphansMissingFilter = "";
+  @state() private _orphansExtraFilter = "";
+  @state() private _orphansMissingShow = 50;
+  @state() private _orphansExtraShow = 50;
   // Iter 51: Sichtbarkeit fuer einzeln gefailte Endpunkte. Vorher hat
   // .catch(() => null) Fehler stillschweigend geschluckt — und der User
   // sah leere Cards, ohne zu wissen warum. Jetzt: Banner mit Liste der
@@ -1595,12 +1602,32 @@ export class StatsKnxView extends LitElement {
     `;
   }
 
+  // Iter 61 / U3: Filter-Helper case-insensitive auf address/label/dpt.
+  private _matchesOrphanFilter(
+    text: string,
+    fields: Array<string | null | undefined>,
+  ): boolean {
+    if (text === "") return true;
+    const needle = text.toLowerCase();
+    return fields.some(
+      (f) => typeof f === "string" && f.toLowerCase().includes(needle),
+    );
+  }
+
   private _renderOrphans(): TemplateResult {
     const o = this._orphans!;
+    const missingFiltered = o.missing_in_log.filter((m) =>
+      this._matchesOrphanFilter(this._orphansMissingFilter, [m.address, m.name, m.dpt]),
+    );
+    const extraFiltered = o.extra_in_log.filter((e) =>
+      this._matchesOrphanFilter(this._orphansExtraFilter, [e.address, e.label]),
+    );
+    const missingShown = missingFiltered.slice(0, this._orphansMissingShow);
+    const extraShown = extraFiltered.slice(0, this._orphansExtraShow);
     return html`
       <section class="mh-card">
         <header class="card-head">
-          <h3>Verwaiste GAs (Projekt vs Realitaet)</h3>
+          <h3>Verwaiste GAs (Projekt vs Realität)</h3>
           <span class="muted small">
             Projekt: ${o.project_total} • geloggt: ${o.log_total}
           </span>
@@ -1608,9 +1635,23 @@ export class StatsKnxView extends LitElement {
         <div class="orphans-grid">
           ${o.missing_in_log.length > 0
             ? html`<div>
-                <strong>Im Projekt, nie gesehen (${o.missing_in_log.length})</strong>
+                <strong
+                  >Im Projekt, nie gesehen (${missingFiltered.length}${
+                    this._orphansMissingFilter ? ` von ${o.missing_in_log.length}` : ""
+                  })</strong
+                >
+                <input
+                  class="mh-input orphans-search"
+                  type="search"
+                  placeholder="Filter nach GA / Label / DPT…"
+                  .value=${this._orphansMissingFilter}
+                  @input=${(e: Event) => {
+                    this._orphansMissingFilter = (e.target as HTMLInputElement).value;
+                    this._orphansMissingShow = 50;
+                  }}
+                />
                 <ul class="orphans-list muted-list">
-                  ${o.missing_in_log.slice(0, 15).map(
+                  ${missingShown.map(
                     (m) => html`<li>
                       <code>${m.address}</code>
                       <span>${m.name || "—"}</span>
@@ -1620,18 +1661,47 @@ export class StatsKnxView extends LitElement {
                     </li>`
                   )}
                 </ul>
-                ${o.missing_in_log.length > 15
-                  ? html`<p class="muted small">
-                      … und ${o.missing_in_log.length - 15} weitere
-                    </p>`
+                ${missingFiltered.length > this._orphansMissingShow
+                  ? html`<div class="orphans-pager">
+                      <button
+                        class="mh-btn mh-btn--sm"
+                        @click=${() => {
+                          this._orphansMissingShow += 50;
+                        }}
+                      >
+                        Mehr laden (${missingFiltered.length - this._orphansMissingShow} übrig)
+                      </button>
+                      <button
+                        class="mh-btn mh-btn--sm mh-btn--ghost"
+                        @click=${() => {
+                          this._orphansMissingShow = missingFiltered.length;
+                        }}
+                      >
+                        Alle ${missingFiltered.length} zeigen
+                      </button>
+                    </div>`
                   : nothing}
               </div>`
             : nothing}
           ${o.extra_in_log.length > 0
             ? html`<div>
-                <strong>Geloggt, nicht im Projekt (${o.extra_in_log.length})</strong>
+                <strong
+                  >Geloggt, nicht im Projekt (${extraFiltered.length}${
+                    this._orphansExtraFilter ? ` von ${o.extra_in_log.length}` : ""
+                  })</strong
+                >
+                <input
+                  class="mh-input orphans-search"
+                  type="search"
+                  placeholder="Filter nach GA / Label…"
+                  .value=${this._orphansExtraFilter}
+                  @input=${(e: Event) => {
+                    this._orphansExtraFilter = (e.target as HTMLInputElement).value;
+                    this._orphansExtraShow = 50;
+                  }}
+                />
                 <ul class="orphans-list extra-list">
-                  ${o.extra_in_log.slice(0, 15).map(
+                  ${extraShown.map(
                     (e) => html`<li>
                       <code>${e.address}</code>
                       <span>${e.label ?? "—"}</span>
@@ -1639,10 +1709,25 @@ export class StatsKnxView extends LitElement {
                     </li>`
                   )}
                 </ul>
-                ${o.extra_in_log.length > 15
-                  ? html`<p class="muted small">
-                      … und ${o.extra_in_log.length - 15} weitere
-                    </p>`
+                ${extraFiltered.length > this._orphansExtraShow
+                  ? html`<div class="orphans-pager">
+                      <button
+                        class="mh-btn mh-btn--sm"
+                        @click=${() => {
+                          this._orphansExtraShow += 50;
+                        }}
+                      >
+                        Mehr laden (${extraFiltered.length - this._orphansExtraShow} übrig)
+                      </button>
+                      <button
+                        class="mh-btn mh-btn--sm mh-btn--ghost"
+                        @click=${() => {
+                          this._orphansExtraShow = extraFiltered.length;
+                        }}
+                      >
+                        Alle ${extraFiltered.length} zeigen
+                      </button>
+                    </div>`
                   : nothing}
               </div>`
             : nothing}
@@ -2625,6 +2710,18 @@ export class StatsKnxView extends LitElement {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: var(--mh-space-4);
+      }
+      /* Iter 61 / U3: Such-Input + Pager fuer paginierte Orphans-Liste. */
+      .orphans-search {
+        margin: var(--mh-space-2) 0;
+        width: 100%;
+        max-width: 320px;
+      }
+      .orphans-pager {
+        display: flex;
+        gap: var(--mh-space-2);
+        margin-top: var(--mh-space-2);
+        flex-wrap: wrap;
       }
       .orphans-list {
         list-style: none;

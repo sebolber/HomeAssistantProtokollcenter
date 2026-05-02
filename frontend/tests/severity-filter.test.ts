@@ -15,6 +15,25 @@ describe("severity-filter", () => {
     document.body.removeChild(el);
   });
 
+  it("Iter 61 / U9: aktive Chips haben class 'active' + aria-pressed=true, inaktive nicht", async () => {
+    const el = document.createElement("severity-filter") as SeverityFilter;
+    el.selected = ["error", "warning"]; // info + debug inaktiv
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const buttons = Array.from(el.shadowRoot!.querySelectorAll("button"));
+    const [errorBtn, warningBtn, infoBtn, debugBtn] = buttons as HTMLButtonElement[];
+
+    expect(errorBtn.classList.contains("active")).toBe(true);
+    expect(errorBtn.getAttribute("aria-pressed")).toBe("true");
+    expect(warningBtn.classList.contains("active")).toBe(true);
+    expect(warningBtn.getAttribute("aria-pressed")).toBe("true");
+    expect(infoBtn.classList.contains("active")).toBe(false);
+    expect(infoBtn.getAttribute("aria-pressed")).toBe("false");
+    expect(debugBtn.classList.contains("active")).toBe(false);
+    expect(debugBtn.getAttribute("aria-pressed")).toBe("false");
+    document.body.removeChild(el);
+  });
+
   it("emittiert change-Event mit toggelter Severity", async () => {
     const el = document.createElement("severity-filter") as SeverityFilter;
     el.selected = ["error"];

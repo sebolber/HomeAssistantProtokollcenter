@@ -82,6 +82,58 @@ async def test_distinct_sources(repo: MessageRepository) -> None:
 
 
 @pytest.mark.asyncio
+async def test_hide_knx_read_filters_groupvalueread_telegrams(tmp_path: Path) -> None:
+    # Iter 61 / U15: hide_knx_read=True schliesst Eintraege aus, deren text
+    # den Marker "(GroupValueRead)" enthaelt. Andere KNX-Telegramme
+    # (GroupValueWrite/Response) bleiben sichtbar.
+    db = Database(tmp_path / "knx_read.db")
+    await db.open()
+    await MigrationRunner(db).run()
+    repo_local = MessageRepository(db)
+    base = datetime(2026, 5, 1, 12, 0, 0, tzinfo=UTC)
+    await repo_local.insert(
+        Message(
+            severity=Severity.INFO,
+            source="knx-bus",
+            text="R001 Diele - Alarm schalten (GroupValueRead)",
+            timestamp=base,
+        )
+    )
+    await repo_local.insert(
+        Message(
+            severity=Severity.INFO,
+            source="knx-bus",
+            text="R001 Diele - Alarm schalten = 1",
+            timestamp=base + timedelta(seconds=1),
+        )
+    )
+    await repo_local.insert(
+        Message(
+            severity=Severity.INFO,
+            source="knx-bus",
+            text="R013 Kellerflur - Alarm schalten = 0 (GroupValueResponse)",
+            timestamp=base + timedelta(seconds=2),
+        )
+    )
+    try:
+        all_items = await repo_local.list_filtered(limit=10)
+        assert len(all_items) == 3
+
+        filtered = await repo_local.list_filtered(hide_knx_read=True, limit=10)
+        assert len(filtered) == 2
+        assert all("(GroupValueRead)" not in m.text for m in filtered)
+
+        # Response-Telegramme bleiben sichtbar (heisst NICHT GroupValueRead).
+        assert any("(GroupValueResponse)" in m.text for m in filtered)
+
+        # count_filtered respektiert den Filter ebenfalls.
+        assert await repo_local.count_filtered(hide_knx_read=True) == 2
+        assert await repo_local.count_filtered(hide_knx_read=False) == 3
+    finally:
+        await db.close()
+
+
+@pytest.mark.asyncio
 async def test_stats_severity_last_24h(repo: MessageRepository) -> None:
     stats = await repo.stats_severity_last_24h()
     assert set(stats.keys()) == {"debug", "info", "warning", "error"}

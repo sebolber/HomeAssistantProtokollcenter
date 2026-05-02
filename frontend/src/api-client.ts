@@ -352,6 +352,8 @@ export interface ListFilters {
   limit?: number;
   offset?: number;
   order?: "asc" | "desc";
+  // Iter 61 / U15: GroupValueRead-Telegramme serverseitig ausblenden.
+  hideKnxRead?: boolean;
 }
 
 export class ApiClient {
@@ -379,6 +381,7 @@ export class ApiClient {
     if (filters.limit !== undefined) params.set("limit", String(filters.limit));
     if (filters.offset !== undefined) params.set("offset", String(filters.offset));
     if (filters.order) params.set("order", filters.order);
+    if (filters.hideKnxRead) params.set("hide_knx_read", "1");
     const url = `${this.baseUrl}/api/messagehub/messages?${params.toString()}`;
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);

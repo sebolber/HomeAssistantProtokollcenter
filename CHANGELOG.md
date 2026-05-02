@@ -6,6 +6,30 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt / Geändert (Iter 61 — UX-Quick-Wins Frontend-Logik)
+- **U3 Verwaiste-GAs-Card mit Suche + Pagination** — vorher hartes Cap
+  auf 15 Einträge mit „und N weitere" (bei 3000+ GAs unhandlich). Jetzt
+  pro Sektion (Missing-in-Log / Extra-in-Log) ein Such-Input
+  (case-insensitive auf address/label/dpt) plus „Mehr laden" (+50)
+  und „Alle X zeigen" (Escape-Hatch). Filter-Änderung resettet die
+  Page-Größe auf 50.
+- **U9 Severity-Filter-Pills** mit klarer Aktiv/Inaktiv-Differenzierung —
+  vorher unterschieden sich Active und Inactive nur durch Hintergrund-
+  farbe; bei farbigen Severity-Dots wirkten alle Chips „aktiv". Jetzt:
+  inactive = Outline-Style mit gestrichelter Border + opacity 0.6 +
+  gedämpfter Dot; active = Filled-Style mit Hintergrund + farbiger
+  Border + voller Dot + semibold. 1 neuer Frontend-Test.
+- **U15 GroupValueRead-Telegramme ausblenden** — Toggle in der Filter-
+  Bar des Nachrichten-Tabs (Default off). Adressiert HA-KNX-Polling-Spam,
+  ohne dass der User die Loggen-Konfig pro GA ändern muss. Backend-
+  Filter `hide_knx_read=1` im List-Endpoint und im
+  `MessageRepository.list_filtered`/`count_filtered` (`text NOT LIKE
+  '%(GroupValueRead)%'`). Pure Helper `isKnxReadMessage` (export) für
+  den Live-Update-Pfad. State persistiert im LocalStorage der Filter.
+  5 neue Frontend-Tests + 1 neuer Backend-Test.
+- **B5 (B4-Nachzug)**: „Realitaet" → „Realität" in der Verwaiste-GAs-
+  Card.
+
 ### Hinzugefügt / Geändert (Iter 60 — UX-Quick-Wins Visual)
 - **U6 Inline-Top-N-Selektor mit Label „zeige" + mehr Padding** —
   Selektor war vorher leicht zu übersehen (2 px Padding, kein Label).
