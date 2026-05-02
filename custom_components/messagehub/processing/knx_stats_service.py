@@ -79,9 +79,7 @@ class KnxStatsService:
     def __init__(self, repo: KnxStatsRepository) -> None:
         self._repo = repo
 
-    async def compute_summary(
-        self, from_iso: str, to_iso: str
-    ) -> dict[str, Any]:
+    async def compute_summary(self, from_iso: str, to_iso: str) -> dict[str, Any]:
         from_dt = datetime.fromisoformat(from_iso)
         to_dt = datetime.fromisoformat(to_iso)
         s = await self._repo.summary(from_iso, to_iso)
@@ -90,9 +88,7 @@ class KnxStatsService:
 
         # Klassifizierungs-Counts via Top-Liste — eine Query mehr, aber
         # reusable (Top wird sowieso fuer den Tab geladen).
-        top_rows = await self.compute_top(
-            from_iso, to_iso, limit=500, include_acknowledged=True
-        )
+        top_rows = await self.compute_top(from_iso, to_iso, limit=500, include_acknowledged=True)
         counts = {"green": 0, "yellow": 0, "orange": 0, "red": 0}
         for row in top_rows:
             counts[row.severity] = counts.get(row.severity, 0) + 1
@@ -148,9 +144,7 @@ class KnxStatsService:
             )
         return out
 
-    async def compute_ga_detail(
-        self, ga: str, from_iso: str, to_iso: str
-    ) -> GaDetail | None:
+    async def compute_ga_detail(self, ga: str, from_iso: str, to_iso: str) -> GaDetail | None:
         samples_raw = await self._repo.ga_samples(ga, from_iso, to_iso)
         if not samples_raw:
             return None
@@ -203,9 +197,7 @@ class KnxStatsService:
         gas: list[str],
         bucket_minutes: int = 10,
     ) -> list[dict[str, Any]]:
-        return await self._repo.timeline(
-            from_iso, to_iso, gas=gas, bucket_minutes=bucket_minutes
-        )
+        return await self._repo.timeline(from_iso, to_iso, gas=gas, bucket_minutes=bucket_minutes)
 
     async def evaluate_alarms(
         self,
@@ -238,8 +230,10 @@ class KnxStatsService:
 
         now_iso = _dt.now(UTC).isoformat(timespec="seconds")
         silence_rows = await self._repo.silence_detect(
-            from_iso, to_iso,
-            now_iso=now_iso, max_silence_minutes=max_silence_minutes,
+            from_iso,
+            to_iso,
+            now_iso=now_iso,
+            max_silence_minutes=max_silence_minutes,
         )
         silence_alarms = sum(1 for r in silence_rows if r["alarm"])
 
@@ -325,9 +319,7 @@ class KnxStatsService:
             "log_total": len(seen_addresses),
         }
 
-    async def _fetch_ga_meta(
-        self, ga: str, from_iso: str, to_iso: str
-    ) -> dict[str, Any] | None:
+    async def _fetch_ga_meta(self, ga: str, from_iso: str, to_iso: str) -> dict[str, Any] | None:
         """Holt dpt+label fuer eine einzelne GA — fuer compute_ga_detail."""
         rows = await self._repo.top_by_ga(from_iso, to_iso, limit=500)
         for row in rows:

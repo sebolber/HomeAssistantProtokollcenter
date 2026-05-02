@@ -18,9 +18,7 @@ MAX_PERIOD_DAYS: Final[int] = 90
 _KNX_GA_RE: Final = re.compile(r"^\d{1,2}/\d{1,2}/\d{1,3}$")
 
 
-def parse_iso_period(
-    params: Any, *, default_days: int = 7
-) -> tuple[str, str]:
+def parse_iso_period(params: Any, *, default_days: int = 7) -> tuple[str, str]:
     """Parst `from`/`to` aus Query-Params.
 
     Beide leer → letzte default_days Tage bis jetzt.
@@ -48,9 +46,7 @@ def parse_iso_period(
         raise web.HTTPBadRequest(reason="`to` must be greater than `from`")
 
     if (to_dt - from_dt) > timedelta(days=MAX_PERIOD_DAYS):
-        raise web.HTTPBadRequest(
-            reason=f"period exceeds maximum {MAX_PERIOD_DAYS} days"
-        )
+        raise web.HTTPBadRequest(reason=f"period exceeds maximum {MAX_PERIOD_DAYS} days")
 
     return (
         from_dt.isoformat(timespec="seconds"),
@@ -58,17 +54,13 @@ def parse_iso_period(
     )
 
 
-def _parse_iso_or_default(
-    raw: str | None, *, default: datetime, field: str
-) -> datetime:
+def _parse_iso_or_default(raw: str | None, *, default: datetime, field: str) -> datetime:
     if not raw:
         return default
     try:
         return datetime.fromisoformat(raw)
     except ValueError as err:
-        raise web.HTTPBadRequest(
-            reason=f"invalid `{field}` timestamp: {err}"
-        ) from err
+        raise web.HTTPBadRequest(reason=f"invalid `{field}` timestamp: {err}") from err
 
 
 def validate_knx_ga(ga: str) -> str:

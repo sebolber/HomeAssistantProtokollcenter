@@ -85,8 +85,11 @@ class KnxStatsTopView(RequireAdminView):
             request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
         )
         limit = parse_int_param(
-            request.query, "limit", _DEFAULT_TOP_LIMIT,
-            min_value=1, max_value=_HARD_TOP_LIMIT,
+            request.query,
+            "limit",
+            _DEFAULT_TOP_LIMIT,
+            min_value=1,
+            max_value=_HARD_TOP_LIMIT,
         )
         try:
             min_rate = float(request.query.get("min_rate", 0.0))
@@ -94,16 +97,20 @@ class KnxStatsTopView(RequireAdminView):
             raise web.HTTPBadRequest(reason="invalid min_rate") from err
         include_ack = request.query.get("include_acknowledged", "true").lower() != "false"
         rows = await svc.compute_top(
-            from_iso, to_iso,
-            limit=limit, min_rate_per_min=min_rate,
+            from_iso,
+            to_iso,
+            limit=limit,
+            min_rate_per_min=min_rate,
             include_acknowledged=include_ack,
         )
-        return self.json({
-            "from": from_iso,
-            "to": to_iso,
-            "items": [top_row_to_dict(r) for r in rows],
-            "total": len(rows),
-        })
+        return self.json(
+            {
+                "from": from_iso,
+                "to": to_iso,
+                "items": [top_row_to_dict(r) for r in rows],
+                "total": len(rows),
+            }
+        )
 
 
 class KnxStatsTopBySourceView(RequireAdminView):
@@ -119,15 +126,21 @@ class KnxStatsTopBySourceView(RequireAdminView):
             request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
         )
         limit = parse_int_param(
-            request.query, "limit", _DEFAULT_TOP_LIMIT,
-            min_value=1, max_value=_HARD_TOP_LIMIT,
+            request.query,
+            "limit",
+            _DEFAULT_TOP_LIMIT,
+            min_value=1,
+            max_value=_HARD_TOP_LIMIT,
         )
-        rows = await KnxStatsRepository(db).top_by_source(
-            from_iso, to_iso, limit=limit
+        rows = await KnxStatsRepository(db).top_by_source(from_iso, to_iso, limit=limit)
+        return self.json(
+            {
+                "from": from_iso,
+                "to": to_iso,
+                "items": rows,
+                "total": len(rows),
+            }
         )
-        return self.json({
-            "from": from_iso, "to": to_iso, "items": rows, "total": len(rows),
-        })
 
 
 class KnxStatsGaDetailView(RequireAdminView):
@@ -162,22 +175,25 @@ class KnxStatsTimelineView(RequireAdminView):
             request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
         )
         bucket = parse_int_param(
-            request.query, "bucket", _DEFAULT_BUCKET_MIN,
-            min_value=1, max_value=_HARD_BUCKET_MIN,
+            request.query,
+            "bucket",
+            _DEFAULT_BUCKET_MIN,
+            min_value=1,
+            max_value=_HARD_BUCKET_MIN,
         )
         gas_raw = request.query.get("gas", "")
         gas = [validate_knx_ga(g.strip()) for g in gas_raw.split(",") if g.strip()]
         if len(gas) > _HARD_TIMELINE_GAS:
-            raise web.HTTPBadRequest(
-                reason=f"too many gas (max {_HARD_TIMELINE_GAS})"
-            )
-        items = await svc.compute_timeline(
-            from_iso, to_iso, gas=gas, bucket_minutes=bucket
+            raise web.HTTPBadRequest(reason=f"too many gas (max {_HARD_TIMELINE_GAS})")
+        items = await svc.compute_timeline(from_iso, to_iso, gas=gas, bucket_minutes=bucket)
+        return self.json(
+            {
+                "from": from_iso,
+                "to": to_iso,
+                "bucket_minutes": bucket,
+                "items": items,
+            }
         )
-        return self.json({
-            "from": from_iso, "to": to_iso,
-            "bucket_minutes": bucket, "items": items,
-        })
 
 
 class KnxStatsAlarmsView(RequireAdminView):
@@ -202,28 +218,30 @@ class KnxStatsAlarmsView(RequireAdminView):
         )
         try:
             busload_th = float(
-                request.query.get(
-                    "busload_threshold", KNX_ALARM_BUSLOAD_PCT_DEFAULT
-                )
+                request.query.get("busload_threshold", KNX_ALARM_BUSLOAD_PCT_DEFAULT)
             )
             repeat_th = float(
-                request.query.get(
-                    "repeat_threshold", KNX_ALARM_REPEAT_RATE_PCT_DEFAULT
-                )
+                request.query.get("repeat_threshold", KNX_ALARM_REPEAT_RATE_PCT_DEFAULT)
             )
         except (ValueError, TypeError) as err:
             raise web.HTTPBadRequest(reason="invalid threshold") from err
         silence_th = parse_int_param(
-            request.query, "silence_threshold",
+            request.query,
+            "silence_threshold",
             KNX_ALARM_SILENCE_COUNT_DEFAULT,
-            min_value=1, max_value=1000,
+            min_value=1,
+            max_value=1000,
         )
         max_silence = parse_int_param(
-            request.query, "max_silence_min", 1440,
-            min_value=1, max_value=43200,
+            request.query,
+            "max_silence_min",
+            1440,
+            min_value=1,
+            max_value=43200,
         )
         alarms = await svc.evaluate_alarms(
-            from_iso, to_iso,
+            from_iso,
+            to_iso,
             busload_pct_threshold=busload_th,
             repeat_rate_pct_threshold=repeat_th,
             silence_count_threshold=silence_th,
@@ -234,11 +252,14 @@ class KnxStatsAlarmsView(RequireAdminView):
         for alarm in alarms:
             if alarm["triggered"]:
                 bus.async_fire(EVENT_KNX_ALARM_TRIGGERED, alarm)
-        return self.json({
-            "from": from_iso, "to": to_iso,
-            "alarms": alarms,
-            "triggered_count": sum(1 for a in alarms if a["triggered"]),
-        })
+        return self.json(
+            {
+                "from": from_iso,
+                "to": to_iso,
+                "alarms": alarms,
+                "triggered_count": sum(1 for a in alarms if a["triggered"]),
+            }
+        )
 
 
 class KnxStatsOrphansView(RequireAdminView):
@@ -262,9 +283,7 @@ class KnxStatsOrphansView(RequireAdminView):
             request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
         )
         project_gas, status = await discover_knx_project(request.app["hass"])
-        result = await svc.compute_orphans(
-            from_iso, to_iso, project_gas=project_gas
-        )
+        result = await svc.compute_orphans(from_iso, to_iso, project_gas=project_gas)
         result["from"] = from_iso
         result["to"] = to_iso
         result["discovery_status"] = status
@@ -291,22 +310,30 @@ class KnxStatsSilenceView(RequireAdminView):
             request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
         )
         max_silence = parse_int_param(
-            request.query, "max_silence_min", 1440,
-            min_value=1, max_value=43200,  # max 30 Tage
+            request.query,
+            "max_silence_min",
+            1440,
+            min_value=1,
+            max_value=43200,  # max 30 Tage
         )
         now_iso = datetime.now(UTC).isoformat(timespec="seconds")
         rows = await KnxStatsRepository(db).silence_detect(
-            from_iso, to_iso,
-            now_iso=now_iso, max_silence_minutes=max_silence,
+            from_iso,
+            to_iso,
+            now_iso=now_iso,
+            max_silence_minutes=max_silence,
         )
         # Frontend zeigt primaer die Alarme — sortieren wir die zuerst.
         rows.sort(key=lambda r: (not r["alarm"], -r["silent_minutes"]))
-        return self.json({
-            "from": from_iso, "to": to_iso,
-            "max_silence_minutes": max_silence,
-            "items": rows,
-            "alarm_count": sum(1 for r in rows if r["alarm"]),
-        })
+        return self.json(
+            {
+                "from": from_iso,
+                "to": to_iso,
+                "max_silence_minutes": max_silence,
+                "items": rows,
+                "alarm_count": sum(1 for r in rows if r["alarm"]),
+            }
+        )
 
 
 class KnxStatsBusHealthView(RequireAdminView):
@@ -326,11 +353,14 @@ class KnxStatsBusHealthView(RequireAdminView):
         repo = KnxStatsRepository(db)
         summary = await repo.bus_health(from_iso, to_iso)
         per_ga = await repo.bus_health_per_ga(from_iso, to_iso, limit=20)
-        return self.json({
-            "from": from_iso, "to": to_iso,
-            "summary": summary,
-            "per_ga": per_ga,
-        })
+        return self.json(
+            {
+                "from": from_iso,
+                "to": to_iso,
+                "summary": summary,
+                "per_ga": per_ga,
+            }
+        )
 
 
 class KnxStatsAcknowledgeView(RequireAdminView):
@@ -361,9 +391,11 @@ class KnxStatsAcknowledgeView(RequireAdminView):
             expiry_days=expiry_int,
         )
         await audit(
-            request.app["hass"], request,
+            request.app["hass"],
+            request,
             action="knx_stats_acknowledge",
-            target_type="knx_ga", target_id=ga,
+            target_type="knx_ga",
+            target_id=ga,
             details={"note": note, "expiry_days": expiry_int},
         )
         return self.json({"ok": True, "ga": ga})
@@ -385,9 +417,11 @@ class KnxStatsAcknowledgeDetailView(RequireAdminView):
         if not deleted:
             return self.json_message(ERR_NOT_FOUND, status_code=404)
         await audit(
-            request.app["hass"], request,
+            request.app["hass"],
+            request,
             action="knx_stats_unacknowledge",
-            target_type="knx_ga", target_id=ga,
+            target_type="knx_ga",
+            target_id=ga,
         )
         return self.json({"ok": True, "ga": ga})
 

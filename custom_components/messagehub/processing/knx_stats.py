@@ -107,8 +107,7 @@ _RECOMMENDATION_TEMPLATES: Final[dict[str, str]] = {
         ">= 10 Min. Ist-Rate {rate:.1f} Tel/Min ist zu hoch."
     ),
     "9.008": (
-        "CO2: Hysterese >= 25-50 ppm, Sendezyklus >= 5-10 Min. "
-        "Ist-Rate: {rate:.1f} Tel/Min."
+        "CO2: Hysterese >= 25-50 ppm, Sendezyklus >= 5-10 Min. Ist-Rate: {rate:.1f} Tel/Min."
     ),
     "13.010": (
         "Energiezaehler: zyklisch >= 5-15 Min reicht voellig. "
@@ -152,10 +151,7 @@ class Recommendation:
 
 def _format_template(dpt: str | None, rate: float) -> str:
     """Sucht das DPT-Template und formatiert es mit der Ist-Rate."""
-    template = (
-        _RECOMMENDATION_TEMPLATES.get(dpt or "")
-        or _RECOMMENDATION_TEMPLATES["_default"]
-    )
+    template = _RECOMMENDATION_TEMPLATES.get(dpt or "") or _RECOMMENDATION_TEMPLATES["_default"]
     return template.format(rate=rate)
 
 
@@ -275,9 +271,7 @@ def _detect_read_burst(samples: Sequence[TelegramSample]) -> Finding | None:
     for src, timestamps in by_source.items():
         timestamps.sort()
         for i in range(len(timestamps) - _READ_BURST_MIN_COUNT + 1):
-            window = (
-                timestamps[i + _READ_BURST_MIN_COUNT - 1] - timestamps[i]
-            ).total_seconds()
+            window = (timestamps[i + _READ_BURST_MIN_COUNT - 1] - timestamps[i]).total_seconds()
             if window <= _READ_BURST_WINDOW_SEC:
                 return Finding(
                     kind="read_burst",
@@ -302,9 +296,7 @@ def _detect_multiple_response(samples: Sequence[TelegramSample]) -> Finding | No
     if len(responses) < _MULTI_RESPONSE_MIN_COUNT + 1:
         return None
     for i in range(len(responses) - _MULTI_RESPONSE_MIN_COUNT):
-        window = (
-            responses[i + _MULTI_RESPONSE_MIN_COUNT].ts - responses[i].ts
-        ).total_seconds()
+        window = (responses[i + _MULTI_RESPONSE_MIN_COUNT].ts - responses[i].ts).total_seconds()
         if window <= _MULTI_RESPONSE_WINDOW_SEC:
             return Finding(
                 kind="multiple_response",
@@ -329,10 +321,7 @@ def _detect_heartbeat_spam(samples: Sequence[TelegramSample]) -> Finding | None:
     )
     if len(writes) < _HEARTBEAT_MIN_SAMPLES:
         return None
-    deltas = [
-        (writes[i + 1].ts - writes[i].ts).total_seconds()
-        for i in range(len(writes) - 1)
-    ]
+    deltas = [(writes[i + 1].ts - writes[i].ts).total_seconds() for i in range(len(writes) - 1)]
     if not deltas:
         return None
     median_dt = statistics.median(deltas)

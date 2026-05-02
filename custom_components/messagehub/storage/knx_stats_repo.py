@@ -169,9 +169,7 @@ class KnxStatsRepository:
     async def top_by_ga(
         self, from_iso: str, to_iso: str, *, limit: int = 50
     ) -> list[dict[str, Any]]:
-        rows = await self._db.fetch_all(
-            _TOP_SQL, (from_iso, to_iso, max(1, min(limit, 500)))
-        )
+        rows = await self._db.fetch_all(_TOP_SQL, (from_iso, to_iso, max(1, min(limit, 500))))
         return [self._row_to_top_dict(row) for row in rows]
 
     async def top_by_source(
@@ -189,12 +187,8 @@ class KnxStatsRepository:
             for row in rows
         ]
 
-    async def ga_samples(
-        self, ga: str, from_iso: str, to_iso: str
-    ) -> list[dict[str, Any]]:
-        rows = await self._db.fetch_all(
-            _GA_DETAIL_SAMPLES_SQL, (ga, from_iso, to_iso)
-        )
+    async def ga_samples(self, ga: str, from_iso: str, to_iso: str) -> list[dict[str, Any]]:
+        rows = await self._db.fetch_all(_GA_DETAIL_SAMPLES_SQL, (ga, from_iso, to_iso))
         return [
             {
                 "ts": str(row["ts"]),
@@ -249,9 +243,7 @@ class KnxStatsRepository:
         """
         from datetime import datetime as _dt  # noqa: PLC0415
 
-        rows = await self._db.fetch_all(
-            _SILENCE_DETECT_SQL, (from_iso, to_iso)
-        )
+        rows = await self._db.fetch_all(_SILENCE_DETECT_SQL, (from_iso, to_iso))
         now = _dt.fromisoformat(now_iso)
         out: list[dict[str, Any]] = []
         for row in rows:
@@ -274,9 +266,7 @@ class KnxStatsRepository:
 
     # --- Bus-Health (Iter 12, QS-a) -----------------------------------------
 
-    async def bus_health(
-        self, from_iso: str, to_iso: str
-    ) -> dict[str, float]:
+    async def bus_health(self, from_iso: str, to_iso: str) -> dict[str, float]:
         """Wiederhol-Quote ueber den Zeitraum.
 
         Liefert {total, repeated, ratio_pct}. ratio_pct ist 0.0 bei
@@ -336,9 +326,7 @@ class KnxStatsRepository:
             (ga, hour_bucket),
         )
 
-    async def counter_total_for_ga(
-        self, ga: str, from_iso: str, to_iso: str
-    ) -> int:
+    async def counter_total_for_ga(self, ga: str, from_iso: str, to_iso: str) -> int:
         """Liest aufsummierte Counter fuer eine GA aus dem Schatten-Cache."""
         row = await self._db.fetch_one(
             "SELECT SUM(count) AS n FROM knx_telegram_counters "
@@ -392,8 +380,7 @@ class KnxStatsRepository:
         """
         now = datetime.now(UTC).isoformat(timespec="seconds")
         rows = await self._db.fetch_all(
-            "SELECT ga FROM knx_ga_acknowledgements "
-            "WHERE expires_at IS NULL OR expires_at >= ?",
+            "SELECT ga FROM knx_ga_acknowledgements WHERE expires_at IS NULL OR expires_at >= ?",
             (now,),
         )
         return {str(row["ga"]) for row in rows}
