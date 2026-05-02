@@ -151,12 +151,12 @@ export class KnxAddressesView extends LitElement {
     }
     const summary =
       `Abgleich mit ETS-Projekt anwenden?\n\n` +
-      `${counts.add} neue Eintraege anlegen\n` +
-      `${counts.update} Eintraege aktualisieren ` +
-      `(label/dpt geaendert -> Logging-Konfig wird zurueckgesetzt)\n` +
-      `${counts.delete} Eintraege loeschen ` +
-      `(in ETS nicht mehr vorhanden -> Lauschen wird beendet)\n` +
-      `${counts.keep} unveraenderte Eintraege bleiben bestehen.`;
+      `${counts.add} neue Einträge anlegen\n` +
+      `${counts.update} Einträge aktualisieren ` +
+      `(label/dpt geändert → Logging-Konfig wird zurückgesetzt)\n` +
+      `${counts.delete} Einträge löschen ` +
+      `(in ETS nicht mehr vorhanden → Lauschen wird beendet)\n` +
+      `${counts.keep} unveränderte Einträge bleiben bestehen.`;
     if (!window.confirm(summary)) {
       return;
     }
@@ -168,7 +168,7 @@ export class KnxAddressesView extends LitElement {
         deleted: number;
       };
       this._showToast(
-        `Synchronisiert: +${r.added} angelegt, ${r.updated} aktualisiert, ${r.deleted} geloescht`
+        `Synchronisiert: +${r.added} angelegt, ${r.updated} aktualisiert, ${r.deleted} gelöscht`
       );
     } catch (err) {
       this._showToast(`Fehler beim Anwenden: ${(err as Error).message}`);
@@ -363,7 +363,7 @@ export class KnxAddressesView extends LitElement {
     try {
       const stats = await this.api.importKnxCsv(content);
       this._showToast(
-        `Import: ${stats.imported} angelegt, ${stats.skipped} ueberlesen, ${stats.errors} Fehler`
+        `Import: ${stats.imported} angelegt, ${stats.skipped} übersprungen, ${stats.errors} Fehler`
       );
       await this._load();
     } catch (err) {
@@ -663,7 +663,7 @@ export class KnxAddressesView extends LitElement {
             ${this._discovery.length > 0
               ? html`<button
                   class="mh-btn"
-                  title=${`Intelligenter Abgleich: ${this._discovery.length} GAs aus ETS — neue anlegen, geaenderte aktualisieren, fehlende loeschen, unveraenderte unangetastet`}
+                  title=${`Intelligenter Abgleich: ${this._discovery.length} GAs aus ETS — neue anlegen, geänderte aktualisieren, fehlende löschen, unveränderte unangetastet`}
                   @click=${() => void this._syncFromProject()}
                 >
                   Mit ETS-Projekt synchronisieren

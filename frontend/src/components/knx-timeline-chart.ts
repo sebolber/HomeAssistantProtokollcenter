@@ -31,6 +31,13 @@ export class KnxTimelineChart extends LitElement {
     if (this.items.length === 0) {
       return html`<p class="muted">Keine Timeline-Daten.</p>`;
     }
+    // Iter 59 / B3: Reine Null-Serien sind im Chart unsichtbar (Linie
+    // klebt am unteren Rand). Statt leeres SVG zu zeigen, expliziter
+    // Hinweis — User versteht warum nichts geplottet ist.
+    const totalCount = this.items.reduce((sum, p) => sum + p.count, 0);
+    if (totalCount === 0) {
+      return html`<p class="muted">Keine Telegramme im Zeitraum.</p>`;
+    }
 
     const series = this._buildSeries();
     const buckets = this._allBuckets();
@@ -80,13 +87,17 @@ export class KnxTimelineChart extends LitElement {
           if (singleBucket) {
             // Single-Bucket: horizontale Linie ueber die volle Breite +
             // Circle in der Mitte. Polyline waere mit 1 Punkt unsichtbar.
+            // Iter 59 / B3: vector-effect=non-scaling-stroke, sonst wird
+            // die Stroke bei preserveAspectRatio=none + breitem Container
+            // optisch verschwindend duenn.
             const y = yFor(s.values[0] ?? 0);
             return html`<g class="series">
               <line
                 x1=${padding.left} y1=${y}
                 x2=${this.width - padding.right} y2=${y}
                 stroke=${color}
-                stroke-width="1.5"
+                stroke-width="2"
+                vector-effect="non-scaling-stroke"
               ></line>
               <circle cx=${xFor(0)} cy=${y} r="2.5" fill=${color}>
                 <title>${s.ga}: ${s.values[0]}</title>
@@ -99,10 +110,11 @@ export class KnxTimelineChart extends LitElement {
               points=${points}
               fill="none"
               stroke=${color}
-              stroke-width="1.5"
+              stroke-width="2"
+              vector-effect="non-scaling-stroke"
             ><title>${s.ga}</title></polyline>
             ${s.values.map(
-              (v, i) => html`<circle cx=${xFor(i)} cy=${yFor(v)} r="1.8" fill=${color}>
+              (v, i) => html`<circle cx=${xFor(i)} cy=${yFor(v)} r="2" fill=${color}>
                 <title>${s.ga}: ${v}</title>
               </circle>`
             )}

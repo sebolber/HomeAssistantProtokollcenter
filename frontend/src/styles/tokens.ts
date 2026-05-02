@@ -65,6 +65,11 @@ export const tokens = css`
     --mh-info-soft: color-mix(in srgb, var(--info-color, #03a9f4) 14%, transparent);
     --mh-success: var(--success-color, #16a34a);
     --mh-success-soft: color-mix(in srgb, var(--success-color, #16a34a) 14%, transparent);
+    /* Iter 59 / B2: caution = gelb, separat von warning (orange). KNX-Stats
+       braucht 4-stufige Ampel gruen/gelb/orange/rot, mh-pill hatte nur 3
+       (success/warning/error). Fallback ohne CSS-var: GoldenRod-Ton. */
+    --mh-caution: var(--caution-color, #ca8a04);
+    --mh-caution-soft: color-mix(in srgb, var(--caution-color, #ca8a04) 16%, transparent);
     --mh-debug: var(--secondary-text-color, #6b7280);
     --mh-debug-soft: color-mix(in srgb, var(--secondary-text-color, #6b7280) 12%, transparent);
 
@@ -243,6 +248,10 @@ export const pills = css`
   .mh-pill--success {
     background: var(--mh-success-soft);
     color: var(--mh-success);
+  }
+  .mh-pill--caution {
+    background: var(--mh-caution-soft);
+    color: var(--mh-caution);
   }
   .mh-pill--neutral {
     background: var(--mh-surface-2);

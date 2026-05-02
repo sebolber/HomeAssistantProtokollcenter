@@ -34,6 +34,42 @@ export function categorizeAction(
   return "other";
 }
 
+const _SUMMARY_VALUE_MAX = 60;
+
+// Iter 59 / B1: Audit-Detail-Summary war "{deleted_count}" — sah wie ein
+// nicht ersetzter Template-String aus. Bei genau einem primitiven
+// Schluessel-Wert-Paar zeigen wir jetzt "key: value", sonst die kompakte
+// Key-Liste. Pure Funktion, damit unit-testbar.
+export function formatDetailsSummary(details: unknown): string {
+  if (!details || typeof details !== "object" || Array.isArray(details)) {
+    return "";
+  }
+  const obj = details as Record<string, unknown>;
+  if (typeof obj.label === "string") return obj.label;
+  if (typeof obj.name === "string") return obj.name;
+
+  const entries = Object.entries(obj);
+  if (entries.length === 1) {
+    const [key, value] = entries[0];
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      const rendered = String(value);
+      const clipped =
+        rendered.length > _SUMMARY_VALUE_MAX
+          ? `${rendered.slice(0, _SUMMARY_VALUE_MAX)}…`
+          : rendered;
+      return `${key}: ${clipped}`;
+    }
+    // Object/Array als Wert: Schluessel als Hint, Detail-Expand zeigt mehr.
+    return `{${key}}`;
+  }
+  const keys = entries.slice(0, 3).map(([k]) => k).join(", ");
+  return `{${keys}${entries.length > 3 ? ", …" : ""}}`;
+}
+
 @customElement("audit-view")
 export class AuditView extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
@@ -77,10 +113,10 @@ export class AuditView extends LitElement {
     if (!this.api) return;
     if (
       !window.confirm(
-        "Wirklich ALLE Audit-Eintraege loeschen?\n\n" +
-          "Diese Aktion kann nicht rueckgaengig gemacht werden. " +
+        "Wirklich ALLE Audit-Einträge löschen?\n\n" +
+          "Diese Aktion kann nicht rückgängig gemacht werden. " +
           "Ein neuer Eintrag 'audit_clear' wird vom Backend angelegt, " +
-          "damit der Loesch-Vorgang in den verbleibenden Logs " +
+          "damit der Lösch-Vorgang in den verbleibenden Logs " +
           "nachvollziehbar bleibt."
       )
     ) {
@@ -90,7 +126,7 @@ export class AuditView extends LitElement {
     try {
       const result = await this.api.clearAuditLog();
       await this._load();
-      window.alert(`${result.deleted} Eintraege geloescht.`);
+      window.alert(`${result.deleted} Einträge gelöscht.`);
     } catch (err) {
       window.alert(`Fehler: ${(err as Error).message}`);
     } finally {
@@ -145,19 +181,17 @@ export class AuditView extends LitElement {
   }
 
   private _renderDetailsSummary(details: unknown): TemplateResult {
-    if (!details || typeof details !== "object") return html`<span class="muted">—</span>`;
-    const obj = details as Record<string, unknown>;
-    const label =
-      typeof obj.label === "string"
-        ? obj.label
-        : typeof obj.name === "string"
-          ? obj.name
-          : null;
-    if (label) return html`<span class="summary">${label}</span>`;
-    const keys = Object.keys(obj).slice(0, 3).join(", ");
-    return html`<span class="summary muted">{${keys}${
-      Object.keys(obj).length > 3 ? ", …" : ""
-    }}</span>`;
+    const summary = formatDetailsSummary(details);
+    if (summary === "") return html`<span class="muted">—</span>`;
+    // Label/Name (key-loses Wort) ohne muted, alles andere muted.
+    const isLabel =
+      typeof details === "object" &&
+      details !== null &&
+      ((details as Record<string, unknown>).label !== undefined ||
+        (details as Record<string, unknown>).name !== undefined);
+    return html`<span class=${`summary ${isLabel ? "" : "muted"}`}
+      >${summary}</span
+    >`;
   }
 
   override render(): TemplateResult {
@@ -180,9 +214,9 @@ export class AuditView extends LitElement {
               class="mh-btn mh-btn--danger"
               ?disabled=${this._items.length === 0 || this._loading}
               @click=${() => void this._clearAll()}
-              title="Alle Audit-Eintraege loeschen"
+              title="Alle Audit-Einträge löschen"
             >
-              Alle loeschen
+              Alle löschen
             </button>
           </div>
         </header>

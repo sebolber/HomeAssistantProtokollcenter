@@ -6,7 +6,42 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
-### Behoben
+### Behoben (Iter 59 — Bug-Sammel B1–B4)
+- **B1 Audit-Detail-Summary zeigte `{deleted_count}` wörtlich.** Der
+  Renderer `_renderDetailsSummary` listete bei jedem Detail-Objekt nur
+  die Schlüssel als `{key}` auf — beim Audit-Clear-Eintrag mit genau
+  einem `deleted_count`-Feld sah das wie ein nicht ersetztes Template
+  aus. Pure Helper `formatDetailsSummary` (export, unit-getestet) zeigt
+  bei einem einzelnen primitiven Wert jetzt `key: value`, kürzt sehr
+  lange Werte auf 60 Zeichen mit Ellipsis. 7 neue Tests in
+  `tests/audit-summary.test.ts`.
+- **B2 Status-Pille „● OK" wurde grau statt grün gerendert.** In
+  `stats-knx-view.ts:_severityPillClass` mappte `green → mh-pill--neutral`
+  (grau) und `yellow → mh-pill--info` (blau!) — verkehrte die Ampel-
+  Logik aus Konzept §3.1 in zusammenhanglose Farben. Neue
+  `mh-pill--caution`-Klasse (gelb) in `tokens.ts`, Mapping korrigiert
+  zu `green→success`, `yellow→caution`, `orange→warning`, `red→error`.
+  Pure Helper `severityPillClass` als Modul-Level-Export. 4 neue Tests
+  in `tests/severity-pill.test.ts`.
+- **B3 Tagesverlauf-Chart blieb leer trotz Daten.** Die Polylines
+  hatten `stroke-width="1.5"` ohne `vector-effect`, sodass bei
+  `viewBox 600x120` + `preserveAspectRatio="none"` die Stroke-Breite
+  bei breitem Container fast unsichtbar verzerrt wurde. Fix:
+  `vector-effect="non-scaling-stroke"` + `stroke-width="2"` (Linien)
+  + `r="2"` (Marker). Zusätzlich expliziter Hinweis „Keine Telegramme
+  im Zeitraum" wenn alle Series nur Null-Werte haben (statt leerem
+  SVG). 2 neue Tests in `tests/knx-timeline-chart.test.ts`.
+- **B4 Umlaut-Drift in mehreren UI-Components.** Nach Iter 0.5.0
+  („Umlaute überall in nutzersichtbaren Strings") sind in späteren
+  Iterationen wieder ASCII-Substitute eingezogen. Korrigiert in
+  `audit-view.ts` (Confirm-Dialog, Alert, Button-Title), `stats-knx-
+  view.ts` (Health-/Severity-Labels, Top-Geräte-Card, Bursts-Card,
+  Detail-Pane, Bulk-Ack-Prompt), `knx-addresses-view.ts` (Sync-Confirm,
+  Toast-Texte, ETS-Sync-Button-Title), `simple-list-view.ts`
+  (Heartbeat-Hint). Strings wie „Geraete", „loeschen", „auffaellig",
+  „leicht erhoeht", „fuer", „oeffnen" sind jetzt wieder „Geräte",
+  „löschen", „auffällig", „leicht erhöht", „für", „öffnen".
+
 - **KNX-Statistik-Bereiche Burst-Detector, Buslast-KPI, Bus-Health-Score
   und Sicherheits-Audit lieferten 404.** Die zugehörigen View-Klassen
   (`KnxStatsBurstsView`, `KnxStatsBusloadView`, `KnxStatsHealthScoreView`,

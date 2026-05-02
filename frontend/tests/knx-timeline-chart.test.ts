@@ -80,6 +80,46 @@ describe("knx-timeline-chart", () => {
     expect(text).toContain("0");
   });
 
+  it("Iter 59 / B3: Lines + Polylines haben non-scaling-stroke + sichtbare Stroke-Width", async () => {
+    // Bug: bei viewBox 600x120 + preserveAspectRatio=none wird die Stroke
+    // beim Strecken auf voller Container-Breite verzerrt — bei stroke-width
+    // 1.5 fast unsichtbar. Fix: vector-effect=non-scaling-stroke +
+    // stroke-width >= 2.
+    const el = await mount([
+      { ga: "1/2/3", bucket: "2026-05-02T10:00:00", count: 5 },
+      { ga: "1/2/3", bucket: "2026-05-02T11:00:00", count: 8 },
+    ]);
+    const polylines = el.shadowRoot!.querySelectorAll("g.series polyline");
+    expect(polylines.length).toBeGreaterThan(0);
+    for (const pl of Array.from(polylines)) {
+      expect(pl.getAttribute("vector-effect")).toBe("non-scaling-stroke");
+      const strokeWidth = parseFloat(pl.getAttribute("stroke-width") || "0");
+      expect(strokeWidth).toBeGreaterThanOrEqual(2);
+    }
+
+    // Single-Bucket-Linie ebenfalls non-scaling.
+    const elSingle = await mount([
+      { ga: "5/2/14", bucket: "2026-05-02T10:00:00", count: 87 },
+    ]);
+    const lines = elSingle.shadowRoot!.querySelectorAll("g.series line");
+    expect(lines.length).toBe(1);
+    expect(lines[0].getAttribute("vector-effect")).toBe("non-scaling-stroke");
+    const lwsw = parseFloat(lines[0].getAttribute("stroke-width") || "0");
+    expect(lwsw).toBeGreaterThanOrEqual(2);
+  });
+
+  it("Iter 59 / B3: zeigt fallback-Hinweis, wenn alle GAs nur Null-Werte haben", async () => {
+    // Auch wenn ein GA-Punkt mit count > 0 existiert, soll bei reinen
+    // 0-Serien ein Hinweis erscheinen statt einer leeren Linie am Boden,
+    // damit User versteht warum nichts zu sehen ist.
+    const el = await mount([
+      { ga: "1/2/3", bucket: "2026-05-02T10:00:00", count: 0 },
+      { ga: "1/2/3", bucket: "2026-05-02T11:00:00", count: 0 },
+    ]);
+    const text = el.shadowRoot!.textContent ?? "";
+    expect(text).toContain("Keine Telegramme im Zeitraum");
+  });
+
   it("rendert Legende mit GA-Codes", async () => {
     const el = await mount([
       { ga: "1/2/3", bucket: "2026-05-02T10:00:00", count: 1 },

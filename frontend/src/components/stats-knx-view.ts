@@ -107,6 +107,25 @@ function rawLiveWindow(): { from: string; to: string } {
   return { from: from.toISOString(), to: to.toISOString() };
 }
 
+// Iter 59 / B2: 4-stufige Ampel-Klassifizierung aus dem Konzept
+// (docs/messagehub_knx_statistik.md §3.1) auf mh-pill-Varianten mappen.
+// Vorher griff green->neutral (grau) und yellow->info (blau) — entwertete
+// die Ampel-Optik. Pure helper, modul-level export fuer Tests.
+export function severityPillClass(
+  sev: "green" | "yellow" | "orange" | "red"
+): string {
+  switch (sev) {
+    case "red":
+      return "mh-pill--error";
+    case "orange":
+      return "mh-pill--warning";
+    case "yellow":
+      return "mh-pill--caution";
+    case "green":
+      return "mh-pill--success";
+  }
+}
+
 @customElement("stats-knx-view")
 export class StatsKnxView extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
@@ -445,7 +464,7 @@ export class StatsKnxView extends LitElement {
   private async _ackGa(ga: string): Promise<void> {
     if (!this.api) return;
     const note = window.prompt(
-      `Notiz fuer ${ga} (optional, leer = keine Notiz):`,
+      `Notiz für ${ga} (optional, leer = keine Notiz):`,
       ""
     );
     if (note === null) return; // Abbrechen
@@ -499,7 +518,7 @@ export class StatsKnxView extends LitElement {
     onChange: (n: number) => void
   ): TemplateResult {
     return html`
-      <span class="inline-topn" role="group" aria-label="Anzahl Eintraege">
+      <span class="inline-topn" role="group" aria-label="Anzahl Einträge">
         ${TOP_N_OPTIONS.map(
           (n) => html`<button
             class=${`inline-topn__btn ${current === n ? "active" : ""}`}
@@ -620,7 +639,7 @@ export class StatsKnxView extends LitElement {
           <span class="kpi-hint">im Protokoll</span>
         </div>
         <div class="kpi">
-          <span class="kpi-label">Aktive Geraete</span>
+          <span class="kpi-label">Aktive Geräte</span>
           <span class="kpi-value">${s.active_devices.toLocaleString("de-DE")}</span>
           <span class="kpi-hint">Source-Adressen</span>
         </div>
@@ -695,9 +714,9 @@ export class StatsKnxView extends LitElement {
       case "green":
         return "gesund";
       case "yellow":
-        return "leicht erhoeht";
+        return "leicht erhöht";
       case "orange":
-        return "auffaellig";
+        return "auffällig";
       case "red":
         return "kritisch";
     }
@@ -710,7 +729,7 @@ export class StatsKnxView extends LitElement {
       case "busload":
         return "Buslast-Spitze";
       case "silence":
-        return "stumme Geraete";
+        return "stumme Geräte";
       case "alarms":
         return "offene Alarme";
     }
@@ -751,7 +770,7 @@ export class StatsKnxView extends LitElement {
                     <tr>
                       <th>Zeit</th>
                       <th>GA</th>
-                      <th>Geraet</th>
+                      <th>Gerät</th>
                       <th>Wert</th>
                     </tr>
                   </thead>
@@ -790,16 +809,16 @@ export class StatsKnxView extends LitElement {
         <header class="card-head">
           <h3>Telegrammfluten (Bursts)</h3>
           <span class="muted small">
-            ${b.bursts.length} Spitzen ueber ${fmtPct(b.threshold_pct)} % Buslast
+            ${b.bursts.length} Spitzen über ${fmtPct(b.threshold_pct)} % Buslast
             (${b.window_seconds}s-Fenster)
           </span>
         </header>
         <div class="bursts__intro">
           <p class="muted small">
-            Kurze Spitzen, die im Period-Avg untergehen — typisch fuer
+            Kurze Spitzen, die im Period-Avg untergehen — typisch für
             Sturm-Automatik, gleichzeitige Rolladen-Befehle oder Szene-Trigger.
             Spalte „GAs" zeigt die Anzahl unterschiedlicher Gruppenadressen,
-            „Geraete" die Anzahl unterschiedlicher Source-Adressen.
+            „Geräte" die Anzahl unterschiedlicher Source-Adressen.
           </p>
         </div>
         <div class="table-wrap">
@@ -810,7 +829,7 @@ export class StatsKnxView extends LitElement {
                 <th class="num">Tel</th>
                 <th class="num">Buslast</th>
                 <th class="num">GAs</th>
-                <th class="num">Geraete</th>
+                <th class="num">Geräte</th>
               </tr>
             </thead>
             <tbody>
@@ -842,7 +861,7 @@ export class StatsKnxView extends LitElement {
         <div>
           <strong>Long-Term-Modus aktiv</strong>
           <p class="muted small">
-            Periode ueber 48 Std — die Counter-Tabelle liefert Telegramm-Counts pro
+            Periode über 48 Std — die Counter-Tabelle liefert Telegramm-Counts pro
             Stunde/Tag, aber keine Source-Adressen, keine Werte und keine Repeats.
             Live-KPIs darunter zeigen die letzten 48 Std aus den Roh-Telegrammen.
           </p>
@@ -907,9 +926,9 @@ export class StatsKnxView extends LitElement {
       case "green":
         return "OK";
       case "yellow":
-        return "leicht erhoeht";
+        return "leicht erhöht";
       case "orange":
-        return "auffaellig";
+        return "auffällig";
       case "red":
         return "kritisch";
     }
@@ -990,13 +1009,13 @@ export class StatsKnxView extends LitElement {
         ${this._topBySource.length > 0
           ? html`<section class="mh-card">
               <header class="card-head">
-                <h3>Top-Geraete (Source-Adressen)</h3>
+                <h3>Top-Geräte (Source-Adressen)</h3>
                 <div class="card-head__meta">
                   ${this._renderInlineTopN(this._filters.topNDevices, (n) =>
                     this._onTopNDevices(n)
                   )}
                   <span class="muted small">
-                    Welches physische Geraet erzeugt am meisten Last?
+                    Welches physische Gerät erzeugt am meisten Last?
                   </span>
                 </div>
               </header>
@@ -1120,7 +1139,7 @@ export class StatsKnxView extends LitElement {
           <div class="detail-head-text">
             <h3>${d.ga} — ${d.label ?? "Detail"}</h3>
             <span class="muted small">
-              Geraet:
+              Gerät:
               <code>${d.dev_source || "?"}</code>
               ${d.dpt ? html` • DPT <code>${d.dpt}</code>` : nothing}
             </span>
@@ -1214,7 +1233,7 @@ export class StatsKnxView extends LitElement {
       <div class="device-info">
         ${dev
           ? html`<strong>
-              Geraet: ${dev.manufacturer || "?"}
+              Gerät: ${dev.manufacturer || "?"}
               ${dev.name ? html` — ${dev.name}` : nothing}
               ${dev.product
                 ? html`<span class="muted small">(${dev.product})</span>`
@@ -1241,13 +1260,13 @@ export class StatsKnxView extends LitElement {
   private _renderSiblingGas(d: KnxStatsGaDetailDto): TemplateResult {
     return html`
       <div class="siblings">
-        <strong>Andere GAs des Geraets <code>${d.dev_source}</code>:</strong>
+        <strong>Andere GAs des Geräts <code>${d.dev_source}</code>:</strong>
         <ul>
           ${d.sibling_gas.slice(0, 10).map(
             (s) => html`<li
               class="sibling-row"
               @click=${() => void this._onSelectGa(s.ga)}
-              title="Detail-Pane fuer ${s.ga} oeffnen"
+              title="Detail-Pane für ${s.ga} öffnen"
             >
               <code class="ga">${s.ga}</code>
               <span class="muted">${s.label ?? "—"}</span>
@@ -1320,7 +1339,7 @@ export class StatsKnxView extends LitElement {
                 @click=${() => this._toggleDevicesSort("dev_source")}
                 title="Nach Source-Adresse sortieren"
               >
-                Geraet (Source)${this._sortArrow(sortKey, "dev_source", sortDir)}
+                Gerät (Source)${this._sortArrow(sortKey, "dev_source", sortDir)}
               </th>
               <th>Hersteller / Modell</th>
               <th
@@ -1368,7 +1387,7 @@ export class StatsKnxView extends LitElement {
                 <td class="actions">
                   <button
                     class="mh-btn mh-btn--sm mh-btn--ghost"
-                    title="Alle GAs dieses Geraets als bekannt markieren"
+                    title="Alle GAs dieses Geräts als bekannt markieren"
                     @click=${(e: Event) => {
                       e.stopPropagation();
                       void this._ackBulk(row.dev_source);
@@ -1389,14 +1408,14 @@ export class StatsKnxView extends LitElement {
     if (!this.api) return;
     if (
       !window.confirm(
-        `Alle GAs des Geraets ${devSource} als bekannt markieren?`
+        `Alle GAs des Geräts ${devSource} als bekannt markieren?`
       )
     ) {
       return;
     }
     const note = window.prompt(
-      `Notiz fuer Bulk-Ack ${devSource} (optional):`,
-      "akzeptiert nach Pruefung"
+      `Notiz für Bulk-Ack ${devSource} (optional):`,
+      "akzeptiert nach Prüfung"
     );
     if (note === null) return;
     try {
@@ -1597,16 +1616,7 @@ export class StatsKnxView extends LitElement {
   private _severityPillClass(
     sev: "green" | "yellow" | "orange" | "red"
   ): string {
-    switch (sev) {
-      case "red":
-        return "mh-pill--error";
-      case "orange":
-        return "mh-pill--warning";
-      case "yellow":
-        return "mh-pill--info";
-      case "green":
-        return "mh-pill--neutral";
-    }
+    return severityPillClass(sev);
   }
 
   static override styles = [

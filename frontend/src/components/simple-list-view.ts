@@ -269,8 +269,8 @@ export class HeartbeatsView extends LitElement {
         <header>
           <h2>Heartbeat-Quellen</h2>
           <p class="hint">
-            Der Heartbeat-Job prueft alle 60 s. Wenn <code>last_seen + 1.5 ×
-            interval</code> ueberschritten ist, generiert er eine Warning mit
+            Der Heartbeat-Job prüft alle 60 s. Wenn <code>last_seen + 1.5 ×
+            interval</code> überschritten ist, generiert er eine Warning mit
             Source <code>messagehub.heartbeat</code>. Der Status reset sich,
             wenn die Quelle wieder sendet.
           </p>
