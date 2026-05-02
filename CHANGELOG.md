@@ -6,6 +6,18 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 64 — WR-P HA-KNX-Direktlinks)
+- **„Schnell-Aktionen"-Sektion im Detail-Pane** unter den Geschwister-
+  GAs. Zwei Direktlinks pro GA:
+  1. „HA-KNX-Konfig öffnen" → `/config/integrations/integration/knx`
+     (gleicher Tab, nur ein Klick statt Settings → Geräte & Dienste
+     → KNX → suchen).
+  2. „Im KNX-User-Forum suchen" → externes Forum-Search mit GA-Code
+     vorausgefüllt (neuer Tab, `rel="noopener noreferrer"`).
+- Tab-Wechsel innerhalb messagehub (zu Settings → KNX-Adressen mit
+  GA-Filter) bewusst NICHT verdrahtet — mehr Refactor-Aufwand als
+  Mehrwert; GA-Code kann per Copy-Paste übernommen werden.
+
 ### Hinzugefügt (Iter 63 — U13 Anti-Pattern-Badge in Top-Sender)
 - **Anti-Pattern-Badge in Top-Sender-Tabelle** als gelbe „⚠ auffällig"-
   Pille neben der Severity-Pille, wenn für eine GA Konstant-Wert-Spam

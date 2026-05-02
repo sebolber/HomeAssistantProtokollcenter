@@ -1370,7 +1370,49 @@ export class StatsKnxView extends LitElement {
         ${d.sibling_gas.length > 0
           ? this._renderSiblingGas(d)
           : nothing}
+
+        ${this._renderHaKnxLinks(d)}
       </section>
+    `;
+  }
+
+  /**
+   * Iter 64 / WR-P: Direktlinks aus dem Detail-Pane. Spart dem User
+   * den Weg "Settings → Geräte & Dienste → KNX → suchen" und macht
+   * das KNX-User-Forum als Recherche-Pfad sichtbar.
+   *
+   * Tab-Wechsel innerhalb messagehub (z. B. zu Settings → KNX-Adressen
+   * mit GA-Filter vorbefüllt) wuerde Top-Level-State-Sharing brauchen
+   * — bewusst NICHT hier verdrahtet, weil das mehr Refactor-Aufwand
+   * waere als der Mehrwert. User kann den GA-Code copy-pasten.
+   */
+  private _renderHaKnxLinks(d: KnxStatsGaDetailDto): TemplateResult {
+    const forumUrl = `https://knx-user-forum.de/forum/search?searchword=${encodeURIComponent(
+      d.ga,
+    )}`;
+    return html`
+      <div class="ha-links">
+        <strong>Schnell-Aktionen:</strong>
+        <ul class="ha-links__list">
+          <li>
+            <a
+              href="/config/integrations/integration/knx"
+              target="_top"
+              title="HA-Integration KNX-Konfig öffnen"
+              >HA-KNX-Konfig öffnen ↗</a
+            >
+          </li>
+          <li>
+            <a
+              href=${forumUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="KNX-User-Forum nach GA-Code durchsuchen"
+              >Im KNX-User-Forum suchen ↗</a
+            >
+          </li>
+        </ul>
+      </div>
     `;
   }
 
@@ -2530,6 +2572,29 @@ export class StatsKnxView extends LitElement {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+      /* Iter 64 / WR-P: Detail-Pane Schnell-Aktionen mit HA-Konfig +
+         Forum-Link. Anchors als kompakte Liste, kein Button-Stil. */
+      .ha-links {
+        margin-top: var(--mh-space-3);
+        padding-top: var(--mh-space-3);
+        border-top: 1px solid var(--mh-divider);
+      }
+      .ha-links__list {
+        list-style: none;
+        padding: 0;
+        margin: var(--mh-space-2) 0 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--mh-space-3);
+      }
+      .ha-links__list a {
+        color: var(--mh-accent);
+        text-decoration: none;
+        font-size: var(--mh-text-sm);
+      }
+      .ha-links__list a:hover {
+        text-decoration: underline;
       }
       /* Iter 63 / U13: Auffaelligkeit-Badge in Top-Sender-Status-Spalte.
          Caution-Style (gelb), klein und neben der Severity-Pille. */
