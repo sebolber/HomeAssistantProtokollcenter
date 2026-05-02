@@ -160,3 +160,78 @@ describe("knx-addresses-view filter 'nur aktive'", () => {
     expect(visibleAddresses(el)).toContain("0/0/1");
   });
 });
+
+describe("knx-addresses-view Iter 54 (N2): Toggle-On-Severity-Default", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+    try {
+      localStorage.removeItem("messagehub.knx-addresses.only-enabled");
+    } catch {
+      // ignore
+    }
+  });
+
+  async function mountWithCapture(items: KnxAddressDto[]): Promise<{
+    el: KnxAddressesView;
+    upsertCalls: KnxAddressDto[];
+  }> {
+    const upsertCalls: KnxAddressDto[] = [];
+    const api = {
+      listKnxAddresses: vi.fn(async () => items),
+      upsertKnxAddress: vi.fn(async (patch: KnxAddressDto) => {
+        upsertCalls.push(patch);
+        return patch;
+      }),
+      discoverKnxFromProject: vi.fn(async () => ({ items: [], status: "ok" })),
+    } as unknown as ApiClient;
+    const el = document.createElement("knx-addresses-view") as KnxAddressesView;
+    el.api = api;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    await el.updateComplete;
+    return { el, upsertCalls };
+  }
+
+  async function clickToggle(el: KnxAddressesView): Promise<void> {
+    // Toggle-Switch in der Tabellenzeile (input type=checkbox in tbody)
+    const toggle = el.shadowRoot!.querySelector(
+      "tbody input[type=checkbox]"
+    ) as HTMLInputElement;
+    toggle.click();
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+  }
+
+  it("setzt severity auf 'warning' beim Aktivieren wenn vorher 'info'", async () => {
+    const { el, upsertCalls } = await mountWithCapture([
+      makeAddr({ address: "0/0/1", log_enabled: false, log_severity: "info" }),
+    ]);
+    // Damit wir die inaktive GA sehen, Filter ausschalten
+    await setOnlyEnabled(el, false);
+    await clickToggle(el);
+    expect(upsertCalls.length).toBe(1);
+    expect(upsertCalls[0].log_enabled).toBe(true);
+    expect(upsertCalls[0].log_severity).toBe("warning");
+  });
+
+  it("behaelt severity unveraendert beim Aktivieren wenn vorher 'error'", async () => {
+    const { el, upsertCalls } = await mountWithCapture([
+      makeAddr({ address: "0/0/1", log_enabled: false, log_severity: "error" }),
+    ]);
+    await setOnlyEnabled(el, false);
+    await clickToggle(el);
+    expect(upsertCalls[0].log_severity).toBe("error");
+  });
+
+  it("behaelt severity beim Deaktivieren ('warning' -> 'warning')", async () => {
+    const { el, upsertCalls } = await mountWithCapture([
+      makeAddr({ address: "0/0/1", log_enabled: true, log_severity: "warning" }),
+    ]);
+    // Default-Filter on zeigt schon die aktive GA
+    await clickToggle(el);
+    expect(upsertCalls[0].log_enabled).toBe(false);
+    // Severity bleibt "warning" — User hat sie bewusst gewaehlt
+    expect(upsertCalls[0].log_severity).toBe("warning");
+  });
+});

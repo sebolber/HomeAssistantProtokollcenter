@@ -2893,19 +2893,22 @@ ${e.keep} unveraenderte Eintraege bleiben bestehen.`;
   async _toggleLog(t) {
     if (!this.api) return;
     const e = !t.log_enabled;
+    let s = t.log_severity;
+    e && (s === "info" || !s) && (s = "warning");
     try {
       await this.api.upsertKnxAddress({
         ...t,
-        log_enabled: e
+        log_enabled: e,
+        log_severity: s
       }), await this._load();
-      const s = this._items.find((r) => r.address === t.address), a = !!(s != null && s.log_enabled);
-      s !== void 0 && a !== e ? this._showToast(
+      const a = this._items.find((o) => o.address === t.address), r = !!(a != null && a.log_enabled);
+      a !== void 0 && r !== e ? this._showToast(
         "Backend hat log_enabled nicht gesetzt — Browser-Cache leeren (Cmd+Shift+R) und HA-Container neu starten"
       ) : this._showToast(
         e ? `${t.address} im Protokoll aktiv` : `${t.address} aus Protokoll entfernt`
       );
-    } catch (s) {
-      this._showToast(s.message);
+    } catch (a) {
+      this._showToast(a.message);
     }
   }
   async _delete(t) {

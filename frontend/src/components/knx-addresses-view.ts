@@ -198,10 +198,21 @@ export class KnxAddressesView extends LitElement {
   private async _toggleLog(item: KnxAddressDto): Promise<void> {
     if (!this.api) return;
     const target = !item.log_enabled;
+    // Iter 54 (N2): beim Aktivieren explizit auf "warning" wechseln,
+    // falls die GA noch den Legacy-Default "info" haelt. Wer eine
+    // andere Severity bewusst gewaehlt hat (warning/error/auto/debug),
+    // behaelt seine Wahl. Wer nur "info" stehen hat, hat sie meist
+    // nie aktiv gewaehlt — dann gilt die User-Erwartung "wenn ich
+    // aktiviere, ist Default Warning" auch hier.
+    let nextSeverity = item.log_severity;
+    if (target && (nextSeverity === "info" || !nextSeverity)) {
+      nextSeverity = "warning";
+    }
     try {
       await this.api.upsertKnxAddress({
         ...item,
         log_enabled: target,
+        log_severity: nextSeverity,
       });
       await this._load();
       // Verifizieren: Truthy-Vergleich, weil SQLite int 0/1 oder bool true/false liefern kann.
