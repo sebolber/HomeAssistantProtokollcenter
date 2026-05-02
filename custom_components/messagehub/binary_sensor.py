@@ -12,7 +12,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 
-from .const import DOMAIN, EVENT_MESSAGE_ADDED, EVENT_MESSAGE_DELETED
+from .const import DOMAIN, EVENT_MESSAGE_ADDED, EVENT_MESSAGE_DELETED, build_device_info
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -45,6 +45,7 @@ class HasUnacknowledgedErrorsBinarySensor(BinarySensorEntity):
         self._entry_id = entry_id
         self._repo = repo
         self._attr_unique_id = f"{DOMAIN}_{entry_id}_has_unacknowledged_errors"
+        self._attr_device_info = build_device_info(entry_id)
         self._attr_is_on = False
 
     async def async_added_to_hass(self) -> None:

@@ -1,7 +1,27 @@
 # Lovelace-Dashboard-Vorlagen
 
-Fertige Lovelace-YAML-Karten zum Kopieren. Alle nutzen die Sensoren, die
-die `messagehub`-Integration automatisch anlegt.
+Drei Wege, die `messagehub`-Sensoren in Dashboards zu nutzen — vom
+Ein-Klick-Import bis zum hand-konfigurierten Layout.
+
+## Schnellstart: „Zu Dashboard hinzufügen" (HA-Standard)
+
+Seit v0.8.1 sind alle Sensoren als ein **Gerät** gruppiert. Damit
+funktioniert der HA-Standard-Workflow wie auf dem Screenshot von z. B.
+Forecast.Solar:
+
+1. **Settings → Geräte & Dienste → Message Hub**
+2. Auf **„1 Gerät"** klicken → Geräte-Detail-Seite öffnet sich
+3. Im Block **Sensoren** rechts steht **„Zu Dashboard hinzufügen"**
+4. Dashboard und View wählen → HA fügt einen vertikalen Stack mit
+   **allen Entitäten** ein
+
+Das ist der schnellste Weg. Du kannst die Cards danach individuell
+anpassen oder komplett ersetzen.
+
+## Manuell: vorgefertigtes Dashboard zum Copy-Paste
+
+Wer ein gepoltertes Layout will (KPI-Reihe, Gauges, Conditional-Banner,
+Trend-Graph), kopiert die YAML-Vorlage unten in eine neue View.
 
 ## Verfügbare Entitäten
 

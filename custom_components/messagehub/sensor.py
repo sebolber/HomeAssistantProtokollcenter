@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.helpers.event import async_track_time_interval
 
-from .const import DOMAIN, EVENT_MESSAGE_ADDED, EVENT_MESSAGE_DELETED
+from .const import DOMAIN, EVENT_MESSAGE_ADDED, EVENT_MESSAGE_DELETED, build_device_info
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -70,6 +70,7 @@ class _BaseMessageSensor(SensorEntity):
         self._entry_id = entry_id
         self._repo = repo
         self._attr_unique_id = f"{DOMAIN}_{entry_id}_{key}"
+        self._attr_device_info = build_device_info(entry_id)
         self._unsub_listeners: list[Callable[[], None]] = []
 
     async def async_added_to_hass(self) -> None:

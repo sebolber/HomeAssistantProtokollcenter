@@ -2,9 +2,37 @@
 
 from __future__ import annotations
 
-from typing import Final
+from typing import Any, Final
 
 DOMAIN: Final = "messagehub"
+
+# Device-Registry-Metadaten — alle Entitaeten haengen am gleichen Geraet,
+# damit der HA-Standard-"Zu Dashboard hinzufuegen"-Knopf erscheint und
+# alle Sensoren als zusammenhaengende Gruppe gelistet werden.
+DEVICE_MANUFACTURER: Final = "Message Hub"
+DEVICE_MODEL: Final = "Custom Integration"
+DEVICE_NAME: Final = "Message Hub"
+
+
+def build_device_info(entry_id: str) -> dict[str, Any]:
+    """Gemeinsames DeviceInfo fuer alle messagehub-Entitaeten.
+
+    HA gruppiert damit alle Sensoren + Binary-Sensoren unter einem
+    Geraet — der "Zu Dashboard hinzufuegen"-Knopf in
+    Geraete & Dienste -> Message Hub -> Geraet listet sie automatisch
+    und schiebt sie als Stack in die ausgewaehlte Lovelace-View.
+
+    Rueckgabe-Typ ist dict statt DeviceInfo-TypedDict, damit das Modul
+    ohne homeassistant-Framework testbar bleibt — HA akzeptiert beide
+    strukturell.
+    """
+    return {
+        "identifiers": {(DOMAIN, entry_id)},
+        "name": DEVICE_NAME,
+        "manufacturer": DEVICE_MANUFACTURER,
+        "model": DEVICE_MODEL,
+        "configuration_url": f"/{DOMAIN}",
+    }
 
 # Datenbank-Pfad relativ zu hass.config.path
 DB_DIRNAME: Final = "messagehub"

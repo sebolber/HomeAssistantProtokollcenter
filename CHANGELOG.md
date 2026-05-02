@@ -4,6 +4,32 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.8.1] – 2026-05-02
+
+Patch-Release. Macht alle messagehub-Sensoren zu einem zusammenhängenden
+**Gerät**, damit der HA-Standard-„Zu Dashboard hinzufügen"-Knopf in
+*Settings → Geräte & Dienste → Message Hub* erscheint und alle Entitäten
+mit einem Klick als Karten-Stack in eine Lovelace-View wirft (analog
+zu Forecast.Solar, Sun, etc.).
+
+### Hinzugefügt
+
+- **`build_device_info(entry_id)`** in `const.py` — gemeinsame
+  Device-Registry-Metadaten (manufacturer, model, configuration_url
+  zeigt aufs Panel) als pure dict-Funktion, framework-frei testbar.
+- 4 neue Tests in `tests/unit/test_device_info.py` (Identifier-Stabilität,
+  Mehrfach-Installationen, Metadaten).
+
+### Geändert
+
+- **Alle 12 Entitäten** (`_BaseMessageSensor` + Binary-Sensor) setzen
+  jetzt `_attr_device_info` mit `identifiers={(DOMAIN, entry_id)}` —
+  HA gruppiert sie als **Message Hub**-Gerät unter
+  *Settings → Geräte & Dienste*.
+- **`docs/dashboard.md`** Schnellstart-Sektion ergänzt: Ein-Klick-Import
+  via „Zu Dashboard hinzufügen" als bevorzugte Variante; manuelles YAML
+  bleibt als Alternative.
+
 ## [0.8.0] – 2026-05-02
 
 Lovelace-Release. Sechs zusätzliche Sensoren machen die Integration in
