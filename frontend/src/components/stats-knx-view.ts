@@ -5,7 +5,8 @@
 // Iter 10: Timeline-Sparkline (folgt).
 
 import { LitElement, css, html, nothing, type TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property, state } from "lit/decorators.js";
 import type {
   ApiClient,
   KnxStatsAlarmsDto,

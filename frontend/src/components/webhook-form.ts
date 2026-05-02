@@ -1,7 +1,8 @@
 // Inline-Form fuer Webhook-Add/Edit mit JSONPath-Mapping-Editor.
 
 import { LitElement, css, html, type TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property, state } from "lit/decorators.js";
 import type { ApiClient, WebhookDto } from "../api-client.js";
 
 const SEVERITIES = ["debug", "info", "warning", "error"] as const;

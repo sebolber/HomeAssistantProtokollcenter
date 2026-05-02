@@ -6,7 +6,8 @@
 // - Hover-/Focus-States ueber Design-Tokens
 
 import { LitElement, css, html, nothing, type TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 import type { MessageDto } from "../api-client.js";
 import { tokens, pills } from "../styles/tokens.js";

@@ -1,7 +1,8 @@
 // Iter 19: Source-Dropdown, laedt /api/messagehub/sources
 
 import { LitElement, css, html, type TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property, state } from "lit/decorators.js";
 import type { ApiClient } from "../api-client.js";
 
 @customElement("source-filter")

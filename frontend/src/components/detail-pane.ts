@@ -1,7 +1,8 @@
 // Iter 20/29/42/43: Slide-In-Pane mit Acknowledge, Tags, Runbook, Delete.
 
 import { LitElement, css, html, nothing, type TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property, state } from "lit/decorators.js";
 import type { ApiClient, MessageDto } from "../api-client.js";
 
 @customElement("detail-pane")

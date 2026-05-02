@@ -4,7 +4,8 @@
 // Bus-Eventbus im Protokoll.
 
 import { LitElement, css, html, nothing, type TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property, state } from "lit/decorators.js";
 import type { ApiClient, KnxAddressDto } from "../api-client.js";
 import { tokens, buttons, forms, pills } from "../styles/tokens.js";
 

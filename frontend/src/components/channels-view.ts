@@ -1,7 +1,8 @@
 // Iter 30/31: Notification-Channels (Telegram/Pushover/ntfy/Signal/notify).
 
 import { LitElement, css, html, type TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property, state } from "lit/decorators.js";
 import type { ApiClient, ChannelDto } from "../api-client.js";
 
 const TYPES = ["telegram", "pushover", "ntfy", "signal", "notify"] as const;

@@ -3,7 +3,8 @@
 // damit stats-view.ts ein reiner Sub-Tab-Container wird.
 
 import { LitElement, css, html, type TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property, state } from "lit/decorators.js";
 import type { ApiClient, StatsDto } from "../api-client.js";
 import { tokens, cards, pills } from "../styles/tokens.js";
 

@@ -2,7 +2,8 @@
 // Iter 16-22 + UX-Polish.
 
 import { LitElement, css, html, type TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement } from "./utils/custom-element.js";
+import { property, state } from "lit/decorators.js";
 import { ApiClient, type MessageDto } from "./api-client.js";
 import { tokens, buttons } from "./styles/tokens.js";
 import "./components/message-table.js";

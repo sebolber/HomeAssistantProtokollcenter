@@ -3,18 +3,18 @@
  * Copyright 2019 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const Me = globalThis, et = Me.ShadowRoot && (Me.ShadyCSS === void 0 || Me.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, tt = Symbol(), dt = /* @__PURE__ */ new WeakMap();
-let Lt = class {
-  constructor(e, t, s) {
-    if (this._$cssResult$ = !0, s !== tt) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
-    this.cssText = e, this.t = t;
+const we = globalThis, He = we.ShadowRoot && (we.ShadyCSS === void 0 || we.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, je = Symbol(), We = /* @__PURE__ */ new WeakMap();
+let ft = class {
+  constructor(e, s, a) {
+    if (this._$cssResult$ = !0, a !== je) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
+    this.cssText = e, this.t = s;
   }
   get styleSheet() {
     let e = this.o;
-    const t = this.t;
-    if (et && e === void 0) {
-      const s = t !== void 0 && t.length === 1;
-      s && (e = dt.get(t)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), s && dt.set(t, e));
+    const s = this.t;
+    if (He && e === void 0) {
+      const a = s !== void 0 && s.length === 1;
+      a && (e = We.get(s)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), a && We.set(s, e));
     }
     return e;
   }
@@ -22,200 +22,200 @@ let Lt = class {
     return this.cssText;
   }
 };
-const Wt = (i) => new Lt(typeof i == "string" ? i : i + "", void 0, tt), _ = (i, ...e) => {
-  const t = i.length === 1 ? i[0] : e.reduce((s, a, r) => s + ((o) => {
-    if (o._$cssResult$ === !0) return o.cssText;
-    if (typeof o == "number") return o;
-    throw Error("Value passed to 'css' function must be a 'css' function result: " + o + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
-  })(a) + i[r + 1], i[0]);
-  return new Lt(t, i, tt);
-}, Vt = (i, e) => {
-  if (et) i.adoptedStyleSheets = e.map((t) => t instanceof CSSStyleSheet ? t : t.styleSheet);
-  else for (const t of e) {
-    const s = document.createElement("style"), a = Me.litNonce;
-    a !== void 0 && s.setAttribute("nonce", a), s.textContent = t.cssText, i.appendChild(s);
+const Et = (t) => new ft(typeof t == "string" ? t : t + "", void 0, je), _ = (t, ...e) => {
+  const s = t.length === 1 ? t[0] : e.reduce((a, r, i) => a + ((n) => {
+    if (n._$cssResult$ === !0) return n.cssText;
+    if (typeof n == "number") return n;
+    throw Error("Value passed to 'css' function must be a 'css' function result: " + n + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
+  })(r) + t[i + 1], t[0]);
+  return new ft(s, t, je);
+}, zt = (t, e) => {
+  if (He) t.adoptedStyleSheets = e.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
+  else for (const s of e) {
+    const a = document.createElement("style"), r = we.litNonce;
+    r !== void 0 && a.setAttribute("nonce", r), a.textContent = s.cssText, t.appendChild(a);
   }
-}, ct = et ? (i) => i : (i) => i instanceof CSSStyleSheet ? ((e) => {
-  let t = "";
-  for (const s of e.cssRules) t += s.cssText;
-  return Wt(t);
-})(i) : i;
+}, Ve = He ? (t) => t : (t) => t instanceof CSSStyleSheet ? ((e) => {
+  let s = "";
+  for (const a of e.cssRules) s += a.cssText;
+  return Et(s);
+})(t) : t;
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: qt, defineProperty: Jt, getOwnPropertyDescriptor: Yt, getOwnPropertyNames: Qt, getOwnPropertySymbols: Xt, getPrototypeOf: Zt } = Object, j = globalThis, ht = j.trustedTypes, es = ht ? ht.emptyScript : "", Ge = j.reactiveElementPolyfillSupport, ye = (i, e) => i, je = { toAttribute(i, e) {
+const { is: Ot, defineProperty: Dt, getOwnPropertyDescriptor: Ct, getOwnPropertyNames: Lt, getOwnPropertySymbols: Mt, getPrototypeOf: Nt } = Object, U = globalThis, qe = U.trustedTypes, Ht = qe ? qe.emptyScript : "", Ee = U.reactiveElementPolyfillSupport, ne = (t, e) => t, ye = { toAttribute(t, e) {
   switch (e) {
     case Boolean:
-      i = i ? es : null;
+      t = t ? Ht : null;
       break;
     case Object:
     case Array:
-      i = i == null ? i : JSON.stringify(i);
+      t = t == null ? t : JSON.stringify(t);
   }
-  return i;
-}, fromAttribute(i, e) {
-  let t = i;
+  return t;
+}, fromAttribute(t, e) {
+  let s = t;
   switch (e) {
     case Boolean:
-      t = i !== null;
+      s = t !== null;
       break;
     case Number:
-      t = i === null ? null : Number(i);
+      s = t === null ? null : Number(t);
       break;
     case Object:
     case Array:
       try {
-        t = JSON.parse(i);
+        s = JSON.parse(t);
       } catch {
-        t = null;
+        s = null;
       }
   }
-  return t;
-} }, st = (i, e) => !qt(i, e), pt = { attribute: !0, type: String, converter: je, reflect: !1, useDefault: !1, hasChanged: st };
-Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), j.litPropertyMetadata ?? (j.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
-let Q = class extends HTMLElement {
+  return s;
+} }, Ie = (t, e) => !Ot(t, e), Je = { attribute: !0, type: String, converter: ye, reflect: !1, useDefault: !1, hasChanged: Ie };
+Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), U.litPropertyMetadata ?? (U.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
+let ee = class extends HTMLElement {
   static addInitializer(e) {
     this._$Ei(), (this.l ?? (this.l = [])).push(e);
   }
   static get observedAttributes() {
     return this.finalize(), this._$Eh && [...this._$Eh.keys()];
   }
-  static createProperty(e, t = pt) {
-    if (t.state && (t.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((t = Object.create(t)).wrapped = !0), this.elementProperties.set(e, t), !t.noAccessor) {
-      const s = Symbol(), a = this.getPropertyDescriptor(e, s, t);
-      a !== void 0 && Jt(this.prototype, e, a);
+  static createProperty(e, s = Je) {
+    if (s.state && (s.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((s = Object.create(s)).wrapped = !0), this.elementProperties.set(e, s), !s.noAccessor) {
+      const a = Symbol(), r = this.getPropertyDescriptor(e, a, s);
+      r !== void 0 && Dt(this.prototype, e, r);
     }
   }
-  static getPropertyDescriptor(e, t, s) {
-    const { get: a, set: r } = Yt(this.prototype, e) ?? { get() {
-      return this[t];
-    }, set(o) {
-      this[t] = o;
+  static getPropertyDescriptor(e, s, a) {
+    const { get: r, set: i } = Ct(this.prototype, e) ?? { get() {
+      return this[s];
+    }, set(n) {
+      this[s] = n;
     } };
-    return { get: a, set(o) {
-      const l = a == null ? void 0 : a.call(this);
-      r == null || r.call(this, o), this.requestUpdate(e, l, s);
+    return { get: r, set(n) {
+      const c = r == null ? void 0 : r.call(this);
+      i == null || i.call(this, n), this.requestUpdate(e, c, a);
     }, configurable: !0, enumerable: !0 };
   }
   static getPropertyOptions(e) {
-    return this.elementProperties.get(e) ?? pt;
+    return this.elementProperties.get(e) ?? Je;
   }
   static _$Ei() {
-    if (this.hasOwnProperty(ye("elementProperties"))) return;
-    const e = Zt(this);
+    if (this.hasOwnProperty(ne("elementProperties"))) return;
+    const e = Nt(this);
     e.finalize(), e.l !== void 0 && (this.l = [...e.l]), this.elementProperties = new Map(e.elementProperties);
   }
   static finalize() {
-    if (this.hasOwnProperty(ye("finalized"))) return;
-    if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(ye("properties"))) {
-      const t = this.properties, s = [...Qt(t), ...Xt(t)];
-      for (const a of s) this.createProperty(a, t[a]);
+    if (this.hasOwnProperty(ne("finalized"))) return;
+    if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(ne("properties"))) {
+      const s = this.properties, a = [...Lt(s), ...Mt(s)];
+      for (const r of a) this.createProperty(r, s[r]);
     }
     const e = this[Symbol.metadata];
     if (e !== null) {
-      const t = litPropertyMetadata.get(e);
-      if (t !== void 0) for (const [s, a] of t) this.elementProperties.set(s, a);
+      const s = litPropertyMetadata.get(e);
+      if (s !== void 0) for (const [a, r] of s) this.elementProperties.set(a, r);
     }
     this._$Eh = /* @__PURE__ */ new Map();
-    for (const [t, s] of this.elementProperties) {
-      const a = this._$Eu(t, s);
-      a !== void 0 && this._$Eh.set(a, t);
+    for (const [s, a] of this.elementProperties) {
+      const r = this._$Eu(s, a);
+      r !== void 0 && this._$Eh.set(r, s);
     }
     this.elementStyles = this.finalizeStyles(this.styles);
   }
   static finalizeStyles(e) {
-    const t = [];
+    const s = [];
     if (Array.isArray(e)) {
-      const s = new Set(e.flat(1 / 0).reverse());
-      for (const a of s) t.unshift(ct(a));
-    } else e !== void 0 && t.push(ct(e));
-    return t;
+      const a = new Set(e.flat(1 / 0).reverse());
+      for (const r of a) s.unshift(Ve(r));
+    } else e !== void 0 && s.push(Ve(e));
+    return s;
   }
-  static _$Eu(e, t) {
-    const s = t.attribute;
-    return s === !1 ? void 0 : typeof s == "string" ? s : typeof e == "string" ? e.toLowerCase() : void 0;
+  static _$Eu(e, s) {
+    const a = s.attribute;
+    return a === !1 ? void 0 : typeof a == "string" ? a : typeof e == "string" ? e.toLowerCase() : void 0;
   }
   constructor() {
     super(), this._$Ep = void 0, this.isUpdatePending = !1, this.hasUpdated = !1, this._$Em = null, this._$Ev();
   }
   _$Ev() {
     var e;
-    this._$ES = new Promise((t) => this.enableUpdating = t), this._$AL = /* @__PURE__ */ new Map(), this._$E_(), this.requestUpdate(), (e = this.constructor.l) == null || e.forEach((t) => t(this));
+    this._$ES = new Promise((s) => this.enableUpdating = s), this._$AL = /* @__PURE__ */ new Map(), this._$E_(), this.requestUpdate(), (e = this.constructor.l) == null || e.forEach((s) => s(this));
   }
   addController(e) {
-    var t;
-    (this._$EO ?? (this._$EO = /* @__PURE__ */ new Set())).add(e), this.renderRoot !== void 0 && this.isConnected && ((t = e.hostConnected) == null || t.call(e));
+    var s;
+    (this._$EO ?? (this._$EO = /* @__PURE__ */ new Set())).add(e), this.renderRoot !== void 0 && this.isConnected && ((s = e.hostConnected) == null || s.call(e));
   }
   removeController(e) {
-    var t;
-    (t = this._$EO) == null || t.delete(e);
+    var s;
+    (s = this._$EO) == null || s.delete(e);
   }
   _$E_() {
-    const e = /* @__PURE__ */ new Map(), t = this.constructor.elementProperties;
-    for (const s of t.keys()) this.hasOwnProperty(s) && (e.set(s, this[s]), delete this[s]);
+    const e = /* @__PURE__ */ new Map(), s = this.constructor.elementProperties;
+    for (const a of s.keys()) this.hasOwnProperty(a) && (e.set(a, this[a]), delete this[a]);
     e.size > 0 && (this._$Ep = e);
   }
   createRenderRoot() {
     const e = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-    return Vt(e, this.constructor.elementStyles), e;
+    return zt(e, this.constructor.elementStyles), e;
   }
   connectedCallback() {
     var e;
-    this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this.enableUpdating(!0), (e = this._$EO) == null || e.forEach((t) => {
-      var s;
-      return (s = t.hostConnected) == null ? void 0 : s.call(t);
+    this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this.enableUpdating(!0), (e = this._$EO) == null || e.forEach((s) => {
+      var a;
+      return (a = s.hostConnected) == null ? void 0 : a.call(s);
     });
   }
   enableUpdating(e) {
   }
   disconnectedCallback() {
     var e;
-    (e = this._$EO) == null || e.forEach((t) => {
-      var s;
-      return (s = t.hostDisconnected) == null ? void 0 : s.call(t);
+    (e = this._$EO) == null || e.forEach((s) => {
+      var a;
+      return (a = s.hostDisconnected) == null ? void 0 : a.call(s);
     });
   }
-  attributeChangedCallback(e, t, s) {
-    this._$AK(e, s);
+  attributeChangedCallback(e, s, a) {
+    this._$AK(e, a);
   }
-  _$ET(e, t) {
-    var r;
-    const s = this.constructor.elementProperties.get(e), a = this.constructor._$Eu(e, s);
-    if (a !== void 0 && s.reflect === !0) {
-      const o = (((r = s.converter) == null ? void 0 : r.toAttribute) !== void 0 ? s.converter : je).toAttribute(t, s.type);
-      this._$Em = e, o == null ? this.removeAttribute(a) : this.setAttribute(a, o), this._$Em = null;
+  _$ET(e, s) {
+    var i;
+    const a = this.constructor.elementProperties.get(e), r = this.constructor._$Eu(e, a);
+    if (r !== void 0 && a.reflect === !0) {
+      const n = (((i = a.converter) == null ? void 0 : i.toAttribute) !== void 0 ? a.converter : ye).toAttribute(s, a.type);
+      this._$Em = e, n == null ? this.removeAttribute(r) : this.setAttribute(r, n), this._$Em = null;
     }
   }
-  _$AK(e, t) {
-    var r, o;
-    const s = this.constructor, a = s._$Eh.get(e);
-    if (a !== void 0 && this._$Em !== a) {
-      const l = s.getPropertyOptions(a), c = typeof l.converter == "function" ? { fromAttribute: l.converter } : ((r = l.converter) == null ? void 0 : r.fromAttribute) !== void 0 ? l.converter : je;
-      this._$Em = a;
-      const p = c.fromAttribute(t, l.type);
-      this[a] = p ?? ((o = this._$Ej) == null ? void 0 : o.get(a)) ?? p, this._$Em = null;
+  _$AK(e, s) {
+    var i, n;
+    const a = this.constructor, r = a._$Eh.get(e);
+    if (r !== void 0 && this._$Em !== r) {
+      const c = a.getPropertyOptions(r), d = typeof c.converter == "function" ? { fromAttribute: c.converter } : ((i = c.converter) == null ? void 0 : i.fromAttribute) !== void 0 ? c.converter : ye;
+      this._$Em = r;
+      const u = d.fromAttribute(s, c.type);
+      this[r] = u ?? ((n = this._$Ej) == null ? void 0 : n.get(r)) ?? u, this._$Em = null;
     }
   }
-  requestUpdate(e, t, s, a = !1, r) {
-    var o;
+  requestUpdate(e, s, a, r = !1, i) {
+    var n;
     if (e !== void 0) {
-      const l = this.constructor;
-      if (a === !1 && (r = this[e]), s ?? (s = l.getPropertyOptions(e)), !((s.hasChanged ?? st)(r, t) || s.useDefault && s.reflect && r === ((o = this._$Ej) == null ? void 0 : o.get(e)) && !this.hasAttribute(l._$Eu(e, s)))) return;
-      this.C(e, t, s);
+      const c = this.constructor;
+      if (r === !1 && (i = this[e]), a ?? (a = c.getPropertyOptions(e)), !((a.hasChanged ?? Ie)(i, s) || a.useDefault && a.reflect && i === ((n = this._$Ej) == null ? void 0 : n.get(e)) && !this.hasAttribute(c._$Eu(e, a)))) return;
+      this.C(e, s, a);
     }
     this.isUpdatePending === !1 && (this._$ES = this._$EP());
   }
-  C(e, t, { useDefault: s, reflect: a, wrapped: r }, o) {
-    s && !(this._$Ej ?? (this._$Ej = /* @__PURE__ */ new Map())).has(e) && (this._$Ej.set(e, o ?? t ?? this[e]), r !== !0 || o !== void 0) || (this._$AL.has(e) || (this.hasUpdated || s || (t = void 0), this._$AL.set(e, t)), a === !0 && this._$Em !== e && (this._$Eq ?? (this._$Eq = /* @__PURE__ */ new Set())).add(e));
+  C(e, s, { useDefault: a, reflect: r, wrapped: i }, n) {
+    a && !(this._$Ej ?? (this._$Ej = /* @__PURE__ */ new Map())).has(e) && (this._$Ej.set(e, n ?? s ?? this[e]), i !== !0 || n !== void 0) || (this._$AL.has(e) || (this.hasUpdated || a || (s = void 0), this._$AL.set(e, s)), r === !0 && this._$Em !== e && (this._$Eq ?? (this._$Eq = /* @__PURE__ */ new Set())).add(e));
   }
   async _$EP() {
     this.isUpdatePending = !0;
     try {
       await this._$ES;
-    } catch (t) {
-      Promise.reject(t);
+    } catch (s) {
+      Promise.reject(s);
     }
     const e = this.scheduleUpdate();
     return e != null && await e, !this.isUpdatePending;
@@ -224,38 +224,38 @@ let Q = class extends HTMLElement {
     return this.performUpdate();
   }
   performUpdate() {
-    var s;
+    var a;
     if (!this.isUpdatePending) return;
     if (!this.hasUpdated) {
       if (this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this._$Ep) {
-        for (const [r, o] of this._$Ep) this[r] = o;
+        for (const [i, n] of this._$Ep) this[i] = n;
         this._$Ep = void 0;
       }
-      const a = this.constructor.elementProperties;
-      if (a.size > 0) for (const [r, o] of a) {
-        const { wrapped: l } = o, c = this[r];
-        l !== !0 || this._$AL.has(r) || c === void 0 || this.C(r, void 0, o, c);
+      const r = this.constructor.elementProperties;
+      if (r.size > 0) for (const [i, n] of r) {
+        const { wrapped: c } = n, d = this[i];
+        c !== !0 || this._$AL.has(i) || d === void 0 || this.C(i, void 0, n, d);
       }
     }
     let e = !1;
-    const t = this._$AL;
+    const s = this._$AL;
     try {
-      e = this.shouldUpdate(t), e ? (this.willUpdate(t), (s = this._$EO) == null || s.forEach((a) => {
-        var r;
-        return (r = a.hostUpdate) == null ? void 0 : r.call(a);
-      }), this.update(t)) : this._$EM();
-    } catch (a) {
-      throw e = !1, this._$EM(), a;
+      e = this.shouldUpdate(s), e ? (this.willUpdate(s), (a = this._$EO) == null || a.forEach((r) => {
+        var i;
+        return (i = r.hostUpdate) == null ? void 0 : i.call(r);
+      }), this.update(s)) : this._$EM();
+    } catch (r) {
+      throw e = !1, this._$EM(), r;
     }
-    e && this._$AE(t);
+    e && this._$AE(s);
   }
   willUpdate(e) {
   }
   _$AE(e) {
-    var t;
-    (t = this._$EO) == null || t.forEach((s) => {
-      var a;
-      return (a = s.hostUpdated) == null ? void 0 : a.call(s);
+    var s;
+    (s = this._$EO) == null || s.forEach((a) => {
+      var r;
+      return (r = a.hostUpdated) == null ? void 0 : r.call(a);
     }), this.hasUpdated || (this.hasUpdated = !0, this.firstUpdated(e)), this.updated(e);
   }
   _$EM() {
@@ -271,85 +271,85 @@ let Q = class extends HTMLElement {
     return !0;
   }
   update(e) {
-    this._$Eq && (this._$Eq = this._$Eq.forEach((t) => this._$ET(t, this[t]))), this._$EM();
+    this._$Eq && (this._$Eq = this._$Eq.forEach((s) => this._$ET(s, this[s]))), this._$EM();
   }
   updated(e) {
   }
   firstUpdated(e) {
   }
 };
-Q.elementStyles = [], Q.shadowRootOptions = { mode: "open" }, Q[ye("elementProperties")] = /* @__PURE__ */ new Map(), Q[ye("finalized")] = /* @__PURE__ */ new Map(), Ge == null || Ge({ ReactiveElement: Q }), (j.reactiveElementVersions ?? (j.reactiveElementVersions = [])).push("2.1.2");
+ee.elementStyles = [], ee.shadowRootOptions = { mode: "open" }, ee[ne("elementProperties")] = /* @__PURE__ */ new Map(), ee[ne("finalized")] = /* @__PURE__ */ new Map(), Ee == null || Ee({ ReactiveElement: ee }), (U.reactiveElementVersions ?? (U.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const $e = globalThis, ut = (i) => i, Ne = $e.trustedTypes, mt = Ne ? Ne.createPolicy("lit-html", { createHTML: (i) => i }) : void 0, Rt = "$lit$", M = `lit$${Math.random().toFixed(9).slice(2)}$`, Mt = "?" + M, ts = `<${Mt}>`, W = document, ke = () => W.createComment(""), Se = (i) => i === null || typeof i != "object" && typeof i != "function", at = Array.isArray, ss = (i) => at(i) || typeof (i == null ? void 0 : i[Symbol.iterator]) == "function", We = `[ 	
-\f\r]`, xe = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, gt = /-->/g, vt = />/g, F = RegExp(`>|${We}(?:([^\\s"'>=/]+)(${We}*=${We}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), ft = /'/g, bt = /"/g, jt = /^(?:script|style|textarea|title)$/i, as = (i) => (e, ...t) => ({ _$litType$: i, strings: e, values: t }), n = as(1), V = Symbol.for("lit-noChange"), h = Symbol.for("lit-nothing"), _t = /* @__PURE__ */ new WeakMap(), K = W.createTreeWalker(W, 129);
-function Nt(i, e) {
-  if (!at(i) || !i.hasOwnProperty("raw")) throw Error("invalid template strings array");
-  return mt !== void 0 ? mt.createHTML(e) : e;
+const le = globalThis, Ye = (t) => t, $e = le.trustedTypes, Qe = $e ? $e.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, bt = "$lit$", I = `lit$${Math.random().toFixed(9).slice(2)}$`, _t = "?" + I, jt = `<${_t}>`, V = document, de = () => V.createComment(""), ce = (t) => t === null || typeof t != "object" && typeof t != "function", Ue = Array.isArray, It = (t) => Ue(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", ze = `[ 	
+\f\r]`, ie = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, Xe = /-->/g, Ze = />/g, B = RegExp(`>|${ze}(?:([^\\s"'>=/]+)(${ze}*=${ze}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`, "g"), et = /'/g, tt = /"/g, xt = /^(?:script|style|textarea|title)$/i, Ut = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), o = Ut(1), q = Symbol.for("lit-noChange"), h = Symbol.for("lit-nothing"), st = /* @__PURE__ */ new WeakMap(), G = V.createTreeWalker(V, 129);
+function wt(t, e) {
+  if (!Ue(t) || !t.hasOwnProperty("raw")) throw Error("invalid template strings array");
+  return Qe !== void 0 ? Qe.createHTML(e) : e;
 }
-const rs = (i, e) => {
-  const t = i.length - 1, s = [];
-  let a, r = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", o = xe;
-  for (let l = 0; l < t; l++) {
-    const c = i[l];
-    let p, g, u = -1, v = 0;
-    for (; v < c.length && (o.lastIndex = v, g = o.exec(c), g !== null); ) v = o.lastIndex, o === xe ? g[1] === "!--" ? o = gt : g[1] !== void 0 ? o = vt : g[2] !== void 0 ? (jt.test(g[2]) && (a = RegExp("</" + g[2], "g")), o = F) : g[3] !== void 0 && (o = F) : o === F ? g[0] === ">" ? (o = a ?? xe, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, p = g[1], o = g[3] === void 0 ? F : g[3] === '"' ? bt : ft) : o === bt || o === ft ? o = F : o === gt || o === vt ? o = xe : (o = F, a = void 0);
-    const m = o === F && i[l + 1].startsWith("/>") ? " " : "";
-    r += o === xe ? c + ts : u >= 0 ? (s.push(p), c.slice(0, u) + Rt + c.slice(u) + M + m) : c + M + (u === -2 ? l : m);
+const Ft = (t, e) => {
+  const s = t.length - 1, a = [];
+  let r, i = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", n = ie;
+  for (let c = 0; c < s; c++) {
+    const d = t[c];
+    let u, f, p = -1, g = 0;
+    for (; g < d.length && (n.lastIndex = g, f = n.exec(d), f !== null); ) g = n.lastIndex, n === ie ? f[1] === "!--" ? n = Xe : f[1] !== void 0 ? n = Ze : f[2] !== void 0 ? (xt.test(f[2]) && (r = RegExp("</" + f[2], "g")), n = B) : f[3] !== void 0 && (n = B) : n === B ? f[0] === ">" ? (n = r ?? ie, p = -1) : f[1] === void 0 ? p = -2 : (p = n.lastIndex - f[2].length, u = f[1], n = f[3] === void 0 ? B : f[3] === '"' ? tt : et) : n === tt || n === et ? n = B : n === Xe || n === Ze ? n = ie : (n = B, r = void 0);
+    const m = n === B && t[c + 1].startsWith("/>") ? " " : "";
+    i += n === ie ? d + jt : p >= 0 ? (a.push(u), d.slice(0, p) + bt + d.slice(p) + I + m) : d + I + (p === -2 ? c : m);
   }
-  return [Nt(i, r + (i[t] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), s];
+  return [wt(t, i + (t[s] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), a];
 };
-class Te {
-  constructor({ strings: e, _$litType$: t }, s) {
-    let a;
+class he {
+  constructor({ strings: e, _$litType$: s }, a) {
+    let r;
     this.parts = [];
-    let r = 0, o = 0;
-    const l = e.length - 1, c = this.parts, [p, g] = rs(e, t);
-    if (this.el = Te.createElement(p, s), K.currentNode = this.el.content, t === 2 || t === 3) {
-      const u = this.el.content.firstChild;
-      u.replaceWith(...u.childNodes);
+    let i = 0, n = 0;
+    const c = e.length - 1, d = this.parts, [u, f] = Ft(e, s);
+    if (this.el = he.createElement(u, a), G.currentNode = this.el.content, s === 2 || s === 3) {
+      const p = this.el.content.firstChild;
+      p.replaceWith(...p.childNodes);
     }
-    for (; (a = K.nextNode()) !== null && c.length < l; ) {
-      if (a.nodeType === 1) {
-        if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Rt)) {
-          const v = g[o++], m = a.getAttribute(u).split(M), x = /([.?@])?(.*)/.exec(v);
-          c.push({ type: 1, index: r, name: x[2], strings: m, ctor: x[1] === "." ? os : x[1] === "?" ? ns : x[1] === "@" ? ls : Ue }), a.removeAttribute(u);
-        } else u.startsWith(M) && (c.push({ type: 6, index: r }), a.removeAttribute(u));
-        if (jt.test(a.tagName)) {
-          const u = a.textContent.split(M), v = u.length - 1;
-          if (v > 0) {
-            a.textContent = Ne ? Ne.emptyScript : "";
-            for (let m = 0; m < v; m++) a.append(u[m], ke()), K.nextNode(), c.push({ type: 2, index: ++r });
-            a.append(u[v], ke());
+    for (; (r = G.nextNode()) !== null && d.length < c; ) {
+      if (r.nodeType === 1) {
+        if (r.hasAttributes()) for (const p of r.getAttributeNames()) if (p.endsWith(bt)) {
+          const g = f[n++], m = r.getAttribute(p).split(I), x = /([.?@])?(.*)/.exec(g);
+          d.push({ type: 1, index: i, name: x[2], strings: m, ctor: x[1] === "." ? Bt : x[1] === "?" ? Kt : x[1] === "@" ? Gt : Se }), r.removeAttribute(p);
+        } else p.startsWith(I) && (d.push({ type: 6, index: i }), r.removeAttribute(p));
+        if (xt.test(r.tagName)) {
+          const p = r.textContent.split(I), g = p.length - 1;
+          if (g > 0) {
+            r.textContent = $e ? $e.emptyScript : "";
+            for (let m = 0; m < g; m++) r.append(p[m], de()), G.nextNode(), d.push({ type: 2, index: ++i });
+            r.append(p[g], de());
           }
         }
-      } else if (a.nodeType === 8) if (a.data === Mt) c.push({ type: 2, index: r });
+      } else if (r.nodeType === 8) if (r.data === _t) d.push({ type: 2, index: i });
       else {
-        let u = -1;
-        for (; (u = a.data.indexOf(M, u + 1)) !== -1; ) c.push({ type: 7, index: r }), u += M.length - 1;
+        let p = -1;
+        for (; (p = r.data.indexOf(I, p + 1)) !== -1; ) d.push({ type: 7, index: i }), p += I.length - 1;
       }
-      r++;
+      i++;
     }
   }
-  static createElement(e, t) {
-    const s = W.createElement("template");
-    return s.innerHTML = e, s;
+  static createElement(e, s) {
+    const a = V.createElement("template");
+    return a.innerHTML = e, a;
   }
 }
-function ge(i, e, t = i, s) {
-  var o, l;
-  if (e === V) return e;
-  let a = s !== void 0 ? (o = t._$Co) == null ? void 0 : o[s] : t._$Cl;
-  const r = Se(e) ? void 0 : e._$litDirective$;
-  return (a == null ? void 0 : a.constructor) !== r && ((l = a == null ? void 0 : a._$AO) == null || l.call(a, !1), r === void 0 ? a = void 0 : (a = new r(i), a._$AT(i, t, s)), s !== void 0 ? (t._$Co ?? (t._$Co = []))[s] = a : t._$Cl = a), a !== void 0 && (e = ge(i, a._$AS(i, e.values), a, s)), e;
+function te(t, e, s = t, a) {
+  var n, c;
+  if (e === q) return e;
+  let r = a !== void 0 ? (n = s._$Co) == null ? void 0 : n[a] : s._$Cl;
+  const i = ce(e) ? void 0 : e._$litDirective$;
+  return (r == null ? void 0 : r.constructor) !== i && ((c = r == null ? void 0 : r._$AO) == null || c.call(r, !1), i === void 0 ? r = void 0 : (r = new i(t), r._$AT(t, s, a)), a !== void 0 ? (s._$Co ?? (s._$Co = []))[a] = r : s._$Cl = r), r !== void 0 && (e = te(t, r._$AS(t, e.values), r, a)), e;
 }
-class is {
-  constructor(e, t) {
-    this._$AV = [], this._$AN = void 0, this._$AD = e, this._$AM = t;
+class Rt {
+  constructor(e, s) {
+    this._$AV = [], this._$AN = void 0, this._$AD = e, this._$AM = s;
   }
   get parentNode() {
     return this._$AM.parentNode;
@@ -358,35 +358,35 @@ class is {
     return this._$AM._$AU;
   }
   u(e) {
-    const { el: { content: t }, parts: s } = this._$AD, a = ((e == null ? void 0 : e.creationScope) ?? W).importNode(t, !0);
-    K.currentNode = a;
-    let r = K.nextNode(), o = 0, l = 0, c = s[0];
-    for (; c !== void 0; ) {
-      if (o === c.index) {
-        let p;
-        c.type === 2 ? p = new _e(r, r.nextSibling, this, e) : c.type === 1 ? p = new c.ctor(r, c.name, c.strings, this, e) : c.type === 6 && (p = new ds(r, this, e)), this._$AV.push(p), c = s[++l];
+    const { el: { content: s }, parts: a } = this._$AD, r = ((e == null ? void 0 : e.creationScope) ?? V).importNode(s, !0);
+    G.currentNode = r;
+    let i = G.nextNode(), n = 0, c = 0, d = a[0];
+    for (; d !== void 0; ) {
+      if (n === d.index) {
+        let u;
+        d.type === 2 ? u = new re(i, i.nextSibling, this, e) : d.type === 1 ? u = new d.ctor(i, d.name, d.strings, this, e) : d.type === 6 && (u = new Wt(i, this, e)), this._$AV.push(u), d = a[++c];
       }
-      o !== (c == null ? void 0 : c.index) && (r = K.nextNode(), o++);
+      n !== (d == null ? void 0 : d.index) && (i = G.nextNode(), n++);
     }
-    return K.currentNode = W, a;
+    return G.currentNode = V, r;
   }
   p(e) {
-    let t = 0;
-    for (const s of this._$AV) s !== void 0 && (s.strings !== void 0 ? (s._$AI(e, s, t), t += s.strings.length - 2) : s._$AI(e[t])), t++;
+    let s = 0;
+    for (const a of this._$AV) a !== void 0 && (a.strings !== void 0 ? (a._$AI(e, a, s), s += a.strings.length - 2) : a._$AI(e[s])), s++;
   }
 }
-class _e {
+class re {
   get _$AU() {
     var e;
     return ((e = this._$AM) == null ? void 0 : e._$AU) ?? this._$Cv;
   }
-  constructor(e, t, s, a) {
-    this.type = 2, this._$AH = h, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = s, this.options = a, this._$Cv = (a == null ? void 0 : a.isConnected) ?? !0;
+  constructor(e, s, a, r) {
+    this.type = 2, this._$AH = h, this._$AN = void 0, this._$AA = e, this._$AB = s, this._$AM = a, this.options = r, this._$Cv = (r == null ? void 0 : r.isConnected) ?? !0;
   }
   get parentNode() {
     let e = this._$AA.parentNode;
-    const t = this._$AM;
-    return t !== void 0 && (e == null ? void 0 : e.nodeType) === 11 && (e = t.parentNode), e;
+    const s = this._$AM;
+    return s !== void 0 && (e == null ? void 0 : e.nodeType) === 11 && (e = s.parentNode), e;
   }
   get startNode() {
     return this._$AA;
@@ -394,8 +394,8 @@ class _e {
   get endNode() {
     return this._$AB;
   }
-  _$AI(e, t = this) {
-    e = ge(this, e, t), Se(e) ? e === h || e == null || e === "" ? (this._$AH !== h && this._$AR(), this._$AH = h) : e !== this._$AH && e !== V && this._(e) : e._$litType$ !== void 0 ? this.$(e) : e.nodeType !== void 0 ? this.T(e) : ss(e) ? this.k(e) : this._(e);
+  _$AI(e, s = this) {
+    e = te(this, e, s), ce(e) ? e === h || e == null || e === "" ? (this._$AH !== h && this._$AR(), this._$AH = h) : e !== this._$AH && e !== q && this._(e) : e._$litType$ !== void 0 ? this.$(e) : e.nodeType !== void 0 ? this.T(e) : It(e) ? this.k(e) : this._(e);
   }
   O(e) {
     return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -404,66 +404,66 @@ class _e {
     this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
   }
   _(e) {
-    this._$AH !== h && Se(this._$AH) ? this._$AA.nextSibling.data = e : this.T(W.createTextNode(e)), this._$AH = e;
+    this._$AH !== h && ce(this._$AH) ? this._$AA.nextSibling.data = e : this.T(V.createTextNode(e)), this._$AH = e;
   }
   $(e) {
-    var r;
-    const { values: t, _$litType$: s } = e, a = typeof s == "number" ? this._$AC(e) : (s.el === void 0 && (s.el = Te.createElement(Nt(s.h, s.h[0]), this.options)), s);
-    if (((r = this._$AH) == null ? void 0 : r._$AD) === a) this._$AH.p(t);
+    var i;
+    const { values: s, _$litType$: a } = e, r = typeof a == "number" ? this._$AC(e) : (a.el === void 0 && (a.el = he.createElement(wt(a.h, a.h[0]), this.options)), a);
+    if (((i = this._$AH) == null ? void 0 : i._$AD) === r) this._$AH.p(s);
     else {
-      const o = new is(a, this), l = o.u(this.options);
-      o.p(t), this.T(l), this._$AH = o;
+      const n = new Rt(r, this), c = n.u(this.options);
+      n.p(s), this.T(c), this._$AH = n;
     }
   }
   _$AC(e) {
-    let t = _t.get(e.strings);
-    return t === void 0 && _t.set(e.strings, t = new Te(e)), t;
+    let s = st.get(e.strings);
+    return s === void 0 && st.set(e.strings, s = new he(e)), s;
   }
   k(e) {
-    at(this._$AH) || (this._$AH = [], this._$AR());
-    const t = this._$AH;
-    let s, a = 0;
-    for (const r of e) a === t.length ? t.push(s = new _e(this.O(ke()), this.O(ke()), this, this.options)) : s = t[a], s._$AI(r), a++;
-    a < t.length && (this._$AR(s && s._$AB.nextSibling, a), t.length = a);
+    Ue(this._$AH) || (this._$AH = [], this._$AR());
+    const s = this._$AH;
+    let a, r = 0;
+    for (const i of e) r === s.length ? s.push(a = new re(this.O(de()), this.O(de()), this, this.options)) : a = s[r], a._$AI(i), r++;
+    r < s.length && (this._$AR(a && a._$AB.nextSibling, r), s.length = r);
   }
-  _$AR(e = this._$AA.nextSibling, t) {
-    var s;
-    for ((s = this._$AP) == null ? void 0 : s.call(this, !1, !0, t); e !== this._$AB; ) {
-      const a = ut(e).nextSibling;
-      ut(e).remove(), e = a;
+  _$AR(e = this._$AA.nextSibling, s) {
+    var a;
+    for ((a = this._$AP) == null ? void 0 : a.call(this, !1, !0, s); e !== this._$AB; ) {
+      const r = Ye(e).nextSibling;
+      Ye(e).remove(), e = r;
     }
   }
   setConnected(e) {
-    var t;
-    this._$AM === void 0 && (this._$Cv = e, (t = this._$AP) == null || t.call(this, e));
+    var s;
+    this._$AM === void 0 && (this._$Cv = e, (s = this._$AP) == null || s.call(this, e));
   }
 }
-class Ue {
+class Se {
   get tagName() {
     return this.element.tagName;
   }
   get _$AU() {
     return this._$AM._$AU;
   }
-  constructor(e, t, s, a, r) {
-    this.type = 1, this._$AH = h, this._$AN = void 0, this.element = e, this.name = t, this._$AM = a, this.options = r, s.length > 2 || s[0] !== "" || s[1] !== "" ? (this._$AH = Array(s.length - 1).fill(new String()), this.strings = s) : this._$AH = h;
+  constructor(e, s, a, r, i) {
+    this.type = 1, this._$AH = h, this._$AN = void 0, this.element = e, this.name = s, this._$AM = r, this.options = i, a.length > 2 || a[0] !== "" || a[1] !== "" ? (this._$AH = Array(a.length - 1).fill(new String()), this.strings = a) : this._$AH = h;
   }
-  _$AI(e, t = this, s, a) {
-    const r = this.strings;
-    let o = !1;
-    if (r === void 0) e = ge(this, e, t, 0), o = !Se(e) || e !== this._$AH && e !== V, o && (this._$AH = e);
+  _$AI(e, s = this, a, r) {
+    const i = this.strings;
+    let n = !1;
+    if (i === void 0) e = te(this, e, s, 0), n = !ce(e) || e !== this._$AH && e !== q, n && (this._$AH = e);
     else {
-      const l = e;
-      let c, p;
-      for (e = r[0], c = 0; c < r.length - 1; c++) p = ge(this, l[s + c], t, c), p === V && (p = this._$AH[c]), o || (o = !Se(p) || p !== this._$AH[c]), p === h ? e = h : e !== h && (e += (p ?? "") + r[c + 1]), this._$AH[c] = p;
+      const c = e;
+      let d, u;
+      for (e = i[0], d = 0; d < i.length - 1; d++) u = te(this, c[a + d], s, d), u === q && (u = this._$AH[d]), n || (n = !ce(u) || u !== this._$AH[d]), u === h ? e = h : e !== h && (e += (u ?? "") + i[d + 1]), this._$AH[d] = u;
     }
-    o && !a && this.j(e);
+    n && !r && this.j(e);
   }
   j(e) {
     e === h ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
   }
 }
-class os extends Ue {
+class Bt extends Se {
   constructor() {
     super(...arguments), this.type = 3;
   }
@@ -471,7 +471,7 @@ class os extends Ue {
     this.element[this.name] = e === h ? void 0 : e;
   }
 }
-class ns extends Ue {
+class Kt extends Se {
   constructor() {
     super(...arguments), this.type = 4;
   }
@@ -479,60 +479,60 @@ class ns extends Ue {
     this.element.toggleAttribute(this.name, !!e && e !== h);
   }
 }
-class ls extends Ue {
-  constructor(e, t, s, a, r) {
-    super(e, t, s, a, r), this.type = 5;
+class Gt extends Se {
+  constructor(e, s, a, r, i) {
+    super(e, s, a, r, i), this.type = 5;
   }
-  _$AI(e, t = this) {
-    if ((e = ge(this, e, t, 0) ?? h) === V) return;
-    const s = this._$AH, a = e === h && s !== h || e.capture !== s.capture || e.once !== s.once || e.passive !== s.passive, r = e !== h && (s === h || a);
-    a && this.element.removeEventListener(this.name, this, s), r && this.element.addEventListener(this.name, this, e), this._$AH = e;
+  _$AI(e, s = this) {
+    if ((e = te(this, e, s, 0) ?? h) === q) return;
+    const a = this._$AH, r = e === h && a !== h || e.capture !== a.capture || e.once !== a.once || e.passive !== a.passive, i = e !== h && (a === h || r);
+    r && this.element.removeEventListener(this.name, this, a), i && this.element.addEventListener(this.name, this, e), this._$AH = e;
   }
   handleEvent(e) {
-    var t;
-    typeof this._$AH == "function" ? this._$AH.call(((t = this.options) == null ? void 0 : t.host) ?? this.element, e) : this._$AH.handleEvent(e);
+    var s;
+    typeof this._$AH == "function" ? this._$AH.call(((s = this.options) == null ? void 0 : s.host) ?? this.element, e) : this._$AH.handleEvent(e);
   }
 }
-class ds {
-  constructor(e, t, s) {
-    this.element = e, this.type = 6, this._$AN = void 0, this._$AM = t, this.options = s;
+class Wt {
+  constructor(e, s, a) {
+    this.element = e, this.type = 6, this._$AN = void 0, this._$AM = s, this.options = a;
   }
   get _$AU() {
     return this._$AM._$AU;
   }
   _$AI(e) {
-    ge(this, e);
+    te(this, e);
   }
 }
-const cs = { I: _e }, Ve = $e.litHtmlPolyfillSupport;
-Ve == null || Ve(Te, _e), ($e.litHtmlVersions ?? ($e.litHtmlVersions = [])).push("3.3.2");
-const hs = (i, e, t) => {
-  const s = (t == null ? void 0 : t.renderBefore) ?? e;
-  let a = s._$litPart$;
-  if (a === void 0) {
-    const r = (t == null ? void 0 : t.renderBefore) ?? null;
-    s._$litPart$ = a = new _e(e.insertBefore(ke(), r), r, void 0, t ?? {});
+const Vt = { I: re }, Oe = le.litHtmlPolyfillSupport;
+Oe == null || Oe(he, re), (le.litHtmlVersions ?? (le.litHtmlVersions = [])).push("3.3.2");
+const qt = (t, e, s) => {
+  const a = (s == null ? void 0 : s.renderBefore) ?? e;
+  let r = a._$litPart$;
+  if (r === void 0) {
+    const i = (s == null ? void 0 : s.renderBefore) ?? null;
+    a._$litPart$ = r = new re(e.insertBefore(de(), i), i, void 0, s ?? {});
   }
-  return a._$AI(i), a;
+  return r._$AI(t), r;
 };
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const G = globalThis;
-let b = class extends Q {
+const W = globalThis;
+let b = class extends ee {
   constructor() {
     super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
   }
   createRenderRoot() {
-    var t;
+    var s;
     const e = super.createRenderRoot();
-    return (t = this.renderOptions).renderBefore ?? (t.renderBefore = e.firstChild), e;
+    return (s = this.renderOptions).renderBefore ?? (s.renderBefore = e.firstChild), e;
   }
   update(e) {
-    const t = this.render();
-    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = hs(t, this.renderRoot, this.renderOptions);
+    const s = this.render();
+    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = qt(s, this.renderRoot, this.renderOptions);
   }
   connectedCallback() {
     var e;
@@ -543,65 +543,69 @@ let b = class extends Q {
     super.disconnectedCallback(), (e = this._$Do) == null || e.setConnected(!1);
   }
   render() {
-    return V;
+    return q;
   }
 };
-var Ct;
-b._$litElement$ = !0, b.finalized = !0, (Ct = G.litElementHydrateSupport) == null || Ct.call(G, { LitElement: b });
-const qe = G.litElementPolyfillSupport;
-qe == null || qe({ LitElement: b });
-(G.litElementVersions ?? (G.litElementVersions = [])).push("4.2.2");
+var vt;
+b._$litElement$ = !0, b.finalized = !0, (vt = W.litElementHydrateSupport) == null || vt.call(W, { LitElement: b });
+const De = W.litElementPolyfillSupport;
+De == null || De({ LitElement: b });
+(W.litElementVersions ?? (W.litElementVersions = [])).push("4.2.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const w = (i) => (e, t) => {
-  t !== void 0 ? t.addInitializer(() => {
-    customElements.define(i, e);
-  }) : customElements.define(i, e);
+const Jt = (t) => (e, s) => {
+  s !== void 0 ? s.addInitializer(() => {
+    customElements.define(t, e);
+  }) : customElements.define(t, e);
 };
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ps = { attribute: !0, type: String, converter: je, reflect: !1, hasChanged: st }, us = (i = ps, e, t) => {
-  const { kind: s, metadata: a } = t;
-  let r = globalThis.litPropertyMetadata.get(a);
-  if (r === void 0 && globalThis.litPropertyMetadata.set(a, r = /* @__PURE__ */ new Map()), s === "setter" && ((i = Object.create(i)).wrapped = !0), r.set(t.name, i), s === "accessor") {
-    const { name: o } = t;
-    return { set(l) {
-      const c = e.get.call(this);
-      e.set.call(this, l), this.requestUpdate(o, c, i, !0, l);
-    }, init(l) {
-      return l !== void 0 && this.C(o, void 0, i, l), l;
+const Yt = { attribute: !0, type: String, converter: ye, reflect: !1, hasChanged: Ie }, Qt = (t = Yt, e, s) => {
+  const { kind: a, metadata: r } = s;
+  let i = globalThis.litPropertyMetadata.get(r);
+  if (i === void 0 && globalThis.litPropertyMetadata.set(r, i = /* @__PURE__ */ new Map()), a === "setter" && ((t = Object.create(t)).wrapped = !0), i.set(s.name, t), a === "accessor") {
+    const { name: n } = s;
+    return { set(c) {
+      const d = e.get.call(this);
+      e.set.call(this, c), this.requestUpdate(n, d, t, !0, c);
+    }, init(c) {
+      return c !== void 0 && this.C(n, void 0, t, c), c;
     } };
   }
-  if (s === "setter") {
-    const { name: o } = t;
-    return function(l) {
-      const c = this[o];
-      e.call(this, l), this.requestUpdate(o, c, i, !0, l);
+  if (a === "setter") {
+    const { name: n } = s;
+    return function(c) {
+      const d = this[n];
+      e.call(this, c), this.requestUpdate(n, d, t, !0, c);
     };
   }
-  throw Error("Unsupported decorator location: " + s);
+  throw Error("Unsupported decorator location: " + a);
 };
-function f(i) {
-  return (e, t) => typeof t == "object" ? us(i, e, t) : ((s, a, r) => {
-    const o = a.hasOwnProperty(r);
-    return a.constructor.createProperty(r, s), o ? Object.getOwnPropertyDescriptor(a, r) : void 0;
-  })(i, e, t);
+function v(t) {
+  return (e, s) => typeof s == "object" ? Qt(t, e, s) : ((a, r, i) => {
+    const n = r.hasOwnProperty(i);
+    return r.constructor.createProperty(i, a), n ? Object.getOwnPropertyDescriptor(r, i) : void 0;
+  })(t, e, s);
 }
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-function d(i) {
-  return f({ ...i, state: !0, attribute: !1 });
+function l(t) {
+  return v({ ...t, state: !0, attribute: !1 });
 }
-class ms {
+function $(t) {
+  const e = Jt(t);
+  return (s, a) => customElements.get(t) ? s : e(s, a);
+}
+class Xt {
   constructor(e = "") {
     this.baseUrl = e, this.auth = null;
   }
@@ -613,379 +617,344 @@ class ms {
     return this.auth && (e.Authorization = `Bearer ${this.auth.token}`), e;
   }
   async listMessages(e = {}) {
-    var r;
-    const t = new URLSearchParams();
-    (r = e.severity) != null && r.length && t.set("severity", e.severity.join(",")), e.source && t.set("source", e.source), e.search && t.set("search", e.search), e.from && t.set("from", e.from), e.to && t.set("to", e.to), e.limit !== void 0 && t.set("limit", String(e.limit)), e.offset !== void 0 && t.set("offset", String(e.offset)), e.order && t.set("order", e.order);
-    const s = `${this.baseUrl}/api/messagehub/messages?${t.toString()}`, a = await fetch(s, { headers: this.headers() });
-    if (!a.ok)
-      throw new Error(`HTTP ${a.status}`);
-    return await a.json();
+    var i;
+    const s = new URLSearchParams();
+    (i = e.severity) != null && i.length && s.set("severity", e.severity.join(",")), e.source && s.set("source", e.source), e.search && s.set("search", e.search), e.from && s.set("from", e.from), e.to && s.set("to", e.to), e.limit !== void 0 && s.set("limit", String(e.limit)), e.offset !== void 0 && s.set("offset", String(e.offset)), e.order && s.set("order", e.order);
+    const a = `${this.baseUrl}/api/messagehub/messages?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
   }
   async getMessage(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}`, {
       headers: this.headers()
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}`);
-    return await t.json();
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
+    return await s.json();
   }
   async deleteMessage(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}`, {
       method: "DELETE",
       headers: this.headers()
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}`);
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
   }
-  async setMessageStatus(e, t) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/status`, {
+  async setMessageStatus(e, s) {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/status`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify({ status: t })
+      body: JSON.stringify({ status: s })
     });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
-  async setMessageSeverity(e, t) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/severity`, {
+  async setMessageSeverity(e, s) {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/severity`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify({ severity: t })
+      body: JSON.stringify({ severity: s })
     });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
   async getMessageTags(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/tags`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/tags`, {
       headers: this.headers()
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}`);
-    return (await t.json()).tags;
-  }
-  async addMessageTag(e, t) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/tags`, {
-      method: "POST",
-      headers: this.headers(),
-      body: JSON.stringify({ tag: t })
-    });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}`);
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
     return (await s.json()).tags;
   }
-  async removeMessageTag(e, t) {
-    const s = `${this.baseUrl}/api/messagehub/messages/${e}/tags?tag=${encodeURIComponent(t)}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
-    if (!a.ok)
-      throw new Error(`HTTP ${a.status}`);
+  async addMessageTag(e, s) {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/tags`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ tag: s })
+    });
+    if (!a.ok) throw new Error(`HTTP ${a.status}`);
     return (await a.json()).tags;
   }
-  async getRunbookForSource(e, t) {
-    const s = t ? `?fingerprint=${encodeURIComponent(t)}` : "", a = await fetch(`${this.baseUrl}/api/messagehub/runbook/${encodeURIComponent(e)}${s}`, { headers: this.headers() });
-    if (a.status === 404)
-      return null;
-    if (!a.ok)
-      throw new Error(`HTTP ${a.status}`);
-    return await a.json();
+  async removeMessageTag(e, s) {
+    const a = `${this.baseUrl}/api/messagehub/messages/${e}/tags?tag=${encodeURIComponent(s)}`, r = await fetch(a, { method: "DELETE", headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return (await r.json()).tags;
+  }
+  async getRunbookForSource(e, s) {
+    const a = s ? `?fingerprint=${encodeURIComponent(s)}` : "", r = await fetch(
+      `${this.baseUrl}/api/messagehub/runbook/${encodeURIComponent(e)}${a}`,
+      { headers: this.headers() }
+    );
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
   }
   async listAudit(e = 200) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/audit?limit=${e}`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/audit?limit=${e}`, {
       headers: this.headers()
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}`);
-    return (await t.json()).items;
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
+    return (await s.json()).items;
   }
   async discoverKnxFromProject() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/knx-discovery`, {
       headers: this.headers()
     });
-    if (!e.ok)
-      throw new Error(`HTTP ${e.status}`);
+    if (!e.ok) throw new Error(`HTTP ${e.status}`);
     return await e.json();
   }
   async listKnxAddresses() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
       headers: this.headers()
     });
-    if (!e.ok)
-      throw new Error(`HTTP ${e.status}`);
+    if (!e.ok) throw new Error(`HTTP ${e.status}`);
     return (await e.json()).items;
   }
   async upsertKnxAddress(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify(e)
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}: ${await t.text()}`);
+    if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
   }
   async listChannels() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/channels`, {
       headers: this.headers()
     });
-    if (!e.ok)
-      throw new Error(`HTTP ${e.status}`);
+    if (!e.ok) throw new Error(`HTTP ${e.status}`);
     return (await e.json()).items;
   }
   async createChannel(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/channels`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/channels`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify(e)
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}: ${await t.text()}`);
+    if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
   }
-  async updateChannel(e, t) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/channels/${e}`, {
+  async updateChannel(e, s) {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/channels/${e}`, {
       method: "PUT",
       headers: this.headers(),
-      body: JSON.stringify(t)
+      body: JSON.stringify(s)
     });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
   async deleteChannel(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/channels/${e}`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/channels/${e}`, {
       method: "DELETE",
       headers: this.headers()
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}`);
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
   }
   async listMqttTopics() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics`, {
       headers: this.headers()
     });
-    if (!e.ok)
-      throw new Error(`HTTP ${e.status}`);
+    if (!e.ok) throw new Error(`HTTP ${e.status}`);
     return (await e.json()).items;
   }
   async createMqttTopic(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify(e)
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}: ${await t.text()}`);
+    if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
   }
   async deleteMqttTopic(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics/${e}`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics/${e}`, {
       method: "DELETE",
       headers: this.headers()
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}`);
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
   }
   async listRemediationHooks() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks`, {
       headers: this.headers()
     });
-    if (!e.ok)
-      throw new Error(`HTTP ${e.status}`);
+    if (!e.ok) throw new Error(`HTTP ${e.status}`);
     return (await e.json()).items;
   }
   async createRemediationHook(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify(e)
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}: ${await t.text()}`);
+    if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
   }
   async deleteRemediationHook(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks/${e}`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks/${e}`, {
       method: "DELETE",
       headers: this.headers()
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}`);
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
   }
   async listHeartbeats() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
       headers: this.headers()
     });
-    if (!e.ok)
-      throw new Error(`HTTP ${e.status}`);
+    if (!e.ok) throw new Error(`HTTP ${e.status}`);
     return (await e.json()).items;
   }
-  async upsertHeartbeat(e, t) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
+  async upsertHeartbeat(e, s) {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify({ source: e, expected_interval_seconds: t })
+      body: JSON.stringify({ source: e, expected_interval_seconds: s })
     });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}`);
+    if (!a.ok) throw new Error(`HTTP ${a.status}`);
   }
   async getStatsExtended(e = 30) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/stats-extended?days=${e}`, { headers: this.headers() });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}`);
-    return await t.json();
+    const s = await fetch(
+      `${this.baseUrl}/api/messagehub/stats-extended?days=${e}`,
+      { headers: this.headers() }
+    );
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
+    return await s.json();
   }
   async deleteKnxAddress(e) {
-    const t = `${this.baseUrl}/api/messagehub/knx-addresses/${encodeURIComponent(e)}`, s = await fetch(t, { method: "DELETE", headers: this.headers() });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}`);
+    const s = `${this.baseUrl}/api/messagehub/knx-addresses/${encodeURIComponent(e)}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}`);
   }
   async importKnxCsv(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ csv: e })
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}`);
-    return await t.json();
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
+    return await s.json();
   }
   exportUrl(e) {
-    var s;
-    const t = new URLSearchParams();
-    return (s = e.severity) != null && s.length && t.set("severity", e.severity.join(",")), e.source && t.set("source", e.source), e.search && t.set("search", e.search), e.from && t.set("from", e.from), e.to && t.set("to", e.to), t.set("format", e.format ?? "jsonl"), e.limit !== void 0 && t.set("limit", String(e.limit)), `${this.baseUrl}/api/messagehub/export?${t.toString()}`;
+    var a;
+    const s = new URLSearchParams();
+    return (a = e.severity) != null && a.length && s.set("severity", e.severity.join(",")), e.source && s.set("source", e.source), e.search && s.set("search", e.search), e.from && s.set("from", e.from), e.to && s.set("to", e.to), s.set("format", e.format ?? "jsonl"), e.limit !== void 0 && s.set("limit", String(e.limit)), `${this.baseUrl}/api/messagehub/export?${s.toString()}`;
   }
   async deleteMessages(e = {}) {
-    var o;
-    const t = new URLSearchParams();
-    (o = e.severity) != null && o.length && t.set("severity", e.severity.join(",")), e.source && t.set("source", e.source), e.search && t.set("search", e.search), e.from && t.set("from", e.from), e.to && t.set("to", e.to);
-    const s = `${this.baseUrl}/api/messagehub/messages?${t.toString()}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
-    if (!a.ok)
-      throw new Error(`HTTP ${a.status}`);
-    return (await a.json()).deleted;
+    var n;
+    const s = new URLSearchParams();
+    (n = e.severity) != null && n.length && s.set("severity", e.severity.join(",")), e.source && s.set("source", e.source), e.search && s.set("search", e.search), e.from && s.set("from", e.from), e.to && s.set("to", e.to);
+    const a = `${this.baseUrl}/api/messagehub/messages?${s.toString()}`, r = await fetch(a, { method: "DELETE", headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return (await r.json()).deleted;
   }
   async listSources() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/sources`, {
       headers: this.headers()
     });
-    if (!e.ok)
-      throw new Error(`HTTP ${e.status}`);
+    if (!e.ok) throw new Error(`HTTP ${e.status}`);
     return (await e.json()).sources;
   }
   async getStats() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/stats`, {
       headers: this.headers()
     });
-    if (!e.ok)
-      throw new Error(`HTTP ${e.status}`);
+    if (!e.ok) throw new Error(`HTTP ${e.status}`);
     return await e.json();
   }
   async listWebhooks() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/webhooks`, {
       headers: this.headers()
     });
-    if (!e.ok)
-      throw new Error(`HTTP ${e.status}`);
+    if (!e.ok) throw new Error(`HTTP ${e.status}`);
     return (await e.json()).webhooks;
   }
   async createWebhook(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/webhooks`, {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/webhooks`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify(e)
     });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}: ${await t.text()}`);
-    return await t.json();
-  }
-  async updateWebhook(e, t) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/webhooks/${e}`, {
-      method: "PUT",
-      headers: this.headers(),
-      body: JSON.stringify(t)
-    });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
+    if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
     return await s.json();
   }
+  async updateWebhook(e, s) {
+    const a = await fetch(
+      `${this.baseUrl}/api/messagehub/webhooks/${e}`,
+      {
+        method: "PUT",
+        headers: this.headers(),
+        body: JSON.stringify(s)
+      }
+    );
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
+  }
   async deleteWebhook(e) {
-    const t = await fetch(`${this.baseUrl}/api/messagehub/webhooks/${e}`, { method: "DELETE", headers: this.headers() });
-    if (!t.ok)
-      throw new Error(`HTTP ${t.status}`);
+    const s = await fetch(
+      `${this.baseUrl}/api/messagehub/webhooks/${e}`,
+      { method: "DELETE", headers: this.headers() }
+    );
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
   }
   // --- KNX-Stats (Iter 6) ----------------------------------------------
   _knxStatsParams(e) {
-    const t = new URLSearchParams();
-    return e.from && t.set("from", e.from), e.to && t.set("to", e.to), e.limit !== void 0 && t.set("limit", String(e.limit)), e.minRate !== void 0 && t.set("min_rate", String(e.minRate)), e.includeAcknowledged === !1 && t.set("include_acknowledged", "false"), t;
+    const s = new URLSearchParams();
+    return e.from && s.set("from", e.from), e.to && s.set("to", e.to), e.limit !== void 0 && s.set("limit", String(e.limit)), e.minRate !== void 0 && s.set("min_rate", String(e.minRate)), e.includeAcknowledged === !1 && s.set("include_acknowledged", "false"), s;
   }
   async getKnxStatsSummary(e) {
-    const t = `${this.baseUrl}/api/messagehub/knx-stats/summary?${this._knxStatsParams(e).toString()}`, s = await fetch(t, { headers: this.headers() });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
-    return await s.json();
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/summary?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
   async getKnxStatsTop(e) {
-    const t = `${this.baseUrl}/api/messagehub/knx-stats/top?${this._knxStatsParams(e).toString()}`, s = await fetch(t, { headers: this.headers() });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
-    return await s.json();
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/top?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
   async getKnxStatsTopBySource(e) {
-    const t = `${this.baseUrl}/api/messagehub/knx-stats/top-by-source?${this._knxStatsParams(e).toString()}`, s = await fetch(t, { headers: this.headers() });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
-    return await s.json();
-  }
-  async getKnxStatsGaDetail(e, t) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/ga/${encodeURIComponent(e)}?${this._knxStatsParams(t).toString()}`, a = await fetch(s, { headers: this.headers() });
-    if (!a.ok)
-      throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/top-by-source?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
     return await a.json();
+  }
+  async getKnxStatsGaDetail(e, s) {
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/ga/${encodeURIComponent(e)}?${this._knxStatsParams(s).toString()}`, r = await fetch(a, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
   }
   async getKnxStatsTimeline(e) {
-    const t = this._knxStatsParams(e);
-    t.set("gas", e.gas.join(",")), e.bucketMinutes !== void 0 && t.set("bucket", String(e.bucketMinutes));
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/timeline?${t.toString()}`, a = await fetch(s, { headers: this.headers() });
-    if (!a.ok)
-      throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
+    const s = this._knxStatsParams(e);
+    s.set("gas", e.gas.join(",")), e.bucketMinutes !== void 0 && s.set("bucket", String(e.bucketMinutes));
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/timeline?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
   }
-  async acknowledgeKnxGa(e, t = {}) {
-    const s = { ga: e };
-    t.note !== void 0 && (s.note = t.note), t.expiryDays !== void 0 && (s.expiry_days = t.expiryDays);
-    const a = await fetch(`${this.baseUrl}/api/messagehub/knx-stats/acknowledge`, {
+  async acknowledgeKnxGa(e, s = {}) {
+    const a = { ga: e };
+    s.note !== void 0 && (a.note = s.note), s.expiryDays !== void 0 && (a.expiry_days = s.expiryDays);
+    const r = await fetch(`${this.baseUrl}/api/messagehub/knx-stats/acknowledge`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify(s)
+      body: JSON.stringify(a)
     });
-    if (!a.ok)
-      throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
   }
   async getKnxStatsAlarms(e) {
-    const t = `${this.baseUrl}/api/messagehub/knx-stats/alarms?${this._knxStatsParams(e).toString()}`, s = await fetch(t, { headers: this.headers() });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
-    return await s.json();
-  }
-  async getKnxStatsOrphans(e) {
-    const t = `${this.baseUrl}/api/messagehub/knx-stats/orphans?${this._knxStatsParams(e).toString()}`, s = await fetch(t, { headers: this.headers() });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
-    return await s.json();
-  }
-  async getKnxStatsSilence(e) {
-    const t = this._knxStatsParams(e);
-    e.maxSilenceMinutes !== void 0 && t.set("max_silence_min", String(e.maxSilenceMinutes));
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/silence?${t.toString()}`, a = await fetch(s, { headers: this.headers() });
-    if (!a.ok)
-      throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/alarms?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
     return await a.json();
   }
+  async getKnxStatsOrphans(e) {
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/orphans?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
+  }
+  async getKnxStatsSilence(e) {
+    const s = this._knxStatsParams(e);
+    e.maxSilenceMinutes !== void 0 && s.set("max_silence_min", String(e.maxSilenceMinutes));
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/silence?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
+  }
   async getKnxStatsBusHealth(e) {
-    const t = `${this.baseUrl}/api/messagehub/knx-stats/bus-health?${this._knxStatsParams(e).toString()}`, s = await fetch(t, { headers: this.headers() });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
-    return await s.json();
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/bus-health?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
   async unacknowledgeKnxGa(e) {
-    const t = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge/${encodeURIComponent(e)}`, s = await fetch(t, { method: "DELETE", headers: this.headers() });
-    if (!s.ok)
-      throw new Error(`HTTP ${s.status}: ${await s.text()}`);
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge/${encodeURIComponent(e)}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
 }
-const O = _`
+const D = _`
   :host {
     /* Spacing-Skala (4-px-Grid) */
     --mh-space-1: 4px;
@@ -1061,7 +1030,7 @@ const O = _`
     --mh-transition-fast: 120ms ease-out;
     --mh-transition-med: 200ms ease-out;
   }
-`, Pe = _`
+`, me = _`
   .mh-btn {
     display: inline-flex;
     align-items: center;
@@ -1131,7 +1100,7 @@ const O = _`
     padding: 4px 10px;
     font-size: var(--mh-text-xs);
   }
-`, Ht = _`
+`, yt = _`
   .mh-input,
   .mh-select {
     padding: 8px 12px;
@@ -1153,7 +1122,7 @@ const O = _`
   .mh-input::placeholder {
     color: var(--mh-fg-subtle);
   }
-`, rt = _`
+`, Fe = _`
   .mh-card {
     background: var(--mh-surface);
     border: 1px solid var(--mh-divider);
@@ -1177,7 +1146,7 @@ const O = _`
     font-weight: var(--mh-weight-semibold);
     color: var(--mh-fg);
   }
-`, ze = _`
+`, ge = _`
   .mh-pill {
     display: inline-flex;
     align-items: center;
@@ -1226,21 +1195,21 @@ const O = _`
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const gs = { CHILD: 2 }, vs = (i) => (...e) => ({ _$litDirective$: i, values: e });
-let fs = class {
+const Zt = { CHILD: 2 }, es = (t) => (...e) => ({ _$litDirective$: t, values: e });
+let ts = class {
   constructor(e) {
   }
   get _$AU() {
     return this._$AM._$AU;
   }
-  _$AT(e, t, s) {
-    this._$Ct = e, this._$AM = t, this._$Ci = s;
+  _$AT(e, s, a) {
+    this._$Ct = e, this._$AM = s, this._$Ci = a;
   }
-  _$AS(e, t) {
-    return this.update(e, t);
+  _$AS(e, s) {
+    return this.update(e, s);
   }
-  update(e, t) {
-    return this.render(...t);
+  update(e, s) {
+    return this.render(...s);
   }
 };
 /**
@@ -1248,85 +1217,85 @@ let fs = class {
  * Copyright 2020 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { I: bs } = cs, xt = (i) => i, wt = () => document.createComment(""), we = (i, e, t) => {
-  var r;
-  const s = i._$AA.parentNode, a = e === void 0 ? i._$AB : e._$AA;
-  if (t === void 0) {
-    const o = s.insertBefore(wt(), a), l = s.insertBefore(wt(), a);
-    t = new bs(o, l, i, i.options);
+const { I: ss } = Vt, at = (t) => t, rt = () => document.createComment(""), oe = (t, e, s) => {
+  var i;
+  const a = t._$AA.parentNode, r = e === void 0 ? t._$AB : e._$AA;
+  if (s === void 0) {
+    const n = a.insertBefore(rt(), r), c = a.insertBefore(rt(), r);
+    s = new ss(n, c, t, t.options);
   } else {
-    const o = t._$AB.nextSibling, l = t._$AM, c = l !== i;
-    if (c) {
-      let p;
-      (r = t._$AQ) == null || r.call(t, i), t._$AM = i, t._$AP !== void 0 && (p = i._$AU) !== l._$AU && t._$AP(p);
+    const n = s._$AB.nextSibling, c = s._$AM, d = c !== t;
+    if (d) {
+      let u;
+      (i = s._$AQ) == null || i.call(s, t), s._$AM = t, s._$AP !== void 0 && (u = t._$AU) !== c._$AU && s._$AP(u);
     }
-    if (o !== a || c) {
-      let p = t._$AA;
-      for (; p !== o; ) {
-        const g = xt(p).nextSibling;
-        xt(s).insertBefore(p, a), p = g;
+    if (n !== r || d) {
+      let u = s._$AA;
+      for (; u !== n; ) {
+        const f = at(u).nextSibling;
+        at(a).insertBefore(u, r), u = f;
       }
     }
   }
-  return t;
-}, B = (i, e, t = i) => (i._$AI(e, t), i), _s = {}, xs = (i, e = _s) => i._$AH = e, ws = (i) => i._$AH, Je = (i) => {
-  i._$AR(), i._$AA.remove();
+  return s;
+}, K = (t, e, s = t) => (t._$AI(e, s), t), as = {}, rs = (t, e = as) => t._$AH = e, is = (t) => t._$AH, Ce = (t) => {
+  t._$AR(), t._$AA.remove();
 };
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const yt = (i, e, t) => {
-  const s = /* @__PURE__ */ new Map();
-  for (let a = e; a <= t; a++) s.set(i[a], a);
-  return s;
-}, ys = vs(class extends fs {
-  constructor(i) {
-    if (super(i), i.type !== gs.CHILD) throw Error("repeat() can only be used in text expressions");
+const it = (t, e, s) => {
+  const a = /* @__PURE__ */ new Map();
+  for (let r = e; r <= s; r++) a.set(t[r], r);
+  return a;
+}, os = es(class extends ts {
+  constructor(t) {
+    if (super(t), t.type !== Zt.CHILD) throw Error("repeat() can only be used in text expressions");
   }
-  dt(i, e, t) {
-    let s;
-    t === void 0 ? t = e : e !== void 0 && (s = e);
-    const a = [], r = [];
-    let o = 0;
-    for (const l of i) a[o] = s ? s(l, o) : o, r[o] = t(l, o), o++;
-    return { values: r, keys: a };
+  dt(t, e, s) {
+    let a;
+    s === void 0 ? s = e : e !== void 0 && (a = e);
+    const r = [], i = [];
+    let n = 0;
+    for (const c of t) r[n] = a ? a(c, n) : n, i[n] = s(c, n), n++;
+    return { values: i, keys: r };
   }
-  render(i, e, t) {
-    return this.dt(i, e, t).values;
+  render(t, e, s) {
+    return this.dt(t, e, s).values;
   }
-  update(i, [e, t, s]) {
-    const a = ws(i), { values: r, keys: o } = this.dt(e, t, s);
-    if (!Array.isArray(a)) return this.ut = o, r;
-    const l = this.ut ?? (this.ut = []), c = [];
-    let p, g, u = 0, v = a.length - 1, m = 0, x = r.length - 1;
-    for (; u <= v && m <= x; ) if (a[u] === null) u++;
-    else if (a[v] === null) v--;
-    else if (l[u] === o[m]) c[m] = B(a[u], r[m]), u++, m++;
-    else if (l[v] === o[x]) c[x] = B(a[v], r[x]), v--, x--;
-    else if (l[u] === o[x]) c[x] = B(a[u], r[x]), we(i, c[x + 1], a[u]), u++, x--;
-    else if (l[v] === o[m]) c[m] = B(a[v], r[m]), we(i, a[u], a[v]), v--, m++;
-    else if (p === void 0 && (p = yt(o, m, x), g = yt(l, u, v)), p.has(l[u])) if (p.has(l[v])) {
-      const C = g.get(o[m]), Ke = C !== void 0 ? a[C] : null;
-      if (Ke === null) {
-        const lt = we(i, a[u]);
-        B(lt, r[m]), c[m] = lt;
-      } else c[m] = B(Ke, r[m]), we(i, a[u], Ke), a[C] = null;
+  update(t, [e, s, a]) {
+    const r = is(t), { values: i, keys: n } = this.dt(e, s, a);
+    if (!Array.isArray(r)) return this.ut = n, i;
+    const c = this.ut ?? (this.ut = []), d = [];
+    let u, f, p = 0, g = r.length - 1, m = 0, x = i.length - 1;
+    for (; p <= g && m <= x; ) if (r[p] === null) p++;
+    else if (r[g] === null) g--;
+    else if (c[p] === n[m]) d[m] = K(r[p], i[m]), p++, m++;
+    else if (c[g] === n[x]) d[x] = K(r[g], i[x]), g--, x--;
+    else if (c[p] === n[x]) d[x] = K(r[p], i[x]), oe(t, d[x + 1], r[p]), p++, x--;
+    else if (c[g] === n[m]) d[m] = K(r[g], i[m]), oe(t, r[p], r[g]), g--, m++;
+    else if (u === void 0 && (u = it(n, m, x), f = it(c, p, g)), u.has(c[p])) if (u.has(c[g])) {
+      const L = f.get(n[m]), Pe = L !== void 0 ? r[L] : null;
+      if (Pe === null) {
+        const Ge = oe(t, r[p]);
+        K(Ge, i[m]), d[m] = Ge;
+      } else d[m] = K(Pe, i[m]), oe(t, r[p], Pe), r[L] = null;
       m++;
-    } else Je(a[v]), v--;
-    else Je(a[u]), u++;
+    } else Ce(r[g]), g--;
+    else Ce(r[p]), p++;
     for (; m <= x; ) {
-      const C = we(i, c[x + 1]);
-      B(C, r[m]), c[m++] = C;
+      const L = oe(t, d[x + 1]);
+      K(L, i[m]), d[m++] = L;
     }
-    for (; u <= v; ) {
-      const C = a[u++];
-      C !== null && Je(C);
+    for (; p <= g; ) {
+      const L = r[p++];
+      L !== null && Ce(L);
     }
-    return this.ut = o, xs(i, c), V;
+    return this.ut = n, rs(t, d), q;
   }
-}), $s = new Intl.RelativeTimeFormat("de", { numeric: "auto" }), ks = [
+}), ns = new Intl.RelativeTimeFormat("de", { numeric: "auto" }), ls = [
   { unit: "year", seconds: 31536e3 },
   { unit: "month", seconds: 2592e3 },
   { unit: "week", seconds: 604800 },
@@ -1335,71 +1304,70 @@ const yt = (i, e, t) => {
   { unit: "minute", seconds: 60 },
   { unit: "second", seconds: 1 }
 ];
-function It(i, e = /* @__PURE__ */ new Date()) {
-  const t = new Date(i);
-  if (Number.isNaN(t.getTime()))
-    return "—";
-  const s = Math.round((t.getTime() - e.getTime()) / 1e3), a = Math.abs(s);
-  if (a < 5)
-    return "gerade eben";
-  for (const { unit: r, seconds: o } of ks)
-    if (a >= o) {
-      const l = Math.round(s / o);
-      return $s.format(l, r);
+function $t(t, e = /* @__PURE__ */ new Date()) {
+  const s = new Date(t);
+  if (Number.isNaN(s.getTime())) return "—";
+  const a = Math.round((s.getTime() - e.getTime()) / 1e3), r = Math.abs(a);
+  if (r < 5) return "gerade eben";
+  for (const { unit: i, seconds: n } of ls)
+    if (r >= n) {
+      const c = Math.round(a / n);
+      return ns.format(c, i);
     }
   return "gerade eben";
 }
-function Ut(i, e = /* @__PURE__ */ new Date()) {
-  const t = new Date(i);
-  if (Number.isNaN(t.getTime()))
-    return i;
-  const s = t.getFullYear() === e.getFullYear() && t.getMonth() === e.getMonth() && t.getDate() === e.getDate(), a = t.toLocaleTimeString("de-DE", {
+function kt(t, e = /* @__PURE__ */ new Date()) {
+  const s = new Date(t);
+  if (Number.isNaN(s.getTime())) return t;
+  const a = s.getFullYear() === e.getFullYear() && s.getMonth() === e.getMonth() && s.getDate() === e.getDate(), r = s.toLocaleTimeString("de-DE", {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit"
   });
-  return s ? a : `${t.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })} ${a}`;
+  return a ? r : `${s.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })} ${r}`;
 }
-var Oe = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
+var ds = Object.defineProperty, cs = Object.getOwnPropertyDescriptor, ve = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? cs(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && ds(e, s, r), r;
 };
-const $t = {
+const ot = {
   error: "✕",
   warning: "⚠",
   info: "ⓘ",
   debug: "·"
-}, kt = {
+}, nt = {
   error: "Error",
   warning: "Warn",
   info: "Info",
   debug: "Debug"
-}, Ss = ["error", "warning", "info", "debug"];
-var X;
-let ve = (X = class extends b {
+}, hs = ["error", "warning", "info", "debug"];
+let J = class extends b {
   constructor() {
-    super(...arguments), this.items = [], this._now = /* @__PURE__ */ new Date(), this._editSeverityFor = null, this._popoverPos = null, this._onClick = (e) => {
-      this.dispatchEvent(new CustomEvent("select", { detail: { msg: e }, bubbles: !0, composed: !0 }));
-    }, this._onKey = (e, t) => {
-      (e.key === "Enter" || e.key === " ") && (e.preventDefault(), this._onClick(t));
-    }, this._onSeverityClick = (e, t) => {
-      if (e.stopPropagation(), e.preventDefault(), this._editSeverityFor === t.id) {
+    super(...arguments), this.items = [], this._now = /* @__PURE__ */ new Date(), this._editSeverityFor = null, this._popoverPos = null, this._onClick = (t) => {
+      this.dispatchEvent(
+        new CustomEvent("select", { detail: { msg: t }, bubbles: !0, composed: !0 })
+      );
+    }, this._onKey = (t, e) => {
+      (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this._onClick(e));
+    }, this._onSeverityClick = (t, e) => {
+      if (t.stopPropagation(), t.preventDefault(), this._editSeverityFor === e.id) {
         this._closePopover();
         return;
       }
-      const a = e.currentTarget.getBoundingClientRect(), r = 200, o = a.bottom + r < window.innerHeight;
+      const a = t.currentTarget.getBoundingClientRect(), r = 200, i = a.bottom + r < window.innerHeight;
       this._popoverPos = {
-        top: o ? a.bottom + 4 : a.top - r - 4,
+        top: i ? a.bottom + 4 : a.top - r - 4,
         left: a.left
-      }, this._editSeverityFor = t.id;
-    }, this._onSeverityPick = (e, t, s, a) => {
-      e.stopPropagation(), this._closePopover(), a !== s && this.dispatchEvent(new CustomEvent("severity-change", {
-        detail: { id: t, severity: a, previous: s },
-        bubbles: !0,
-        composed: !0
-      }));
+      }, this._editSeverityFor = e.id;
+    }, this._onSeverityPick = (t, e, s, a) => {
+      t.stopPropagation(), this._closePopover(), a !== s && this.dispatchEvent(
+        new CustomEvent("severity-change", {
+          detail: { id: e, severity: a, previous: s },
+          bubbles: !0,
+          composed: !0
+        })
+      );
     };
   }
   connectedCallback() {
@@ -1413,12 +1381,11 @@ let ve = (X = class extends b {
   }
   _renderPopover() {
     if (this._editSeverityFor === null || this._popoverPos === null)
-      return n``;
-    const e = this.items.find((a) => a.id === this._editSeverityFor);
-    if (!e)
-      return n``;
-    const t = e.severity ?? "info", s = e.id;
-    return n`
+      return o``;
+    const t = this.items.find((a) => a.id === this._editSeverityFor);
+    if (!t) return o``;
+    const e = t.severity ?? "info", s = t.id;
+    return o`
       <div class="popover-backdrop" @click=${() => this._closePopover()}></div>
       <div
         class="sev-popover"
@@ -1426,23 +1393,25 @@ let ve = (X = class extends b {
         style=${`top: ${this._popoverPos.top}px; left: ${this._popoverPos.left}px`}
         @click=${(a) => a.stopPropagation()}
       >
-        ${Ss.map((a) => n`<button
+        ${hs.map(
+      (a) => o`<button
             role="menuitemradio"
-            aria-checked=${a === t}
-            class=${`sev-option ${a === t ? "active" : ""}`}
-            @click=${(r) => this._onSeverityPick(r, s, t, a)}
+            aria-checked=${a === e}
+            class=${`sev-option ${a === e ? "active" : ""}`}
+            @click=${(r) => this._onSeverityPick(r, s, e, a)}
           >
             <span class=${`mh-pill mh-pill--${a}`}>
-              <span class="sev-icon" aria-hidden="true">${$t[a]}</span>
-              ${kt[a]}
+              <span class="sev-icon" aria-hidden="true">${ot[a]}</span>
+              ${nt[a]}
             </span>
-            ${a === t ? n`<span class="check" aria-hidden="true">✓</span>` : h}
-          </button>`)}
+            ${a === e ? o`<span class="check" aria-hidden="true">✓</span>` : h}
+          </button>`
+    )}
       </div>
     `;
   }
   _renderHeader() {
-    return n`
+    return o`
       <div class="header" role="row">
         <span class="col-sev" role="columnheader">Severity</span>
         <span class="col-ts" role="columnheader">Zeit</span>
@@ -1452,54 +1421,59 @@ let ve = (X = class extends b {
     `;
   }
   render() {
-    return this.items.length ? n`
+    return this.items.length ? o`
       <div class="root">
         ${this._renderHeader()}
         <div class="scroll" role="list">
-          ${ys(this.items, (e) => e.id, (e) => {
-      const t = e.severity ?? "info", s = kt[t] ?? t, a = $t[t] ?? "·", r = It(e.timestamp, this._now), o = Ut(e.timestamp, this._now);
-      return n`
+          ${os(
+      this.items,
+      (t) => t.id,
+      (t) => {
+        const e = t.severity ?? "info", s = nt[e] ?? e, a = ot[e] ?? "·", r = $t(t.timestamp, this._now), i = kt(t.timestamp, this._now);
+        return o`
                 <div
-                  class=${`row sev-${t} ${this._editSeverityFor === e.id ? "row-active" : ""}`}
+                  class=${`row sev-${e} ${this._editSeverityFor === t.id ? "row-active" : ""}`}
                   tabindex="0"
                   role="listitem button"
-                  @click=${() => this._onClick(e)}
-                  @keydown=${(l) => this._onKey(l, e)}
+                  @click=${() => this._onClick(t)}
+                  @keydown=${(n) => this._onKey(n, t)}
                 >
                   <span class="col-sev">
                     <button
-                      class=${`mh-pill mh-pill--${t} sev-trigger`}
+                      class=${`mh-pill mh-pill--${e} sev-trigger`}
                       title="Severity ändern"
                       aria-haspopup="menu"
-                      aria-expanded=${this._editSeverityFor === e.id}
-                      @click=${(l) => this._onSeverityClick(l, e)}
+                      aria-expanded=${this._editSeverityFor === t.id}
+                      @click=${(n) => this._onSeverityClick(n, t)}
                     >
                       <span class="sev-icon" aria-hidden="true">${a}</span>
                       ${s}
                       <span class="caret" aria-hidden="true">▾</span>
                     </button>
                   </span>
-                  <span class="col-ts ts" title=${o}>${r}</span>
+                  <span class="col-ts ts" title=${i}>${r}</span>
                   <span class="col-src">
-                    <span class="source-pill">${e.source}</span>
+                    <span class="source-pill">${t.source}</span>
                   </span>
-                  <span class="col-text text">${e.text}</span>
+                  <span class="col-text text">${t.text}</span>
                 </div>
               `;
-    })}
+      }
+    )}
         </div>
         ${this._renderPopover()}
       </div>
-    ` : n`
+    ` : o`
         <div class="root">
           ${this._renderHeader()}
           <div class="empty">Keine Nachrichten</div>
         </div>
       `;
   }
-}, X.styles = [
-  O,
-  ze,
+};
+J.styles = [
+  D,
+  ge,
   _`
       :host {
         display: block;
@@ -1692,61 +1666,62 @@ let ve = (X = class extends b {
         }
       }
     `
-], X);
-Oe([
-  f({ attribute: !1 })
-], ve.prototype, "items", void 0);
-Oe([
-  d()
-], ve.prototype, "_now", void 0);
-Oe([
-  d()
-], ve.prototype, "_editSeverityFor", void 0);
-Oe([
-  d()
-], ve.prototype, "_popoverPos", void 0);
-ve = Oe([
-  w("message-table")
-], ve);
-var Ft = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
+];
+ve([
+  v({ attribute: !1 })
+], J.prototype, "items", 2);
+ve([
+  l()
+], J.prototype, "_now", 2);
+ve([
+  l()
+], J.prototype, "_editSeverityFor", 2);
+ve([
+  l()
+], J.prototype, "_popoverPos", 2);
+J = ve([
+  $("message-table")
+], J);
+var ps = Object.defineProperty, us = Object.getOwnPropertyDescriptor, St = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? us(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && ps(e, s, r), r;
 };
-const St = ["error", "warning", "info", "debug"];
-var Z;
-let Qe = (Z = class extends b {
+const lt = ["error", "warning", "info", "debug"];
+let ke = class extends b {
   constructor() {
-    super(...arguments), this.selected = [...St];
+    super(...arguments), this.selected = [...lt];
   }
-  _toggle(e) {
-    const t = this.selected.includes(e) ? this.selected.filter((s) => s !== e) : [...this.selected, e];
-    this.dispatchEvent(new CustomEvent("change", {
-      detail: { severities: t },
-      bubbles: !0,
-      composed: !0
-    }));
+  _toggle(t) {
+    const e = this.selected.includes(t) ? this.selected.filter((s) => s !== t) : [...this.selected, t];
+    this.dispatchEvent(
+      new CustomEvent("change", {
+        detail: { severities: e },
+        bubbles: !0,
+        composed: !0
+      })
+    );
   }
   render() {
-    return n`
+    return o`
       <div class="chips" role="group" aria-label="Severity-Filter">
-        ${St.map((e) => {
-      const t = this.selected.includes(e);
-      return n`<button
-            class=${`chip sev-${e} ${t ? "active" : ""}`}
-            aria-pressed=${t}
-            @click=${() => this._toggle(e)}
+        ${lt.map((t) => {
+      const e = this.selected.includes(t);
+      return o`<button
+            class=${`chip sev-${t} ${e ? "active" : ""}`}
+            aria-pressed=${e}
+            @click=${() => this._toggle(t)}
           >
             <span class="dot" aria-hidden="true"></span>
-            ${e}
+            ${t}
           </button>`;
     })}
       </div>
     `;
   }
-}, Z.styles = [
-  O,
+};
+ke.styles = [
+  D,
   _`
       .chips {
         display: flex;
@@ -1823,20 +1798,19 @@ let Qe = (Z = class extends b {
         color: var(--mh-debug);
       }
     `
-], Z);
-Ft([
-  f({ attribute: !1 })
-], Qe.prototype, "selected", void 0);
-Qe = Ft([
-  w("severity-filter")
-], Qe);
-var Fe = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
-}, ee;
-let Ae = (ee = class extends b {
+];
+St([
+  v({ attribute: !1 })
+], ke.prototype, "selected", 2);
+ke = St([
+  $("severity-filter")
+], ke);
+var ms = Object.defineProperty, gs = Object.getOwnPropertyDescriptor, Te = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? gs(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && ms(e, s, r), r;
+};
+let se = class extends b {
   constructor() {
     super(...arguments), this.selected = "", this._sources = [];
   }
@@ -1848,23 +1822,26 @@ let Ae = (ee = class extends b {
         this._sources = [];
       }
   }
-  _onChange(e) {
-    const t = e.target.value;
-    this.dispatchEvent(new CustomEvent("change", {
-      detail: { source: t },
-      bubbles: !0,
-      composed: !0
-    }));
+  _onChange(t) {
+    const e = t.target.value;
+    this.dispatchEvent(
+      new CustomEvent("change", {
+        detail: { source: e },
+        bubbles: !0,
+        composed: !0
+      })
+    );
   }
   render() {
-    return n`
+    return o`
       <select @change=${this._onChange} .value=${this.selected}>
         <option value="">Alle Quellen</option>
-        ${this._sources.map((e) => n`<option value=${e}>${e}</option>`)}
+        ${this._sources.map((t) => o`<option value=${t}>${t}</option>`)}
       </select>
     `;
   }
-}, ee.styles = _`
+};
+se.styles = _`
     select {
       padding: 4px 8px;
       border: 1px solid var(--divider-color, #ccc);
@@ -1872,37 +1849,38 @@ let Ae = (ee = class extends b {
       background: var(--card-background-color, white);
       color: inherit;
     }
-  `, ee);
-Fe([
-  f({ attribute: !1 })
-], Ae.prototype, "api", void 0);
-Fe([
-  f({ attribute: !1 })
-], Ae.prototype, "selected", void 0);
-Fe([
-  d()
-], Ae.prototype, "_sources", void 0);
-Ae = Fe([
-  w("source-filter")
-], Ae);
-var it = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
-}, te;
-let He = (te = class extends b {
-  _set(e) {
-    let t;
+  `;
+Te([
+  v({ attribute: !1 })
+], se.prototype, "api", 2);
+Te([
+  v({ attribute: !1 })
+], se.prototype, "selected", 2);
+Te([
+  l()
+], se.prototype, "_sources", 2);
+se = Te([
+  $("source-filter")
+], se);
+var vs = Object.defineProperty, fs = Object.getOwnPropertyDescriptor, Re = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? fs(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && vs(e, s, r), r;
+};
+let pe = class extends b {
+  _set(t) {
+    let e;
     const s = /* @__PURE__ */ new Date();
-    e === "1h" ? t = new Date(s.getTime() - 36e5).toISOString() : e === "24h" ? t = new Date(s.getTime() - 864e5).toISOString() : e === "7d" ? t = new Date(s.getTime() - 7 * 864e5).toISOString() : t = void 0, this.dispatchEvent(new CustomEvent("change", {
-      detail: { fromIso: t, toIso: void 0 },
-      bubbles: !0,
-      composed: !0
-    }));
+    t === "1h" ? e = new Date(s.getTime() - 36e5).toISOString() : t === "24h" ? e = new Date(s.getTime() - 864e5).toISOString() : t === "7d" ? e = new Date(s.getTime() - 7 * 864e5).toISOString() : e = void 0, this.dispatchEvent(
+      new CustomEvent("change", {
+        detail: { fromIso: e, toIso: void 0 },
+        bubbles: !0,
+        composed: !0
+      })
+    );
   }
   render() {
-    return n`
+    return o`
       <div class="presets">
         <button @click=${() => this._set("1h")}>1h</button>
         <button @click=${() => this._set("24h")}>24h</button>
@@ -1911,7 +1889,8 @@ let He = (te = class extends b {
       </div>
     `;
   }
-}, te.styles = _`
+};
+pe.styles = _`
     .presets {
       display: flex;
       gap: 4px;
@@ -1923,28 +1902,27 @@ let He = (te = class extends b {
       background: transparent;
       cursor: pointer;
     }
-  `, te);
-it([
-  f({ attribute: !1 })
-], He.prototype, "fromIso", void 0);
-it([
-  f({ attribute: !1 })
-], He.prototype, "toIso", void 0);
-He = it([
-  w("time-range-filter")
-], He);
-var U = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
-}, se;
-let L = (se = class extends b {
+  `;
+Re([
+  v({ attribute: !1 })
+], pe.prototype, "fromIso", 2);
+Re([
+  v({ attribute: !1 })
+], pe.prototype, "toIso", 2);
+pe = Re([
+  $("time-range-filter")
+], pe);
+var bs = Object.defineProperty, _s = Object.getOwnPropertyDescriptor, R = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? _s(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && bs(e, s, r), r;
+};
+let O = class extends b {
   constructor() {
     super(...arguments), this._status = "new", this._tags = [], this._newTag = "", this._runbook = null, this._busy = !1;
   }
-  willUpdate(e) {
-    e.has("msg") && this.msg && (this._status = this.msg.status ?? "new", this._loadTags(), this._loadRunbook());
+  willUpdate(t) {
+    t.has("msg") && this.msg && (this._status = this.msg.status ?? "new", this._loadTags(), this._loadRunbook());
   }
   async _loadTags() {
     if (!(!this.api || !this.msg))
@@ -1965,62 +1943,67 @@ let L = (se = class extends b {
   _close() {
     this.dispatchEvent(new CustomEvent("close", { bubbles: !0, composed: !0 }));
   }
-  async _setStatus(e) {
+  async _setStatus(t) {
     if (this.api) {
       this._busy = !0;
       try {
-        await this.api.setMessageStatus(this.msg.id, e), this._status = e, this.dispatchEvent(new CustomEvent("status-change", {
-          detail: { id: this.msg.id, status: e },
-          bubbles: !0,
-          composed: !0
-        }));
-      } catch (t) {
-        this.dispatchEvent(new CustomEvent("error", {
-          detail: { message: t.message },
-          bubbles: !0,
-          composed: !0
-        }));
+        await this.api.setMessageStatus(this.msg.id, t), this._status = t, this.dispatchEvent(
+          new CustomEvent("status-change", {
+            detail: { id: this.msg.id, status: t },
+            bubbles: !0,
+            composed: !0
+          })
+        );
+      } catch (e) {
+        this.dispatchEvent(
+          new CustomEvent("error", {
+            detail: { message: e.message },
+            bubbles: !0,
+            composed: !0
+          })
+        );
       } finally {
         this._busy = !1;
       }
     }
   }
   async _addTag() {
-    if (!this.api || !this._newTag.trim())
-      return;
-    const e = this._newTag.trim().toLowerCase().replaceAll(/[^a-z0-9._-]+/g, "-");
+    if (!this.api || !this._newTag.trim()) return;
+    const t = this._newTag.trim().toLowerCase().replaceAll(/[^a-z0-9._-]+/g, "-");
     try {
-      this._tags = await this.api.addMessageTag(this.msg.id, e), this._newTag = "";
+      this._tags = await this.api.addMessageTag(this.msg.id, t), this._newTag = "";
     } catch {
     }
   }
-  async _removeTag(e) {
+  async _removeTag(t) {
     if (this.api)
       try {
-        this._tags = await this.api.removeMessageTag(this.msg.id, e);
+        this._tags = await this.api.removeMessageTag(this.msg.id, t);
       } catch {
       }
   }
   async _delete() {
-    confirm(`Nachricht #${this.msg.id} endgültig löschen?`) && this.dispatchEvent(new CustomEvent("delete", {
-      detail: { id: this.msg.id },
-      bubbles: !0,
-      composed: !0
-    }));
+    confirm(`Nachricht #${this.msg.id} endgültig löschen?`) && this.dispatchEvent(
+      new CustomEvent("delete", {
+        detail: { id: this.msg.id },
+        bubbles: !0,
+        composed: !0
+      })
+    );
   }
   _statusBadge() {
-    const e = {
+    const t = {
       new: "Neu",
       acknowledged: "Bestätigt",
       resolved: "Gelöst",
       expired: "Abgelaufen"
     };
-    return n`<span class=${`status-badge status-${this._status}`}>
-      ${e[this._status] ?? this._status}
+    return o`<span class=${`status-badge status-${this._status}`}>
+      ${t[this._status] ?? this._status}
     </span>`;
   }
   render() {
-    return n`
+    return o`
       <aside>
         <header>
           <h2>
@@ -2065,38 +2048,40 @@ let L = (se = class extends b {
         <h3>Text</h3>
         <pre class="text">${this.msg.text}</pre>
 
-        ${this.msg.metadata ? n`<h3>Metadata</h3>
+        ${this.msg.metadata ? o`<h3>Metadata</h3>
               <pre class="meta">${JSON.stringify(this.msg.metadata, null, 2)}</pre>` : h}
 
         <h3>Tags</h3>
         <div class="tags">
-          ${this._tags.length === 0 ? n`<span class="hint">keine Tags</span>` : this._tags.map((e) => n`
+          ${this._tags.length === 0 ? o`<span class="hint">keine Tags</span>` : this._tags.map(
+      (t) => o`
                   <span class="tag">
-                    #${e}
+                    #${t}
                     <button
                       class="tag-remove"
-                      aria-label=${`Tag ${e} entfernen`}
-                      @click=${() => this._removeTag(e)}
+                      aria-label=${`Tag ${t} entfernen`}
+                      @click=${() => this._removeTag(t)}
                     >
                       ×
                     </button>
                   </span>
-                `)}
+                `
+    )}
         </div>
         <div class="tag-input">
           <input
             type="text"
             placeholder="neuer Tag"
             .value=${this._newTag}
-            @input=${(e) => this._newTag = e.target.value}
-            @keydown=${(e) => {
-      e.key === "Enter" && this._addTag();
+            @input=${(t) => this._newTag = t.target.value}
+            @keydown=${(t) => {
+      t.key === "Enter" && this._addTag();
     }}
           />
           <button @click=${this._addTag} ?disabled=${!this._newTag.trim()}>+ Hinzufügen</button>
         </div>
 
-        ${this._runbook ? n`<h3>Runbook: ${this._runbook.title}</h3>
+        ${this._runbook ? o`<h3>Runbook: ${this._runbook.title}</h3>
               <pre class="runbook">${this._runbook.markdown}</pre>` : h}
 
         <footer>
@@ -2105,7 +2090,8 @@ let L = (se = class extends b {
       </aside>
     `;
   }
-}, se.styles = _`
+};
+O.styles = _`
     :host {
       position: fixed;
       top: 0;
@@ -2323,98 +2309,100 @@ let L = (se = class extends b {
       border-radius: 4px;
       cursor: pointer;
     }
-  `, se);
-U([
-  f({ attribute: !1 })
-], L.prototype, "msg", void 0);
-U([
-  f({ attribute: !1 })
-], L.prototype, "api", void 0);
-U([
-  d()
-], L.prototype, "_status", void 0);
-U([
-  d()
-], L.prototype, "_tags", void 0);
-U([
-  d()
-], L.prototype, "_newTag", void 0);
-U([
-  d()
-], L.prototype, "_runbook", void 0);
-U([
-  d()
-], L.prototype, "_busy", void 0);
-L = U([
-  w("detail-pane")
-], L);
-var D = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
+  `;
+R([
+  v({ attribute: !1 })
+], O.prototype, "msg", 2);
+R([
+  v({ attribute: !1 })
+], O.prototype, "api", 2);
+R([
+  l()
+], O.prototype, "_status", 2);
+R([
+  l()
+], O.prototype, "_tags", 2);
+R([
+  l()
+], O.prototype, "_newTag", 2);
+R([
+  l()
+], O.prototype, "_runbook", 2);
+R([
+  l()
+], O.prototype, "_busy", 2);
+O = R([
+  $("detail-pane")
+], O);
+var xs = Object.defineProperty, ws = Object.getOwnPropertyDescriptor, C = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? ws(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && xs(e, s, r), r;
 };
-const Ts = ["debug", "info", "warning", "error"], As = JSON.stringify({
-  severity: "$.level",
-  source: "$.app.name",
-  text: "$.message",
-  metadata: "$.extra"
-}, null, 2), Ye = /^[a-z0-9._-]{1,64}$/;
-function Es(i) {
-  return i.toLowerCase().normalize("NFKD").replaceAll(/[äÄ]/g, "ae").replaceAll(/[öÖ]/g, "oe").replaceAll(/[üÜ]/g, "ue").replaceAll(/ß/g, "ss").replaceAll(/[\s/\\]+/g, "-").replaceAll(/[^a-z0-9._-]/g, "").slice(0, 64);
+const ys = ["debug", "info", "warning", "error"], $s = JSON.stringify(
+  {
+    severity: "$.level",
+    source: "$.app.name",
+    text: "$.message",
+    metadata: "$.extra"
+  },
+  null,
+  2
+), Le = /^[a-z0-9._-]{1,64}$/;
+function ks(t) {
+  return t.toLowerCase().normalize("NFKD").replaceAll(/[äÄ]/g, "ae").replaceAll(/[öÖ]/g, "oe").replaceAll(/[üÜ]/g, "ue").replaceAll(/ß/g, "ss").replaceAll(/[\s/\\]+/g, "-").replaceAll(/[^a-z0-9._-]/g, "").slice(0, 64);
 }
-var ae;
-let P = (ae = class extends b {
+let E = class extends b {
   constructor() {
     super(...arguments), this.editing = null, this._name = "", this._source = "", this._severity = "info", this._enabled = !0, this._mappingText = "", this._error = "", this._saving = !1;
   }
-  willUpdate(e) {
-    if (e.has("editing")) {
-      const t = this.editing;
-      this._name = (t == null ? void 0 : t.name) ?? "", this._source = (t == null ? void 0 : t.default_source) ?? "", this._severity = (t == null ? void 0 : t.default_severity) ?? "info", this._enabled = (t == null ? void 0 : t.enabled) ?? !0, this._mappingText = t != null && t.field_map ? JSON.stringify(t.field_map, null, 2) : "", this._error = "";
+  willUpdate(t) {
+    if (t.has("editing")) {
+      const e = this.editing;
+      this._name = (e == null ? void 0 : e.name) ?? "", this._source = (e == null ? void 0 : e.default_source) ?? "", this._severity = (e == null ? void 0 : e.default_severity) ?? "info", this._enabled = (e == null ? void 0 : e.enabled) ?? !0, this._mappingText = e != null && e.field_map ? JSON.stringify(e.field_map, null, 2) : "", this._error = "";
     }
   }
   _validateMapping() {
-    if (!this._mappingText.trim())
-      return null;
+    if (!this._mappingText.trim()) return null;
     try {
-      const e = JSON.parse(this._mappingText);
-      if (typeof e != "object" || Array.isArray(e))
+      const t = JSON.parse(this._mappingText);
+      if (typeof t != "object" || Array.isArray(t))
         throw new Error("muss ein JSON-Objekt sein");
-      return e;
-    } catch (e) {
-      throw new Error(`Mapping-JSON ungueltig: ${e.message}`);
+      return t;
+    } catch (t) {
+      throw new Error(`Mapping-JSON ungueltig: ${t.message}`);
     }
   }
   async _save() {
     if (this.api) {
       this._error = "", this._saving = !0;
       try {
-        const e = this._validateMapping();
-        if (!this._name.trim())
-          throw new Error("Name darf nicht leer sein");
-        if (!Ye.test(this._source))
+        const t = this._validateMapping();
+        if (!this._name.trim()) throw new Error("Name darf nicht leer sein");
+        if (!Le.test(this._source))
           throw new Error("Source ist leer oder ungueltig.");
-        let t;
-        this.editing ? t = await this.api.updateWebhook(this.editing.webhook_id, {
+        let e;
+        this.editing ? e = await this.api.updateWebhook(this.editing.webhook_id, {
           name: this._name.trim(),
           default_source: this._source,
           default_severity: this._severity,
-          field_map: e,
+          field_map: t,
           enabled: this._enabled
-        }) : t = await this.api.createWebhook({
+        }) : e = await this.api.createWebhook({
           name: this._name.trim(),
           default_source: this._source,
           default_severity: this._severity,
-          field_map: e,
+          field_map: t,
           enabled: this._enabled
-        }), this.dispatchEvent(new CustomEvent("saved", {
-          detail: { webhook: t },
-          bubbles: !0,
-          composed: !0
-        }));
-      } catch (e) {
-        this._error = e.message;
+        }), this.dispatchEvent(
+          new CustomEvent("saved", {
+            detail: { webhook: e },
+            bubbles: !0,
+            composed: !0
+          })
+        );
+      } catch (t) {
+        this._error = t.message;
       } finally {
         this._saving = !1;
       }
@@ -2424,20 +2412,20 @@ let P = (ae = class extends b {
     this.dispatchEvent(new CustomEvent("cancel", { bubbles: !0, composed: !0 }));
   }
   _useExample() {
-    this._mappingText = As;
+    this._mappingText = $s;
   }
   render() {
-    const e = this.editing !== null;
-    return n`
+    const t = this.editing !== null;
+    return o`
       <div class="card">
-        <h3>${e ? "Webhook bearbeiten" : "Neuen Webhook anlegen"}</h3>
+        <h3>${t ? "Webhook bearbeiten" : "Neuen Webhook anlegen"}</h3>
 
         <label>
           <span>Name</span>
           <input
             type="text"
             .value=${this._name}
-            @input=${(t) => this._name = t.target.value}
+            @input=${(e) => this._name = e.target.value}
             placeholder="z. B. Pi-hole Alerts"
           />
         </label>
@@ -2446,15 +2434,15 @@ let P = (ae = class extends b {
           <label>
             <span>
               Default-Source
-              ${this._source && Ye.test(this._source) ? n`<span class="ok-badge" title="ok">✓</span>` : null}
+              ${this._source && Le.test(this._source) ? o`<span class="ok-badge" title="ok">✓</span>` : null}
             </span>
             <input
               type="text"
-              class=${this._source && !Ye.test(this._source) ? "invalid" : ""}
+              class=${this._source && !Le.test(this._source) ? "invalid" : ""}
               .value=${this._source}
-              @input=${(t) => {
-      const s = t.target.value;
-      this._source = Es(s);
+              @input=${(e) => {
+      const s = e.target.value;
+      this._source = ks(s);
     }}
               placeholder="z. B. pihole"
               autocomplete="off"
@@ -2472,9 +2460,11 @@ let P = (ae = class extends b {
             <span>Default-Severity</span>
             <select
               .value=${this._severity}
-              @change=${(t) => this._severity = t.target.value}
+              @change=${(e) => this._severity = e.target.value}
             >
-              ${Ts.map((t) => n`<option value=${t} ?selected=${this._severity === t}>${t}</option>`)}
+              ${ys.map(
+      (e) => o`<option value=${e} ?selected=${this._severity === e}>${e}</option>`
+    )}
             </select>
           </label>
         </div>
@@ -2483,7 +2473,7 @@ let P = (ae = class extends b {
           <input
             type="checkbox"
             .checked=${this._enabled}
-            @change=${(t) => this._enabled = t.target.checked}
+            @change=${(e) => this._enabled = e.target.checked}
           />
           <span>aktiv</span>
         </label>
@@ -2497,7 +2487,7 @@ let P = (ae = class extends b {
           </div>
           <textarea
             .value=${this._mappingText}
-            @input=${(t) => this._mappingText = t.target.value}
+            @input=${(e) => this._mappingText = e.target.value}
             placeholder=${'{"severity": "$.level", "source": "$.app.name", ...}'}
             rows="6"
             spellcheck="false"
@@ -2508,18 +2498,19 @@ let P = (ae = class extends b {
           </small>
         </div>
 
-        ${this._error ? n`<div class="error">${this._error}</div>` : null}
+        ${this._error ? o`<div class="error">${this._error}</div>` : null}
 
         <div class="actions">
           <button class="primary" ?disabled=${this._saving} @click=${this._save}>
-            ${this._saving ? "speichere…" : e ? "Speichern" : "Anlegen"}
+            ${this._saving ? "speichere…" : t ? "Speichern" : "Anlegen"}
           </button>
           <button @click=${this._cancel}>Abbrechen</button>
         </div>
       </div>
     `;
   }
-}, ae.styles = _`
+};
+E.styles = _`
     .card {
       background: var(--card-background-color, white);
       border: 1px solid var(--divider-color, #e0e0e0);
@@ -2659,46 +2650,44 @@ let P = (ae = class extends b {
       justify-content: flex-end;
       margin-top: 4px;
     }
-  `, ae);
-D([
-  f({ attribute: !1 })
-], P.prototype, "api", void 0);
-D([
-  f({ attribute: !1 })
-], P.prototype, "editing", void 0);
-D([
-  d()
-], P.prototype, "_name", void 0);
-D([
-  d()
-], P.prototype, "_source", void 0);
-D([
-  d()
-], P.prototype, "_severity", void 0);
-D([
-  d()
-], P.prototype, "_enabled", void 0);
-D([
-  d()
-], P.prototype, "_mappingText", void 0);
-D([
-  d()
-], P.prototype, "_error", void 0);
-D([
-  d()
-], P.prototype, "_saving", void 0);
-P = D([
-  w("webhook-form")
-], P);
-var T = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
+  `;
+C([
+  v({ attribute: !1 })
+], E.prototype, "api", 2);
+C([
+  v({ attribute: !1 })
+], E.prototype, "editing", 2);
+C([
+  l()
+], E.prototype, "_name", 2);
+C([
+  l()
+], E.prototype, "_source", 2);
+C([
+  l()
+], E.prototype, "_severity", 2);
+C([
+  l()
+], E.prototype, "_enabled", 2);
+C([
+  l()
+], E.prototype, "_mappingText", 2);
+C([
+  l()
+], E.prototype, "_error", 2);
+C([
+  l()
+], E.prototype, "_saving", 2);
+E = C([
+  $("webhook-form")
+], E);
+var Ss = Object.defineProperty, Ts = Object.getOwnPropertyDescriptor, T = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ts(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && Ss(e, s, r), r;
 };
-const Ps = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, Xe = ["debug", "info", "warning", "error"], Tt = [...Xe, "auto"];
-var re;
-let $ = (re = class extends b {
+const As = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, Me = ["debug", "info", "warning", "error"], dt = [...Me, "auto"];
+let w = class extends b {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._onlyEnabled = !1, this._newAddr = "", this._newLabel = "", this._newDpt = "", this._sevPopoverFor = null, this._sevPopoverPos = null, this._discovery = [], this._discoveryStatus = "loading", this._editing = null, this._toast = "", this._error = "";
   }
@@ -2718,41 +2707,41 @@ let $ = (re = class extends b {
   async _loadDiscovery() {
     if (this.api)
       try {
-        const e = await this.api.discoverKnxFromProject();
-        this._discovery = e.items, this._discoveryStatus = e.status;
-      } catch (e) {
-        this._discovery = [], this._discoveryStatus = `error: ${e.message}`;
+        const t = await this.api.discoverKnxFromProject();
+        this._discovery = t.items, this._discoveryStatus = t.status;
+      } catch (t) {
+        this._discovery = [], this._discoveryStatus = `error: ${t.message}`;
       }
   }
   _renderDiscoveryStatus() {
-    if (this._discoveryStatus === "ok" && this._discovery.length > 0)
-      return null;
-    const t = {
+    if (this._discoveryStatus === "ok" && this._discovery.length > 0) return null;
+    const e = {
       loading: "🔄 Lade KNX-Projekt-Daten…",
       no_knx_integration: "ℹ️ Keine KNX-Integration in HA gefunden. Lege erst die KNX-Integration unter Einstellungen → Geräte & Dienste an, dann erscheinen die GAs hier automatisch.",
       no_project_loaded: "ℹ️ KNX-Integration ist da, aber kein ETS-Projekt hochgeladen. Lade dein .knxproj in der KNX-Integration unter Konfigurieren → Projekt hoch.",
       project_empty: "ℹ️ ETS-Projekt enthält keine Gruppenadressen — pruefe den Export."
     }[this._discoveryStatus] ?? `Status: ${this._discoveryStatus}`;
-    return n`<div class="discovery-status">${t}</div>`;
+    return o`<div class="discovery-status">${e}</div>`;
   }
-  _onAddressInput(e) {
-    const t = e.target.value;
-    this._newAddr = t;
-    const s = this._discovery.find((a) => a.address === t);
+  _onAddressInput(t) {
+    const e = t.target.value;
+    this._newAddr = e;
+    const s = this._discovery.find((a) => a.address === e);
     s && (this._newLabel.trim() || (this._newLabel = s.name), !this._newDpt.trim() && s.dpt && (this._newDpt = s.dpt));
   }
   async _bulkImportFromProject() {
-    if (!this.api || this._discovery.length === 0)
-      return;
-    const e = new Set(this._items.map((a) => a.address)), t = this._discovery.filter((a) => !e.has(a.address));
-    if (t.length === 0) {
+    if (!this.api || this._discovery.length === 0) return;
+    const t = new Set(this._items.map((a) => a.address)), e = this._discovery.filter((a) => !t.has(a.address));
+    if (e.length === 0) {
       this._showToast("Alle Projekt-GAs sind bereits angelegt");
       return;
     }
-    if (!window.confirm(`${t.length} fehlende Projekt-GAs anlegen? (Logging bleibt zunächst aus, Severity-Mapping kannst du danach pro Adresse setzen.)`))
+    if (!window.confirm(
+      `${e.length} fehlende Projekt-GAs anlegen? (Logging bleibt zunächst aus, Severity-Mapping kannst du danach pro Adresse setzen.)`
+    ))
       return;
     let s = 0;
-    for (const a of t)
+    for (const a of e)
       try {
         await this.api.upsertKnxAddress({
           address: a.address,
@@ -2766,10 +2755,9 @@ let $ = (re = class extends b {
     this._showToast(`${s} aus ETS-Projekt übernommen`), await this._load();
   }
   async _add() {
-    if (this._error = "", !this.api)
-      return;
-    const e = this._newAddr.trim();
-    if (!Ps.test(e)) {
+    if (this._error = "", !this.api) return;
+    const t = this._newAddr.trim();
+    if (!As.test(t)) {
       this._error = "Bitte Format N/N/N (z. B. 1/2/3)";
       return;
     }
@@ -2779,82 +2767,86 @@ let $ = (re = class extends b {
     }
     try {
       await this.api.upsertKnxAddress({
-        address: e,
+        address: t,
         label: this._newLabel.trim(),
         dpt: this._newDpt.trim() || null,
         log_enabled: !1,
         log_severity: "info"
-      }), this._newAddr = "", this._newLabel = "", this._newDpt = "", this._showToast(`${e} gespeichert`), await this._load();
-    } catch (t) {
-      this._error = t.message;
+      }), this._newAddr = "", this._newLabel = "", this._newDpt = "", this._showToast(`${t} gespeichert`), await this._load();
+    } catch (e) {
+      this._error = e.message;
     }
   }
-  async _toggleLog(e) {
-    if (!this.api)
-      return;
-    const t = !e.log_enabled;
+  async _toggleLog(t) {
+    if (!this.api) return;
+    const e = !t.log_enabled;
     try {
       await this.api.upsertKnxAddress({
-        ...e,
-        log_enabled: t
+        ...t,
+        log_enabled: e
       }), await this._load();
-      const s = this._items.find((r) => r.address === e.address), a = !!(s != null && s.log_enabled);
-      s !== void 0 && a !== t ? this._showToast("Backend hat log_enabled nicht gesetzt — Browser-Cache leeren (Cmd+Shift+R) und HA-Container neu starten") : this._showToast(t ? `${e.address} im Protokoll aktiv` : `${e.address} aus Protokoll entfernt`);
+      const s = this._items.find((r) => r.address === t.address), a = !!(s != null && s.log_enabled);
+      s !== void 0 && a !== e ? this._showToast(
+        "Backend hat log_enabled nicht gesetzt — Browser-Cache leeren (Cmd+Shift+R) und HA-Container neu starten"
+      ) : this._showToast(
+        e ? `${t.address} im Protokoll aktiv` : `${t.address} aus Protokoll entfernt`
+      );
     } catch (s) {
       this._showToast(s.message);
     }
   }
-  async _delete(e) {
-    if (this.api && window.confirm(`KNX-Adresse ${e} löschen?`))
+  async _delete(t) {
+    if (this.api && window.confirm(`KNX-Adresse ${t} löschen?`))
       try {
-        await this.api.deleteKnxAddress(e), this._showToast(`${e} gelöscht`), await this._load();
-      } catch (t) {
-        this._showToast(t.message);
+        await this.api.deleteKnxAddress(t), this._showToast(`${t} gelöscht`), await this._load();
+      } catch (e) {
+        this._showToast(e.message);
       }
   }
   _closeSevPopover() {
     this._sevPopoverFor = null, this._sevPopoverPos = null;
   }
-  _onSeverityTrigger(e, t) {
-    if (e.stopPropagation(), e.preventDefault(), this._sevPopoverFor === t.address) {
+  _onSeverityTrigger(t, e) {
+    if (t.stopPropagation(), t.preventDefault(), this._sevPopoverFor === e.address) {
       this._closeSevPopover();
       return;
     }
-    const a = e.currentTarget.getBoundingClientRect(), r = 220, o = a.bottom + r < window.innerHeight;
+    const a = t.currentTarget.getBoundingClientRect(), r = 220, i = a.bottom + r < window.innerHeight;
     this._sevPopoverPos = {
-      top: o ? a.bottom + 4 : a.top - r - 4,
+      top: i ? a.bottom + 4 : a.top - r - 4,
       left: a.left
-    }, this._sevPopoverFor = t.address;
+    }, this._sevPopoverFor = e.address;
   }
-  async _onSeverityPick(e, t, s) {
-    if (e.stopPropagation(), this._closeSevPopover(), s === t.log_severity || !this.api)
-      return;
+  async _onSeverityPick(t, e, s) {
+    if (t.stopPropagation(), this._closeSevPopover(), s === e.log_severity || !this.api) return;
     const a = {
-      address: t.address,
+      address: e.address,
       log_severity: s
     };
-    s === "auto" && (a.severity_on_true = t.severity_on_true ?? "warning", a.severity_on_false = t.severity_on_false ?? "info");
-    const r = t.log_severity;
-    this._items = this._items.map((o) => o.address === t.address ? {
-      ...o,
-      log_severity: s,
-      severity_on_true: a.severity_on_true ?? o.severity_on_true,
-      severity_on_false: a.severity_on_false ?? o.severity_on_false
-    } : o);
+    s === "auto" && (a.severity_on_true = e.severity_on_true ?? "warning", a.severity_on_false = e.severity_on_false ?? "info");
+    const r = e.log_severity;
+    this._items = this._items.map(
+      (i) => i.address === e.address ? {
+        ...i,
+        log_severity: s,
+        severity_on_true: a.severity_on_true ?? i.severity_on_true,
+        severity_on_false: a.severity_on_false ?? i.severity_on_false
+      } : i
+    );
     try {
-      await this.api.upsertKnxAddress({ ...t, ...a }), this._showToast(`${t.address}: Severity ${r} → ${s}`);
-    } catch (o) {
-      this._items = this._items.map((l) => l.address === t.address ? { ...l, log_severity: r } : l), this._showToast(`Fehlgeschlagen: ${o.message}`);
+      await this.api.upsertKnxAddress({ ...e, ...a }), this._showToast(`${e.address}: Severity ${r} → ${s}`);
+    } catch (i) {
+      this._items = this._items.map(
+        (n) => n.address === e.address ? { ...n, log_severity: r } : n
+      ), this._showToast(`Fehlgeschlagen: ${i.message}`);
     }
   }
   _renderSevPopover() {
-    if (this._sevPopoverFor === null || this._sevPopoverPos === null)
-      return h;
-    const e = this._items.find((s) => s.address === this._sevPopoverFor);
-    if (!e)
-      return h;
-    const t = e.log_severity;
-    return n`
+    if (this._sevPopoverFor === null || this._sevPopoverPos === null) return h;
+    const t = this._items.find((s) => s.address === this._sevPopoverFor);
+    if (!t) return h;
+    const e = t.log_severity;
+    return o`
       <div class="sev-backdrop" @click=${() => this._closeSevPopover()}></div>
       <div
         class="sev-popover"
@@ -2862,60 +2854,64 @@ let $ = (re = class extends b {
         style=${`top: ${this._sevPopoverPos.top}px; left: ${this._sevPopoverPos.left}px`}
         @click=${(s) => s.stopPropagation()}
       >
-        ${Tt.map((s) => n`<button
+        ${dt.map(
+      (s) => o`<button
             role="menuitemradio"
-            aria-checked=${s === t}
-            class=${`sev-option ${s === t ? "active" : ""}`}
-            @click=${(a) => void this._onSeverityPick(a, e, s)}
+            aria-checked=${s === e}
+            class=${`sev-option ${s === e ? "active" : ""}`}
+            @click=${(a) => void this._onSeverityPick(a, t, s)}
           >
             <span
               class=${`mh-pill mh-pill--${s === "auto" ? "neutral" : s}`}
             >${s}</span>
-            ${s === t ? n`<span class="sev-check" aria-hidden="true">✓</span>` : h}
-          </button>`)}
+            ${s === e ? o`<span class="sev-check" aria-hidden="true">✓</span>` : h}
+          </button>`
+    )}
       </div>
     `;
   }
-  async _onCsvFile(e) {
+  async _onCsvFile(t) {
     var a;
-    const t = (a = e.target.files) == null ? void 0 : a[0];
-    if (!t || !this.api)
-      return;
-    const s = await t.text();
+    const e = (a = t.target.files) == null ? void 0 : a[0];
+    if (!e || !this.api) return;
+    const s = await e.text();
     try {
       const r = await this.api.importKnxCsv(s);
-      this._showToast(`Import: ${r.imported} angelegt, ${r.skipped} ueberlesen, ${r.errors} Fehler`), await this._load();
+      this._showToast(
+        `Import: ${r.imported} angelegt, ${r.skipped} ueberlesen, ${r.errors} Fehler`
+      ), await this._load();
     } catch (r) {
       this._showToast(`Import fehlgeschlagen: ${r.message}`);
     } finally {
-      e.target.value = "";
+      t.target.value = "";
     }
   }
-  _showToast(e) {
-    this._toast = e, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
+  _showToast(t) {
+    this._toast = t, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
   }
   _filtered() {
-    let e = this._items;
-    this._onlyEnabled && (e = e.filter((s) => !!s.log_enabled));
-    const t = this._filter.trim().toLowerCase();
-    return t ? e.filter((s) => s.address.includes(t) || s.label.toLowerCase().includes(t) || (s.dpt ?? "").toLowerCase().includes(t)) : e;
+    let t = this._items;
+    this._onlyEnabled && (t = t.filter((s) => !!s.log_enabled));
+    const e = this._filter.trim().toLowerCase();
+    return e ? t.filter(
+      (s) => s.address.includes(e) || s.label.toLowerCase().includes(e) || (s.dpt ?? "").toLowerCase().includes(e)
+    ) : t;
   }
   _renderEditor() {
-    if (!this._editing)
-      return h;
-    const e = this._editing, t = (s) => {
-      this._editing = { ...e, ...s };
+    if (!this._editing) return h;
+    const t = this._editing, e = (s) => {
+      this._editing = { ...t, ...s };
     };
-    return n`
+    return o`
       <div class="modal-backdrop" @click=${() => this._editing = null}>
         <div class="modal" @click=${(s) => s.stopPropagation()}>
-          <h3>${e.address} bearbeiten</h3>
+          <h3>${t.address} bearbeiten</h3>
           <label>
             <span>Label</span>
             <input
               type="text"
-              .value=${e.label}
-              @input=${(s) => t({ label: s.target.value })}
+              .value=${t.label}
+              @input=${(s) => e({ label: s.target.value })}
             />
           </label>
           <div class="row-2">
@@ -2923,31 +2919,33 @@ let $ = (re = class extends b {
               <span>DPT (z. B. 1.001, 5.001, 16.001)</span>
               <input
                 type="text"
-                .value=${e.dpt ?? ""}
-                @input=${(s) => t({ dpt: s.target.value || null })}
+                .value=${t.dpt ?? ""}
+                @input=${(s) => e({ dpt: s.target.value || null })}
               />
             </label>
             <label class="checkbox">
               <input
                 type="checkbox"
-                .checked=${e.log_enabled}
-                @change=${(s) => t({ log_enabled: s.target.checked })}
+                .checked=${t.log_enabled}
+                @change=${(s) => e({ log_enabled: s.target.checked })}
               />
               <span>Im Protokoll erfassen</span>
             </label>
           </div>
 
-          ${e.log_enabled ? n`
+          ${t.log_enabled ? o`
                 <label>
                   <span>Severity</span>
                   <select
-                    .value=${e.log_severity}
+                    .value=${t.log_severity}
                     @change=${(s) => {
       const a = s.target.value;
-      t({ log_severity: a });
+      e({ log_severity: a });
     }}
                   >
-                    ${Tt.map((s) => n`<option value=${s}>${s}</option>`)}
+                    ${dt.map(
+      (s) => o`<option value=${s}>${s}</option>`
+    )}
                   </select>
                   <small>
                     <code>auto</code> nutzt für Boolean-DPTs (1.x) die
@@ -2955,27 +2953,31 @@ let $ = (re = class extends b {
                     <code>True</code> einen Fehler bedeuten.
                   </small>
                 </label>
-                ${e.log_severity === "auto" ? n`<div class="row-2">
+                ${t.log_severity === "auto" ? o`<div class="row-2">
                       <label>
                         <span>Severity bei <code>True</code></span>
                         <select
-                          .value=${e.severity_on_true ?? "warning"}
-                          @change=${(s) => t({
+                          .value=${t.severity_on_true ?? "warning"}
+                          @change=${(s) => e({
       severity_on_true: s.target.value
     })}
                         >
-                          ${Xe.map((s) => n`<option value=${s}>${s}</option>`)}
+                          ${Me.map(
+      (s) => o`<option value=${s}>${s}</option>`
+    )}
                         </select>
                       </label>
                       <label>
                         <span>Severity bei <code>False</code></span>
                         <select
-                          .value=${e.severity_on_false ?? "info"}
-                          @change=${(s) => t({
+                          .value=${t.severity_on_false ?? "info"}
+                          @change=${(s) => e({
       severity_on_false: s.target.value
     })}
                         >
-                          ${Xe.map((s) => n`<option value=${s}>${s}</option>`)}
+                          ${Me.map(
+      (s) => o`<option value=${s}>${s}</option>`
+    )}
                         </select>
                       </label>
                     </div>` : h}
@@ -3004,20 +3006,20 @@ let $ = (re = class extends b {
           severity_on_true: this._editing.severity_on_true,
           severity_on_false: this._editing.severity_on_false
         }), this._showToast("gespeichert"), this._editing = null, await this._load();
-      } catch (e) {
-        this._showToast(e.message);
+      } catch (t) {
+        this._showToast(t.message);
       }
   }
   render() {
-    const e = this._filtered(), t = this._items.filter((s) => s.log_enabled).length;
-    return n`
+    const t = this._filtered(), e = this._items.filter((s) => s.log_enabled).length;
+    return o`
       <section>
         <header class="head">
           <div>
             <h2>KNX-Gruppenadressen</h2>
             <p class="hint">
               ${this._items.length} Adressen,
-              <strong>${t} im Protokoll aktiv</strong>. Voraussetzung
+              <strong>${e} im Protokoll aktiv</strong>. Voraussetzung
               für die Bus-Erfassung: HA-KNX-Integration mit IP-Tunneling/Routing
               ist eingerichtet — sie feuert das Event <code>knx_event</code>, das
               wir gegen diese Whitelist matchen. Nicht-aktivierte GAs werden
@@ -3025,7 +3027,7 @@ let $ = (re = class extends b {
             </p>
           </div>
           <div class="header-actions">
-            ${this._discovery.length > 0 ? n`<button
+            ${this._discovery.length > 0 ? o`<button
                   class="mh-btn mh-btn--primary"
                   title=${`${this._discovery.length} GAs aus dem in HA hinterlegten ETS-Projekt`}
                   @click=${() => void this._bulkImportFromProject()}
@@ -3052,9 +3054,11 @@ let $ = (re = class extends b {
     }}
           />
           <datalist id="knx-discovery-list">
-            ${this._discovery.map((s) => n`<option value=${s.address}>
+            ${this._discovery.map(
+      (s) => o`<option value=${s.address}>
                   ${s.name}${s.dpt ? ` (DPT ${s.dpt})` : ""}
-                </option>`)}
+                </option>`
+    )}
           </datalist>
           <input
             type="text"
@@ -3078,12 +3082,12 @@ let $ = (re = class extends b {
           />
           <button class="mh-btn mh-btn--primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
-        ${this._discovery.length > 0 ? n`<p class="hint">
+        ${this._discovery.length > 0 ? o`<p class="hint">
               💡 Tipp: Beim Tippen in das GA-Feld erscheinen Vorschläge aus dem
               ETS-Projekt — Label und DPT werden dann automatisch vorbefüllt.
             </p>` : null}
         ${this._renderDiscoveryStatus()}
-        ${this._error ? n`<div class="error">${this._error}</div>` : h}
+        ${this._error ? o`<div class="error">${this._error}</div>` : h}
 
         <div class="filter-bar">
           <input
@@ -3101,14 +3105,14 @@ let $ = (re = class extends b {
             />
             <span>nur aktive</span>
           </label>
-          <span class="muted">${e.length} sichtbar</span>
+          <span class="muted">${t.length} sichtbar</span>
         </div>
 
-        ${this._loading ? n`<p class="muted">lade…</p>` : e.length === 0 ? n`<div class="empty">
-                ${this._items.length === 0 ? n`<p>
+        ${this._loading ? o`<p class="muted">lade…</p>` : t.length === 0 ? o`<div class="empty">
+                ${this._items.length === 0 ? o`<p>
                       Noch keine Adressen. Lege oben den ersten Eintrag an oder
                       importiere eine ETS-CSV.
-                    </p>` : this._onlyEnabled && t === 0 ? n`<p>
+                    </p>` : this._onlyEnabled && e === 0 ? o`<p>
                           <strong>Keine Adresse ist im Protokoll aktiv.</strong>
                         </p>
                         <p>
@@ -3122,12 +3126,12 @@ let $ = (re = class extends b {
                           erscheint: <strong>Browser-Cache leeren</strong>
                           (Cmd+Shift+R) — sonst liegt evtl. der alte Bundle
                           mit dem API-Bug vom 2026-05-01 vor 21:14 vor.
-                        </p>` : n`<p>
+                        </p>` : o`<p>
                         Keine Treffer für aktuelle Filter
                         (${this._items.length} Adressen total,
-                        ${t} davon aktiv).
+                        ${e} davon aktiv).
                       </p>`}
-              </div>` : n`
+              </div>` : o`
                 <div class="table-wrap">
                   <table>
                     <thead>
@@ -3141,15 +3145,16 @@ let $ = (re = class extends b {
                       </tr>
                     </thead>
                     <tbody>
-                      ${e.map((s) => n`
+                      ${t.map(
+      (s) => o`
                           <tr class=${s.log_enabled ? "enabled" : ""}>
                             <td><code class="ga">${s.address}</code></td>
                             <td class="label-cell">${s.label}</td>
                             <td>
-                              ${s.dpt ? n`<code class="dpt">${s.dpt}</code>` : n`<span class="muted">—</span>`}
+                              ${s.dpt ? o`<code class="dpt">${s.dpt}</code>` : o`<span class="muted">—</span>`}
                             </td>
                             <td>
-                              ${s.log_enabled ? n`<button
+                              ${s.log_enabled ? o`<button
                                     class=${`mh-pill mh-pill--${s.log_severity === "auto" ? "neutral" : s.log_severity} sev-trigger`}
                                     title="Severity ändern"
                                     aria-haspopup="menu"
@@ -3157,12 +3162,12 @@ let $ = (re = class extends b {
                                     @click=${(a) => this._onSeverityTrigger(a, s)}
                                   >
                                     <span class="mh-pill__dot"></span>
-                                    ${s.log_severity}${s.log_severity === "auto" ? n` <small class="auto-detail"
+                                    ${s.log_severity}${s.log_severity === "auto" ? o` <small class="auto-detail"
                                           >T:${s.severity_on_true ?? "warning"}
                                           / F:${s.severity_on_false ?? "info"}</small
                                         >` : h}
                                     <span class="sev-caret" aria-hidden="true">▾</span>
-                                  </button>` : n`<span class="muted">—</span>`}
+                                  </button>` : o`<span class="muted">—</span>`}
                             </td>
                             <td class="col-toggle">
                               <label class="switch" title=${s.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}>
@@ -3194,7 +3199,8 @@ let $ = (re = class extends b {
                               </button>
                             </td>
                           </tr>
-                        `)}
+                        `
+    )}
                     </tbody>
                   </table>
                 </div>
@@ -3202,15 +3208,16 @@ let $ = (re = class extends b {
 
         ${this._renderEditor()}
         ${this._renderSevPopover()}
-        ${this._toast ? n`<div class="toast">${this._toast}</div>` : h}
+        ${this._toast ? o`<div class="toast">${this._toast}</div>` : h}
       </section>
     `;
   }
-}, re.styles = [
-  O,
-  Pe,
-  Ht,
-  ze,
+};
+w.styles = [
+  D,
+  me,
+  yt,
+  ge,
   _`
       section {
         display: flex;
@@ -3654,64 +3661,62 @@ let $ = (re = class extends b {
         font-weight: var(--mh-weight-bold);
       }
     `
-], re);
+];
 T([
-  f({ attribute: !1 })
-], $.prototype, "api", void 0);
+  v({ attribute: !1 })
+], w.prototype, "api", 2);
 T([
-  d()
-], $.prototype, "_items", void 0);
+  l()
+], w.prototype, "_items", 2);
 T([
-  d()
-], $.prototype, "_loading", void 0);
+  l()
+], w.prototype, "_loading", 2);
 T([
-  d()
-], $.prototype, "_filter", void 0);
+  l()
+], w.prototype, "_filter", 2);
 T([
-  d()
-], $.prototype, "_onlyEnabled", void 0);
+  l()
+], w.prototype, "_onlyEnabled", 2);
 T([
-  d()
-], $.prototype, "_newAddr", void 0);
+  l()
+], w.prototype, "_newAddr", 2);
 T([
-  d()
-], $.prototype, "_newLabel", void 0);
+  l()
+], w.prototype, "_newLabel", 2);
 T([
-  d()
-], $.prototype, "_newDpt", void 0);
+  l()
+], w.prototype, "_newDpt", 2);
 T([
-  d()
-], $.prototype, "_sevPopoverFor", void 0);
+  l()
+], w.prototype, "_sevPopoverFor", 2);
 T([
-  d()
-], $.prototype, "_sevPopoverPos", void 0);
+  l()
+], w.prototype, "_sevPopoverPos", 2);
 T([
-  d()
-], $.prototype, "_discovery", void 0);
+  l()
+], w.prototype, "_discovery", 2);
 T([
-  d()
-], $.prototype, "_discoveryStatus", void 0);
+  l()
+], w.prototype, "_discoveryStatus", 2);
 T([
-  d()
-], $.prototype, "_editing", void 0);
+  l()
+], w.prototype, "_editing", 2);
 T([
-  d()
-], $.prototype, "_toast", void 0);
+  l()
+], w.prototype, "_toast", 2);
 T([
-  d()
-], $.prototype, "_error", void 0);
-$ = T([
-  w("knx-addresses-view")
-], $);
-var De = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
+  l()
+], w.prototype, "_error", 2);
+w = T([
+  $("knx-addresses-view")
+], w);
+var Ps = Object.defineProperty, Es = Object.getOwnPropertyDescriptor, fe = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Es(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && Ps(e, s, r), r;
 };
 const zs = ["telegram", "pushover", "ntfy", "signal", "notify"], Os = ["debug", "info", "warning", "error"];
-var ie;
-let fe = (ie = class extends b {
+let Y = class extends b {
   constructor() {
     super(...arguments), this._items = [], this._editing = null, this._toast = "";
   }
@@ -3735,27 +3740,27 @@ let fe = (ie = class extends b {
       config: { service: "" }
     };
   }
-  _edit(e) {
-    this._editing = { ...e };
+  _edit(t) {
+    this._editing = { ...t };
   }
   async _save() {
     if (!(!this.api || !this._editing)) {
       try {
         this._editing.id == null ? await this.api.createChannel(this._editing) : await this.api.updateChannel(this._editing.id, this._editing), this._editing = null, this._toast = "gespeichert", await this._load();
-      } catch (e) {
-        this._toast = e.message;
+      } catch (t) {
+        this._toast = t.message;
       }
       window.setTimeout(() => this._toast = "", 2400);
     }
   }
-  async _delete(e) {
-    !this.api || e.id == null || window.confirm(`Channel '${e.name}' löschen?`) && (await this.api.deleteChannel(e.id), await this._load());
+  async _delete(t) {
+    !this.api || t.id == null || window.confirm(`Channel '${t.name}' löschen?`) && (await this.api.deleteChannel(t.id), await this._load());
   }
-  _renderTypeFields(e, t) {
-    const s = e.config ?? {}, a = (r, o) => {
-      t({ config: { ...s, [r]: o } });
+  _renderTypeFields(t, e) {
+    const s = t.config ?? {}, a = (r, i) => {
+      e({ config: { ...s, [r]: i } });
     };
-    return e.channel_type === "telegram" ? n`
+    return t.channel_type === "telegram" ? o`
         <div class="row-2">
           <label>
             <span>Bot-Token</span>
@@ -3777,7 +3782,7 @@ let fe = (ie = class extends b {
             <small>An @userinfobot eine Nachricht senden, dort steht die ID.</small>
           </label>
         </div>
-      ` : e.channel_type === "pushover" ? n`
+      ` : t.channel_type === "pushover" ? o`
         <div class="row-2">
           <label>
             <span>App-Token</span>
@@ -3804,7 +3809,7 @@ let fe = (ie = class extends b {
             @input=${(r) => a("device", r.target.value)}
           />
         </label>
-      ` : e.channel_type === "ntfy" ? n`
+      ` : t.channel_type === "ntfy" ? o`
         <div class="row-2">
           <label>
             <span>Server (Default ntfy.sh)</span>
@@ -3831,7 +3836,7 @@ let fe = (ie = class extends b {
             @input=${(r) => a("token", r.target.value)}
           />
         </label>
-      ` : n`
+      ` : o`
       <label>
         <span>Notify-Service-Name (ohne <code>notify.</code>)</span>
         <input
@@ -3843,48 +3848,48 @@ let fe = (ie = class extends b {
     `;
   }
   _renderEditor() {
-    const e = this._editing, t = (s) => {
-      this._editing = { ...e, ...s };
+    const t = this._editing, e = (s) => {
+      this._editing = { ...t, ...s };
     };
-    return n`
+    return o`
       <div class="modal-bg" @click=${() => this._editing = null}>
         <div class="modal" @click=${(s) => s.stopPropagation()}>
-          <h3>${e.id == null ? "Neuen Channel anlegen" : `${e.name} bearbeiten`}</h3>
+          <h3>${t.id == null ? "Neuen Channel anlegen" : `${t.name} bearbeiten`}</h3>
           <label
             ><span>Name</span
             ><input
-              .value=${e.name}
-              @input=${(s) => t({ name: s.target.value })}
+              .value=${t.name}
+              @input=${(s) => e({ name: s.target.value })}
           /></label>
           <label>
             <span>Typ</span>
             <select
-              .value=${e.channel_type}
+              .value=${t.channel_type}
               @change=${(s) => {
       const a = s.target.value;
-      t({ channel_type: a, config: {} });
+      e({ channel_type: a, config: {} });
     }}
             >
-              ${zs.map((s) => n`<option value=${s}>${s}</option>`)}
+              ${zs.map((s) => o`<option value=${s}>${s}</option>`)}
             </select>
             <small>
-              ${e.channel_type === "telegram" ? "Direkt an Telegram-Bot-API. Bot-Token + Chat-ID unten." : e.channel_type === "pushover" ? "Direkt an Pushover-API. App-Token + User-Key unten." : e.channel_type === "ntfy" ? "Direkt an ntfy-Server (ntfy.sh oder selbst-gehostet)." : e.channel_type === "signal" ? "Ueber HA-Service notify.<service>. Trag Namen unten ein." : "Ueber HA-Service notify.<service>."}
+              ${t.channel_type === "telegram" ? "Direkt an Telegram-Bot-API. Bot-Token + Chat-ID unten." : t.channel_type === "pushover" ? "Direkt an Pushover-API. App-Token + User-Key unten." : t.channel_type === "ntfy" ? "Direkt an ntfy-Server (ntfy.sh oder selbst-gehostet)." : t.channel_type === "signal" ? "Ueber HA-Service notify.<service>. Trag Namen unten ein." : "Ueber HA-Service notify.<service>."}
             </small>
           </label>
 
-          ${this._renderTypeFields(e, t)}
+          ${this._renderTypeFields(t, e)}
 
           <div class="row-2">
             <label>
               <span>Severity-Schwelle</span>
               <select
-                .value=${e.severity_threshold}
+                .value=${t.severity_threshold}
                 @change=${(s) => {
       const a = s.target.value;
-      t({ severity_threshold: a });
+      e({ severity_threshold: a });
     }}
               >
-                ${Os.map((s) => n`<option value=${s}>${s}</option>`)}
+                ${Os.map((s) => o`<option value=${s}>${s}</option>`)}
               </select>
             </label>
             <label>
@@ -3892,8 +3897,8 @@ let fe = (ie = class extends b {
               <input
                 type="number"
                 min="0"
-                .value=${String(e.throttle_seconds)}
-                @input=${(s) => t({ throttle_seconds: +s.target.value })}
+                .value=${String(t.throttle_seconds)}
+                @input=${(s) => e({ throttle_seconds: +s.target.value })}
               />
             </label>
           </div>
@@ -3903,16 +3908,16 @@ let fe = (ie = class extends b {
               <span>Quiet Hours Start (HH:MM)</span>
               <input
                 placeholder="22:00"
-                .value=${e.quiet_start ?? ""}
-                @input=${(s) => t({ quiet_start: s.target.value || null })}
+                .value=${t.quiet_start ?? ""}
+                @input=${(s) => e({ quiet_start: s.target.value || null })}
               />
             </label>
             <label>
               <span>Quiet Hours Ende (HH:MM)</span>
               <input
                 placeholder="07:00"
-                .value=${e.quiet_end ?? ""}
-                @input=${(s) => t({ quiet_end: s.target.value || null })}
+                .value=${t.quiet_end ?? ""}
+                @input=${(s) => e({ quiet_end: s.target.value || null })}
               />
             </label>
           </div>
@@ -3920,15 +3925,15 @@ let fe = (ie = class extends b {
           <label class="checkbox">
             <input
               type="checkbox"
-              .checked=${e.quiet_bypass_error}
-              @change=${(s) => t({ quiet_bypass_error: s.target.checked })}
+              .checked=${t.quiet_bypass_error}
+              @change=${(s) => e({ quiet_bypass_error: s.target.checked })}
             /><span>Errors umgehen Quiet Hours</span>
           </label>
           <label class="checkbox">
             <input
               type="checkbox"
-              .checked=${e.enabled}
-              @change=${(s) => t({ enabled: s.target.checked })}
+              .checked=${t.enabled}
+              @change=${(s) => e({ enabled: s.target.checked })}
             /><span>aktiv</span>
           </label>
 
@@ -3941,7 +3946,7 @@ let fe = (ie = class extends b {
     `;
   }
   render() {
-    return n`
+    return o`
       <section>
         <header>
           <div>
@@ -3954,7 +3959,7 @@ let fe = (ie = class extends b {
           </div>
           <button class="primary" @click=${this._new}>+ Channel</button>
         </header>
-        ${this._items.length === 0 ? n`<p class="empty">Noch kein Channel angelegt.</p>` : n`<table>
+        ${this._items.length === 0 ? o`<p class="empty">Noch kein Channel angelegt.</p>` : o`<table>
               <thead>
                 <tr>
                   <th>Name</th>
@@ -3967,36 +3972,39 @@ let fe = (ie = class extends b {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map((e) => {
-      var t, s, a, r, o;
-      return n`<tr>
-                    <td>${e.name}</td>
+                ${this._items.map(
+      (t) => {
+        var e, s, a, r, i;
+        return o`<tr>
+                    <td>${t.name}</td>
                     <td>
-                      <code>${e.channel_type}</code>
-                      ${e.channel_type === "telegram" ? n` → <small>${((t = e.config) == null ? void 0 : t.chat_id) ?? "?"}</small>` : e.channel_type === "pushover" ? n` → <small>${((a = (s = e.config) == null ? void 0 : s.user_key) == null ? void 0 : a.slice(0, 8)) ?? "?"}…</small>` : e.channel_type === "ntfy" ? n` → <small>${((r = e.config) == null ? void 0 : r.topic) ?? "?"}</small>` : (o = e.config) != null && o.service ? n` → <code>notify.${e.config.service}</code>` : n`<span class="muted">— unkonfiguriert</span>`}
+                      <code>${t.channel_type}</code>
+                      ${t.channel_type === "telegram" ? o` → <small>${((e = t.config) == null ? void 0 : e.chat_id) ?? "?"}</small>` : t.channel_type === "pushover" ? o` → <small>${((a = (s = t.config) == null ? void 0 : s.user_key) == null ? void 0 : a.slice(0, 8)) ?? "?"}…</small>` : t.channel_type === "ntfy" ? o` → <small>${((r = t.config) == null ? void 0 : r.topic) ?? "?"}</small>` : (i = t.config) != null && i.service ? o` → <code>notify.${t.config.service}</code>` : o`<span class="muted">— unkonfiguriert</span>`}
                     </td>
-                    <td>${e.severity_threshold}</td>
+                    <td>${t.severity_threshold}</td>
                     <td>
-                      ${e.quiet_start && e.quiet_end ? n`${e.quiet_start}–${e.quiet_end}${e.quiet_bypass_error ? n` <small>(Err bypass)</small>` : ""}` : n`<span class="muted">—</span>`}
+                      ${t.quiet_start && t.quiet_end ? o`${t.quiet_start}–${t.quiet_end}${t.quiet_bypass_error ? o` <small>(Err bypass)</small>` : ""}` : o`<span class="muted">—</span>`}
                     </td>
-                    <td>${e.throttle_seconds}s</td>
-                    <td>${e.enabled ? "✓" : "—"}</td>
+                    <td>${t.throttle_seconds}s</td>
+                    <td>${t.enabled ? "✓" : "—"}</td>
                     <td class="actions">
-                      <button @click=${() => this._edit(e)}>Edit</button>
-                      <button class="danger" @click=${() => void this._delete(e)}>
+                      <button @click=${() => this._edit(t)}>Edit</button>
+                      <button class="danger" @click=${() => void this._delete(t)}>
                         Löschen
                       </button>
                     </td>
                   </tr>`;
-    })}
+      }
+    )}
               </tbody>
             </table>`}
         ${this._editing ? this._renderEditor() : null}
-        ${this._toast ? n`<div class="toast">${this._toast}</div>` : null}
+        ${this._toast ? o`<div class="toast">${this._toast}</div>` : null}
       </section>
     `;
   }
-}, ie.styles = _`
+};
+Y.styles = _`
     section {
       display: flex;
       flex-direction: column;
@@ -4167,29 +4175,28 @@ let fe = (ie = class extends b {
       font-size: 0.9em;
       z-index: 100;
     }
-  `, ie);
-De([
-  f({ attribute: !1 })
-], fe.prototype, "api", void 0);
-De([
-  d()
-], fe.prototype, "_items", void 0);
-De([
-  d()
-], fe.prototype, "_editing", void 0);
-De([
-  d()
-], fe.prototype, "_toast", void 0);
-fe = De([
-  w("channels-view")
-], fe);
-var y = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
+  `;
+fe([
+  v({ attribute: !1 })
+], Y.prototype, "api", 2);
+fe([
+  l()
+], Y.prototype, "_items", 2);
+fe([
+  l()
+], Y.prototype, "_editing", 2);
+fe([
+  l()
+], Y.prototype, "_toast", 2);
+Y = fe([
+  $("channels-view")
+], Y);
+var Ds = Object.defineProperty, Cs = Object.getOwnPropertyDescriptor, k = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Cs(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && Ds(e, s, r), r;
 };
-const ot = _`
+const Be = _`
   section {
     display: flex;
     flex-direction: column;
@@ -4303,8 +4310,7 @@ const ot = _`
     color: var(--secondary-text-color, #666);
   }
 `;
-var oe;
-let q = (oe = class extends b {
+let F = class extends b {
   constructor() {
     super(...arguments), this._items = [], this._newPattern = "", this._newSource = "", this._newSeverity = "info";
   }
@@ -4322,11 +4328,11 @@ let q = (oe = class extends b {
       enabled: !0
     }), this._newPattern = "", this._newSource = "", await this._load());
   }
-  async _delete(e) {
-    !this.api || e.id == null || window.confirm(`Subscription '${e.topic_pattern}' löschen?`) && (await this.api.deleteMqttTopic(e.id), await this._load());
+  async _delete(t) {
+    !this.api || t.id == null || window.confirm(`Subscription '${t.topic_pattern}' löschen?`) && (await this.api.deleteMqttTopic(t.id), await this._load());
   }
   render() {
-    return n`
+    return o`
       <section>
         <header>
           <h2>MQTT-Topic-Subscriptions</h2>
@@ -4341,17 +4347,17 @@ let q = (oe = class extends b {
           <input
             placeholder="Topic-Pattern (z. B. zigbee2mqtt/+/availability)"
             .value=${this._newPattern}
-            @input=${(e) => this._newPattern = e.target.value}
+            @input=${(t) => this._newPattern = t.target.value}
           />
           <input
             placeholder="Source (z. B. zigbee.health)"
             .value=${this._newSource}
-            @input=${(e) => this._newSource = e.target.value}
+            @input=${(t) => this._newSource = t.target.value}
           />
           <select
             .value=${this._newSeverity}
-            @change=${(e) => {
-      this._newSeverity = e.target.value;
+            @change=${(t) => {
+      this._newSeverity = t.target.value;
     }}
           >
             <option value="debug">debug</option>
@@ -4362,7 +4368,7 @@ let q = (oe = class extends b {
           <button class="primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
 
-        ${this._items.length === 0 ? n`<p class="empty">Noch keine Topics abonniert.</p>` : n`<table>
+        ${this._items.length === 0 ? o`<p class="empty">Noch keine Topics abonniert.</p>` : o`<table>
               <thead>
                 <tr>
                   <th>Topic-Pattern</th>
@@ -4373,43 +4379,45 @@ let q = (oe = class extends b {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map((e) => n`<tr>
-                    <td><code>${e.topic_pattern}</code></td>
-                    <td>${e.source}</td>
-                    <td>${e.severity}</td>
-                    <td>${e.enabled ? "✓" : "—"}</td>
+                ${this._items.map(
+      (t) => o`<tr>
+                    <td><code>${t.topic_pattern}</code></td>
+                    <td>${t.source}</td>
+                    <td>${t.severity}</td>
+                    <td>${t.enabled ? "✓" : "—"}</td>
                     <td class="actions">
-                      <button class="danger" @click=${() => void this._delete(e)}>
+                      <button class="danger" @click=${() => void this._delete(t)}>
                         Löschen
                       </button>
                     </td>
-                  </tr>`)}
+                  </tr>`
+    )}
               </tbody>
             </table>`}
       </section>
     `;
   }
-}, oe.styles = ot, oe);
-y([
-  f({ attribute: !1 })
-], q.prototype, "api", void 0);
-y([
-  d()
-], q.prototype, "_items", void 0);
-y([
-  d()
-], q.prototype, "_newPattern", void 0);
-y([
-  d()
-], q.prototype, "_newSource", void 0);
-y([
-  d()
-], q.prototype, "_newSeverity", void 0);
-q = y([
-  w("mqtt-topics-view")
-], q);
-var ne;
-let be = (ne = class extends b {
+};
+F.styles = Be;
+k([
+  v({ attribute: !1 })
+], F.prototype, "api", 2);
+k([
+  l()
+], F.prototype, "_items", 2);
+k([
+  l()
+], F.prototype, "_newPattern", 2);
+k([
+  l()
+], F.prototype, "_newSource", 2);
+k([
+  l()
+], F.prototype, "_newSeverity", 2);
+F = k([
+  $("mqtt-topics-view")
+], F);
+let Q = class extends b {
   constructor() {
     super(...arguments), this._items = [], this._newSource = "", this._newInterval = 3600;
   }
@@ -4423,7 +4431,7 @@ let be = (ne = class extends b {
     !this.api || !this._newSource.trim() || (await this.api.upsertHeartbeat(this._newSource.trim(), this._newInterval), this._newSource = "", await this._load());
   }
   render() {
-    return n`
+    return o`
       <section>
         <header>
           <h2>Heartbeat-Quellen</h2>
@@ -4438,18 +4446,18 @@ let be = (ne = class extends b {
           <input
             placeholder="Source (z. B. raspi-keller)"
             .value=${this._newSource}
-            @input=${(e) => this._newSource = e.target.value}
+            @input=${(t) => this._newSource = t.target.value}
           />
           <input
             type="number"
             min="60"
             placeholder="Intervall (Sek)"
             .value=${String(this._newInterval)}
-            @input=${(e) => this._newInterval = +e.target.value}
+            @input=${(t) => this._newInterval = +t.target.value}
           />
           <button class="primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
-        ${this._items.length === 0 ? n`<p class="empty">Noch keine Heartbeat-Quellen.</p>` : n`<table>
+        ${this._items.length === 0 ? o`<p class="empty">Noch keine Heartbeat-Quellen.</p>` : o`<table>
               <thead>
                 <tr>
                   <th>Source</th>
@@ -4459,37 +4467,39 @@ let be = (ne = class extends b {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map((e) => n`<tr>
-                    <td><code>${e.source}</code></td>
-                    <td>${e.expected_interval_seconds}</td>
-                    <td>${e.last_seen ?? n`<span class="muted">—</span>`}</td>
+                ${this._items.map(
+      (t) => o`<tr>
+                    <td><code>${t.source}</code></td>
+                    <td>${t.expected_interval_seconds}</td>
+                    <td>${t.last_seen ?? o`<span class="muted">—</span>`}</td>
                     <td>
-                      ${e.silent_alert_active ? n`<span class="alert">⚠ silent</span>` : n`<span class="ok">✓ ok</span>`}
+                      ${t.silent_alert_active ? o`<span class="alert">⚠ silent</span>` : o`<span class="ok">✓ ok</span>`}
                     </td>
-                  </tr>`)}
+                  </tr>`
+    )}
               </tbody>
             </table>`}
       </section>
     `;
   }
-}, ne.styles = ot, ne);
-y([
-  f({ attribute: !1 })
-], be.prototype, "api", void 0);
-y([
-  d()
-], be.prototype, "_items", void 0);
-y([
-  d()
-], be.prototype, "_newSource", void 0);
-y([
-  d()
-], be.prototype, "_newInterval", void 0);
-be = y([
-  w("heartbeats-view")
-], be);
-var le;
-let N = (le = class extends b {
+};
+Q.styles = Be;
+k([
+  v({ attribute: !1 })
+], Q.prototype, "api", 2);
+k([
+  l()
+], Q.prototype, "_items", 2);
+k([
+  l()
+], Q.prototype, "_newSource", 2);
+k([
+  l()
+], Q.prototype, "_newInterval", 2);
+Q = k([
+  $("heartbeats-view")
+], Q);
+let M = class extends b {
   constructor() {
     super(...arguments), this._items = [], this._newName = "", this._newSource = "", this._newAutomation = "", this._newAuto = !1;
   }
@@ -4508,11 +4518,11 @@ let N = (le = class extends b {
       enabled: !0
     }), this._newName = "", this._newSource = "", this._newAutomation = "", await this._load());
   }
-  async _delete(e) {
-    !this.api || e.id == null || window.confirm(`Hook '${e.name}' löschen?`) && (await this.api.deleteRemediationHook(e.id), await this._load());
+  async _delete(t) {
+    !this.api || t.id == null || window.confirm(`Hook '${t.name}' löschen?`) && (await this.api.deleteRemediationHook(t.id), await this._load());
   }
   render() {
-    return n`
+    return o`
       <section>
         <header>
           <h2>Auto-Remediation</h2>
@@ -4529,29 +4539,29 @@ let N = (le = class extends b {
           <input
             placeholder="Name (z. B. AP-Restart)"
             .value=${this._newName}
-            @input=${(e) => this._newName = e.target.value}
+            @input=${(t) => this._newName = t.target.value}
           />
           <input
             placeholder="Source-Pattern (% erlaubt)"
             .value=${this._newSource}
-            @input=${(e) => this._newSource = e.target.value}
+            @input=${(t) => this._newSource = t.target.value}
           />
           <input
             placeholder="automation.foo / script.bar"
             .value=${this._newAutomation}
-            @input=${(e) => this._newAutomation = e.target.value}
+            @input=${(t) => this._newAutomation = t.target.value}
           />
           <label class="inline">
             <input
               type="checkbox"
               .checked=${this._newAuto}
-              @change=${(e) => this._newAuto = e.target.checked}
+              @change=${(t) => this._newAuto = t.target.checked}
             />
             <span>Auto</span>
           </label>
           <button class="primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
-        ${this._items.length === 0 ? n`<p class="empty">Noch keine Hooks.</p>` : n`<table>
+        ${this._items.length === 0 ? o`<p class="empty">Noch keine Hooks.</p>` : o`<table>
               <thead>
                 <tr>
                   <th>Name</th>
@@ -4563,74 +4573,74 @@ let N = (le = class extends b {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map((e) => n`<tr>
-                    <td>${e.name}</td>
-                    <td><code>${e.source_pattern}</code></td>
-                    <td><code>${e.automation_id}</code></td>
+                ${this._items.map(
+      (t) => o`<tr>
+                    <td>${t.name}</td>
+                    <td><code>${t.source_pattern}</code></td>
+                    <td><code>${t.automation_id}</code></td>
                     <td>
-                      ${e.confirm_required ? n`<span class="muted">Vorschlag</span>` : n`<span class="alert">Auto</span>`}
+                      ${t.confirm_required ? o`<span class="muted">Vorschlag</span>` : o`<span class="alert">Auto</span>`}
                     </td>
-                    <td>${e.enabled ? "✓" : "—"}</td>
+                    <td>${t.enabled ? "✓" : "—"}</td>
                     <td class="actions">
-                      <button class="danger" @click=${() => void this._delete(e)}>
+                      <button class="danger" @click=${() => void this._delete(t)}>
                         Löschen
                       </button>
                     </td>
-                  </tr>`)}
+                  </tr>`
+    )}
               </tbody>
             </table>`}
       </section>
     `;
   }
-}, le.styles = ot, le);
-y([
-  f({ attribute: !1 })
-], N.prototype, "api", void 0);
-y([
-  d()
-], N.prototype, "_items", void 0);
-y([
-  d()
-], N.prototype, "_newName", void 0);
-y([
-  d()
-], N.prototype, "_newSource", void 0);
-y([
-  d()
-], N.prototype, "_newAutomation", void 0);
-y([
-  d()
-], N.prototype, "_newAuto", void 0);
-N = y([
-  w("remediation-view")
-], N);
-var R = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
 };
-const Bt = [
+M.styles = Be;
+k([
+  v({ attribute: !1 })
+], M.prototype, "api", 2);
+k([
+  l()
+], M.prototype, "_items", 2);
+k([
+  l()
+], M.prototype, "_newName", 2);
+k([
+  l()
+], M.prototype, "_newSource", 2);
+k([
+  l()
+], M.prototype, "_newAutomation", 2);
+k([
+  l()
+], M.prototype, "_newAuto", 2);
+M = k([
+  $("remediation-view")
+], M);
+var Ls = Object.defineProperty, Ms = Object.getOwnPropertyDescriptor, j = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ms(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && Ls(e, s, r), r;
+};
+const Tt = [
   { id: "webhooks", label: "Webhooks", icon: "🔗" },
   { id: "knx", label: "KNX-Bus", icon: "🏠" },
   { id: "channels", label: "Channels", icon: "📨" },
   { id: "mqtt", label: "MQTT", icon: "📡" },
   { id: "heartbeats", label: "Heartbeats", icon: "💓" },
   { id: "remediation", label: "Auto-Remediation", icon: "🔧" }
-], Kt = "messagehub.settings.tab";
-function Ds() {
+], At = "messagehub.settings.tab";
+function Ns() {
   try {
-    const i = localStorage.getItem(Kt);
-    if (i && Bt.some((e) => e.id === i))
-      return i;
+    const t = localStorage.getItem(At);
+    if (t && Tt.some((e) => e.id === t)) return t;
   } catch {
   }
   return "webhooks";
 }
-var de;
-let z = (de = class extends b {
+let z = class extends b {
   constructor() {
-    super(...arguments), this._items = [], this._loading = !1, this._showForm = !1, this._editing = null, this._toast = "", this._menuOpenId = null, this._activeTab = Ds(), this._closeMenu = () => {
+    super(...arguments), this._items = [], this._loading = !1, this._showForm = !1, this._editing = null, this._toast = "", this._menuOpenId = null, this._activeTab = Ns(), this._closeMenu = () => {
       this._menuOpenId !== null && (this._menuOpenId = null);
     };
   }
@@ -4647,24 +4657,24 @@ let z = (de = class extends b {
       }
     }
   }
-  async _copyUrl(e) {
-    const t = `${window.location.origin}/api/webhook/${e}`;
+  async _copyUrl(t) {
+    const e = `${window.location.origin}/api/webhook/${t}`;
     try {
-      await navigator.clipboard.writeText(t), this._showToast("URL kopiert");
+      await navigator.clipboard.writeText(e), this._showToast("URL kopiert");
     } catch {
       this._showToast("Kopieren fehlgeschlagen");
     }
   }
-  async _delete(e) {
-    this.api && window.confirm(`Webhook „${e.name}" wirklich löschen?`) && (await this.api.deleteWebhook(e.webhook_id), this._showToast(`„${e.name}" gelöscht`), await this._load());
+  async _delete(t) {
+    this.api && window.confirm(`Webhook „${t.name}" wirklich löschen?`) && (await this.api.deleteWebhook(t.webhook_id), this._showToast(`„${t.name}" gelöscht`), await this._load());
   }
-  _toggleMenu(e) {
-    this._menuOpenId = this._menuOpenId === e ? null : e;
+  _toggleMenu(t) {
+    this._menuOpenId = this._menuOpenId === t ? null : t;
   }
-  async _toggle(e) {
-    this.api && (await this.api.updateWebhook(e.webhook_id, { enabled: !e.enabled }), await this._load());
+  async _toggle(t) {
+    this.api && (await this.api.updateWebhook(t.webhook_id, { enabled: !t.enabled }), await this._load());
   }
-  _onSaved(e) {
+  _onSaved(t) {
     this._showForm = !1, this._editing = null, this._showToast("Webhook gespeichert"), this._load();
   }
   _onCancel() {
@@ -4673,21 +4683,21 @@ let z = (de = class extends b {
   _add() {
     this._editing = null, this._showForm = !0;
   }
-  _edit(e) {
-    this._editing = e, this._showForm = !0;
+  _edit(t) {
+    this._editing = t, this._showForm = !0;
   }
-  _showToast(e) {
-    this._toast = e, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2400);
+  _showToast(t) {
+    this._toast = t, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2400);
   }
-  _selectTab(e) {
-    this._activeTab = e;
+  _selectTab(t) {
+    this._activeTab = t;
     try {
-      localStorage.setItem(Kt, e);
+      localStorage.setItem(At, t);
     } catch {
     }
   }
   _renderEmpty() {
-    return n`
+    return o`
       <div class="empty">
         <h3>Noch keine Webhooks</h3>
         <p>
@@ -4700,27 +4710,27 @@ let z = (de = class extends b {
       </div>
     `;
   }
-  _renderItem(e) {
-    const t = `${window.location.origin}/api/webhook/${e.webhook_id}`, s = this._menuOpenId === e.webhook_id;
-    return n`
-      <div class=${`webhook-card ${e.enabled ? "" : "disabled"}`}>
+  _renderItem(t) {
+    const e = `${window.location.origin}/api/webhook/${t.webhook_id}`, s = this._menuOpenId === t.webhook_id;
+    return o`
+      <div class=${`webhook-card ${t.enabled ? "" : "disabled"}`}>
         <header class="card-header">
           <div class="title">
             <span
-              class=${`status-dot ${e.enabled ? "ok" : "off"}`}
-              title=${e.enabled ? "Aktiv" : "Deaktiviert"}
+              class=${`status-dot ${t.enabled ? "ok" : "off"}`}
+              title=${t.enabled ? "Aktiv" : "Deaktiviert"}
               aria-hidden="true"
             ></span>
-            <h4>${e.name}</h4>
-            <span class=${`status-text ${e.enabled ? "ok" : "off"}`}>
-              ${e.enabled ? "Aktiv" : "Deaktiviert"}
+            <h4>${t.name}</h4>
+            <span class=${`status-text ${t.enabled ? "ok" : "off"}`}>
+              ${t.enabled ? "Aktiv" : "Deaktiviert"}
             </span>
           </div>
           <div class="card-actions" @click=${(a) => a.stopPropagation()}>
             <button
               class="mh-btn mh-btn--sm"
               title="Webhook bearbeiten"
-              @click=${() => this._edit(e)}
+              @click=${() => this._edit(t)}
             >
               <span aria-hidden="true">✎</span> Bearbeiten
             </button>
@@ -4730,26 +4740,26 @@ let z = (de = class extends b {
                 aria-label="Weitere Aktionen"
                 aria-haspopup="menu"
                 aria-expanded=${s}
-                @click=${() => this._toggleMenu(e.webhook_id)}
+                @click=${() => this._toggleMenu(t.webhook_id)}
               >
                 ⋮
               </button>
-              ${s ? n`<div class="overflow-menu" role="menu">
+              ${s ? o`<div class="overflow-menu" role="menu">
                     <button
                       role="menuitem"
                       class="overflow-item"
                       @click=${() => {
-      this._menuOpenId = null, this._toggle(e);
+      this._menuOpenId = null, this._toggle(t);
     }}
                     >
-                      ${e.enabled ? "Deaktivieren" : "Aktivieren"}
+                      ${t.enabled ? "Deaktivieren" : "Aktivieren"}
                     </button>
                     <hr />
                     <button
                       role="menuitem"
                       class="overflow-item danger"
                       @click=${() => {
-      this._menuOpenId = null, this._delete(e);
+      this._menuOpenId = null, this._delete(t);
     }}
                     >
                       Löschen
@@ -4762,53 +4772,55 @@ let z = (de = class extends b {
         <div class="meta">
           <span class="meta-pill">
             <span class="meta-key">Source</span>
-            <code>${e.default_source}</code>
+            <code>${t.default_source}</code>
           </span>
           <span class="meta-pill">
             <span class="meta-key">Severity</span>
-            <code>${e.default_severity}</code>
+            <code>${t.default_severity}</code>
           </span>
         </div>
 
         <div class="url-row">
-          <code class="url" title=${t}>${t}</code>
+          <code class="url" title=${e}>${e}</code>
           <button
             class="mh-btn mh-btn--sm"
-            @click=${() => this._copyUrl(e.webhook_id)}
+            @click=${() => this._copyUrl(t.webhook_id)}
             title="URL in Zwischenablage kopieren"
           >
             <span aria-hidden="true">⧉</span> Kopieren
           </button>
         </div>
 
-        ${e.field_map ? n`<details class="mapping">
+        ${t.field_map ? o`<details class="mapping">
               <summary>JSONPath-Mapping anzeigen</summary>
-              <pre><code>${JSON.stringify(e.field_map, null, 2)}</code></pre>
+              <pre><code>${JSON.stringify(t.field_map, null, 2)}</code></pre>
             </details>` : null}
       </div>
     `;
   }
   render() {
-    return n`
+    return o`
       <div class="root" @click=${this._closeMenu}>
         <nav class="tabs" role="tablist" aria-label="Einstellungs-Bereiche">
-          ${Bt.map((e) => n`<button
+          ${Tt.map(
+      (t) => o`<button
               role="tab"
-              aria-selected=${this._activeTab === e.id}
-              class=${`tab ${this._activeTab === e.id ? "active" : ""}`}
-              title=${e.label}
-              @click=${() => this._selectTab(e.id)}
+              aria-selected=${this._activeTab === t.id}
+              class=${`tab ${this._activeTab === t.id ? "active" : ""}`}
+              title=${t.label}
+              @click=${() => this._selectTab(t.id)}
             >
-              <span class="tab-icon" aria-hidden="true">${e.icon}</span>
-              <span>${e.label}</span>
-            </button>`)}
+              <span class="tab-icon" aria-hidden="true">${t.icon}</span>
+              <span>${t.label}</span>
+            </button>`
+    )}
         </nav>
 
         <div class="tab-panel" role="tabpanel">
           ${this._renderActiveTab()}
         </div>
 
-        ${this._toast ? n`<div class="toast">${this._toast}</div>` : null}
+        ${this._toast ? o`<div class="toast">${this._toast}</div>` : null}
       </div>
     `;
   }
@@ -4817,19 +4829,19 @@ let z = (de = class extends b {
       case "webhooks":
         return this._renderWebhooks();
       case "knx":
-        return n`<knx-addresses-view .api=${this.api}></knx-addresses-view>`;
+        return o`<knx-addresses-view .api=${this.api}></knx-addresses-view>`;
       case "channels":
-        return n`<channels-view .api=${this.api}></channels-view>`;
+        return o`<channels-view .api=${this.api}></channels-view>`;
       case "mqtt":
-        return n`<mqtt-topics-view .api=${this.api}></mqtt-topics-view>`;
+        return o`<mqtt-topics-view .api=${this.api}></mqtt-topics-view>`;
       case "heartbeats":
-        return n`<heartbeats-view .api=${this.api}></heartbeats-view>`;
+        return o`<heartbeats-view .api=${this.api}></heartbeats-view>`;
       case "remediation":
-        return n`<remediation-view .api=${this.api}></remediation-view>`;
+        return o`<remediation-view .api=${this.api}></remediation-view>`;
     }
   }
   _renderWebhooks() {
-    return n`
+    return o`
       <section>
         <header class="section-head">
           <div>
@@ -4839,26 +4851,27 @@ let z = (de = class extends b {
               optionales JSONPath-Mapping für beliebige Payload-Strukturen.
             </p>
           </div>
-          ${this._items.length > 0 && !this._showForm ? n`<button class="mh-btn mh-btn--primary" @click=${this._add}>
+          ${this._items.length > 0 && !this._showForm ? o`<button class="mh-btn mh-btn--primary" @click=${this._add}>
                 + Webhook anlegen
               </button>` : null}
         </header>
 
-        ${this._showForm ? n`<webhook-form
+        ${this._showForm ? o`<webhook-form
               .api=${this.api}
               .editing=${this._editing}
               @saved=${this._onSaved}
               @cancel=${this._onCancel}
             ></webhook-form>` : null}
 
-        ${this._loading ? n`<p class="status">lade…</p>` : this._items.length === 0 && !this._showForm ? this._renderEmpty() : n`<div class="grid">${this._items.map((e) => this._renderItem(e))}</div>`}
+        ${this._loading ? o`<p class="status">lade…</p>` : this._items.length === 0 && !this._showForm ? this._renderEmpty() : o`<div class="grid">${this._items.map((t) => this._renderItem(t))}</div>`}
       </section>
     `;
   }
-}, de.styles = [
-  O,
-  Pe,
-  rt,
+};
+z.styles = [
+  D,
+  me,
+  Fe,
   _`
       :host {
         display: block;
@@ -5215,53 +5228,51 @@ let z = (de = class extends b {
         }
       }
     `
-], de);
-R([
-  f({ attribute: !1 })
-], z.prototype, "api", void 0);
-R([
-  d()
-], z.prototype, "_items", void 0);
-R([
-  d()
-], z.prototype, "_loading", void 0);
-R([
-  d()
-], z.prototype, "_showForm", void 0);
-R([
-  d()
-], z.prototype, "_editing", void 0);
-R([
-  d()
-], z.prototype, "_toast", void 0);
-R([
-  d()
-], z.prototype, "_menuOpenId", void 0);
-R([
-  d()
-], z.prototype, "_activeTab", void 0);
-z = R([
-  w("settings-view")
+];
+j([
+  v({ attribute: !1 })
+], z.prototype, "api", 2);
+j([
+  l()
+], z.prototype, "_items", 2);
+j([
+  l()
+], z.prototype, "_loading", 2);
+j([
+  l()
+], z.prototype, "_showForm", 2);
+j([
+  l()
+], z.prototype, "_editing", 2);
+j([
+  l()
+], z.prototype, "_toast", 2);
+j([
+  l()
+], z.prototype, "_menuOpenId", 2);
+j([
+  l()
+], z.prototype, "_activeTab", 2);
+z = j([
+  $("settings-view")
 ], z);
-var J = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
+var Hs = Object.defineProperty, js = Object.getOwnPropertyDescriptor, X = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? js(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && Hs(e, s, r), r;
 };
-const At = {
+const ct = {
   error: "Errors",
   warning: "Warnings",
   info: "Info",
   debug: "Debug"
-}, Et = {
+}, ht = {
   error: "var(--mh-error)",
   warning: "var(--mh-warning)",
   info: "var(--mh-info)",
   debug: "var(--mh-debug)"
-}, Pt = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], Cs = [1, 2, 3, 4, 5, 6, 0];
-var ce;
-let H = (ce = class extends b {
+}, pt = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], Is = [1, 2, 3, 4, 5, 6, 0];
+let N = class extends b {
   constructor() {
     super(...arguments), this._stats = null, this._sources = [], this._heatmap = [], this._topSources = [], this._loading = !1;
   }
@@ -5272,41 +5283,46 @@ let H = (ce = class extends b {
     if (this.api) {
       this._loading = !0;
       try {
-        const [e, t, s] = await Promise.all([
+        const [t, e, s] = await Promise.all([
           this.api.getStats(),
           this.api.listSources(),
           this.api.getStatsExtended(30)
         ]);
-        this._stats = e, this._sources = t, this._heatmap = s.heatmap, this._topSources = s.top_sources;
+        this._stats = t, this._sources = e, this._heatmap = s.heatmap, this._topSources = s.top_sources;
       } finally {
         this._loading = !1;
       }
     }
   }
   _renderHeatmap() {
-    const e = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0));
-    let t = 0;
+    const t = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0));
+    let e = 0;
     for (const s of this._heatmap)
-      s.weekday >= 0 && s.weekday < 7 && s.hour >= 0 && s.hour < 24 && (e[s.weekday][s.hour] = s.count, s.count > t && (t = s.count));
-    return t === 0 ? n`<p class="muted">Keine Daten in den letzten 30 Tagen.</p>` : n`
+      s.weekday >= 0 && s.weekday < 7 && s.hour >= 0 && s.hour < 24 && (t[s.weekday][s.hour] = s.count, s.count > e && (e = s.count));
+    return e === 0 ? o`<p class="muted">Keine Daten in den letzten 30 Tagen.</p>` : o`
       <div class="heatmap-wrap">
         <div class="heatmap">
           <div class="heatmap-header">
             <span></span>
-            ${Array.from({ length: 24 }, (s, a) => n`<span class="hour-label">${a % 3 === 0 ? a : ""}</span>`)}
+            ${Array.from(
+      { length: 24 },
+      (s, a) => o`<span class="hour-label">${a % 3 === 0 ? a : ""}</span>`
+    )}
           </div>
-          ${Cs.map((s, a) => {
-      const r = e[s];
-      return n`
+          ${Is.map((s, a) => {
+      const r = t[s];
+      return o`
               <div class="heatmap-row">
-                <span class="day-label">${Pt[a]}</span>
-                ${r.map((o, l) => {
-        const c = o === 0 ? 0 : Math.max(0.15, o / t), p = o === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(c * 100)}%, transparent)`;
-        return n`
+                <span class="day-label">${pt[a]}</span>
+                ${r.map((i, n) => {
+        const c = i === 0 ? 0 : Math.max(0.15, i / e), d = i === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(
+          c * 100
+        )}%, transparent)`;
+        return o`
                     <div
-                      class=${`heatmap-cell ${o === 0 ? "empty" : ""}`}
-                      style=${`background: ${p}`}
-                      title=${`${Pt[a]} ${l}:00 — ${o} Nachricht${o === 1 ? "" : "en"}`}
+                      class=${`heatmap-cell ${i === 0 ? "empty" : ""}`}
+                      style=${`background: ${d}`}
+                      title=${`${pt[a]} ${n}:00 — ${i} Nachricht${i === 1 ? "" : "en"}`}
                     ></div>
                   `;
       })}
@@ -5321,40 +5337,38 @@ let H = (ce = class extends b {
           <span class="legend-cell" style="background: color-mix(in srgb, var(--mh-accent) 50%, transparent)"></span>
           <span class="legend-cell" style="background: color-mix(in srgb, var(--mh-accent) 75%, transparent)"></span>
           <span class="legend-cell" style="background: var(--mh-accent)"></span>
-          <span class="muted small">mehr (max ${t})</span>
+          <span class="muted small">mehr (max ${e})</span>
         </div>
       </div>
     `;
   }
   _renderSeverityStack() {
-    if (!this._stats)
-      return n``;
-    const e = this._stats.severity_24h, t = Object.values(e).reduce((a, r) => a + r, 0), s = ["error", "warning", "info", "debug"];
-    return t === 0 ? n`<p class="muted">Keine Nachrichten in den letzten 24 Stunden.</p>` : n`
+    if (!this._stats) return o``;
+    const t = this._stats.severity_24h, e = Object.values(t).reduce((a, r) => a + r, 0), s = ["error", "warning", "info", "debug"];
+    return e === 0 ? o`<p class="muted">Keine Nachrichten in den letzten 24 Stunden.</p>` : o`
       <div class="stack-bar" role="img" aria-label="Severity-Verteilung der letzten 24 Stunden">
         ${s.map((a) => {
-      const r = e[a] ?? 0;
-      if (r === 0)
-        return null;
-      const o = r / t * 100;
-      return n`
+      const r = t[a] ?? 0;
+      if (r === 0) return null;
+      const i = r / e * 100;
+      return o`
             <div
               class=${`stack-seg sev-${a}`}
-              style=${`width: ${o}%; background: ${Et[a]}`}
-              title=${`${At[a]}: ${r} (${o.toFixed(0)}%)`}
+              style=${`width: ${i}%; background: ${ht[a]}`}
+              title=${`${ct[a]}: ${r} (${i.toFixed(0)}%)`}
             ></div>
           `;
     })}
       </div>
       <ul class="legend">
         ${s.map((a) => {
-      const r = e[a] ?? 0, o = t > 0 ? r / t * 100 : 0;
-      return n`
+      const r = t[a] ?? 0, i = e > 0 ? r / e * 100 : 0;
+      return o`
             <li>
-              <span class="legend-dot" style=${`background: ${Et[a]}`}></span>
-              <span class="legend-label">${At[a]}</span>
+              <span class="legend-dot" style=${`background: ${ht[a]}`}></span>
+              <span class="legend-label">${ct[a]}</span>
               <span class="legend-count">${r.toLocaleString("de-DE")}</span>
-              <span class="legend-pct muted">${o.toFixed(0)}%</span>
+              <span class="legend-pct muted">${i.toFixed(0)}%</span>
             </li>
           `;
     })}
@@ -5363,11 +5377,11 @@ let H = (ce = class extends b {
   }
   render() {
     if (this._loading && !this._stats)
-      return n`<div class="root"><p class="status">lade…</p></div>`;
+      return o`<div class="root"><p class="status">lade…</p></div>`;
     if (!this._stats)
-      return n`<div class="root"><p class="status">Keine Daten verfügbar.</p></div>`;
-    const e = this._stats, t = Object.values(e.severity_24h).reduce((o, l) => o + l, 0), s = e.severity_24h.error ?? 0, a = e.severity_24h.warning ?? 0, r = t > 0 ? s / t * 100 : 0;
-    return n`
+      return o`<div class="root"><p class="status">Keine Daten verfügbar.</p></div>`;
+    const t = this._stats, e = Object.values(t.severity_24h).reduce((i, n) => i + n, 0), s = t.severity_24h.error ?? 0, a = t.severity_24h.warning ?? 0, r = e > 0 ? s / e * 100 : 0;
+    return o`
       <div class="root">
         <section>
           <header class="section-head">
@@ -5379,19 +5393,19 @@ let H = (ce = class extends b {
           <div class="kpis">
             <div class="kpi">
               <span class="kpi-label">Gesamt</span>
-              <span class="kpi-value">${e.total.toLocaleString("de-DE")}</span>
+              <span class="kpi-value">${t.total.toLocaleString("de-DE")}</span>
               <span class="kpi-hint">Nachrichten in der Datenbank</span>
             </div>
             <div class="kpi accent-info">
               <span class="kpi-label">Letzte 24 h</span>
-              <span class="kpi-value">${t.toLocaleString("de-DE")}</span>
+              <span class="kpi-value">${e.toLocaleString("de-DE")}</span>
               <span class="kpi-hint">alle Severities</span>
             </div>
             <div class="kpi accent-error">
               <span class="kpi-label">Errors 24 h</span>
               <span class="kpi-value">${s}</span>
               <span class="kpi-hint">
-                ${t === 0 ? "—" : `${r.toFixed(1)} % Anteil`}
+                ${e === 0 ? "—" : `${r.toFixed(1)} % Anteil`}
               </span>
             </div>
             <div class="kpi accent-warning">
@@ -5406,7 +5420,7 @@ let H = (ce = class extends b {
           <div class="mh-card">
             <div class="mh-card__header">
               <h3 class="mh-card__title">Severity-Verteilung (24 h)</h3>
-              <span class="muted small">${t.toLocaleString("de-DE")} Nachrichten</span>
+              <span class="muted small">${e.toLocaleString("de-DE")} Nachrichten</span>
             </div>
             ${this._renderSeverityStack()}
           </div>
@@ -5418,11 +5432,13 @@ let H = (ce = class extends b {
               <h3 class="mh-card__title">Aktive Quellen</h3>
               <span class="muted small">${this._sources.length}</span>
             </div>
-            ${this._sources.length === 0 ? n`<p class="muted">
+            ${this._sources.length === 0 ? o`<p class="muted">
                   Noch keine Quellen erfasst. Sobald die erste Nachricht reinkommt,
                   erscheint sie hier.
-                </p>` : n`<ul class="sources">
-                  ${this._sources.map((o) => n`<li class="source-pill">${o}</li>`)}
+                </p>` : o`<ul class="sources">
+                  ${this._sources.map(
+      (i) => o`<li class="source-pill">${i}</li>`
+    )}
                 </ul>`}
           </div>
         </section>
@@ -5441,17 +5457,17 @@ let H = (ce = class extends b {
             <div class="mh-card__header">
               <h3 class="mh-card__title">Top-10 Quellen (30 Tage)</h3>
             </div>
-            ${this._topSources.length === 0 ? n`<p class="muted">Keine Daten.</p>` : n`<ul class="top-sources">
-                  ${this._topSources.map((o, l) => {
-      var g;
-      const c = ((g = this._topSources[0]) == null ? void 0 : g.count) ?? 1, p = o.count / c * 100;
-      return n`<li>
-                      <span class="rank">${l + 1}</span>
-                      <code class="source-name">${o.source}</code>
+            ${this._topSources.length === 0 ? o`<p class="muted">Keine Daten.</p>` : o`<ul class="top-sources">
+                  ${this._topSources.map((i, n) => {
+      var u;
+      const c = ((u = this._topSources[0]) == null ? void 0 : u.count) ?? 1, d = i.count / c * 100;
+      return o`<li>
+                      <span class="rank">${n + 1}</span>
+                      <code class="source-name">${i.source}</code>
                       <span class="bar-track">
-                        <span class="bar-fill" style=${`width: ${p}%`}></span>
+                        <span class="bar-fill" style=${`width: ${d}%`}></span>
                       </span>
-                      <span class="bar-count">${o.count.toLocaleString("de-DE")}</span>
+                      <span class="bar-count">${i.count.toLocaleString("de-DE")}</span>
                     </li>`;
     })}
                 </ul>`}
@@ -5460,10 +5476,11 @@ let H = (ce = class extends b {
       </div>
     `;
   }
-}, ce.styles = [
-  O,
-  rt,
-  ze,
+};
+N.styles = [
+  D,
+  Fe,
+  ge,
   _`
       :host { display: block; height: 100%; overflow-y: auto; background: var(--mh-bg); }
       .root {
@@ -5527,51 +5544,49 @@ let H = (ce = class extends b {
       .small { font-size: var(--mh-text-xs); }
       .status { color: var(--mh-fg-muted); padding: var(--mh-space-2) 0; margin: 0; }
     `
-], ce);
-J([
-  f({ attribute: !1 })
-], H.prototype, "api", void 0);
-J([
-  d()
-], H.prototype, "_stats", void 0);
-J([
-  d()
-], H.prototype, "_sources", void 0);
-J([
-  d()
-], H.prototype, "_heatmap", void 0);
-J([
-  d()
-], H.prototype, "_topSources", void 0);
-J([
-  d()
-], H.prototype, "_loading", void 0);
-H = J([
-  w("stats-live-view")
-], H);
-var Be = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
+];
+X([
+  v({ attribute: !1 })
+], N.prototype, "api", 2);
+X([
+  l()
+], N.prototype, "_stats", 2);
+X([
+  l()
+], N.prototype, "_sources", 2);
+X([
+  l()
+], N.prototype, "_heatmap", 2);
+X([
+  l()
+], N.prototype, "_topSources", 2);
+X([
+  l()
+], N.prototype, "_loading", 2);
+N = X([
+  $("stats-live-view")
+], N);
+var Us = Object.defineProperty, Fs = Object.getOwnPropertyDescriptor, Ae = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Fs(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && Us(e, s, r), r;
 };
-const Ce = [
+const be = [
   "var(--mh-error)",
   "var(--mh-warning)",
   "var(--mh-info)",
   "var(--mh-accent)",
   "var(--mh-success)"
 ];
-var he;
-let Ee = (he = class extends b {
+let ae = class extends b {
   constructor() {
     super(...arguments), this.items = [], this.width = 600, this.height = 120;
   }
   render() {
     if (this.items.length === 0)
-      return n`<p class="muted">Keine Timeline-Daten.</p>`;
-    const e = this._buildSeries(), t = this._allBuckets(), s = Math.max(1, ...this.items.map((p) => p.count)), a = { top: 8, right: 8, bottom: 18, left: 32 }, r = this.width - a.left - a.right, o = this.height - a.top - a.bottom, l = (p) => a.left + p / Math.max(1, t.length - 1) * r, c = (p) => a.top + (1 - p / s) * o;
-    return n`
+      return o`<p class="muted">Keine Timeline-Daten.</p>`;
+    const t = this._buildSeries(), e = this._allBuckets(), s = Math.max(1, ...this.items.map((d) => d.count)), a = { top: 8, right: 8, bottom: 18, left: 32 }, r = this.width - a.left - a.right, i = this.height - a.top - a.bottom, n = (d) => a.left + d / Math.max(1, e.length - 1) * r, c = (d) => a.top + (1 - d / s) * i;
+    return o`
       <svg
         viewBox=${`0 0 ${this.width} ${this.height}`}
         role="img"
@@ -5594,46 +5609,50 @@ let Ee = (he = class extends b {
         <text x="2" y=${this.height - a.bottom + 4} class="axis-label">0</text>
 
         <!-- Series -->
-        ${e.map((p, g) => {
-      const u = p.values.map((m, x) => `${l(x)},${c(m)}`).join(" "), v = Ce[g % Ce.length];
-      return n`<polyline
-            points=${u}
+        ${t.map((d, u) => {
+      const f = d.values.map(
+        (g, m) => `${n(m)},${c(g)}`
+      ).join(" "), p = be[u % be.length];
+      return o`<polyline
+            points=${f}
             class="series"
             fill="none"
-            stroke=${v}
+            stroke=${p}
             stroke-width="1.5"
-          ><title>${p.ga}</title></polyline>`;
+          ><title>${d.ga}</title></polyline>`;
     })}
       </svg>
       <div class="legend">
-        ${e.map((p, g) => n`<span class="legend-item">
+        ${t.map(
+      (d, u) => o`<span class="legend-item">
             <span
               class="dot"
-              style=${`background: ${Ce[g % Ce.length]}`}
+              style=${`background: ${be[u % be.length]}`}
             ></span>
-            <code>${p.ga}</code>
-          </span>`)}
+            <code>${d.ga}</code>
+          </span>`
+    )}
       </div>
     `;
   }
   _allBuckets() {
-    const e = /* @__PURE__ */ new Set();
-    for (const t of this.items)
-      e.add(t.bucket);
-    return Array.from(e).sort();
+    const t = /* @__PURE__ */ new Set();
+    for (const e of this.items) t.add(e.bucket);
+    return Array.from(t).sort();
   }
   _buildSeries() {
-    const e = this._allBuckets(), t = new Map(e.map((a, r) => [a, r])), s = /* @__PURE__ */ new Map();
+    const t = this._allBuckets(), e = new Map(t.map((a, r) => [a, r])), s = /* @__PURE__ */ new Map();
     for (const a of this.items) {
       let r = s.get(a.ga);
-      r === void 0 && (r = new Array(e.length).fill(0), s.set(a.ga, r));
-      const o = t.get(a.bucket);
-      o !== void 0 && (r[o] = a.count);
+      r === void 0 && (r = new Array(t.length).fill(0), s.set(a.ga, r));
+      const i = e.get(a.bucket);
+      i !== void 0 && (r[i] = a.count);
     }
     return Array.from(s.entries()).map(([a, r]) => ({ ga: a, values: r }));
   }
-}, he.styles = [
-  O,
+};
+ae.styles = [
+  D,
   _`
       :host {
         display: block;
@@ -5682,70 +5701,68 @@ let Ee = (he = class extends b {
         font-size: var(--mh-text-sm);
       }
     `
-], he);
-Be([
-  f({ attribute: !1 })
-], Ee.prototype, "items", void 0);
-Be([
-  f({ type: Number })
-], Ee.prototype, "width", void 0);
-Be([
-  f({ type: Number })
-], Ee.prototype, "height", void 0);
-Ee = Be([
-  w("knx-timeline-chart")
-], Ee);
-var A = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
+];
+Ae([
+  v({ attribute: !1 })
+], ae.prototype, "items", 2);
+Ae([
+  v({ type: Number })
+], ae.prototype, "width", 2);
+Ae([
+  v({ type: Number })
+], ae.prototype, "height", 2);
+ae = Ae([
+  $("knx-timeline-chart")
+], ae);
+var Rs = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, A = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Bs(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && Rs(e, s, r), r;
 };
-const Gt = "messagehub.knx-stats.filters", Ze = [
+const Pt = "messagehub.knx-stats.filters", Ne = [
   { id: "1h", label: "1 Std", days: 1 / 24 },
   { id: "6h", label: "6 Std", days: 0.25 },
   { id: "24h", label: "24 Std", days: 1 },
   { id: "48h", label: "48 Std", days: 2 }
-], Ls = [10, 25, 50, 100], zt = {
+], Ks = [10, 25, 50, 100], ut = {
   periodId: "24h",
   topN: 50,
   minRate: 1,
   includeAck: !0
 };
-function Rs() {
+function Gs() {
   try {
-    const i = localStorage.getItem(Gt);
-    if (i) {
-      const e = JSON.parse(i);
-      return { ...zt, ...e };
+    const t = localStorage.getItem(Pt);
+    if (t) {
+      const e = JSON.parse(t);
+      return { ...ut, ...e };
     }
   } catch {
   }
-  return { ...zt };
+  return { ...ut };
 }
-function Le(i) {
+function _e(t) {
   try {
-    localStorage.setItem(Gt, JSON.stringify(i));
+    localStorage.setItem(Pt, JSON.stringify(t));
   } catch {
   }
 }
-function Ms(i) {
-  const e = Ze.find((a) => a.id === i) ?? Ze[2], t = /* @__PURE__ */ new Date();
-  return { from: new Date(t.getTime() - e.days * 864e5).toISOString(), to: t.toISOString() };
+function Ws(t) {
+  const e = Ne.find((r) => r.id === t) ?? Ne[2], s = /* @__PURE__ */ new Date();
+  return { from: new Date(s.getTime() - e.days * 864e5).toISOString(), to: s.toISOString() };
 }
-var pe;
-let k = (pe = class extends b {
+let y = class extends b {
   constructor() {
-    super(...arguments), this._filters = Rs(), this._summary = null, this._busHealth = null, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._loading = !1, this._error = "", this._toast = "";
+    super(...arguments), this._filters = Gs(), this._summary = null, this._busHealth = null, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._loading = !1, this._error = "", this._toast = "";
   }
   async firstUpdated() {
     await this._load();
   }
   _apiFilters() {
-    const { from: e, to: t } = Ms(this._filters.periodId);
+    const { from: t, to: e } = Ws(this._filters.periodId);
     return {
-      from: e,
-      to: t,
+      from: t,
+      to: e,
       limit: this._filters.topN,
       minRate: this._filters.minRate,
       includeAcknowledged: this._filters.includeAck
@@ -5755,26 +5772,26 @@ let k = (pe = class extends b {
     if (this.api) {
       this._loading = !0, this._error = "";
       try {
-        const e = this._apiFilters(), [t, s, a, r, o, l] = await Promise.all([
-          this.api.getKnxStatsSummary(e),
-          this.api.getKnxStatsTop(e),
-          this.api.getKnxStatsBusHealth(e),
+        const t = this._apiFilters(), [e, s, a, r, i, n] = await Promise.all([
+          this.api.getKnxStatsSummary(t),
+          this.api.getKnxStatsTop(t),
+          this.api.getKnxStatsBusHealth(t),
           this.api.getKnxStatsSilence({
-            ...e,
+            ...t,
             maxSilenceMinutes: this._suggestSilenceMinutes()
           }),
-          this.api.getKnxStatsOrphans(e).catch(() => null),
-          this.api.getKnxStatsAlarms(e).catch(() => null)
+          this.api.getKnxStatsOrphans(t).catch(() => null),
+          this.api.getKnxStatsAlarms(t).catch(() => null)
         ]);
-        this._summary = t, this._top = s.items, this._busHealth = a, this._silence = r, this._orphans = o, this._alarms = l;
-        const c = s.items.slice(0, 5).map((p) => p.ga);
+        this._summary = e, this._top = s.items, this._busHealth = a, this._silence = r, this._orphans = i, this._alarms = n;
+        const c = s.items.slice(0, 5).map((d) => d.ga);
         c.length > 0 ? this._timeline = await this.api.getKnxStatsTimeline({
-          ...e,
+          ...t,
           gas: c,
           bucketMinutes: this._suggestBucketMinutes()
         }) : this._timeline = null;
-      } catch (e) {
-        this._error = e.message, this._summary = null, this._top = [], this._timeline = null, this._busHealth = null, this._silence = null, this._orphans = null, this._alarms = null;
+      } catch (t) {
+        this._error = t.message, this._summary = null, this._top = [], this._timeline = null, this._busHealth = null, this._silence = null, this._orphans = null, this._alarms = null;
       } finally {
         this._loading = !1;
       }
@@ -5806,84 +5823,90 @@ let k = (pe = class extends b {
         return 720;
     }
   }
-  async _loadDetail(e) {
+  async _loadDetail(t) {
     if (this.api) {
       this._detailLoading = !0, this._detail = null;
       try {
-        const t = this._apiFilters();
-        this._detail = await this.api.getKnxStatsGaDetail(e, t);
-      } catch (t) {
-        this._showToast(`Detail laden fehlgeschlagen: ${t.message}`);
+        const e = this._apiFilters();
+        this._detail = await this.api.getKnxStatsGaDetail(t, e);
+      } catch (e) {
+        this._showToast(`Detail laden fehlgeschlagen: ${e.message}`);
       } finally {
         this._detailLoading = !1;
       }
     }
   }
-  async _onSelectGa(e) {
-    if (this._selectedGa === e) {
+  async _onSelectGa(t) {
+    if (this._selectedGa === t) {
       this._selectedGa = null, this._detail = null;
       return;
     }
-    this._selectedGa = e, await this._loadDetail(e);
+    this._selectedGa = t, await this._loadDetail(t);
   }
-  async _ackGa(e) {
-    if (!this.api)
-      return;
-    const t = window.prompt(`Notiz fuer ${e} (optional, leer = keine Notiz):`, "");
-    if (t !== null)
+  async _ackGa(t) {
+    if (!this.api) return;
+    const e = window.prompt(
+      `Notiz fuer ${t} (optional, leer = keine Notiz):`,
+      ""
+    );
+    if (e !== null)
       try {
-        await this.api.acknowledgeKnxGa(e, { note: t || void 0 }), this._showToast(`${e} als bekannt markiert`), await this._load();
+        await this.api.acknowledgeKnxGa(t, { note: e || void 0 }), this._showToast(`${t} als bekannt markiert`), await this._load();
       } catch (s) {
         this._showToast(`Fehlgeschlagen: ${s.message}`);
       }
   }
-  async _unackGa(e) {
+  async _unackGa(t) {
     if (this.api)
       try {
-        await this.api.unacknowledgeKnxGa(e), this._showToast(`${e}: Acknowledge entfernt`), await this._load();
-      } catch (t) {
-        this._showToast(`Fehlgeschlagen: ${t.message}`);
+        await this.api.unacknowledgeKnxGa(t), this._showToast(`${t}: Acknowledge entfernt`), await this._load();
+      } catch (e) {
+        this._showToast(`Fehlgeschlagen: ${e.message}`);
       }
   }
-  _showToast(e) {
-    this._toast = e, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
+  _showToast(t) {
+    this._toast = t, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
   }
-  _onPeriod(e) {
-    this._filters = { ...this._filters, periodId: e }, Le(this._filters), this._load();
+  _onPeriod(t) {
+    this._filters = { ...this._filters, periodId: t }, _e(this._filters), this._load();
   }
-  _onTopN(e) {
-    this._filters = { ...this._filters, topN: e }, Le(this._filters), this._load();
+  _onTopN(t) {
+    this._filters = { ...this._filters, topN: t }, _e(this._filters), this._load();
   }
-  _onMinRate(e) {
-    this._filters = { ...this._filters, minRate: Math.max(0, e) }, Le(this._filters), this._load();
+  _onMinRate(t) {
+    this._filters = { ...this._filters, minRate: Math.max(0, t) }, _e(this._filters), this._load();
   }
   _onAckToggle() {
-    this._filters = { ...this._filters, includeAck: !this._filters.includeAck }, Le(this._filters), this._load();
+    this._filters = { ...this._filters, includeAck: !this._filters.includeAck }, _e(this._filters), this._load();
   }
   _renderFilterBar() {
-    return n`
+    return o`
       <div class="filters" role="toolbar" aria-label="KNX-Stats-Filter">
         <div class="filter-group">
           <span class="filter-label">Zeitraum</span>
           <div class="seg">
-            ${Ze.map((e) => n`<button
-                class=${`seg-btn ${this._filters.periodId === e.id ? "active" : ""}`}
-                @click=${() => this._onPeriod(e.id)}
+            ${Ne.map(
+      (t) => o`<button
+                class=${`seg-btn ${this._filters.periodId === t.id ? "active" : ""}`}
+                @click=${() => this._onPeriod(t.id)}
               >
-                ${e.label}
-              </button>`)}
+                ${t.label}
+              </button>`
+    )}
           </div>
         </div>
 
         <div class="filter-group">
           <span class="filter-label">Top-N</span>
           <div class="seg">
-            ${Ls.map((e) => n`<button
-                class=${`seg-btn ${this._filters.topN === e ? "active" : ""}`}
-                @click=${() => this._onTopN(e)}
+            ${Ks.map(
+      (t) => o`<button
+                class=${`seg-btn ${this._filters.topN === t ? "active" : ""}`}
+                @click=${() => this._onTopN(t)}
               >
-                ${e}
-              </button>`)}
+                ${t}
+              </button>`
+    )}
           </div>
         </div>
 
@@ -5895,7 +5918,7 @@ let k = (pe = class extends b {
             step="0.5"
             class="mh-input narrow"
             .value=${String(this._filters.minRate)}
-            @change=${(e) => this._onMinRate(parseFloat(e.target.value) || 0)}
+            @change=${(t) => this._onMinRate(parseFloat(t.target.value) || 0)}
           />
         </label>
 
@@ -5919,43 +5942,48 @@ let k = (pe = class extends b {
     `;
   }
   _renderKpis() {
-    const e = this._summary;
-    if (e === null)
-      return n`<p class="muted">Keine Daten verfuegbar.</p>`;
-    const t = e.counts_by_severity, s = e.estimated_busload_pct >= 30 ? "danger" : e.estimated_busload_pct >= 20 ? "warning" : e.estimated_busload_pct >= 10 ? "elevated" : "ok";
-    return n`
+    const t = this._summary;
+    if (t === null)
+      return o`<p class="muted">Keine Daten verfuegbar.</p>`;
+    const e = t.counts_by_severity, s = t.estimated_busload_pct >= 30 ? "danger" : t.estimated_busload_pct >= 20 ? "warning" : t.estimated_busload_pct >= 10 ? "elevated" : "ok";
+    return o`
       <div class="kpis">
         <div class="kpi">
           <span class="kpi-label">Telegramme</span>
-          <span class="kpi-value">${e.total_telegrams.toLocaleString("de-DE")}</span>
+          <span class="kpi-value">${t.total_telegrams.toLocaleString("de-DE")}</span>
           <span class="kpi-hint">im Zeitraum</span>
         </div>
         <div class="kpi">
           <span class="kpi-label">Aktive GAs</span>
-          <span class="kpi-value">${e.active_gas.toLocaleString("de-DE")}</span>
+          <span class="kpi-value">${t.active_gas.toLocaleString("de-DE")}</span>
           <span class="kpi-hint">im Protokoll</span>
         </div>
         <div class="kpi">
           <span class="kpi-label">Aktive Geraete</span>
-          <span class="kpi-value">${e.active_devices.toLocaleString("de-DE")}</span>
+          <span class="kpi-value">${t.active_devices.toLocaleString("de-DE")}</span>
           <span class="kpi-hint">Source-Adressen</span>
         </div>
         <div class=${`kpi busload busload--${s}`}>
           <span class="kpi-label">Geschaetzte Buslast</span>
-          <span class="kpi-value">${e.estimated_busload_pct.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %</span>
+          <span class="kpi-value">${t.estimated_busload_pct.toLocaleString(
+      "de-DE",
+      { minimumFractionDigits: 1, maximumFractionDigits: 1 }
+    )} %</span>
           <span class="kpi-hint">Ø ueber Zeitraum</span>
         </div>
       </div>
       <div class="severity-counts">
-        ${["red", "orange", "yellow", "green"].map((a) => n`<span class=${`mh-pill mh-pill--${a === "red" ? "error" : a === "orange" ? "warning" : a === "yellow" ? "info" : "neutral"}`}>
+        ${["red", "orange", "yellow", "green"].map(
+      (a) => o`<span class=${`mh-pill mh-pill--${a === "red" ? "error" : a === "orange" ? "warning" : a === "yellow" ? "info" : "neutral"}`}>
             <span class="mh-pill__dot"></span>
-            ${this._severityLabel(a)}: ${t[a] ?? 0}
-          </span>`)}
+            ${this._severityLabel(a)}: ${e[a] ?? 0}
+          </span>`
+    )}
       </div>
     `;
   }
-  _severityLabel(e) {
-    switch (e) {
+  _severityLabel(t) {
+    switch (t) {
       case "green":
         return "OK";
       case "yellow":
@@ -5967,7 +5995,7 @@ let k = (pe = class extends b {
     }
   }
   render() {
-    return n`
+    return o`
       <div class="root">
         <div class="info-banner">
           <strong>Bus-weite Auswertung:</strong>
@@ -5977,7 +6005,7 @@ let k = (pe = class extends b {
           landen zusaetzlich im Logbuch (Tab „Nachrichten").
         </div>
         ${this._renderFilterBar()}
-        ${this._error ? n`<div class="error">${this._error}</div>` : h}
+        ${this._error ? o`<div class="error">${this._error}</div>` : h}
         ${this._alarms !== null && this._alarms.triggered_count > 0 ? this._renderAlarmBanner() : h}
 
         <section class="mh-card kpi-card">
@@ -5985,7 +6013,7 @@ let k = (pe = class extends b {
             <h3>Uebersicht</h3>
             <span class="muted small">letzte ${this._filters.periodId}</span>
           </header>
-          ${this._loading && this._summary === null ? n`<p class="muted">lade…</p>` : this._renderKpis()}
+          ${this._loading && this._summary === null ? o`<p class="muted">lade…</p>` : this._renderKpis()}
         </section>
 
         ${this._busHealth !== null && this._busHealth.summary.total > 0 ? this._renderBusHealth() : h}
@@ -6000,7 +6028,7 @@ let k = (pe = class extends b {
           ${this._renderTopTable()}
         </section>
 
-        ${this._timeline !== null && this._timeline.items.length > 0 ? n`<section class="mh-card">
+        ${this._timeline !== null && this._timeline.items.length > 0 ? o`<section class="mh-card">
               <header class="card-head">
                 <h3>Tagesverlauf (Top-5, ${this._timeline.bucket_minutes}-Min-Buckets)</h3>
               </header>
@@ -6012,12 +6040,12 @@ let k = (pe = class extends b {
             </section>` : h}
 
         ${this._detail !== null || this._detailLoading ? this._renderDetailPane() : h}
-        ${this._toast ? n`<div class="toast">${this._toast}</div>` : h}
+        ${this._toast ? o`<div class="toast">${this._toast}</div>` : h}
       </div>
     `;
   }
   _renderTopTable() {
-    return this._loading && this._top.length === 0 ? n`<p class="muted">lade…</p>` : this._top.length === 0 ? n`<p class="muted">Keine Telegramme in diesem Zeitraum.</p>` : n`
+    return this._loading && this._top.length === 0 ? o`<p class="muted">lade…</p>` : this._top.length === 0 ? o`<p class="muted">Keine Telegramme in diesem Zeitraum.</p>` : o`
       <div class="table-wrap">
         <table>
           <thead>
@@ -6033,45 +6061,47 @@ let k = (pe = class extends b {
             </tr>
           </thead>
           <tbody>
-            ${this._top.map((e, t) => n`<tr
-                class=${`row-${e.severity} ${e.acknowledged ? "ack" : ""} ${this._selectedGa === e.ga ? "selected" : ""}`}
-                @click=${() => void this._onSelectGa(e.ga)}
+            ${this._top.map(
+      (t, e) => o`<tr
+                class=${`row-${t.severity} ${t.acknowledged ? "ack" : ""} ${this._selectedGa === t.ga ? "selected" : ""}`}
+                @click=${() => void this._onSelectGa(t.ga)}
               >
-                <td class="num muted">${t + 1}</td>
-                <td><code class="ga">${e.ga}</code></td>
-                <td class="label-cell" title=${e.label ?? ""}>
-                  ${e.label ?? n`<span class="muted">—</span>`}
+                <td class="num muted">${e + 1}</td>
+                <td><code class="ga">${t.ga}</code></td>
+                <td class="label-cell" title=${t.label ?? ""}>
+                  ${t.label ?? o`<span class="muted">—</span>`}
                 </td>
                 <td>
-                  ${e.dpt ? n`<code class="dpt">${e.dpt}</code>` : n`<span class="muted">—</span>`}
+                  ${t.dpt ? o`<code class="dpt">${t.dpt}</code>` : o`<span class="muted">—</span>`}
                 </td>
-                <td class="num strong">${e.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
-                <td class="num muted">${e.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                <td class="num strong">${t.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                <td class="num muted">${t.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
                 <td>
-                  <span class=${`mh-pill ${this._severityPillClass(e.severity)}`}>
+                  <span class=${`mh-pill ${this._severityPillClass(t.severity)}`}>
                     <span class="mh-pill__dot"></span>
-                    ${this._severityLabel(e.severity)}
+                    ${this._severityLabel(t.severity)}
                   </span>
-                  ${e.acknowledged ? n`<span class="ack-pill" title="acknowledged">✓ bekannt</span>` : h}
+                  ${t.acknowledged ? o`<span class="ack-pill" title="acknowledged">✓ bekannt</span>` : h}
                 </td>
                 <td class="actions">
-                  ${e.acknowledged ? n`<button
+                  ${t.acknowledged ? o`<button
                         class="mh-btn mh-btn--sm mh-btn--ghost"
                         @click=${(s) => {
-      s.stopPropagation(), this._unackGa(e.ga);
-    }}
+        s.stopPropagation(), this._unackGa(t.ga);
+      }}
                       >
                         ✗ Ack entfernen
-                      </button>` : n`<button
+                      </button>` : o`<button
                         class="mh-btn mh-btn--sm mh-btn--ghost"
                         @click=${(s) => {
-      s.stopPropagation(), this._ackGa(e.ga);
-    }}
+        s.stopPropagation(), this._ackGa(t.ga);
+      }}
                       >
                         ✓ Bekannt
                       </button>`}
                 </td>
-              </tr>`)}
+              </tr>`
+    )}
           </tbody>
         </table>
       </div>
@@ -6079,16 +6109,15 @@ let k = (pe = class extends b {
   }
   _renderDetailPane() {
     if (this._detailLoading && this._detail === null)
-      return n`<section class="mh-card detail-pane">
+      return o`<section class="mh-card detail-pane">
         <p class="muted">lade Details…</p>
       </section>`;
-    if (this._detail === null)
-      return n``;
-    const e = this._detail, t = e.recommendation;
-    return n`
+    if (this._detail === null) return o``;
+    const t = this._detail, e = t.recommendation;
+    return o`
       <section class="mh-card detail-pane">
         <header class="card-head">
-          <h3>${e.ga} — ${e.label ?? "Detail"}</h3>
+          <h3>${t.ga} — ${t.label ?? "Detail"}</h3>
           <button
             class="mh-btn mh-btn--sm mh-btn--ghost"
             @click=${() => {
@@ -6102,90 +6131,101 @@ let k = (pe = class extends b {
         <div class="detail-stats">
           <div class="detail-stat">
             <span class="muted small">Ist-Rate</span>
-            <strong>${e.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Tel/Min</strong>
+            <strong>${t.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Tel/Min</strong>
           </div>
           <div class="detail-stat">
             <span class="muted small">Soll-Rate</span>
-            <strong>${e.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Tel/Min</strong>
+            <strong>${t.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Tel/Min</strong>
           </div>
           <div class="detail-stat">
             <span class="muted small">Verhaeltnis</span>
-            <strong>${isFinite(t.ratio) ? t.ratio.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "x" : "∞"}</strong>
+            <strong>${isFinite(e.ratio) ? e.ratio.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "x" : "∞"}</strong>
           </div>
-          ${t.estimated_reduction_pct !== null ? n`<div class="detail-stat">
+          ${e.estimated_reduction_pct !== null ? o`<div class="detail-stat">
                 <span class="muted small">Geschaetzte Reduktion</span>
-                <strong>−${t.estimated_reduction_pct.toLocaleString("de-DE", { maximumFractionDigits: 0 })} %</strong>
+                <strong>−${e.estimated_reduction_pct.toLocaleString(
+      "de-DE",
+      { maximumFractionDigits: 0 }
+    )} %</strong>
               </div>` : h}
         </div>
 
-        <div class=${`recommendation rec-${t.severity}`}>
+        <div class=${`recommendation rec-${e.severity}`}>
           <strong>Empfehlung:</strong>
-          <p>${t.text}</p>
+          <p>${e.text}</p>
         </div>
 
-        ${e.findings.length > 0 ? n`<div class="findings">
+        ${t.findings.length > 0 ? o`<div class="findings">
               <strong>Erkannte Muster:</strong>
               <ul>
-                ${e.findings.map((s) => n`<li class=${`finding-${s.severity}`}>
+                ${t.findings.map(
+      (s) => o`<li class=${`finding-${s.severity}`}>
                     <span class=${`mh-pill ${this._severityPillClass(s.severity)}`}>
                       ${s.kind}
                     </span>
                     <span>${s.text}</span>
-                  </li>`)}
+                  </li>`
+    )}
               </ul>
             </div>` : h}
       </section>
     `;
   }
   _renderAlarmBanner() {
-    const t = this._alarms.alarms.filter((s) => s.triggered);
-    return n`
+    const e = this._alarms.alarms.filter((s) => s.triggered);
+    return o`
       <section class="alarm-banner">
-        <strong>⚠ ${t.length} Alarm(e) aktiv</strong>
+        <strong>⚠ ${e.length} Alarm(e) aktiv</strong>
         <ul>
-          ${t.map((s) => n`<li>
+          ${e.map(
+      (s) => o`<li>
               <span class="alarm-rule">${s.rule}</span>
               <span class="alarm-msg">${s.message}</span>
-            </li>`)}
+            </li>`
+    )}
         </ul>
       </section>
     `;
   }
   _renderOrphans() {
-    const e = this._orphans;
-    return n`
+    const t = this._orphans;
+    return o`
       <section class="mh-card">
         <header class="card-head">
           <h3>Verwaiste GAs (Projekt vs Realitaet)</h3>
           <span class="muted small">
-            Projekt: ${e.project_total} • geloggt: ${e.log_total}
+            Projekt: ${t.project_total} • geloggt: ${t.log_total}
           </span>
         </header>
         <div class="orphans-grid">
-          ${e.missing_in_log.length > 0 ? n`<div>
-                <strong>Im Projekt, nie gesehen (${e.missing_in_log.length})</strong>
+          ${t.missing_in_log.length > 0 ? o`<div>
+                <strong>Im Projekt, nie gesehen (${t.missing_in_log.length})</strong>
                 <ul class="orphans-list muted-list">
-                  ${e.missing_in_log.slice(0, 15).map((t) => n`<li>
-                      <code>${t.address}</code>
-                      <span>${t.name || "—"}</span>
-                      ${t.dpt ? n`<code class="dpt">${t.dpt}</code>` : h}
-                    </li>`)}
+                  ${t.missing_in_log.slice(0, 15).map(
+      (e) => o`<li>
+                      <code>${e.address}</code>
+                      <span>${e.name || "—"}</span>
+                      ${e.dpt ? o`<code class="dpt">${e.dpt}</code>` : h}
+                    </li>`
+    )}
                 </ul>
-                ${e.missing_in_log.length > 15 ? n`<p class="muted small">
-                      … und ${e.missing_in_log.length - 15} weitere
+                ${t.missing_in_log.length > 15 ? o`<p class="muted small">
+                      … und ${t.missing_in_log.length - 15} weitere
                     </p>` : h}
               </div>` : h}
-          ${e.extra_in_log.length > 0 ? n`<div>
-                <strong>Geloggt, nicht im Projekt (${e.extra_in_log.length})</strong>
+          ${t.extra_in_log.length > 0 ? o`<div>
+                <strong>Geloggt, nicht im Projekt (${t.extra_in_log.length})</strong>
                 <ul class="orphans-list extra-list">
-                  ${e.extra_in_log.slice(0, 15).map((t) => n`<li>
-                      <code>${t.address}</code>
-                      <span>${t.label ?? "—"}</span>
-                      <span class="muted num">${t.count}</span>
-                    </li>`)}
+                  ${t.extra_in_log.slice(0, 15).map(
+      (e) => o`<li>
+                      <code>${e.address}</code>
+                      <span>${e.label ?? "—"}</span>
+                      <span class="muted num">${e.count}</span>
+                    </li>`
+    )}
                 </ul>
-                ${e.extra_in_log.length > 15 ? n`<p class="muted small">
-                      … und ${e.extra_in_log.length - 15} weitere
+                ${t.extra_in_log.length > 15 ? o`<p class="muted small">
+                      … und ${t.extra_in_log.length - 15} weitere
                     </p>` : h}
               </div>` : h}
         </div>
@@ -6193,43 +6233,45 @@ let k = (pe = class extends b {
     `;
   }
   _renderSilenceAlarms() {
-    const e = this._silence, t = e.items.filter((s) => s.alarm);
-    return t.length === 0 ? n`` : n`
+    const t = this._silence, e = t.items.filter((s) => s.alarm);
+    return e.length === 0 ? o`` : o`
       <section class="mh-card silence-card">
         <header class="card-head">
-          <h3>Stille-Alarme (${e.alarm_count})</h3>
+          <h3>Stille-Alarme (${t.alarm_count})</h3>
           <span class="muted small">
-            Schwelle: &gt; ${e.max_silence_minutes} Min ohne Telegramm
+            Schwelle: &gt; ${t.max_silence_minutes} Min ohne Telegramm
           </span>
         </header>
         <ul class="silence-list">
-          ${t.slice(0, 10).map((s) => n`<li>
+          ${e.slice(0, 10).map(
+      (s) => o`<li>
               <code>${s.dev_source}</code>
               <span class="muted">
                 seit ${this._formatSilence(s.silent_minutes)} stumm
               </span>
               <span class="muted small">last_seen ${this._formatTs(s.last_seen)}</span>
-            </li>`)}
+            </li>`
+    )}
         </ul>
-        ${e.alarm_count > 10 ? n`<p class="muted small">
-              … und ${e.alarm_count - 10} weitere
+        ${t.alarm_count > 10 ? o`<p class="muted small">
+              … und ${t.alarm_count - 10} weitere
             </p>` : h}
       </section>
     `;
   }
-  _formatSilence(e) {
-    return e >= 1440 ? `${Math.floor(e / 1440)} Tagen` : e >= 60 ? `${Math.floor(e / 60)} Std` : `${Math.round(e)} Min`;
+  _formatSilence(t) {
+    return t >= 1440 ? `${Math.floor(t / 1440)} Tagen` : t >= 60 ? `${Math.floor(t / 60)} Std` : `${Math.round(t)} Min`;
   }
-  _formatTs(e) {
+  _formatTs(t) {
     try {
-      return new Date(e).toLocaleString("de-DE");
+      return new Date(t).toLocaleString("de-DE");
     } catch {
-      return e;
+      return t;
     }
   }
   _renderBusHealth() {
-    const e = this._busHealth, t = e.summary.ratio_pct, s = t >= 1 ? "danger" : t >= 0.5 ? "warning" : t > 0 ? "elevated" : "ok";
-    return n`
+    const t = this._busHealth, e = t.summary.ratio_pct, s = e >= 1 ? "danger" : e >= 0.5 ? "warning" : e > 0 ? "elevated" : "ok";
+    return o`
       <section class="mh-card">
         <header class="card-head">
           <h3>Bus-Gesundheit (Wiederholrate)</h3>
@@ -6240,13 +6282,13 @@ let k = (pe = class extends b {
         <div class="kpis">
           <div class=${`kpi busload busload--${s}`}>
             <span class="kpi-label">Wiederhol-Quote</span>
-            <span class="kpi-value">${t.toLocaleString("de-DE", {
+            <span class="kpi-value">${e.toLocaleString("de-DE", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })} %</span>
             <span class="kpi-hint">
-              ${e.summary.repeated.toLocaleString("de-DE")} von
-              ${e.summary.total.toLocaleString("de-DE")} Telegrammen
+              ${t.summary.repeated.toLocaleString("de-DE")} von
+              ${t.summary.total.toLocaleString("de-DE")} Telegrammen
             </span>
           </div>
           <div class="kpi">
@@ -6255,25 +6297,27 @@ let k = (pe = class extends b {
             <span class="kpi-hint">Empfehlung KNX-Praxis</span>
           </div>
         </div>
-        ${e.per_ga.length > 0 ? n`<div class="bus-health-list">
+        ${t.per_ga.length > 0 ? o`<div class="bus-health-list">
               <strong>Top-GAs mit Wiederholungen:</strong>
               <ul>
-                ${e.per_ga.slice(0, 5).map((a) => n`<li>
+                ${t.per_ga.slice(0, 5).map(
+      (a) => o`<li>
                     <code>${a.ga}</code>
                     <span class="muted">${a.label ?? "—"}</span>
                     <span class="num">${a.repeated} / ${a.total}</span>
                     <span class="num">${a.ratio_pct.toLocaleString("de-DE", {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1
-    })} %</span>
-                  </li>`)}
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+      })} %</span>
+                  </li>`
+    )}
               </ul>
             </div>` : h}
       </section>
     `;
   }
-  _severityPillClass(e) {
-    switch (e) {
+  _severityPillClass(t) {
+    switch (t) {
       case "red":
         return "mh-pill--error";
       case "orange":
@@ -6284,11 +6328,12 @@ let k = (pe = class extends b {
         return "mh-pill--neutral";
     }
   }
-}, pe.styles = [
-  O,
-  rt,
-  ze,
-  Pe,
+};
+y.styles = [
+  D,
+  Fe,
+  ge,
+  me,
   _`
       :host {
         display: block;
@@ -6743,108 +6788,108 @@ let k = (pe = class extends b {
         z-index: 100;
       }
     `
-], pe);
+];
 A([
-  f({ attribute: !1 })
-], k.prototype, "api", void 0);
+  v({ attribute: !1 })
+], y.prototype, "api", 2);
 A([
-  d()
-], k.prototype, "_filters", void 0);
+  l()
+], y.prototype, "_filters", 2);
 A([
-  d()
-], k.prototype, "_summary", void 0);
+  l()
+], y.prototype, "_summary", 2);
 A([
-  d()
-], k.prototype, "_busHealth", void 0);
+  l()
+], y.prototype, "_busHealth", 2);
 A([
-  d()
-], k.prototype, "_silence", void 0);
+  l()
+], y.prototype, "_silence", 2);
 A([
-  d()
-], k.prototype, "_orphans", void 0);
+  l()
+], y.prototype, "_orphans", 2);
 A([
-  d()
-], k.prototype, "_alarms", void 0);
+  l()
+], y.prototype, "_alarms", 2);
 A([
-  d()
-], k.prototype, "_top", void 0);
+  l()
+], y.prototype, "_top", 2);
 A([
-  d()
-], k.prototype, "_timeline", void 0);
+  l()
+], y.prototype, "_timeline", 2);
 A([
-  d()
-], k.prototype, "_selectedGa", void 0);
+  l()
+], y.prototype, "_selectedGa", 2);
 A([
-  d()
-], k.prototype, "_detail", void 0);
+  l()
+], y.prototype, "_detail", 2);
 A([
-  d()
-], k.prototype, "_detailLoading", void 0);
+  l()
+], y.prototype, "_detailLoading", 2);
 A([
-  d()
-], k.prototype, "_loading", void 0);
+  l()
+], y.prototype, "_loading", 2);
 A([
-  d()
-], k.prototype, "_error", void 0);
+  l()
+], y.prototype, "_error", 2);
 A([
-  d()
-], k.prototype, "_toast", void 0);
-k = A([
-  w("stats-knx-view")
-], k);
-var nt = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
+  l()
+], y.prototype, "_toast", 2);
+y = A([
+  $("stats-knx-view")
+], y);
+var Vs = Object.defineProperty, qs = Object.getOwnPropertyDescriptor, Ke = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? qs(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && Vs(e, s, r), r;
 };
-const Ot = "messagehub.stats.subtab", js = /* @__PURE__ */ new Set(["live", "knx"]);
-var ue;
-let Ie = (ue = class extends b {
+const mt = "messagehub.stats.subtab", Js = /* @__PURE__ */ new Set(["live", "knx"]);
+let ue = class extends b {
   constructor() {
     super(...arguments), this._tab = this._loadTab();
   }
   _loadTab() {
     try {
-      const e = localStorage.getItem(Ot);
-      if (e && js.has(e))
-        return e;
+      const t = localStorage.getItem(mt);
+      if (t && Js.has(t)) return t;
     } catch {
     }
     return "live";
   }
-  _setTab(e) {
-    this._tab = e;
+  _setTab(t) {
+    this._tab = t;
     try {
-      localStorage.setItem(Ot, e);
+      localStorage.setItem(mt, t);
     } catch {
     }
   }
   render() {
-    return n`
+    return o`
       <div class="root">
         <nav class="subtabs" role="tablist" aria-label="Statistik-Bereiche">
           ${[
       { id: "live", label: "Live-Status" },
       { id: "knx", label: "KNX-Bus-Analyse" }
-    ].map((t) => n`<button
+    ].map(
+      (e) => o`<button
               role="tab"
-              aria-selected=${this._tab === t.id}
-              class=${`subtab ${this._tab === t.id ? "active" : ""}`}
-              @click=${() => this._setTab(t.id)}
+              aria-selected=${this._tab === e.id}
+              class=${`subtab ${this._tab === e.id ? "active" : ""}`}
+              @click=${() => this._setTab(e.id)}
             >
-              ${t.label}
-            </button>`)}
+              ${e.label}
+            </button>`
+    )}
         </nav>
         <div class="body">
-          ${this._tab === "live" ? n`<stats-live-view .api=${this.api}></stats-live-view>` : h}
-          ${this._tab === "knx" ? n`<stats-knx-view .api=${this.api}></stats-knx-view>` : h}
+          ${this._tab === "live" ? o`<stats-live-view .api=${this.api}></stats-live-view>` : h}
+          ${this._tab === "knx" ? o`<stats-knx-view .api=${this.api}></stats-knx-view>` : h}
         </div>
       </div>
     `;
   }
-}, ue.styles = [
-  O,
+};
+ue.styles = [
+  D,
   _`
       :host {
         display: block;
@@ -6899,28 +6944,26 @@ let Ie = (ue = class extends b {
         flex-direction: column;
       }
     `
+];
+Ke([
+  v({ attribute: !1 })
+], ue.prototype, "api", 2);
+Ke([
+  l()
+], ue.prototype, "_tab", 2);
+ue = Ke([
+  $("stats-view")
 ], ue);
-nt([
-  f({ attribute: !1 })
-], Ie.prototype, "api", void 0);
-nt([
-  d()
-], Ie.prototype, "_tab", void 0);
-Ie = nt([
-  w("stats-view")
-], Ie);
-var Y = function(i, e, t, s) {
-  var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
-  else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
-  return a > 3 && r && Object.defineProperty(e, t, r), r;
+var Ys = Object.defineProperty, Qs = Object.getOwnPropertyDescriptor, Z = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Qs(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && Ys(e, s, r), r;
 };
-function Ns(i) {
-  const e = i.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), t = new Set(e), s = (...a) => a.some((r) => t.has(r));
-  return s("delete", "remove", "removed", "deleted") ? "delete" : s("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : s("update", "updated", "edit", "edited", "set") ? "update" : s("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
+function Xs(t) {
+  const e = t.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), s = new Set(e), a = (...r) => r.some((i) => s.has(i));
+  return a("delete", "remove", "removed", "deleted") ? "delete" : a("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : a("update", "updated", "edit", "edited", "set") ? "update" : a("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
 }
-var me;
-let I = (me = class extends b {
+let H = class extends b {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._expanded = /* @__PURE__ */ new Set(), this._now = /* @__PURE__ */ new Date();
   }
@@ -6937,56 +6980,55 @@ let I = (me = class extends b {
     if (this.api) {
       this._loading = !0;
       try {
-        const e = await this.api.listAudit(200);
-        this._items = e;
+        const t = await this.api.listAudit(200);
+        this._items = t;
       } finally {
         this._loading = !1;
       }
     }
   }
-  _toggle(e) {
-    const t = new Set(this._expanded);
-    t.has(e) ? t.delete(e) : t.add(e), this._expanded = t;
+  _toggle(t) {
+    const e = new Set(this._expanded);
+    e.has(t) ? e.delete(t) : e.add(t), this._expanded = e;
   }
   _filtered() {
-    const e = this._filter.trim().toLowerCase();
-    return e ? this._items.filter((t) => {
-      const s = `${t.target_type ?? ""}${t.target_id ?? ""}`.toLowerCase(), a = t.details ? JSON.stringify(t.details).toLowerCase() : "";
-      return (t.actor ?? "").toLowerCase().includes(e) || (t.action ?? "").toLowerCase().includes(e) || s.includes(e) || a.includes(e);
+    const t = this._filter.trim().toLowerCase();
+    return t ? this._items.filter((e) => {
+      const s = `${e.target_type ?? ""}${e.target_id ?? ""}`.toLowerCase(), a = e.details ? JSON.stringify(e.details).toLowerCase() : "";
+      return (e.actor ?? "").toLowerCase().includes(t) || (e.action ?? "").toLowerCase().includes(t) || s.includes(t) || a.includes(t);
     }) : this._items;
   }
-  _renderActionPill(e) {
-    const t = Ns(e);
-    return n`<span class=${`action-pill action-${t}`} title=${e}>${e}</span>`;
+  _renderActionPill(t) {
+    const e = Xs(t);
+    return o`<span class=${`action-pill action-${e}`} title=${t}>${t}</span>`;
   }
-  _renderDetails(e) {
-    if (!e)
-      return n`<span class="muted">—</span>`;
-    if (typeof e == "object") {
-      const t = Object.entries(e);
-      return t.length === 0 ? n`<span class="muted">—</span>` : n`
+  _renderDetails(t) {
+    if (!t) return o`<span class="muted">—</span>`;
+    if (typeof t == "object") {
+      const e = Object.entries(t);
+      return e.length === 0 ? o`<span class="muted">—</span>` : o`
         <dl class="kv">
-          ${t.map(([s, a]) => n`
+          ${e.map(
+        ([s, a]) => o`
               <dt>${s}</dt>
               <dd>${typeof a == "object" ? JSON.stringify(a) : String(a)}</dd>
-            `)}
+            `
+      )}
         </dl>
       `;
     }
-    return n`<code>${String(e)}</code>`;
+    return o`<code>${String(t)}</code>`;
   }
-  _renderDetailsSummary(e) {
-    if (!e || typeof e != "object")
-      return n`<span class="muted">—</span>`;
-    const t = e, s = typeof t.label == "string" ? t.label : typeof t.name == "string" ? t.name : null;
-    if (s)
-      return n`<span class="summary">${s}</span>`;
-    const a = Object.keys(t).slice(0, 3).join(", ");
-    return n`<span class="summary muted">{${a}${Object.keys(t).length > 3 ? ", …" : ""}}</span>`;
+  _renderDetailsSummary(t) {
+    if (!t || typeof t != "object") return o`<span class="muted">—</span>`;
+    const e = t, s = typeof e.label == "string" ? e.label : typeof e.name == "string" ? e.name : null;
+    if (s) return o`<span class="summary">${s}</span>`;
+    const a = Object.keys(e).slice(0, 3).join(", ");
+    return o`<span class="summary muted">{${a}${Object.keys(e).length > 3 ? ", …" : ""}}</span>`;
   }
   render() {
-    const e = this._filtered();
-    return n`
+    const t = this._filtered();
+    return o`
       <div class="root">
         <header class="page-head">
           <div>
@@ -7005,16 +7047,16 @@ let I = (me = class extends b {
             class="mh-input"
             placeholder="Suche in Akteur, Aktion, Ziel oder Details…"
             .value=${this._filter}
-            @input=${(t) => this._filter = t.target.value}
+            @input=${(e) => this._filter = e.target.value}
           />
           <span class="muted small"
-            >${e.length} ${e.length === 1 ? "Eintrag" : "Einträge"}</span
+            >${t.length} ${t.length === 1 ? "Eintrag" : "Einträge"}</span
           >
         </div>
 
-        ${this._loading ? n`<p class="status">lade…</p>` : e.length === 0 ? n`<div class="empty">
+        ${this._loading ? o`<p class="status">lade…</p>` : t.length === 0 ? o`<div class="empty">
                 ${this._items.length === 0 ? "Noch keine Audit-Einträge." : "Keine Treffer für aktuelle Suche."}
-              </div>` : n`
+              </div>` : o`
                 <div class="table">
                   <div class="table-head">
                     <span>Zeit</span>
@@ -7023,9 +7065,9 @@ let I = (me = class extends b {
                     <span>Ziel</span>
                     <span>Details</span>
                   </div>
-                  ${e.map((t, s) => {
-      const a = this._expanded.has(s), r = String(t.timestamp);
-      return n`
+                  ${t.map((e, s) => {
+      const a = this._expanded.has(s), r = String(e.timestamp);
+      return o`
                       <div class=${`table-row ${a ? "expanded" : ""}`}>
                         <button
                           class="row-toggle"
@@ -7033,22 +7075,22 @@ let I = (me = class extends b {
                           aria-expanded=${a}
                           aria-label=${a ? "Details verbergen" : "Details anzeigen"}
                         >
-                          <span class="ts" title=${Ut(r, this._now)}>
-                            ${It(r, this._now)}
+                          <span class="ts" title=${kt(r, this._now)}>
+                            ${$t(r, this._now)}
                           </span>
-                          <span class="actor">${t.actor}</span>
-                          <span>${this._renderActionPill(t.action)}</span>
+                          <span class="actor">${e.actor}</span>
+                          <span>${this._renderActionPill(e.action)}</span>
                           <span class="target">
-                            <code class="target-type">${t.target_type}</code>
-                            ${t.target_id !== null && t.target_id !== void 0 ? n`<code class="target-id">#${t.target_id}</code>` : h}
+                            <code class="target-type">${e.target_type}</code>
+                            ${e.target_id !== null && e.target_id !== void 0 ? o`<code class="target-id">#${e.target_id}</code>` : h}
                           </span>
                           <span class="details-inline">
-                            ${this._renderDetailsSummary(t.details)}
+                            ${this._renderDetailsSummary(e.details)}
                             <span class="chevron" aria-hidden="true">${a ? "▾" : "▸"}</span>
                           </span>
                         </button>
-                        ${a ? n`<div class="details-panel">
-                              ${this._renderDetails(t.details)}
+                        ${a ? o`<div class="details-panel">
+                              ${this._renderDetails(e.details)}
                             </div>` : h}
                       </div>
                     `;
@@ -7058,11 +7100,12 @@ let I = (me = class extends b {
       </div>
     `;
   }
-}, me.styles = [
-  O,
-  Pe,
-  Ht,
-  ze,
+};
+H.styles = [
+  D,
+  me,
+  yt,
+  ge,
   _`
       :host {
         display: block;
@@ -7298,67 +7341,67 @@ let I = (me = class extends b {
         }
       }
     `
-], me);
-Y([
-  f({ attribute: !1 })
-], I.prototype, "api", void 0);
-Y([
-  d()
-], I.prototype, "_items", void 0);
-Y([
-  d()
-], I.prototype, "_loading", void 0);
-Y([
-  d()
-], I.prototype, "_filter", void 0);
-Y([
-  d()
-], I.prototype, "_expanded", void 0);
-Y([
-  d()
-], I.prototype, "_now", void 0);
-I = Y([
-  w("audit-view")
-], I);
-var Hs = Object.defineProperty, Is = Object.getOwnPropertyDescriptor, E = (i, e, t, s) => {
-  for (var a = s > 1 ? void 0 : s ? Is(e, t) : e, r = i.length - 1, o; r >= 0; r--)
-    (o = i[r]) && (a = (s ? o(e, t, a) : o(a)) || a);
-  return s && a && Hs(e, t, a), a;
+];
+Z([
+  v({ attribute: !1 })
+], H.prototype, "api", 2);
+Z([
+  l()
+], H.prototype, "_items", 2);
+Z([
+  l()
+], H.prototype, "_loading", 2);
+Z([
+  l()
+], H.prototype, "_filter", 2);
+Z([
+  l()
+], H.prototype, "_expanded", 2);
+Z([
+  l()
+], H.prototype, "_now", 2);
+H = Z([
+  $("audit-view")
+], H);
+var Zs = Object.defineProperty, ea = Object.getOwnPropertyDescriptor, P = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? ea(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+    (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
+  return a && r && Zs(e, s, r), r;
 };
-const Dt = "messagehub.filters", Re = {
+const gt = "messagehub.filters", xe = {
   severity: ["error", "warning", "info"],
   source: "",
   search: ""
 };
 let S = class extends b {
   constructor() {
-    super(...arguments), this.narrow = !1, this._tab = "messages", this._items = [], this._total = 0, this._loading = !1, this._selected = null, this._filters = this._loadFilters(), this._newCount = 0, this._testing = !1, this._toast = "", this._overflowOpen = !1, this._api = new ms(), this._onSeverityChange = (i) => {
-      this._filters = { ...this._filters, severity: i.detail.severities }, this._persistFilters(), this._reload();
-    }, this._onSourceChange = (i) => {
-      this._filters = { ...this._filters, source: i.detail.source }, this._persistFilters(), this._reload();
-    }, this._onTimeRange = (i) => {
-      this._filters = { ...this._filters, fromIso: i.detail.fromIso, toIso: i.detail.toIso }, this._persistFilters(), this._reload();
-    }, this._onSelect = (i) => {
-      this._selected = i.detail.msg;
-    }, this._onSeverityChangeMessage = async (i) => {
-      var a, r;
-      const { id: e, severity: t, previous: s } = i.detail;
+    super(...arguments), this.narrow = !1, this._tab = "messages", this._items = [], this._total = 0, this._loading = !1, this._selected = null, this._filters = this._loadFilters(), this._newCount = 0, this._testing = !1, this._toast = "", this._overflowOpen = !1, this._api = new Xt(), this._onSeverityChange = (t) => {
+      this._filters = { ...this._filters, severity: t.detail.severities }, this._persistFilters(), this._reload();
+    }, this._onSourceChange = (t) => {
+      this._filters = { ...this._filters, source: t.detail.source }, this._persistFilters(), this._reload();
+    }, this._onTimeRange = (t) => {
+      this._filters = { ...this._filters, fromIso: t.detail.fromIso, toIso: t.detail.toIso }, this._persistFilters(), this._reload();
+    }, this._onSelect = (t) => {
+      this._selected = t.detail.msg;
+    }, this._onSeverityChangeMessage = async (t) => {
+      var r, i;
+      const { id: e, severity: s, previous: a } = t.detail;
       this._items = this._items.map(
-        (o) => o.id === e ? { ...o, severity: t } : o
-      ), ((a = this._selected) == null ? void 0 : a.id) === e && (this._selected = { ...this._selected, severity: t });
+        (n) => n.id === e ? { ...n, severity: s } : n
+      ), ((r = this._selected) == null ? void 0 : r.id) === e && (this._selected = { ...this._selected, severity: s });
       try {
-        await this._api.setMessageSeverity(e, t), this._showToast(`Severity geändert: ${s} → ${t}`);
-      } catch (o) {
+        await this._api.setMessageSeverity(e, s), this._showToast(`Severity geändert: ${a} → ${s}`);
+      } catch (n) {
         this._items = this._items.map(
-          (l) => l.id === e ? { ...l, severity: s } : l
-        ), ((r = this._selected) == null ? void 0 : r.id) === e && (this._selected = {
+          (c) => c.id === e ? { ...c, severity: a } : c
+        ), ((i = this._selected) == null ? void 0 : i.id) === e && (this._selected = {
           ...this._selected,
-          severity: s
-        }), this._showToast(`Änderung fehlgeschlagen: ${o.message}`);
+          severity: a
+        }), this._showToast(`Änderung fehlgeschlagen: ${n.message}`);
       }
-    }, this._onDelete = async (i) => {
+    }, this._onDelete = async (t) => {
       try {
-        await this._api.deleteMessage(i.detail.id), this._items = this._items.filter((e) => e.id !== i.detail.id), this._total = Math.max(0, this._total - 1), this._selected = null, this._showToast("Nachricht gelöscht");
+        await this._api.deleteMessage(t.detail.id), this._items = this._items.filter((e) => e.id !== t.detail.id), this._total = Math.max(0, this._total - 1), this._selected = null, this._showToast("Nachricht gelöscht");
       } catch (e) {
         this._showToast(`Löschen fehlgeschlagen: ${e.message}`);
       }
@@ -7369,44 +7412,44 @@ let S = class extends b {
     };
   }
   firstUpdated() {
-    var i;
-    (i = this.hass) != null && i.auth && this._api.setAuth(this.hass.auth.data.access_token), this._reload(), this._subscribeLive();
+    var t;
+    (t = this.hass) != null && t.auth && this._api.setAuth(this.hass.auth.data.access_token), this._reload(), this._subscribeLive();
   }
   disconnectedCallback() {
-    var i;
-    super.disconnectedCallback(), (i = this._unsubLive) == null || i.call(this);
+    var t;
+    super.disconnectedCallback(), (t = this._unsubLive) == null || t.call(this);
   }
   async _subscribeLive() {
-    var i, e;
-    (e = (i = this.hass) == null ? void 0 : i.connection) != null && e.subscribeEvents && (this._unsubLive = await this.hass.connection.subscribeEvents((t) => {
-      const s = t.data;
-      this._matchesFilters(s) && (this._items = [s, ...this._items].slice(0, 200), this._total += 1, this._newCount += 1, window.setTimeout(() => this._newCount = Math.max(0, this._newCount - 1), 4e3));
+    var t, e;
+    (e = (t = this.hass) == null ? void 0 : t.connection) != null && e.subscribeEvents && (this._unsubLive = await this.hass.connection.subscribeEvents((s) => {
+      const a = s.data;
+      this._matchesFilters(a) && (this._items = [a, ...this._items].slice(0, 200), this._total += 1, this._newCount += 1, window.setTimeout(() => this._newCount = Math.max(0, this._newCount - 1), 4e3));
     }, "messagehub_message_added"));
   }
-  _matchesFilters(i) {
-    return !(this._filters.severity.length && !this._filters.severity.includes(i.severity) || this._filters.source && i.source !== this._filters.source || this._filters.search && !i.text.toLowerCase().includes(this._filters.search.toLowerCase()));
+  _matchesFilters(t) {
+    return !(this._filters.severity.length && !this._filters.severity.includes(t.severity) || this._filters.source && t.source !== this._filters.source || this._filters.search && !t.text.toLowerCase().includes(this._filters.search.toLowerCase()));
   }
   _loadFilters() {
     try {
-      const i = localStorage.getItem(Dt);
-      if (i) return { ...Re, ...JSON.parse(i) };
+      const t = localStorage.getItem(gt);
+      if (t) return { ...xe, ...JSON.parse(t) };
     } catch {
     }
-    return { ...Re };
+    return { ...xe };
   }
   _persistFilters() {
     try {
-      localStorage.setItem(Dt, JSON.stringify(this._filters));
+      localStorage.setItem(gt, JSON.stringify(this._filters));
     } catch {
     }
   }
   _resetFilters() {
-    this._filters = { ...Re }, this._persistFilters(), this._reload();
+    this._filters = { ...xe }, this._persistFilters(), this._reload();
   }
   async _reload() {
     this._loading = !0;
     try {
-      const i = await this._api.listMessages({
+      const t = await this._api.listMessages({
         severity: this._filters.severity,
         source: this._filters.source || void 0,
         search: this._filters.search || void 0,
@@ -7414,48 +7457,48 @@ let S = class extends b {
         to: this._filters.toIso,
         limit: 100
       });
-      this._items = i.items, this._total = i.total;
-    } catch (i) {
-      this._showToast(`Laden fehlgeschlagen: ${i.message}`);
+      this._items = t.items, this._total = t.total;
+    } catch (t) {
+      this._showToast(`Laden fehlgeschlagen: ${t.message}`);
     } finally {
       this._loading = !1;
     }
   }
-  async _bulkDelete(i) {
+  async _bulkDelete(t) {
     if (this._total === 0) return;
-    const e = this._total, t = i === "all" ? `ALLE ${e} Nachrichten dauerhaft löschen?` : `Bis zu ${e} gefilterte Nachrichten dauerhaft löschen?`;
-    if (window.confirm(t))
+    const e = this._total, s = t === "all" ? `ALLE ${e} Nachrichten dauerhaft löschen?` : `Bis zu ${e} gefilterte Nachrichten dauerhaft löschen?`;
+    if (window.confirm(s))
       try {
-        const s = i === "all" ? {} : {
+        const a = t === "all" ? {} : {
           severity: this._filters.severity,
           source: this._filters.source || void 0,
           search: this._filters.search || void 0,
           from: this._filters.fromIso,
           to: this._filters.toIso
-        }, a = await this._api.deleteMessages(s);
-        this._showToast(`${a} Nachrichten gelöscht`), this._selected = null, await this._reload();
-      } catch (s) {
-        this._showToast(`Löschen fehlgeschlagen: ${s.message}`);
+        }, r = await this._api.deleteMessages(a);
+        this._showToast(`${r} Nachrichten gelöscht`), this._selected = null, await this._reload();
+      } catch (a) {
+        this._showToast(`Löschen fehlgeschlagen: ${a.message}`);
       }
   }
   async _sendTestMessage() {
-    var i;
-    if (!((i = this.hass) != null && i.callService)) {
+    var t;
+    if (!((t = this.hass) != null && t.callService)) {
       this._showToast("Test nicht verfügbar — hass.callService fehlt");
       return;
     }
     this._testing = !0;
     try {
-      const e = ["info", "warning", "error", "info", "info"], t = ["pihole", "knx-bus", "backup-job", "test-script"], s = [
+      const e = ["info", "warning", "error", "info", "info"], s = ["pihole", "knx-bus", "backup-job", "test-script"], a = [
         "Demo-Nachricht aus dem Panel",
         "Test: DNS-Query erfolgreich",
         "Backup abgeschlossen, Dauer 12 min",
         "KNX 1/2/3 — Wohnzimmer Deckenlicht ein"
-      ], a = (r) => Math.floor(Math.random() * r);
+      ], r = (i) => Math.floor(Math.random() * i);
       await this.hass.callService("messagehub", "add_message", {
-        severity: e[a(e.length)],
-        source: t[a(t.length)],
-        text: s[a(s.length)],
+        severity: e[r(e.length)],
+        source: s[r(s.length)],
+        text: a[r(a.length)],
         metadata: { source_panel: !0, ts: (/* @__PURE__ */ new Date()).toISOString() }
       }), this._showToast("Test-Nachricht gesendet"), window.setTimeout(() => void this._reload(), 300);
     } catch (e) {
@@ -7464,18 +7507,18 @@ let S = class extends b {
       this._testing = !1;
     }
   }
-  _showToast(i) {
-    this._toast = i, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
+  _showToast(t) {
+    this._toast = t, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
   }
-  _debounceSearch(i) {
+  _debounceSearch(t) {
     this._debounceTimer && window.clearTimeout(this._debounceTimer), this._debounceTimer = window.setTimeout(() => {
-      this._filters = { ...this._filters, search: i }, this._persistFilters(), this._reload();
+      this._filters = { ...this._filters, search: t }, this._persistFilters(), this._reload();
     }, 300);
   }
   _hasActiveFilters() {
-    return this._filters.severity.length !== Re.severity.length || this._filters.source !== "" || this._filters.search !== "" || this._filters.fromIso !== void 0;
+    return this._filters.severity.length !== xe.severity.length || this._filters.source !== "" || this._filters.search !== "" || this._filters.fromIso !== void 0;
   }
-  _exportUrl(i) {
+  _exportUrl(t) {
     return this._api.exportUrl({
       severity: this._filters.severity,
       source: this._filters.source || void 0,
@@ -7483,18 +7526,18 @@ let S = class extends b {
       from: this._filters.fromIso,
       to: this._filters.toIso,
       limit: 1e4,
-      format: i
+      format: t
     });
   }
   _renderEmptyMessages() {
-    return n`
+    return o`
       <div class="empty">
         <h3>Noch keine Nachrichten ${this._hasActiveFilters() ? "für diese Filter" : ""}</h3>
         <p>
           ${this._hasActiveFilters() ? "Probiere weniger restriktive Filter oder setze sie zurück." : "Sobald Nachrichten über Webhook, MQTT, Eventbus oder den Service messagehub.add_message reinkommen, erscheinen sie hier."}
         </p>
         <div class="empty-actions">
-          ${this._hasActiveFilters() ? n`<button class="mh-btn" @click=${this._resetFilters}>
+          ${this._hasActiveFilters() ? o`<button class="mh-btn" @click=${this._resetFilters}>
                 Filter zurücksetzen
               </button>` : null}
           <button
@@ -7509,7 +7552,7 @@ let S = class extends b {
     `;
   }
   _renderMessages() {
-    return n`
+    return o`
       <div class="filter-bar" role="toolbar" aria-label="Filter">
         <severity-filter
           .selected=${this._filters.severity}
@@ -7526,8 +7569,8 @@ let S = class extends b {
           placeholder="Volltextsuche…"
           aria-label="Volltextsuche"
           .value=${this._filters.search}
-          @input=${(i) => {
-      const e = i.target.value;
+          @input=${(t) => {
+      const e = t.target.value;
       this._debounceSearch(e);
     }}
         />
@@ -7536,19 +7579,19 @@ let S = class extends b {
           .toIso=${this._filters.toIso}
           @change=${this._onTimeRange}
         ></time-range-filter>
-        ${this._hasActiveFilters() ? n`<button class="filter-reset" @click=${this._resetFilters}>
+        ${this._hasActiveFilters() ? o`<button class="filter-reset" @click=${this._resetFilters}>
               Filter zurücksetzen
             </button>` : null}
       </div>
 
       <div class="status-bar">
         <span class="status-count">
-          ${this._loading ? "lade…" : n`<strong>${this._items.length.toLocaleString("de-DE")}</strong>
+          ${this._loading ? "lade…" : o`<strong>${this._items.length.toLocaleString("de-DE")}</strong>
                 <span class="muted">von ${this._total.toLocaleString("de-DE")}</span>`}
-          ${this._newCount > 0 ? n`<span class="new-badge">+${this._newCount} neu</span>` : null}
+          ${this._newCount > 0 ? o`<span class="new-badge">+${this._newCount} neu</span>` : null}
         </span>
         <div class="status-actions">
-          ${this._total > 0 ? n`<a
+          ${this._total > 0 ? o`<a
                   class="mh-btn mh-btn--sm"
                   href=${this._exportUrl("jsonl")}
                   download="messagehub-export.jsonl"
@@ -7562,7 +7605,7 @@ let S = class extends b {
                   title="Als CSV exportieren"
                   >↓ CSV</a
                 >` : null}
-          ${this._total > 0 && this._hasActiveFilters() ? n`<button
+          ${this._total > 0 && this._hasActiveFilters() ? o`<button
                 class="mh-btn mh-btn--sm mh-btn--danger"
                 @click=${() => this._bulkDelete("filter")}
               >
@@ -7575,7 +7618,7 @@ let S = class extends b {
           >
             ${this._testing ? "sende…" : "+ Testnachricht"}
           </button>
-          <div class="overflow" @click=${(i) => i.stopPropagation()}>
+          <div class="overflow" @click=${(t) => t.stopPropagation()}>
             <button
               class="mh-btn mh-btn--sm mh-btn--icon mh-btn--ghost"
               aria-label="Weitere Aktionen"
@@ -7585,7 +7628,7 @@ let S = class extends b {
             >
               ⋯
             </button>
-            ${this._overflowOpen ? n`<div class="overflow-menu" role="menu">
+            ${this._overflowOpen ? o`<div class="overflow-menu" role="menu">
                   <button
                     role="menuitem"
                     class="overflow-item danger"
@@ -7601,30 +7644,30 @@ let S = class extends b {
         </div>
       </div>
 
-      ${this._items.length === 0 && !this._loading ? this._renderEmptyMessages() : n`<message-table
+      ${this._items.length === 0 && !this._loading ? this._renderEmptyMessages() : o`<message-table
             .items=${this._items}
             @select=${this._onSelect}
             @severity-change=${this._onSeverityChangeMessage}
           ></message-table>`}
 
-      ${this._selected ? n`<detail-pane
+      ${this._selected ? o`<detail-pane
             .msg=${this._selected}
             .api=${this._api}
             @close=${() => this._selected = null}
             @delete=${this._onDelete}
             @status-change=${() => void this._reload()}
-            @error=${(i) => this._showToast(i.detail.message)}
+            @error=${(t) => this._showToast(t.detail.message)}
           ></detail-pane>` : null}
     `;
   }
   render() {
-    const i = [
+    const t = [
       { id: "messages", label: "Nachrichten" },
       { id: "stats", label: "Statistik" },
       { id: "settings", label: "Einstellungen" },
       { id: "audit", label: "Audit" }
     ];
-    return n`
+    return o`
       <div class="root" @click=${this._closeOverflow}>
         <header>
           <div class="brand">
@@ -7641,8 +7684,8 @@ let S = class extends b {
             <h1>Message Hub</h1>
           </div>
           <nav role="tablist" class="tabs">
-            ${i.map(
-      (e) => n`<button
+            ${t.map(
+      (e) => o`<button
                 role="tab"
                 aria-selected=${this._tab === e.id}
                 class=${`tab ${this._tab === e.id ? "active" : ""}`}
@@ -7666,19 +7709,19 @@ let S = class extends b {
 
         <main>
           ${this._tab === "messages" ? this._renderMessages() : null}
-          ${this._tab === "stats" ? n`<stats-view .api=${this._api}></stats-view>` : null}
-          ${this._tab === "settings" ? n`<settings-view .api=${this._api}></settings-view>` : null}
-          ${this._tab === "audit" ? n`<audit-view .api=${this._api}></audit-view>` : null}
+          ${this._tab === "stats" ? o`<stats-view .api=${this._api}></stats-view>` : null}
+          ${this._tab === "settings" ? o`<settings-view .api=${this._api}></settings-view>` : null}
+          ${this._tab === "audit" ? o`<audit-view .api=${this._api}></audit-view>` : null}
         </main>
 
-        ${this._toast ? n`<div class="toast">${this._toast}</div>` : null}
+        ${this._toast ? o`<div class="toast">${this._toast}</div>` : null}
       </div>
     `;
   }
 };
 S.styles = [
-  O,
-  Pe,
+  D,
+  me,
   _`
       :host {
         display: block;
@@ -7997,47 +8040,47 @@ S.styles = [
       }
     `
 ];
-E([
-  f({ attribute: !1 })
+P([
+  v({ attribute: !1 })
 ], S.prototype, "hass", 2);
-E([
-  f({ type: Boolean })
+P([
+  v({ type: Boolean })
 ], S.prototype, "narrow", 2);
-E([
-  f({ attribute: !1 })
+P([
+  v({ attribute: !1 })
 ], S.prototype, "panel", 2);
-E([
-  d()
+P([
+  l()
 ], S.prototype, "_tab", 2);
-E([
-  d()
+P([
+  l()
 ], S.prototype, "_items", 2);
-E([
-  d()
+P([
+  l()
 ], S.prototype, "_total", 2);
-E([
-  d()
+P([
+  l()
 ], S.prototype, "_loading", 2);
-E([
-  d()
+P([
+  l()
 ], S.prototype, "_selected", 2);
-E([
-  d()
+P([
+  l()
 ], S.prototype, "_filters", 2);
-E([
-  d()
+P([
+  l()
 ], S.prototype, "_newCount", 2);
-E([
-  d()
+P([
+  l()
 ], S.prototype, "_testing", 2);
-E([
-  d()
+P([
+  l()
 ], S.prototype, "_toast", 2);
-E([
-  d()
+P([
+  l()
 ], S.prototype, "_overflowOpen", 2);
-S = E([
-  w("messagehub-panel")
+S = P([
+  $("messagehub-panel")
 ], S);
 export {
   S as MessageHubPanel

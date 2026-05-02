@@ -1,7 +1,8 @@
 // Iter 19: Zeitraum-Presets (1h, 24h, 7d, Custom).
 
 import { LitElement, css, html, type TemplateResult } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property } from "lit/decorators.js";
 
 type Preset = "1h" | "24h" | "7d" | "all";
 

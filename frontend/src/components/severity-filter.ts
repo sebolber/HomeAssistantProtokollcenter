@@ -1,7 +1,8 @@
 // Iter 18 + UI-Polish: Multi-Select Chips fuer Severity, semantisch farbig.
 
 import { LitElement, css, html, type TemplateResult } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property } from "lit/decorators.js";
 import { tokens } from "../styles/tokens.js";
 
 const ALL = ["error", "warning", "info", "debug"] as const;

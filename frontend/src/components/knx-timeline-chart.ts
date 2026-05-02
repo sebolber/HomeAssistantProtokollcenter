@@ -3,7 +3,8 @@
 // klein, scharf, themable mit CSS-Variablen. Multi-Linien fuer Top-N GAs.
 
 import { LitElement, css, html, type TemplateResult } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property } from "lit/decorators.js";
 import { tokens } from "../styles/tokens.js";
 
 interface TimelinePoint {

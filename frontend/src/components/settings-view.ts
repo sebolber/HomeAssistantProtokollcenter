@@ -3,7 +3,8 @@
 // eigenen Tab gerendert, damit nicht alle Sektionen untereinander stehen.
 
 import { LitElement, css, html, type TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement } from "../utils/custom-element.js";
+import { property, state } from "lit/decorators.js";
 import type { ApiClient, WebhookDto } from "../api-client.js";
 import { tokens, buttons, cards } from "../styles/tokens.js";
 import "./webhook-form.js";
