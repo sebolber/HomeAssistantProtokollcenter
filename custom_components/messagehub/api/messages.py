@@ -591,7 +591,14 @@ class RunbookForView(_RequireAdminView):
 
 
 class AuditLogView(_RequireAdminView):
-    """Iter 44: liest die letzten Audit-Eintraege."""
+    """Iter 44: liest die letzten Audit-Eintraege.
+
+    Iter 44b (N5): DELETE loescht alle Eintraege. Vor dem DELETE wird
+    der Loesch-Vorgang selbst noch geloggt — die Spur ueberlebt damit
+    in den verbleibenden Logs (die wir gerade danach loeschen). Reine
+    Buchfuehrung: nach dem Aufruf hat der Endpunkt 1 neuen Eintrag
+    "audit_clear", die alten sind weg.
+    """
 
     url = "/api/messagehub/audit"
     name = "api:messagehub:audit"
@@ -606,6 +613,26 @@ class AuditLogView(_RequireAdminView):
         limit = _parse_int_param(request.query, "limit", 200, min_value=1, max_value=1000)
         items = await AuditRepository(db).list_recent(limit=limit)
         return self.json({"items": items})
+
+    async def delete(self, request: web.Request) -> web.Response:
+        from .audit import AuditRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        db = _get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
+        repo = AuditRepository(db)
+        deleted = await repo.delete_all()
+        # Neuer Eintrag NACH dem Clear, damit er als einziger uebrig
+        # bleibt und der Loesch-Vorgang dokumentiert ist.
+        await _audit(
+            request.app["hass"],
+            request,
+            action="audit_clear",
+            target_type="audit_log",
+            details={"deleted_count": deleted},
+        )
+        return self.json({"ok": True, "deleted": deleted})
 
 
 class ExportView(_RequireAdminView):

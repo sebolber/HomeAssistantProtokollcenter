@@ -22,14 +22,14 @@ let xt = class {
     return this.cssText;
   }
 };
-const Ot = (t) => new xt(typeof t == "string" ? t : t + "", void 0, je), w = (t, ...e) => {
+const Lt = (t) => new xt(typeof t == "string" ? t : t + "", void 0, je), w = (t, ...e) => {
   const s = t.length === 1 ? t[0] : e.reduce((a, r, i) => a + ((n) => {
     if (n._$cssResult$ === !0) return n.cssText;
     if (typeof n == "number") return n;
     throw Error("Value passed to 'css' function must be a 'css' function result: " + n + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
   })(r) + t[i + 1], t[0]);
   return new xt(s, t, je);
-}, Lt = (t, e) => {
+}, Ot = (t, e) => {
   if (Fe) t.adoptedStyleSheets = e.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
   else for (const s of e) {
     const a = document.createElement("style"), r = ye.litNonce;
@@ -38,7 +38,7 @@ const Ot = (t) => new xt(typeof t == "string" ? t : t + "", void 0, je), w = (t,
 }, Je = Fe ? (t) => t : (t) => t instanceof CSSStyleSheet ? ((e) => {
   let s = "";
   for (const a of e.cssRules) s += a.cssText;
-  return Ot(s);
+  return Lt(s);
 })(t) : t;
 /**
  * @license
@@ -159,7 +159,7 @@ let ee = class extends HTMLElement {
   }
   createRenderRoot() {
     const e = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-    return Lt(e, this.constructor.elementStyles), e;
+    return Ot(e, this.constructor.elementStyles), e;
   }
   connectedCallback() {
     var e;
@@ -284,8 +284,8 @@ ee.elementStyles = [], ee.shadowRootOptions = { mode: "open" }, ee[de("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const he = globalThis, Ze = (t) => t, Se = he.trustedTypes, Xe = Se ? Se.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, wt = "$lit$", F = `lit$${Math.random().toFixed(9).slice(2)}$`, $t = "?" + F, Ut = `<${$t}>`, V = document, ce = () => V.createComment(""), pe = (t) => t === null || typeof t != "object" && typeof t != "function", Re = Array.isArray, Rt = (t) => Re(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Oe = `[ 	
-\f\r]`, ne = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, et = /-->/g, tt = />/g, B = RegExp(`>|${Oe}(?:([^\\s"'>=/]+)(${Oe}*=${Oe}*(?:[^ 	
+const he = globalThis, Ze = (t) => t, Se = he.trustedTypes, Xe = Se ? Se.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, wt = "$lit$", F = `lit$${Math.random().toFixed(9).slice(2)}$`, $t = "?" + F, Ut = `<${$t}>`, V = document, ce = () => V.createComment(""), pe = (t) => t === null || typeof t != "object" && typeof t != "function", Re = Array.isArray, Rt = (t) => Re(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Le = `[ 	
+\f\r]`, ne = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, et = /-->/g, tt = />/g, B = RegExp(`>|${Le}(?:([^\\s"'>=/]+)(${Le}*=${Le}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), st = /'/g, at = /"/g, yt = /^(?:script|style|textarea|title)$/i, Bt = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), o = Bt(1), q = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), rt = /* @__PURE__ */ new WeakMap(), G = V.createTreeWalker(V, 129);
 function kt(t, e) {
   if (!Re(t) || !t.hasOwnProperty("raw")) throw Error("invalid template strings array");
@@ -504,8 +504,8 @@ class Jt {
     te(this, e);
   }
 }
-const Yt = { I: ie }, Le = he.litHtmlPolyfillSupport;
-Le == null || Le(me, ie), (he.litHtmlVersions ?? (he.litHtmlVersions = [])).push("3.3.2");
+const Yt = { I: ie }, Oe = he.litHtmlPolyfillSupport;
+Oe == null || Oe(me, ie), (he.litHtmlVersions ?? (he.litHtmlVersions = [])).push("3.3.2");
 const Qt = (t, e, s) => {
   const a = (s == null ? void 0 : s.renderBefore) ?? e;
   let r = a._$litPart$;
@@ -690,6 +690,14 @@ class ts {
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
     return (await s.json()).items;
+  }
+  async clearAuditLog() {
+    const e = await fetch(`${this.baseUrl}/api/messagehub/audit`, {
+      method: "DELETE",
+      headers: this.headers()
+    });
+    if (!e.ok) throw new Error(`HTTP ${e.status}: ${await e.text()}`);
+    return await e.json();
   }
   async discoverKnxFromProject() {
     const e = await fetch(`${this.baseUrl}/api/messagehub/knx-discovery`, {
@@ -1005,7 +1013,7 @@ class ts {
     return await n.json();
   }
 }
-const O = w`
+const L = w`
   :host {
     /* Spacing-Skala (4-px-Grid) */
     --mh-space-1: 4px;
@@ -1523,7 +1531,7 @@ let J = class extends x {
   }
 };
 J.styles = [
-  O,
+  L,
   fe,
   w`
       :host {
@@ -1772,7 +1780,7 @@ let Te = class extends x {
   }
 };
 Te.styles = [
-  O,
+  L,
   w`
       .chips {
         display: flex;
@@ -1968,7 +1976,7 @@ var ws = Object.defineProperty, $s = Object.getOwnPropertyDescriptor, R = (t, e,
     (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
   return a && r && ws(e, s, r), r;
 };
-let L = class extends x {
+let O = class extends x {
   constructor() {
     super(...arguments), this._status = "new", this._tags = [], this._newTag = "", this._runbook = null, this._busy = !1;
   }
@@ -2142,7 +2150,7 @@ let L = class extends x {
     `;
   }
 };
-L.styles = w`
+O.styles = w`
     :host {
       position: fixed;
       top: 0;
@@ -2363,28 +2371,28 @@ L.styles = w`
   `;
 R([
   f({ attribute: !1 })
-], L.prototype, "msg", 2);
+], O.prototype, "msg", 2);
 R([
   f({ attribute: !1 })
-], L.prototype, "api", 2);
+], O.prototype, "api", 2);
 R([
   l()
-], L.prototype, "_status", 2);
+], O.prototype, "_status", 2);
 R([
   l()
-], L.prototype, "_tags", 2);
+], O.prototype, "_tags", 2);
 R([
   l()
-], L.prototype, "_newTag", 2);
+], O.prototype, "_newTag", 2);
 R([
   l()
-], L.prototype, "_runbook", 2);
+], O.prototype, "_runbook", 2);
 R([
   l()
-], L.prototype, "_busy", 2);
-L = R([
+], O.prototype, "_busy", 2);
+O = R([
   y("detail-pane")
-], L);
+], O);
 var ys = Object.defineProperty, ks = Object.getOwnPropertyDescriptor, C = (t, e, s, a) => {
   for (var r = a > 1 ? void 0 : a ? ks(e, s) : e, i = t.length - 1, n; i >= 0; i--)
     (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
@@ -2799,7 +2807,10 @@ let S = class extends x {
           label: a.name || a.address,
           dpt: a.dpt,
           log_enabled: !1,
-          log_severity: "info"
+          // Iter 44 (N2): Default-Severity Warning, sobald der Eintrag
+          // ueberhaupt zum Logging vorgesehen ist. Bewusst hoch gewaehlt
+          // damit kritische GAs nicht im Info-Rauschen untergehen.
+          log_severity: "warning"
         }), s += 1;
       } catch {
       }
@@ -2822,7 +2833,8 @@ let S = class extends x {
         label: this._newLabel.trim(),
         dpt: this._newDpt.trim() || null,
         log_enabled: !1,
-        log_severity: "info"
+        // Iter 44 (N2): Default-Severity Warning fuer neue Eintraege.
+        log_severity: "warning"
       }), this._newAddr = "", this._newLabel = "", this._newDpt = "", this._showToast(`${t} gespeichert`), await this._load();
     } catch (e) {
       this._error = e.message;
@@ -3265,7 +3277,7 @@ let S = class extends x {
   }
 };
 S.styles = [
-  O,
+  L,
   ve,
   St,
   fe,
@@ -3761,12 +3773,12 @@ P([
 S = P([
   y("knx-addresses-view")
 ], S);
-var Ds = Object.defineProperty, Os = Object.getOwnPropertyDescriptor, _e = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Os(e, s) : e, i = t.length - 1, n; i >= 0; i--)
+var Ds = Object.defineProperty, Ls = Object.getOwnPropertyDescriptor, _e = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ls(e, s) : e, i = t.length - 1, n; i >= 0; i--)
     (n = t[i]) && (r = (a ? n(e, s, r) : n(r)) || r);
   return a && r && Ds(e, s, r), r;
 };
-const Ls = ["telegram", "pushover", "ntfy", "signal", "notify"], Cs = ["debug", "info", "warning", "error"];
+const Os = ["telegram", "pushover", "ntfy", "signal", "notify"], Cs = ["debug", "info", "warning", "error"];
 let Y = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._editing = null, this._toast = "";
@@ -3921,7 +3933,7 @@ let Y = class extends x {
       e({ channel_type: a, config: {} });
     }}
             >
-              ${Ls.map((s) => o`<option value=${s}>${s}</option>`)}
+              ${Os.map((s) => o`<option value=${s}>${s}</option>`)}
             </select>
             <small>
               ${t.channel_type === "telegram" ? "Direkt an Telegram-Bot-API. Bot-Token + Chat-ID unten." : t.channel_type === "pushover" ? "Direkt an Pushover-API. App-Token + User-Key unten." : t.channel_type === "ntfy" ? "Direkt an ntfy-Server (ntfy.sh oder selbst-gehostet)." : t.channel_type === "signal" ? "Ueber HA-Service notify.<service>. Trag Namen unten ein." : "Ueber HA-Service notify.<service>."}
@@ -4674,12 +4686,12 @@ var Hs = Object.defineProperty, Is = Object.getOwnPropertyDescriptor, I = (t, e,
   return a && r && Hs(e, s, r), r;
 };
 const Et = [
-  { id: "webhooks", label: "Webhooks", icon: "🔗" },
-  { id: "knx", label: "KNX-Bus", icon: "🏠" },
-  { id: "channels", label: "Channels", icon: "📨" },
-  { id: "mqtt", label: "MQTT", icon: "📡" },
-  { id: "heartbeats", label: "Heartbeats", icon: "💓" },
-  { id: "remediation", label: "Auto-Remediation", icon: "🔧" }
+  { id: "webhooks", label: "Webhooks" },
+  { id: "knx", label: "KNX-Bus" },
+  { id: "channels", label: "Channels" },
+  { id: "mqtt", label: "MQTT" },
+  { id: "heartbeats", label: "Heartbeats" },
+  { id: "remediation", label: "Auto-Remediation" }
 ], zt = "messagehub.settings.tab";
 function Fs() {
   try {
@@ -4861,7 +4873,6 @@ let D = class extends x {
               title=${t.label}
               @click=${() => this._selectTab(t.id)}
             >
-              <span class="tab-icon" aria-hidden="true">${t.icon}</span>
               <span>${t.label}</span>
             </button>`
     )}
@@ -4920,7 +4931,7 @@ let D = class extends x {
   }
 };
 D.styles = [
-  O,
+  L,
   ve,
   Be,
   w`
@@ -4980,9 +4991,6 @@ D.styles = [
         font-weight: var(--mh-weight-semibold);
         box-shadow: var(--mh-shadow-1);
       }
-      .tab-icon {
-        font-size: 1.05em;
-      }
       .tab-panel {
         display: flex;
         flex-direction: column;
@@ -4991,9 +4999,6 @@ D.styles = [
       @media (max-width: 720px) {
         .tab {
           padding: 8px 10px;
-        }
-        .tab span:not(.tab-icon) {
-          /* nur Icon auf Mobile, Label im title-Tooltip */
           font-size: var(--mh-text-xs);
         }
       }
@@ -5529,7 +5534,7 @@ let N = class extends x {
   }
 };
 N.styles = [
-  O,
+  L,
   Be,
   fe,
   w`
@@ -5703,7 +5708,7 @@ let ae = class extends x {
   }
 };
 ae.styles = [
-  O,
+  L,
   w`
       :host {
         display: block;
@@ -5826,7 +5831,7 @@ let re = class extends x {
   }
 };
 re.styles = [
-  O,
+  L,
   w`
       :host {
         display: block;
@@ -6947,7 +6952,7 @@ let _ = class extends x {
   }
 };
 _.styles = [
-  O,
+  L,
   Be,
   fe,
   ve,
@@ -7870,7 +7875,7 @@ let ge = class extends x {
   }
 };
 ge.styles = [
-  O,
+  L,
   w`
       :host {
         display: block;
@@ -7968,6 +7973,26 @@ let H = class extends x {
       }
     }
   }
+  // Iter 44 (N5): Audit-Log loeschen mit Confirm-Dialog. Nach dem
+  // Clear bleibt genau 1 neuer Eintrag uebrig (audit_clear), den der
+  // Backend selbst geschrieben hat — wir laden danach neu.
+  async _clearAll() {
+    if (this.api && window.confirm(
+      `Wirklich ALLE Audit-Eintraege loeschen?
+
+Diese Aktion kann nicht rueckgaengig gemacht werden. Ein neuer Eintrag 'audit_clear' wird vom Backend angelegt, damit der Loesch-Vorgang in den verbleibenden Logs nachvollziehbar bleibt.`
+    )) {
+      this._loading = !0;
+      try {
+        const t = await this.api.clearAuditLog();
+        await this._load(), window.alert(`${t.deleted} Eintraege geloescht.`);
+      } catch (t) {
+        window.alert(`Fehler: ${t.message}`);
+      } finally {
+        this._loading = !1;
+      }
+    }
+  }
   _toggle(t) {
     const e = new Set(this._expanded);
     e.has(t) ? e.delete(t) : e.add(t), this._expanded = e;
@@ -8019,7 +8044,19 @@ let H = class extends x {
               Webhook-CRUD. Einträge sind unveränderlich.
             </p>
           </div>
-          <button class="mh-btn" @click=${() => void this._load()}>↻ Aktualisieren</button>
+          <div class="head-actions">
+            <button class="mh-btn" @click=${() => void this._load()}>
+              ↻ Aktualisieren
+            </button>
+            <button
+              class="mh-btn mh-btn--danger"
+              ?disabled=${this._items.length === 0 || this._loading}
+              @click=${() => void this._clearAll()}
+              title="Alle Audit-Eintraege loeschen"
+            >
+              Alle loeschen
+            </button>
+          </div>
         </header>
 
         <div class="filter-bar">
@@ -8083,7 +8120,7 @@ let H = class extends x {
   }
 };
 H.styles = [
-  O,
+  L,
   ve,
   St,
   fe,
@@ -8105,6 +8142,11 @@ H.styles = [
         align-items: flex-start;
         gap: var(--mh-space-4);
         margin-bottom: var(--mh-space-3);
+      }
+      .head-actions {
+        display: flex;
+        gap: var(--mh-space-2);
+        flex-shrink: 0;
       }
       h2 {
         margin: 0;
@@ -8701,7 +8743,7 @@ let A = class extends x {
   }
 };
 A.styles = [
-  O,
+  L,
   ve,
   w`
       :host {

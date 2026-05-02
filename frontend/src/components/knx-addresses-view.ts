@@ -111,7 +111,10 @@ export class KnxAddressesView extends LitElement {
           label: d.name || d.address,
           dpt: d.dpt,
           log_enabled: false,
-          log_severity: "info",
+          // Iter 44 (N2): Default-Severity Warning, sobald der Eintrag
+          // ueberhaupt zum Logging vorgesehen ist. Bewusst hoch gewaehlt
+          // damit kritische GAs nicht im Info-Rauschen untergehen.
+          log_severity: "warning",
         });
         imported += 1;
       } catch {
@@ -140,7 +143,8 @@ export class KnxAddressesView extends LitElement {
         label: this._newLabel.trim(),
         dpt: this._newDpt.trim() || null,
         log_enabled: false,
-        log_severity: "info",
+        // Iter 44 (N2): Default-Severity Warning fuer neue Eintraege.
+        log_severity: "warning",
       });
       this._newAddr = "";
       this._newLabel = "";

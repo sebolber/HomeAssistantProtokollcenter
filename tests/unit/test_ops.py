@@ -80,6 +80,27 @@ async def test_audit_log_persists_actions(db_repo) -> None:  # type: ignore[no-u
 
 
 @pytest.mark.asyncio
+async def test_audit_delete_all_clears_table_and_returns_count(db_repo) -> None:  # type: ignore[no-untyped-def]
+    """Iter 44 (N5): Audit-Log loeschen liefert Anzahl + leert Tabelle."""
+    db, _ = db_repo
+    audit = AuditRepository(db)
+    await audit.record(actor="u", action="a", target_type="t", target_id="1")
+    await audit.record(actor="u", action="b", target_type="t", target_id="2")
+    await audit.record(actor="u", action="c", target_type="t", target_id="3")
+
+    deleted = await audit.delete_all()
+    assert deleted == 3
+    assert await audit.list_recent() == []
+
+
+@pytest.mark.asyncio
+async def test_audit_delete_all_on_empty_returns_zero(db_repo) -> None:  # type: ignore[no-untyped-def]
+    db, _ = db_repo
+    audit = AuditRepository(db)
+    assert await audit.delete_all() == 0
+
+
+@pytest.mark.asyncio
 async def test_export_jsonl_streams_chunked() -> None:
     msgs = [Message(severity=Severity.INFO, source="x", text=f"#{i}") for i in range(3)]
     out = messages_to_jsonl(msgs)

@@ -14,13 +14,15 @@ import "./simple-list-view.js";
 
 type SettingsTab = "webhooks" | "knx" | "channels" | "mqtt" | "heartbeats" | "remediation";
 
-const TABS: Array<{ id: SettingsTab; label: string; icon: string }> = [
-  { id: "webhooks", label: "Webhooks", icon: "🔗" },
-  { id: "knx", label: "KNX-Bus", icon: "🏠" },
-  { id: "channels", label: "Channels", icon: "📨" },
-  { id: "mqtt", label: "MQTT", icon: "📡" },
-  { id: "heartbeats", label: "Heartbeats", icon: "💓" },
-  { id: "remediation", label: "Auto-Remediation", icon: "🔧" },
+// Iter 44 (N3): Tabs ohne Icons — User-Feedback "Settings-Tableiste
+// soll keine Icons verwenden". Reine Text-Buttons bleiben.
+const TABS: Array<{ id: SettingsTab; label: string }> = [
+  { id: "webhooks", label: "Webhooks" },
+  { id: "knx", label: "KNX-Bus" },
+  { id: "channels", label: "Channels" },
+  { id: "mqtt", label: "MQTT" },
+  { id: "heartbeats", label: "Heartbeats" },
+  { id: "remediation", label: "Auto-Remediation" },
 ];
 
 const STORAGE_KEY_TAB = "messagehub.settings.tab";
@@ -254,7 +256,6 @@ export class SettingsView extends LitElement {
               title=${t.label}
               @click=${() => this._selectTab(t.id)}
             >
-              <span class="tab-icon" aria-hidden="true">${t.icon}</span>
               <span>${t.label}</span>
             </button>`
           )}
@@ -383,9 +384,6 @@ export class SettingsView extends LitElement {
         font-weight: var(--mh-weight-semibold);
         box-shadow: var(--mh-shadow-1);
       }
-      .tab-icon {
-        font-size: 1.05em;
-      }
       .tab-panel {
         display: flex;
         flex-direction: column;
@@ -394,9 +392,6 @@ export class SettingsView extends LitElement {
       @media (max-width: 720px) {
         .tab {
           padding: 8px 10px;
-        }
-        .tab span:not(.tab-icon) {
-          /* nur Icon auf Mobile, Label im title-Tooltip */
           font-size: var(--mh-text-xs);
         }
       }

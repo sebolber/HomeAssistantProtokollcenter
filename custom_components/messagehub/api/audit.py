@@ -52,3 +52,20 @@ class AuditRepository:
             }
             for row in rows
         ]
+
+    async def delete_all(self) -> int:
+        """Iter 44 (N5): loescht ALLE Audit-Eintraege.
+
+        Liefert die Anzahl geloeschter Zeilen — wird vom API-Layer im
+        Antwort-Body zurueckgegeben (UI-Toast: "X Eintraege geloescht").
+        Der Clear-Aufruf selbst wird VOR dem DELETE als Audit-Eintrag
+        gespeichert, damit zumindest der Loesch-Vorgang in den verblei-
+        benden Logs nachvollziehbar bleibt — falls jemand nach dem
+        Clear nochmal Audit-Log oeffnet, ist der Audit-Clear-Eintrag
+        der erste neue.
+        """
+        cursor = await self._db.connection.execute("DELETE FROM audit_log")
+        await self._db.connection.commit()
+        deleted = cursor.rowcount or 0
+        await cursor.close()
+        return int(deleted)

@@ -466,6 +466,15 @@ export class ApiClient {
     return ((await res.json()) as { items: Array<Record<string, unknown>> }).items;
   }
 
+  async clearAuditLog(): Promise<{ ok: boolean; deleted: number }> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/audit`, {
+      method: "DELETE",
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as { ok: boolean; deleted: number };
+  }
+
   async discoverKnxFromProject(): Promise<{
     items: Array<{ address: string; name: string; dpt: string | null }>;
     status: string;

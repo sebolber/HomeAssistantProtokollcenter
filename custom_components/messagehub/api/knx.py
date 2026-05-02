@@ -104,7 +104,10 @@ class KnxAddressesView(RequireAdminView):
                 dpt=data.get("dpt"),
                 description=data.get("description"),
                 log_enabled=bool(data.get("log_enabled", False)),
-                log_severity=str(data.get("log_severity", "info")),
+                # Iter 44 (N2): Default-Severity = warning, damit neu
+                # angelegte Logging-Eintraege gleich auffallen statt im
+                # Info-Stream zu verschwinden.
+                log_severity=str(data.get("log_severity", "warning")),
                 severity_on_true=data.get("severity_on_true"),
                 severity_on_false=data.get("severity_on_false"),
             )

@@ -70,6 +70,34 @@ export class AuditView extends LitElement {
     }
   }
 
+  // Iter 44 (N5): Audit-Log loeschen mit Confirm-Dialog. Nach dem
+  // Clear bleibt genau 1 neuer Eintrag uebrig (audit_clear), den der
+  // Backend selbst geschrieben hat — wir laden danach neu.
+  private async _clearAll(): Promise<void> {
+    if (!this.api) return;
+    if (
+      !window.confirm(
+        "Wirklich ALLE Audit-Eintraege loeschen?\n\n" +
+          "Diese Aktion kann nicht rueckgaengig gemacht werden. " +
+          "Ein neuer Eintrag 'audit_clear' wird vom Backend angelegt, " +
+          "damit der Loesch-Vorgang in den verbleibenden Logs " +
+          "nachvollziehbar bleibt."
+      )
+    ) {
+      return;
+    }
+    this._loading = true;
+    try {
+      const result = await this.api.clearAuditLog();
+      await this._load();
+      window.alert(`${result.deleted} Eintraege geloescht.`);
+    } catch (err) {
+      window.alert(`Fehler: ${(err as Error).message}`);
+    } finally {
+      this._loading = false;
+    }
+  }
+
   private _toggle(idx: number): void {
     const next = new Set(this._expanded);
     if (next.has(idx)) next.delete(idx);
@@ -144,7 +172,19 @@ export class AuditView extends LitElement {
               Webhook-CRUD. Einträge sind unveränderlich.
             </p>
           </div>
-          <button class="mh-btn" @click=${() => void this._load()}>↻ Aktualisieren</button>
+          <div class="head-actions">
+            <button class="mh-btn" @click=${() => void this._load()}>
+              ↻ Aktualisieren
+            </button>
+            <button
+              class="mh-btn mh-btn--danger"
+              ?disabled=${this._items.length === 0 || this._loading}
+              @click=${() => void this._clearAll()}
+              title="Alle Audit-Eintraege loeschen"
+            >
+              Alle loeschen
+            </button>
+          </div>
         </header>
 
         <div class="filter-bar">
@@ -241,6 +281,11 @@ export class AuditView extends LitElement {
         align-items: flex-start;
         gap: var(--mh-space-4);
         margin-bottom: var(--mh-space-3);
+      }
+      .head-actions {
+        display: flex;
+        gap: var(--mh-space-2);
+        flex-shrink: 0;
       }
       h2 {
         margin: 0;
