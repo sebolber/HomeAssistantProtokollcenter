@@ -296,6 +296,22 @@ export interface KnxStatsLongTermDto {
   series: KnxStatsLongTermBucket[];
 }
 
+export interface KnxStatsBurst {
+  bucket: string;
+  telegrams: number;
+  busload_pct: number;
+  ga_count: number;
+  source_count: number;
+}
+
+export interface KnxStatsBurstsDto {
+  from: string;
+  to: string;
+  window_seconds: number;
+  threshold_pct: number;
+  bursts: KnxStatsBurst[];
+}
+
 export interface KnxStatsFilters {
   from?: string;
   to?: string;
@@ -847,6 +863,23 @@ export class ApiClient {
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxStatsLongTermDto;
+  }
+
+  async getKnxStatsBursts(
+    f: KnxStatsFilters,
+    opts: { windowSeconds?: number; thresholdPct?: number } = {}
+  ): Promise<KnxStatsBurstsDto> {
+    const params = this._knxStatsParams(f);
+    if (opts.windowSeconds && Number.isFinite(opts.windowSeconds)) {
+      params.set("window_seconds", String(Math.trunc(opts.windowSeconds)));
+    }
+    if (opts.thresholdPct && Number.isFinite(opts.thresholdPct)) {
+      params.set("threshold_pct", String(opts.thresholdPct));
+    }
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/bursts?${params.toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsBurstsDto;
   }
 
   async unacknowledgeKnxGa(ga: string): Promise<void> {

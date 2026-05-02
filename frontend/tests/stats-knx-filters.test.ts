@@ -100,6 +100,21 @@ function makeApi(spy?: { calls: KnxStatsSummaryDto[] }): ApiClient {
         { bucket: "2026-04-27T00:00:00", count: 150_000 },
       ],
     })),
+    getKnxStatsBursts: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      window_seconds: 5,
+      threshold_pct: 30.0,
+      bursts: [
+        {
+          bucket: "2026-05-02T08:30:00",
+          telegrams: 90,
+          busload_pct: 37.5,
+          ga_count: 8,
+          source_count: 4,
+        },
+      ],
+    })),
   } as unknown as ApiClient;
 }
 
@@ -149,6 +164,17 @@ describe("stats-knx-view filter bar", () => {
     expect(text).toContain("312");
     expect(text).toContain("22");
     expect(text).toContain("6,4");
+  });
+
+  it("Iter 41: Bursts-Card erscheint wenn Spitzen vorhanden sind", async () => {
+    const el = await mount();
+    const card = el.shadowRoot!.querySelector(".bursts");
+    expect(card).not.toBeNull();
+    const rows = card!.querySelectorAll("tbody tr");
+    expect(rows.length).toBe(1);
+    const text = card!.textContent ?? "";
+    expect(text).toContain("90"); // telegrams
+    expect(text).toContain("37,5"); // busload_pct
   });
 
   it("Iter 37: Health-Score-Card zeigt Score + Findings", async () => {

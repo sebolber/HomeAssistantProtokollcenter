@@ -161,6 +161,13 @@ function makeApi(): MockApi {
       top_gas: [],
       series: [],
     })),
+    getKnxStatsBursts: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      window_seconds: 5,
+      threshold_pct: 30.0,
+      bursts: [],
+    })),
     getKnxStatsGaDetail: vi.fn(async (ga: string) => {
       if (ga !== "5/2/14") throw new Error("not found");
       return DETAIL;

@@ -10,6 +10,7 @@ import { property, state } from "lit/decorators.js";
 import type {
   ApiClient,
   KnxStatsAlarmsDto,
+  KnxStatsBurstsDto,
   KnxStatsBusHealthDto,
   KnxStatsBusloadDto,
   KnxStatsFilters,
@@ -110,6 +111,7 @@ export class StatsKnxView extends LitElement {
   @state() private _busload: KnxStatsBusloadDto | null = null;
   @state() private _health: KnxStatsHealthScoreDto | null = null;
   @state() private _longTerm: KnxStatsLongTermDto | null = null;
+  @state() private _bursts: KnxStatsBurstsDto | null = null;
   @state() private _silence: KnxStatsSilenceDto | null = null;
   @state() private _orphans: KnxStatsOrphansDto | null = null;
   @state() private _alarms: KnxStatsAlarmsDto | null = null;
@@ -182,6 +184,7 @@ export class StatsKnxView extends LitElement {
         busload,
         health,
         longTerm,
+        bursts,
       ] = await Promise.all([
         this.api.getKnxStatsSummary(fRaw),
         this.api.getKnxStatsTop(fRaw),
@@ -200,6 +203,7 @@ export class StatsKnxView extends LitElement {
         longTermMode
           ? this.api.getKnxStatsLongTerm(fLongTerm).catch(() => null)
           : Promise.resolve(null),
+        this.api.getKnxStatsBursts(fRaw).catch(() => null),
       ]);
       this._summary = summary;
       this._top = top.items;
@@ -211,6 +215,7 @@ export class StatsKnxView extends LitElement {
       this._busload = busload;
       this._health = health;
       this._longTerm = longTerm;
+      this._bursts = bursts;
       // Timeline fuer Top-5 GAs (mehr Linien werden unleserlich).
       // Nutzt fRaw (kappiert auf 48h im Long-Term-Modus) — Timeline-Endpoint
       // liest aus knx_raw_telegrams.
@@ -237,6 +242,7 @@ export class StatsKnxView extends LitElement {
       this._busload = null;
       this._health = null;
       this._longTerm = null;
+      this._bursts = null;
     } finally {
       this._loading = false;
     }
@@ -569,6 +575,61 @@ export class StatsKnxView extends LitElement {
     }
   }
 
+  // Iter 41: Burst-Detector-Card -----------------------------------------
+
+  private _renderBursts(): TemplateResult {
+    const b = this._bursts!;
+    const fmtNum = (n: number) => n.toLocaleString("de-DE");
+    const fmtPct = (n: number) =>
+      n.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    return html`
+      <section class="mh-card bursts">
+        <header class="card-head">
+          <h3>Telegrammfluten (Bursts)</h3>
+          <span class="muted small">
+            ${b.bursts.length} Spitzen ueber ${fmtPct(b.threshold_pct)} % Buslast
+            (${b.window_seconds}s-Fenster)
+          </span>
+        </header>
+        <div class="bursts__intro">
+          <p class="muted small">
+            Kurze Spitzen, die im Period-Avg untergehen — typisch fuer
+            Sturm-Automatik, gleichzeitige Rolladen-Befehle oder Szene-Trigger.
+            Spalte „GAs" zeigt die Anzahl unterschiedlicher Gruppenadressen,
+            „Geraete" die Anzahl unterschiedlicher Source-Adressen.
+          </p>
+        </div>
+        <div class="table-wrap">
+          <table class="bursts__table">
+            <thead>
+              <tr>
+                <th>Zeit</th>
+                <th class="num">Tel</th>
+                <th class="num">Buslast</th>
+                <th class="num">GAs</th>
+                <th class="num">Geraete</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${b.bursts.slice(0, 20).map(
+                (burst) => html`<tr>
+                  <td class="bursts__ts">${this._formatTs(burst.bucket)}</td>
+                  <td class="num">${fmtNum(burst.telegrams)}</td>
+                  <td class="num bursts__pct">${fmtPct(burst.busload_pct)} %</td>
+                  <td class="num">${burst.ga_count}</td>
+                  <td class="num">${burst.source_count}</td>
+                </tr>`
+              )}
+            </tbody>
+          </table>
+        </div>
+        ${b.bursts.length > 20
+          ? html`<p class="muted small">… und ${b.bursts.length - 20} weitere</p>`
+          : nothing}
+      </section>
+    `;
+  }
+
   // Iter 39: Long-Term-Modus-Hinweis + Counter-Karte ----------------------
 
   private _renderLongTermBanner(): TemplateResult {
@@ -672,6 +733,9 @@ export class StatsKnxView extends LitElement {
         ${this._isLongTermMode() ? this._renderLongTermBanner() : nothing}
         ${this._health !== null ? this._renderHealthScore() : nothing}
         ${this._longTerm !== null ? this._renderLongTerm() : nothing}
+        ${this._bursts !== null && this._bursts.bursts.length > 0
+          ? this._renderBursts()
+          : nothing}
 
         <section class="mh-card kpi-card">
           <header class="card-head">
@@ -1605,6 +1669,37 @@ export class StatsKnxView extends LitElement {
         margin-left: auto;
         font-variant-numeric: tabular-nums;
         color: var(--mh-fg-muted);
+      }
+      /* Iter 41: Burst-Detector-Card */
+      .bursts__intro {
+        margin-bottom: var(--mh-space-2);
+      }
+      .bursts__table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .bursts__table th,
+      .bursts__table td {
+        padding: var(--mh-space-1) var(--mh-space-2);
+        border-bottom: 1px solid var(--mh-divider);
+        font-size: var(--mh-text-sm);
+      }
+      .bursts__table th {
+        text-align: left;
+        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-semibold);
+      }
+      .bursts__table .num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .bursts__ts {
+        font-family: var(--mh-font-mono, monospace);
+        white-space: nowrap;
+      }
+      .bursts__pct {
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-warning);
       }
       .severity-counts {
         display: flex;
