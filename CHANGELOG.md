@@ -4,6 +4,19 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.9.2] – 2026-05-02
+
+Hassfest-Patch. Der 0.9.1-Workflow scheiterte an einer neuen
+Hassfest-Regel zur Manifest-Key-Sortierung.
+
+### Behoben
+
+- **`manifest.json`** Keys neu sortiert: erst `domain`, dann `name`,
+  alle weiteren alphabetisch (`after_dependencies`, `codeowners`,
+  `config_flow`, `dependencies`, `documentation`, `integration_type`,
+  `iot_class`, `issue_tracker`, `requirements`, `version`). Hassfest-
+  Regel `[MANIFEST] Manifest keys are not sorted correctly` ist erfüllt.
+
 ## [0.9.1] – 2026-05-02
 
 Hassfest-Fix. Der 0.9.0-Release-Workflow scheiterte, weil `mqtt` als
