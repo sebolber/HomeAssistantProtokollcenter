@@ -1,0 +1,204 @@
+"""KNX-Discovery: liest Gruppenadressen aus dem in HA hinterlegten ETS-Projekt.
+
+Vorher in api/knx.py inline mit Cognitive Complexity 41 — hier ausgelagert
+und in kleine Helfer mit klarer Verantwortung zerlegt:
+
+- find_knx_state(): findet das HA-KNX-Integrations-State-Object
+- find_project(): findet das Projekt darin
+- find_raw_groups(): findet die GA-Liste/Dict im Projekt
+- extract_items_from_groups(): wandelt das in unsere DTO-Liste
+- discover_knx_project(): orchestriert alles + Storage-Fallback
+
+Pure Funktionen ohne aiohttp-Abhaengigkeit, daher in tests/unit testbar.
+"""
+
+from __future__ import annotations
+
+import json as _json
+from pathlib import Path as _Path
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+
+
+_KNX_STATE_KEYS = ("knx", "xknx", "knx_module")
+_PROJECT_ATTRS = ("project", "knx_project", "knxproject")
+_GROUP_ATTRS = ("group_addresses", "groupaddresses", "groupranges", "group_ranges")
+_GROUP_DICT_KEYS = ("group_addresses", "groupaddresses", "groupranges")
+_GROUP_ENTRY_ADDR_KEYS = ("address", "ga", "identifier")
+
+
+def find_knx_state(hass: HomeAssistant) -> Any:
+    """Findet das KNX-Integrations-State-Object in `hass.data` (oder None)."""
+    for key in _KNX_STATE_KEYS:
+        state = hass.data.get(key)
+        if state is not None:
+            return state
+    return None
+
+
+def find_project(knx_state: Any) -> Any:
+    """Holt das Projekt-Object aus knx_state — Attribute, xknx-Sub-Object oder dict."""
+    for attr in _PROJECT_ATTRS:
+        candidate = getattr(knx_state, attr, None)
+        if candidate is not None:
+            return candidate
+    xknx_obj = getattr(knx_state, "xknx", None)
+    if xknx_obj is not None:
+        for attr in _PROJECT_ATTRS:
+            candidate = getattr(xknx_obj, attr, None)
+            if candidate is not None:
+                return candidate
+    if isinstance(knx_state, dict):
+        return knx_state.get("project")
+    return None
+
+
+def find_raw_groups(project: Any) -> Any:
+    """Holt das group_addresses-Mapping aus dem Projekt — Attribute oder dict-keys."""
+    for attr in _GROUP_ATTRS:
+        candidate = getattr(project, attr, None)
+        if candidate:
+            return candidate
+    if isinstance(project, dict):
+        for key in _GROUP_DICT_KEYS:
+            candidate = project.get(key)
+            if candidate:
+                return candidate
+    return None
+
+
+def extract_items_from_groups(raw_groups: Any) -> list[dict[str, Any]]:
+    """Wandelt verschiedene raw_groups-Formen (dict, list-of-dicts) in DTO-Liste."""
+    items: list[dict[str, Any]] = []
+    if isinstance(raw_groups, dict):
+        for addr, data in raw_groups.items():
+            items.append(extract_group_address_entry(addr, data))
+    elif isinstance(raw_groups, list):
+        for entry in raw_groups:
+            if not isinstance(entry, dict):
+                continue
+            addr = next((entry.get(k) for k in _GROUP_ENTRY_ADDR_KEYS if entry.get(k)), None)
+            if addr:
+                items.append(extract_group_address_entry(addr, entry))
+    return [it for it in items if it["address"]]
+
+
+def extract_group_address_entry(addr: Any, data: Any) -> dict[str, Any]:
+    """Wandelt ein einzelnes group_address-Element (dict oder Object) ins DTO."""
+    addr_str = str(addr)
+    if isinstance(data, dict):
+        name = data.get("name") or data.get("description") or data.get("label")
+        dpt_field = data.get("dpt") or data.get("datapoint_type") or data.get("data_type")
+    else:
+        name = getattr(data, "name", None) or getattr(data, "description", None)
+        dpt_field = getattr(data, "dpt", None) or getattr(data, "data_type", None)
+    return {
+        "address": addr_str,
+        "name": str(name or addr_str),
+        "dpt": extract_dpt(dpt_field),
+    }
+
+
+def extract_dpt(raw: Any) -> str | None:
+    """Normalisiert verschiedene DPT-Repraesentationen auf "MAIN.SUB"-Format."""
+    if raw is None:
+        return None
+    if isinstance(raw, str):
+        return raw.strip() or None
+    if isinstance(raw, dict):
+        return _format_dpt(raw.get("main"), raw.get("sub"))
+    main = (
+        getattr(raw, "dpt_main_number", None)
+        or getattr(raw, "main", None)
+        or getattr(raw, "value_type", None)
+    )
+    sub = getattr(raw, "dpt_sub_number", None) or getattr(raw, "sub", None)
+    if main is not None:
+        return _format_dpt(main, sub)
+    return None
+
+
+def _format_dpt(main: Any, sub: Any) -> str | None:
+    if main is None:
+        return None
+    try:
+        if sub is None or sub == "":
+            return str(int(main))
+        return f"{int(main)}.{int(sub):03d}"
+    except (TypeError, ValueError):
+        return f"{main}.{sub}" if sub else str(main)
+
+
+def ga_sort_key(ga: str) -> tuple[int, int, int]:
+    """Sortier-Key fuer GA-Strings im N/N/N-Format."""
+    try:
+        a, b, c = (int(p) for p in ga.split("/"))
+    except (ValueError, TypeError):
+        return (999, 999, 999)
+    return (a, b, c)
+
+
+async def discover_knx_project(hass: HomeAssistant) -> tuple[list[dict[str, Any]], str]:
+    """Liefert (items, status) aus dem HA-KNX-Projekt, falls vorhanden.
+
+    Status-Werte: "ok" / "no_knx_integration" / "no_project_loaded" / "project_empty".
+    Faellt bei jedem Schritt auf den Storage-Datei-Reader zurueck — damit
+    funktioniert das auch, wenn die KNX-Integration noch nicht voll geladen ist.
+    """
+    knx_state = find_knx_state(hass)
+    if knx_state is None:
+        return await _fallback_storage(hass, "no_knx_integration")
+
+    project = find_project(knx_state)
+    if project is None:
+        return await _fallback_storage(hass, "no_project_loaded")
+
+    raw_groups = find_raw_groups(project)
+    if not raw_groups:
+        return await _fallback_storage(hass, "project_empty")
+
+    items = extract_items_from_groups(raw_groups)
+    items.sort(key=lambda x: ga_sort_key(x["address"]))
+    return items, "ok" if items else "project_empty"
+
+
+async def _fallback_storage(
+    hass: HomeAssistant, no_state_status: str
+) -> tuple[list[dict[str, Any]], str]:
+    items = await load_from_storage_file(hass)
+    if items:
+        return items, "ok"
+    return [], no_state_status
+
+
+async def load_from_storage_file(hass: HomeAssistant) -> list[dict[str, Any]]:
+    """Fallback: liest <config>/.storage/knx/* (HA 2024.x speichert dort)."""
+    storage_dir = _Path(hass.config.path(".storage"))
+    candidates = [
+        storage_dir / "knx" / "project.json",
+        storage_dir / "knx_project.json",
+        storage_dir / "knx_keyring.json",
+    ]
+
+    def _read_first() -> dict[str, Any] | None:
+        for p in candidates:
+            if p.is_file():
+                try:
+                    parsed: dict[str, Any] = _json.loads(p.read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    continue
+                else:
+                    return parsed
+        return None
+
+    raw = await hass.async_add_executor_job(_read_first)
+    if not raw:
+        return []
+    groups = raw.get("data", {}).get("group_addresses") if isinstance(raw, dict) else None
+    if not isinstance(groups, dict):
+        return []
+    items = [extract_group_address_entry(addr, data) for addr, data in groups.items()]
+    items.sort(key=lambda x: ga_sort_key(x["address"]))
+    return items
