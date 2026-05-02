@@ -6,6 +6,16 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 93 — K1 Saved Filters Frontend)
+- **Saved-Filters-Dropdown** im Filter-Bar des Nachrichten-Tabs
+  („📋 Filter ▾"): Liste aller gespeicherten Filter-Presets, Klick →
+  Filter laden, „✕" pro Eintrag → Löschen, „+ Aktuellen Filter
+  speichern" → Prompt nach Namen.
+- API-Client-Methoden `listSavedFilters`, `upsertSavedFilter`,
+  `deleteSavedFilter`. `SavedFilterDto`-Type.
+- State persistiert weiter im LocalStorage; Saved-Filter-Anwendung
+  überschreibt LocalStorage durch den Server-Stand.
+
 ### Hinzugefügt (Iter 92 — K1 Saved Filters serverseitig, Backend)
 - **Neue Tabelle** `saved_filters` (Migration 0023). Spalten: `id`,
   `name`, `scope`, `filters` (JSON), `created_at`, `updated_at`.

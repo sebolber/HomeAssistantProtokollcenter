@@ -4,7 +4,7 @@
 import { LitElement, css, html, type TemplateResult } from "lit";
 import { customElement } from "./utils/custom-element.js";
 import { property, state } from "lit/decorators.js";
-import { ApiClient, type MessageDto } from "./api-client.js";
+import { ApiClient, type MessageDto, type SavedFilterDto } from "./api-client.js";
 import { tokens, buttons } from "./styles/tokens.js";
 import "./components/message-table.js";
 import "./components/severity-filter.js";
@@ -79,6 +79,9 @@ export class MessageHubPanel extends LitElement {
   @state() private _testing = false;
   @state() private _toast = "";
   @state() private _overflowOpen = false;
+  // Iter 93 / K1: Saved Filters fuer den Nachrichten-Tab.
+  @state() private _savedFilters: SavedFilterDto[] = [];
+  @state() private _savedFiltersOpen = false;
 
   private _api = new ApiClient();
   private _unsubLive?: () => void;
@@ -87,6 +90,7 @@ export class MessageHubPanel extends LitElement {
     if (this.hass?.auth) this._api.setAuth(this.hass.auth.data.access_token);
     void this._reload();
     void this._subscribeLive();
+    void this._loadSavedFilters();
   }
 
   override disconnectedCallback(): void {
@@ -326,6 +330,101 @@ export class MessageHubPanel extends LitElement {
     if (this._overflowOpen) this._overflowOpen = false;
   };
 
+  // Iter 93 / K1: Saved Filters laden (vom Server, scope=messages).
+  private async _loadSavedFilters(): Promise<void> {
+    try {
+      this._savedFilters = await this._api.listSavedFilters("messages");
+    } catch (err) {
+      this._showToast(`Saved Filters konnten nicht geladen werden: ${(err as Error).message}`);
+    }
+  }
+
+  private async _saveCurrentFilter(): Promise<void> {
+    const name = window.prompt("Filter speichern als:");
+    if (name === null || name.trim() === "") return;
+    try {
+      await this._api.upsertSavedFilter(
+        name.trim(),
+        "messages",
+        this._filters as unknown as Record<string, unknown>,
+      );
+      this._showToast(`Filter „${name.trim()}" gespeichert`);
+      await this._loadSavedFilters();
+    } catch (err) {
+      this._showToast(`Speichern fehlgeschlagen: ${(err as Error).message}`);
+    }
+  }
+
+  private _applySavedFilter(item: SavedFilterDto): void {
+    // Vorsichtig mergen: nur bekannte Felder uebernehmen.
+    const incoming = item.filters as Partial<UiFilters>;
+    this._filters = { ...DEFAULT_FILTERS, ...incoming };
+    this._persistFilters();
+    this._savedFiltersOpen = false;
+    void this._reload();
+    this._showToast(`Filter „${item.name}" geladen`);
+  }
+
+  private async _deleteSavedFilter(item: SavedFilterDto, e: Event): Promise<void> {
+    e.stopPropagation();
+    if (!window.confirm(`Filter „${item.name}" wirklich löschen?`)) return;
+    try {
+      await this._api.deleteSavedFilter(item.id);
+      await this._loadSavedFilters();
+      this._showToast("Filter gelöscht");
+    } catch (err) {
+      this._showToast(`Löschen fehlgeschlagen: ${(err as Error).message}`);
+    }
+  }
+
+  private _renderSavedFiltersDropdown(): TemplateResult {
+    return html`
+      <div class="saved-filters">
+        <button
+          class="filter-reset"
+          @click=${() => {
+            this._savedFiltersOpen = !this._savedFiltersOpen;
+          }}
+          title="Saved Filters laden / verwalten"
+        >
+          📋 Filter ${this._savedFiltersOpen ? "▴" : "▾"}
+        </button>
+        ${this._savedFiltersOpen
+          ? html`<div class="saved-filters-dropdown">
+              ${this._savedFilters.length === 0
+                ? html`<p class="muted small">Keine gespeicherten Filter.</p>`
+                : html`<ul>
+                    ${this._savedFilters.map(
+                      (it) => html`<li
+                        @click=${() => this._applySavedFilter(it)}
+                        title="Klick: laden"
+                      >
+                        <span>${it.name}</span>
+                        <button
+                          class="filter-reset"
+                          @click=${(e: Event) => void this._deleteSavedFilter(it, e)}
+                          title="Filter löschen"
+                        >
+                          ✕
+                        </button>
+                      </li>`,
+                    )}
+                  </ul>`}
+              <button
+                class="filter-reset"
+                @click=${() => {
+                  this._savedFiltersOpen = false;
+                  void this._saveCurrentFilter();
+                }}
+              >
+                + Aktuellen Filter speichern
+              </button>
+            </div>`
+          : null}
+      </div>
+    `;
+  }
+
   private _hasActiveFilters(): boolean {
     return (
       this._filters.severity.length !== DEFAULT_FILTERS.severity.length ||
@@ -426,6 +525,7 @@ export class MessageHubPanel extends LitElement {
               Filter zurücksetzen
             </button>`
           : null}
+        ${this._renderSavedFiltersDropdown()}
       </div>
 
       <div class="status-bar">
@@ -765,6 +865,48 @@ export class MessageHubPanel extends LitElement {
       }
       .hide-knx-read input {
         accent-color: var(--mh-accent);
+      }
+      /* Iter 93 / K1: Saved Filters Dropdown. */
+      .saved-filters {
+        position: relative;
+        display: inline-block;
+      }
+      .saved-filters-dropdown {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        z-index: 10;
+        margin-top: 4px;
+        min-width: 240px;
+        max-width: 320px;
+        padding: var(--mh-space-2);
+        background: var(--mh-surface);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .saved-filters-dropdown ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .saved-filters-dropdown li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--mh-space-2);
+        padding: 4px 8px;
+        cursor: pointer;
+        border-radius: var(--mh-radius-sm);
+      }
+      .saved-filters-dropdown li:hover {
+        background: var(--mh-surface-2);
       }
 
       /* Status-Bar */

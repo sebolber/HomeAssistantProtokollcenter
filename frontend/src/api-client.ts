@@ -122,6 +122,16 @@ export interface KnxStatsTopRowDto {
   has_findings?: boolean;
 }
 
+/** Iter 92 / K1: Saved Filters serverseitig. */
+export interface SavedFilterDto {
+  id: number;
+  name: string;
+  scope: "messages" | "knx-stats" | "audit";
+  filters: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 /** Iter 91 / WR-G: GA-Heatmap (Top-N GAs x Zeit-Buckets). */
 export interface KnxStatsHeatmapDto {
   from: string;
@@ -973,6 +983,41 @@ export class ApiClient {
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxStatsAlarmsDto;
+  }
+
+  /** Iter 92 / K1: Saved Filters listen. */
+  async listSavedFilters(scope: string): Promise<SavedFilterDto[]> {
+    const url = `${this.baseUrl}/api/messagehub/saved-filters?scope=${encodeURIComponent(scope)}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    const json = (await res.json()) as { items: SavedFilterDto[] };
+    return json.items;
+  }
+
+  /** Iter 92 / K1: Saved Filter speichern (upsert). */
+  async upsertSavedFilter(
+    name: string,
+    scope: string,
+    filters: Record<string, unknown>,
+  ): Promise<SavedFilterDto> {
+    const url = `${this.baseUrl}/api/messagehub/saved-filters`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ name, scope, filters }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as SavedFilterDto;
+  }
+
+  /** Iter 92 / K1: Saved Filter loeschen. */
+  async deleteSavedFilter(id: number): Promise<void> {
+    const url = `${this.baseUrl}/api/messagehub/saved-filters/${id}`;
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
   }
 
   /** Iter 91 / WR-G: GA-Heatmap (Top-N GAs x Zeit-Buckets). */
