@@ -31,6 +31,12 @@ import "./knx-value-sparkline.js";
 
 const STORAGE_KEY = "messagehub.knx-stats.filters";
 
+// Iter 86 / CR-3: Trend-Severity-Schwellen als benannte Konstanten
+// statt Magic Numbers im Funktions-Body.
+const TREND_DELTA_PCT_GREEN_MAX = 25;
+const TREND_DELTA_PCT_YELLOW_MAX = 100;
+const TREND_DELTA_PCT_ORANGE_MAX = 300;
+
 // Periode-Presets in Tagen.
 // Iter 22: Raw-Telegramm-Tabelle hat 48h Retention.
 // Iter 39: > 48h sind Long-Term-Perioden — die UI wechselt in den
@@ -1799,9 +1805,9 @@ export class StatsKnxView extends LitElement {
   private _classifyTrendSeverity(deltaPct: number | null): string {
     if (deltaPct === null) return "yellow"; // erste Daten oder neu
     const abs = Math.abs(deltaPct);
-    if (abs < 25) return "green";
-    if (abs < 100) return "yellow";
-    if (abs < 300) return "orange";
+    if (abs < TREND_DELTA_PCT_GREEN_MAX) return "green";
+    if (abs < TREND_DELTA_PCT_YELLOW_MAX) return "yellow";
+    if (abs < TREND_DELTA_PCT_ORANGE_MAX) return "orange";
     return "red";
   }
 

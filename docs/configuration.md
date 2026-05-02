@@ -6,6 +6,7 @@ pro Typ, Auto-Remediation, Heartbeats und mehr.
 
 ## Inhalt
 
+- [Sicherheits-Hinweis Webhooks](#sicherheits-hinweis-webhooks)
 - [JSONPath-Mapping](#jsonpath-mapping)
 - [KNX-Adressen im Detail](#knx-adressen-im-detail)
 - [Notification-Channels](#notification-channels)
@@ -15,6 +16,25 @@ pro Typ, Auto-Remediation, Heartbeats und mehr.
 - [Automation-Cookbook](#automation-cookbook)
 - [REST-API-Übersicht](#rest-api-übersicht)
 - [Eventbus](#eventbus)
+
+## Sicherheits-Hinweis Webhooks
+
+**Webhook-IDs sind die einzige Auth-Schicht** für eingehende Webhooks
+(HA-Standard-Pattern). Halte die `webhook_id` geheim — wer sie kennt,
+kann beliebige Nachrichten in messagehub einliefern (innerhalb der
+Body-/Rate-Limits aus den Optionen).
+
+**Konkret:**
+- Niemals die Webhook-URL in öffentlichen Logs, Issues oder Repos
+  einchecken.
+- Bei Verdacht auf Leak: Webhook in der Settings-UI „Löschen" und neu
+  anlegen → andere `webhook_id`.
+- Default ist `local_only=False` (HA-Webhook-Standard) — die URL
+  funktioniert von jedem Host, der dein HA erreicht. Wer das eingrenzen
+  will, fängt das aktuell auf der Reverse-Proxy- / Firewall-Ebene ab.
+- Body-Limit (`max_body_size`, default 64 KB) und Rate-Limit
+  (`webhook_rate_limit`, default 60 req/min) als zusätzliche
+  Schutzschichten in den Optionen einstellbar.
 
 ## JSONPath-Mapping
 

@@ -6227,7 +6227,7 @@ var ia = Object.defineProperty, na = Object.getOwnPropertyDescriptor, _ = (t, e,
     (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
   return a && r && ia(e, s, r), r;
 };
-const Nt = "messagehub.knx-stats.filters", He = [
+const Nt = "messagehub.knx-stats.filters", oa = 25, la = 100, da = 300, He = [
   { id: "1h", label: "1 Std", days: 1 / 24 },
   { id: "6h", label: "6 Std", days: 0.25 },
   { id: "24h", label: "24 Std", days: 1 },
@@ -6235,14 +6235,14 @@ const Nt = "messagehub.knx-stats.filters", He = [
   { id: "7d", label: "7 Tage", days: 7 },
   { id: "30d", label: "30 Tage", days: 30 },
   { id: "365d", label: "365 Tage", days: 365 }
-], oa = /* @__PURE__ */ new Set(["7d", "30d", "365d"]), la = [10, 25, 50, 100], ft = {
+], ha = /* @__PURE__ */ new Set(["7d", "30d", "365d"]), ca = [10, 25, 50, 100], ft = {
   periodId: "24h",
   topN: 50,
   topNDevices: 25,
   minRate: 1,
   includeAck: !0
 };
-function da() {
+function pa() {
   try {
     const t = localStorage.getItem(Nt);
     if (t) {
@@ -6263,10 +6263,10 @@ function bt(t) {
   const e = He.find((r) => r.id === t) ?? He[2], s = /* @__PURE__ */ new Date();
   return { from: new Date(s.getTime() - e.days * 864e5).toISOString(), to: s.toISOString() };
 }
-const ha = 48;
-function ca() {
+const ua = 48;
+function ma() {
   const t = /* @__PURE__ */ new Date();
-  return { from: new Date(t.getTime() - ha * 3600 * 1e3).toISOString(), to: t.toISOString() };
+  return { from: new Date(t.getTime() - ua * 3600 * 1e3).toISOString(), to: t.toISOString() };
 }
 function _t(t) {
   switch (t) {
@@ -6286,7 +6286,7 @@ const xt = {
   orange: 2,
   red: 3
 };
-function pa(t, e, s) {
+function ga(t, e, s) {
   return [...t].sort((r, i) => {
     let o;
     switch (e) {
@@ -6318,7 +6318,7 @@ function pa(t, e, s) {
 }
 let f = class extends w {
   constructor() {
-    super(...arguments), this._filters = da(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansMissingShow = 50, this._orphansExtraShow = 50, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._loading = !1, this._error = "", this._toast = "";
+    super(...arguments), this._filters = pa(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansMissingShow = 50, this._orphansExtraShow = 50, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._loading = !1, this._error = "", this._toast = "";
   }
   async firstUpdated() {
     await Promise.all([this._loadBusAnalysisState(), this._load()]);
@@ -6405,14 +6405,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     };
   }
   _isLongTermMode() {
-    return oa.has(this._filters.periodId);
+    return ha.has(this._filters.periodId);
   }
   // Im Long-Term-Modus laufen die Raw-Endpunkte auf die letzten 48h —
   // alles dahinter liegt in der Counter-Tabelle und wird ueber den
   // Long-Term-Endpoint geliefert.
   _liveFiltersForRaw() {
     if (!this._isLongTermMode()) return this._apiFilters();
-    const { from: t, to: e } = ca();
+    const { from: t, to: e } = ma();
     return {
       from: t,
       to: e,
@@ -6577,7 +6577,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <span class="inline-topn-wrap">
         <span class="inline-topn-label">zeige</span>
         <span class="inline-topn" role="group" aria-label="Anzahl Einträge">
-          ${la.map(
+          ${ca.map(
       (s) => n`<button
               class=${`inline-topn__btn ${t === s ? "active" : ""}`}
               @click=${() => e(s)}
@@ -7042,7 +7042,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       return n`<p class="muted">lade…</p>`;
     if (this._top.length === 0)
       return n`<p class="muted">Keine Telegramme in diesem Zeitraum.</p>`;
-    const t = this._topSortKey, e = this._topSortDir, s = pa(this._top, t, e);
+    const t = this._topSortKey, e = this._topSortDir, s = ga(this._top, t, e);
     return n`
       <div class="table-wrap">
         <table>
@@ -7547,7 +7547,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   _classifyTrendSeverity(t) {
     if (t === null) return "yellow";
     const e = Math.abs(t);
-    return e < 25 ? "green" : e < 100 ? "yellow" : e < 300 ? "orange" : "red";
+    return e < oa ? "green" : e < la ? "yellow" : e < da ? "orange" : "red";
   }
   _renderOrphans() {
     const t = this._orphans, e = t.missing_in_log.filter(
@@ -8933,12 +8933,12 @@ _([
 f = _([
   T("stats-knx-view")
 ], f);
-var ua = Object.defineProperty, ma = Object.getOwnPropertyDescriptor, Je = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? ma(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+var va = Object.defineProperty, fa = Object.getOwnPropertyDescriptor, Je = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? fa(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && ua(e, s, r), r;
+  return a && r && va(e, s, r), r;
 };
-const wt = "messagehub.stats.subtab", ga = /* @__PURE__ */ new Set(["live", "knx"]);
+const wt = "messagehub.stats.subtab", ba = /* @__PURE__ */ new Set(["live", "knx"]);
 let be = class extends w {
   constructor() {
     super(...arguments), this._tab = this._loadTab();
@@ -8946,7 +8946,7 @@ let be = class extends w {
   _loadTab() {
     try {
       const t = localStorage.getItem(wt);
-      if (t && ga.has(t)) return t;
+      if (t && ba.has(t)) return t;
     } catch {
     }
     return "live";
@@ -9050,17 +9050,17 @@ Je([
 be = Je([
   T("stats-view")
 ], be);
-var va = Object.defineProperty, fa = Object.getOwnPropertyDescriptor, Z = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? fa(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+var _a = Object.defineProperty, xa = Object.getOwnPropertyDescriptor, Z = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? xa(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && va(e, s, r), r;
+  return a && r && _a(e, s, r), r;
 };
-function ba(t) {
+function wa(t) {
   const e = t.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), s = new Set(e), a = (...r) => r.some((i) => s.has(i));
   return a("delete", "remove", "removed", "deleted") ? "delete" : a("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : a("update", "updated", "edit", "edited", "set") ? "update" : a("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
 }
 const yt = 60;
-function _a(t) {
+function ya(t) {
   if (!t || typeof t != "object" || Array.isArray(t))
     return "";
   const e = t;
@@ -9133,7 +9133,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     }) : this._items;
   }
   _renderActionPill(t) {
-    const e = ba(t);
+    const e = wa(t);
     return n`<span class=${`action-pill action-${e}`} title=${t}>${t}</span>`;
   }
   _renderDetails(t) {
@@ -9154,7 +9154,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     return n`<code>${String(t)}</code>`;
   }
   _renderDetailsSummary(t) {
-    const e = _a(t);
+    const e = ya(t);
     if (e === "") return n`<span class="muted">—</span>`;
     const s = typeof t == "object" && t !== null && (t.label !== void 0 || t.name !== void 0);
     return n`<span class=${`summary ${s ? "" : "muted"}`}
@@ -9515,12 +9515,12 @@ Z([
 N = Z([
   T("audit-view")
 ], N);
-var xa = Object.defineProperty, wa = Object.getOwnPropertyDescriptor, P = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? wa(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+var $a = Object.defineProperty, ka = Object.getOwnPropertyDescriptor, P = (t, e, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? ka(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && xa(e, s, r), r;
+  return a && r && $a(e, s, r), r;
 };
-function ya(t) {
+function Sa(t) {
   return t.source === "knx-bus" && t.text.includes("(GroupValueRead)");
 }
 const $t = "messagehub.filters", ce = {
@@ -9583,7 +9583,7 @@ let E = class extends w {
     }, "messagehub_message_added"));
   }
   _matchesFilters(t) {
-    return !(this._filters.severity.length && !this._filters.severity.includes(t.severity) || this._filters.source && t.source !== this._filters.source || this._filters.search && !t.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && ya(t));
+    return !(this._filters.severity.length && !this._filters.severity.includes(t.severity) || this._filters.source && t.source !== this._filters.source || this._filters.search && !t.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && Sa(t));
   }
   _loadFilters() {
     try {
@@ -10277,5 +10277,5 @@ E = P([
 ], E);
 export {
   E as MessageHubPanel,
-  ya as isKnxReadMessage
+  Sa as isKnxReadMessage
 };

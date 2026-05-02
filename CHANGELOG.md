@@ -6,6 +6,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Code-Hygiene + Doku (Iter 86 — LOW-Findings Sammel 2)
+- **CR-3 Magic Numbers extrahiert**: Trend-Severity-Schwellen
+  (25 / 100 / 300 % Δ) als benannte Konstanten am Modul-Top von
+  `stats-knx-view.ts`. Bedeutung jetzt aus dem Bezeichner ablesbar.
+- **CR-22 Sicherheits-Hinweis Webhooks** in `docs/configuration.md`
+  ergänzt: Webhook-ID als einzige Auth-Schicht, Body-/Rate-Limit-
+  Schutzschichten, `local_only`-Default und Empfehlung für
+  Reverse-Proxy-Eingrenzung.
+
 ### Code-Hygiene (Iter 85 — LOW-Findings Sammel)
 - **CR-6**: `KnxStatsBusAnalysisStateView.get` liefert jetzt 503 bei
   fehlender DB-Init (konsistent mit anderen Endpoints).
