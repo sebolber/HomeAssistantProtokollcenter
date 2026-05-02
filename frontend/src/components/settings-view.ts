@@ -1,4 +1,6 @@
-// Settings-Tab: Webhook-Verwaltung mit Add/Edit/Delete + Quick-Help.
+// Settings-Tab: Sub-Tabs fuer alle Eingangs-/Notification-Konfigurationen.
+// Wegen der grossen KNX-Liste (3000+ Adressen) wird jede Konfig in einem
+// eigenen Tab gerendert, damit nicht alle Sektionen untereinander stehen.
 
 import { LitElement, css, html, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
@@ -8,6 +10,29 @@ import "./webhook-form.js";
 import "./knx-addresses-view.js";
 import "./channels-view.js";
 import "./simple-list-view.js";
+
+type SettingsTab = "webhooks" | "knx" | "channels" | "mqtt" | "heartbeats" | "remediation";
+
+const TABS: Array<{ id: SettingsTab; label: string; icon: string }> = [
+  { id: "webhooks", label: "Webhooks", icon: "🔗" },
+  { id: "knx", label: "KNX-Bus", icon: "🏠" },
+  { id: "channels", label: "Channels", icon: "📨" },
+  { id: "mqtt", label: "MQTT", icon: "📡" },
+  { id: "heartbeats", label: "Heartbeats", icon: "💓" },
+  { id: "remediation", label: "Auto-Remediation", icon: "🔧" },
+];
+
+const STORAGE_KEY_TAB = "messagehub.settings.tab";
+
+function loadInitialTab(): SettingsTab {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_TAB);
+    if (raw && TABS.some((t) => t.id === raw)) return raw as SettingsTab;
+  } catch {
+    // localStorage nicht verfuegbar (z. B. SSR / strict-iframe)
+  }
+  return "webhooks";
+}
 
 @customElement("settings-view")
 export class SettingsView extends LitElement {
@@ -19,6 +44,7 @@ export class SettingsView extends LitElement {
   @state() private _editing: WebhookDto | null = null;
   @state() private _toast = "";
   @state() private _menuOpenId: string | null = null;
+  @state() private _activeTab: SettingsTab = loadInitialTab();
 
   override async firstUpdated(): Promise<void> {
     await this._load();
@@ -93,6 +119,15 @@ export class SettingsView extends LitElement {
     this._toast = text;
     if (this._toastTimer) window.clearTimeout(this._toastTimer);
     this._toastTimer = window.setTimeout(() => (this._toast = ""), 2400);
+  }
+
+  private _selectTab(tab: SettingsTab): void {
+    this._activeTab = tab;
+    try {
+      localStorage.setItem(STORAGE_KEY_TAB, tab);
+    } catch {
+      // ignore
+    }
   }
 
   private _renderEmpty(): TemplateResult {
@@ -209,80 +244,80 @@ export class SettingsView extends LitElement {
   override render(): TemplateResult {
     return html`
       <div class="root" @click=${this._closeMenu}>
-        <section>
-          <header class="section-head">
-            <div>
-              <h2>Webhooks</h2>
-              <p class="hint">
-                Eingehende Nachrichten via HTTP-POST. Pro Webhook eigene URL +
-                optionales JSONPath-Mapping für beliebige Payload-Strukturen.
-              </p>
-            </div>
-            ${this._items.length > 0 && !this._showForm
-              ? html`<button class="mh-btn mh-btn--primary" @click=${this._add}>
-                  + Webhook anlegen
-                </button>`
-              : null}
-          </header>
+        <nav class="tabs" role="tablist" aria-label="Einstellungs-Bereiche">
+          ${TABS.map(
+            (t) => html`<button
+              role="tab"
+              aria-selected=${this._activeTab === t.id}
+              class=${`tab ${this._activeTab === t.id ? "active" : ""}`}
+              title=${t.label}
+              @click=${() => this._selectTab(t.id)}
+            >
+              <span class="tab-icon" aria-hidden="true">${t.icon}</span>
+              <span>${t.label}</span>
+            </button>`
+          )}
+        </nav>
 
-          ${this._showForm
-            ? html`<webhook-form
-                .api=${this.api}
-                .editing=${this._editing}
-                @saved=${this._onSaved}
-                @cancel=${this._onCancel}
-              ></webhook-form>`
-            : null}
-
-          ${this._loading
-            ? html`<p class="status">lade…</p>`
-            : this._items.length === 0 && !this._showForm
-              ? this._renderEmpty()
-              : html`<div class="grid">${this._items.map((item) => this._renderItem(item))}</div>`}
-        </section>
-
-        <knx-addresses-view .api=${this.api}></knx-addresses-view>
-
-        <channels-view .api=${this.api}></channels-view>
-
-        <mqtt-topics-view .api=${this.api}></mqtt-topics-view>
-
-        <heartbeats-view .api=${this.api}></heartbeats-view>
-
-        <remediation-view .api=${this.api}></remediation-view>
-
-        <section style="display:none;">
-          <header class="section-head">
-            <div>
-              <h2>Alt-Notification-Channels</h2>
-              <p class="hint">
-                Telegram, Pushover, ntfy, Signal — mit Quiet Hours und Throttling.
-              </p>
-            </div>
-          </header>
-          <div class="placeholder">
-            <p>
-              Channel-Verwaltung kommt in Iteration v0.2. Backend-Logik ist
-              implementiert (Forwarder, Quiet Hours, Throttling), das UI folgt.
-            </p>
-          </div>
-        </section>
-
-        <section>
-          <header class="section-head">
-            <div>
-              <h2>Heartbeat-Quellen</h2>
-              <p class="hint">
-                Stille Quellen erkennen und alarmieren — Backend-Job läuft 60s,
-                UI-Editor folgt in v0.2 (REST-Endpoint
-                <code>/api/messagehub/heartbeats</code> ist da).
-              </p>
-            </div>
-          </header>
-        </section>
+        <div class="tab-panel" role="tabpanel">
+          ${this._renderActiveTab()}
+        </div>
 
         ${this._toast ? html`<div class="toast">${this._toast}</div>` : null}
       </div>
+    `;
+  }
+
+  private _renderActiveTab(): TemplateResult {
+    switch (this._activeTab) {
+      case "webhooks":
+        return this._renderWebhooks();
+      case "knx":
+        return html`<knx-addresses-view .api=${this.api}></knx-addresses-view>`;
+      case "channels":
+        return html`<channels-view .api=${this.api}></channels-view>`;
+      case "mqtt":
+        return html`<mqtt-topics-view .api=${this.api}></mqtt-topics-view>`;
+      case "heartbeats":
+        return html`<heartbeats-view .api=${this.api}></heartbeats-view>`;
+      case "remediation":
+        return html`<remediation-view .api=${this.api}></remediation-view>`;
+    }
+  }
+
+  private _renderWebhooks(): TemplateResult {
+    return html`
+      <section>
+        <header class="section-head">
+          <div>
+            <h2>Webhooks</h2>
+            <p class="hint">
+              Eingehende Nachrichten via HTTP-POST. Pro Webhook eigene URL +
+              optionales JSONPath-Mapping für beliebige Payload-Strukturen.
+            </p>
+          </div>
+          ${this._items.length > 0 && !this._showForm
+            ? html`<button class="mh-btn mh-btn--primary" @click=${this._add}>
+                + Webhook anlegen
+              </button>`
+            : null}
+        </header>
+
+        ${this._showForm
+          ? html`<webhook-form
+              .api=${this.api}
+              .editing=${this._editing}
+              @saved=${this._onSaved}
+              @cancel=${this._onCancel}
+            ></webhook-form>`
+          : null}
+
+        ${this._loading
+          ? html`<p class="status">lade…</p>`
+          : this._items.length === 0 && !this._showForm
+            ? this._renderEmpty()
+            : html`<div class="grid">${this._items.map((item) => this._renderItem(item))}</div>`}
+      </section>
     `;
   }
 
@@ -303,8 +338,68 @@ export class SettingsView extends LitElement {
         padding: var(--mh-space-5);
         display: flex;
         flex-direction: column;
-        gap: var(--mh-space-6);
+        gap: var(--mh-space-4);
       }
+
+      /* Sub-Tabs: segmented Tab-Bar im Material-Style, mit Icons */
+      nav.tabs {
+        display: flex;
+        gap: 4px;
+        background: var(--mh-surface-2);
+        padding: 4px;
+        border-radius: var(--mh-radius-md);
+        overflow-x: auto;
+        scrollbar-width: thin;
+      }
+      .tab {
+        appearance: none;
+        background: transparent;
+        border: 0;
+        padding: 8px 14px;
+        font: inherit;
+        font-size: var(--mh-text-sm);
+        font-weight: var(--mh-weight-medium);
+        color: var(--mh-fg-muted);
+        cursor: pointer;
+        border-radius: var(--mh-radius-sm);
+        transition: background var(--mh-transition-fast),
+          color var(--mh-transition-fast);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+      }
+      .tab:hover {
+        color: var(--mh-fg);
+      }
+      .tab:focus-visible {
+        outline: var(--mh-focus-ring);
+        outline-offset: var(--mh-focus-offset);
+      }
+      .tab.active {
+        background: var(--mh-surface);
+        color: var(--mh-fg);
+        font-weight: var(--mh-weight-semibold);
+        box-shadow: var(--mh-shadow-1);
+      }
+      .tab-icon {
+        font-size: 1.05em;
+      }
+      .tab-panel {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-3);
+      }
+      @media (max-width: 720px) {
+        .tab {
+          padding: 8px 10px;
+        }
+        .tab span:not(.tab-icon) {
+          /* nur Icon auf Mobile, Label im title-Tooltip */
+          font-size: var(--mh-text-xs);
+        }
+      }
+
       section {
         display: flex;
         flex-direction: column;

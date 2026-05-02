@@ -1,6 +1,8 @@
 # Development Setup
 
-Dieses Dokument beschreibt, wie du die Entwicklungsumgebung für die `messagehub`-Integration einrichtest. Es ist die Voraussetzung dafür, dass Claude Code mit Iteration 1 (`claude-code-runbook.md` §6.1) starten kann.
+Dieses Dokument beschreibt, wie du die Entwicklungsumgebung für die
+`messagehub`-Integration einrichtest. Code-Stil-, TDD- und Quality-
+Gate-Regeln stehen in [CLAUDE.md](CLAUDE.md).
 
 ## Architektur des Dev-Setups
 
@@ -68,7 +70,6 @@ docker compose -f docker-compose.dev.yml ps
 | Pre-Commit (alle Files) | `pre-commit run --all-files` |
 | Dev-HA neustarten | `bash scripts/restart-ha.sh` |
 | Dev-HA-Logs | `docker compose -f docker-compose.dev.yml logs -f` |
-| Quality Gates manuell | `bash scripts/quality-gate.sh` *(ab Iter. 1)* |
 
 ## Wichtige Hinweise
 
@@ -83,21 +84,17 @@ rm -rf .dev/ha-config
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-**MQTT-Broker.** Erst ab Iteration 37 nötig. Vorbereiteter Mosquitto-Eintrag liegt auskommentiert in `docker-compose.dev.yml`. Aktivieren bei Bedarf.
+**MQTT-Broker.** Nur nötig wenn du MQTT-Topic-Subscriptions testen willst.
+Vorbereiteter Mosquitto-Eintrag liegt auskommentiert in
+`docker-compose.dev.yml`. Aktivieren bei Bedarf.
 
-**KNX-Zugriff.** Die Dev-HA hat *keinen* Zugang zu deinem produktiven KNX-Bus. Iteration 48 (KNX-Anreicherung) wird mit Mock-Daten und einem CSV-Export aus ETS getestet, nicht mit Live-Bus.
+**KNX-Zugriff.** Die Dev-HA hat *keinen* Zugang zu deinem produktiven
+KNX-Bus. Die KNX-Anreicherung wird mit Mock-Daten und einem CSV-Export
+aus ETS getestet, nicht mit Live-Bus.
 
 ## Nächster Schritt
 
-Wenn `pytest` (auch ohne Tests) und `docker compose ps` beide grün sind, ist die Umgebung bereit. Dann Claude Code starten mit:
-
-```bash
-claude --prompt "$(cat <<'EOF'
-Lies claude-code-runbook.md vollständig. Beginne mit Iteration 1 (§6.1).
-Halte dich strikt an §0 Globale Arbeitsanweisung — sequenziell, ohne Rückfragen,
-mit TDD und Quality Gates. Nach Iteration 48 stoppen.
-EOF
-)"
-```
-
-Oder im Chat-Modus die Datei einbinden und sagen: „Bearbeite das Runbook ab Iteration 1".
+Wenn `pytest` und `docker compose ps` beide grün sind, ist die Umgebung
+bereit. User-Doku startet bei [README.md](README.md), Architektur-Spec in
+[docs/messagehub_konzept.md](docs/messagehub_konzept.md), Konfigurations-
+Detail in [docs/configuration.md](docs/configuration.md).

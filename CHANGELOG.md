@@ -4,6 +4,34 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [Unreleased]
+
+### Hinzugefügt
+
+- **Sub-Tabs in den Einstellungen**: Webhooks, KNX-Bus, Channels, MQTT,
+  Heartbeats und Auto-Remediation liegen jetzt in eigenen Tabs statt
+  alle untereinander. Hintergrund: bei 3000+ KNX-Adressen war das
+  endlose Scrollen zwischen den Sektionen unbrauchbar. Tab-Auswahl
+  wird in `localStorage` persistiert (`messagehub.settings.tab`).
+- 6 neue jsdom-Tests für die Tab-Logik (Render, Switch, Persistierung).
+
+### Entfernt
+
+- **8 Iterations-Artefakte aus dem Repo-Root** gelöscht — sie stammten
+  aus der initialen v0.1-Implementierungsphase und sind durch
+  CHANGELOG / CLAUDE.md / README abgedeckt:
+  `BACKLOG.md`, `BLOCKERS.md`, `CODE-REVIEW.md`, `FINAL-REPORT.md`,
+  `ITERATION-AUDIT.md`, `ITERATIONS.md`, `STARTHERE.md`,
+  `claude-code-runbook.md`.
+
+### Geändert
+
+- `CLAUDE.md` mit konkreten Inline-Quality-Gates statt Verweis auf den
+  gelöschten Runbook (TDD-Pflicht, Cognitive-Complexity-Limit,
+  Build-/Release-Workflow).
+- `DEVELOPMENT.md` Setup-Anleitung von der initialen Iter-1-Mission
+  auf den aktuellen User-Workflow umgestellt.
+
 ## [0.6.0] – 2026-05-02
 
 Quality-/Architektur-Release. Kein neues UI-Feature — dafür breite

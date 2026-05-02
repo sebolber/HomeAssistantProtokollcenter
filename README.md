@@ -501,8 +501,8 @@ npm run build                      # Bundle bauen (committed)
 ```
 
 Architektur-Spec siehe [docs/messagehub_konzept.md](docs/messagehub_konzept.md).
-TDD-Workflow und Quality Gates: [claude-code-runbook.md](claude-code-runbook.md).
-Aktuelle Projekt-Regeln: [CLAUDE.md](CLAUDE.md).
+TDD-Workflow, Quality Gates und Code-Stil-Regeln: [CLAUDE.md](CLAUDE.md).
+Setup-Details: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ### SonarCloud-Setup (für Maintainer)
 
