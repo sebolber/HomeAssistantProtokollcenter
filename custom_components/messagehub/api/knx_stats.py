@@ -41,13 +41,17 @@ from ._helpers import (
     get_database,
     parse_int_param,
 )
-from ._validation import parse_iso_period, validate_knx_ga
+from ._validation import parse_iso_period, validate_knx_ga, validate_note
 
 _DEFAULT_TOP_LIMIT = 50
 _HARD_TOP_LIMIT = 500
 _DEFAULT_BUCKET_MIN = 10
 _HARD_BUCKET_MIN = 60
 _HARD_TIMELINE_GAS = 20
+
+# Iter 19 Security-Fix: Hard-Limit fuer User-Input im Acknowledge-Note,
+# damit keine Bomb-Strings die DB belasten.
+_HARD_NOTE_LENGTH = 1000
 
 
 def _service(hass: Any) -> KnxStatsService | None:
@@ -379,7 +383,7 @@ class KnxStatsAcknowledgeView(RequireAdminView):
         except (ValueError, TypeError):
             return self.json_message(ERR_INVALID_JSON, status_code=400)
         ga = validate_knx_ga(str(data.get("ga", "")))
-        note = data.get("note")
+        note_str = validate_note(data.get("note"), max_length=_HARD_NOTE_LENGTH)
         expiry_days = data.get("expiry_days", DEFAULT_KNX_ACK_EXPIRY_DAYS)
         try:
             expiry_int = int(expiry_days) if expiry_days is not None else 0
@@ -387,7 +391,7 @@ class KnxStatsAcknowledgeView(RequireAdminView):
             return self.json_message("invalid expiry_days", status_code=400)
         await KnxStatsRepository(db).ack_set(
             ga,
-            note=str(note) if isinstance(note, str) else None,
+            note=note_str,
             expiry_days=expiry_int,
         )
         await audit(
@@ -396,7 +400,7 @@ class KnxStatsAcknowledgeView(RequireAdminView):
             action="knx_stats_acknowledge",
             target_type="knx_ga",
             target_id=ga,
-            details={"note": note, "expiry_days": expiry_int},
+            details={"note": note_str, "expiry_days": expiry_int},
         )
         return self.json({"ok": True, "ga": ga})
 

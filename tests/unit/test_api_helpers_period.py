@@ -14,6 +14,7 @@ from aiohttp import web
 from custom_components.messagehub.api._validation import (
     parse_iso_period,
     validate_knx_ga,
+    validate_note,
 )
 
 
@@ -82,3 +83,29 @@ class TestValidateKnxGa:
     def test_non_string_raises_400(self) -> None:
         with pytest.raises(web.HTTPBadRequest):
             validate_knx_ga(123)  # type: ignore[arg-type]
+
+
+class TestValidateNote:
+    def test_normal_string_passes(self) -> None:
+        assert validate_note("kurzer Hinweis") == "kurzer Hinweis"
+
+    def test_none_returns_none(self) -> None:
+        assert validate_note(None) is None
+
+    def test_int_returns_none(self) -> None:
+        assert validate_note(42) is None
+
+    def test_dict_returns_none(self) -> None:
+        assert validate_note({"a": 1}) is None
+
+    def test_empty_string_passes(self) -> None:
+        assert validate_note("") == ""
+
+    def test_long_string_raises_400(self) -> None:
+        with pytest.raises(web.HTTPBadRequest):
+            validate_note("x" * 1001)
+
+    def test_max_length_param_respected(self) -> None:
+        assert validate_note("x" * 100, max_length=200) == "x" * 100
+        with pytest.raises(web.HTTPBadRequest):
+            validate_note("x" * 201, max_length=200)

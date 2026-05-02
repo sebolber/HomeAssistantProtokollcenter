@@ -68,3 +68,16 @@ def validate_knx_ga(ga: str) -> str:
     if not isinstance(ga, str) or not _KNX_GA_RE.match(ga):
         raise web.HTTPBadRequest(reason="invalid KNX group address format")
     return ga
+
+
+def validate_note(note: object, *, max_length: int = 1000) -> str | None:
+    """Iter 19 Security-Fix: validiert User-Notiz-Felder.
+
+    - Nicht-Strings werden zu None.
+    - Zu lange Strings werfen HTTPBadRequest.
+    """
+    if not isinstance(note, str):
+        return None
+    if len(note) > max_length:
+        raise web.HTTPBadRequest(reason=f"note exceeds {max_length} chars")
+    return note

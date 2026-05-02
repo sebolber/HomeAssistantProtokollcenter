@@ -272,6 +272,7 @@ neuen Components verwendet. ✓
 | 2 | Performance | `compute_summary` ruft `compute_top` fuer Counts | low | Akzeptiert, dokumentiert |
 | 3 | Phase 2 | Alarm-Schwellen nicht via UI konfigurierbar | enhancement | Geplant Phase 2 |
 | 4 | Security | Alarm-Endpoint kann Eventspam ausloesen | low | Admin-only, akzeptiert |
+| 5 | Security | Acknowledge-Note ohne Length-Limit (DB-Bomb) | medium | ✓ Behoben (Iter 19): Hard-Cap 1000 Zeichen via `validate_note` |
 
 ### Quality-Gates final
 
