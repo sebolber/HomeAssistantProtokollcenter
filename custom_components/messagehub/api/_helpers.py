@@ -125,6 +125,27 @@ def parse_int_param(
     return value
 
 
+# Iter 81 / CR-30: Counter fuer fehlgeschlagene Audit-Schreibvorgaenge.
+# Wird beim naechsten Prometheus-Scrape (Iter 69) sichtbar — gibt dem
+# User eine Chance, persistente DB-Probleme zu erkennen.
+_audit_failure_count: int = 0
+
+
+def get_audit_failure_count() -> int:
+    """Liefert die Anzahl der bisher fehlgeschlagenen Audit-Schreibvorgaenge.
+
+    Wird vom Prometheus-Endpoint und (kuenftig) von Repair-Issues
+    konsumiert. In-process state — wird beim HA-Restart zurueckgesetzt.
+    """
+    return _audit_failure_count
+
+
+def reset_audit_failure_count() -> None:
+    """Reset fuer Tests."""
+    global _audit_failure_count  # noqa: PLW0603
+    _audit_failure_count = 0
+
+
 async def audit(
     hass: HomeAssistant,
     request: web.Request,
@@ -134,7 +155,13 @@ async def audit(
     target_id: str | None = None,
     details: dict[str, Any] | None = None,
 ) -> None:
-    """Audit-Eintrag fuer alle administrativen API-Aktionen (Iter 44)."""
+    """Audit-Eintrag fuer alle administrativen API-Aktionen (Iter 44).
+
+    Iter 81 / CR-30: Failures jetzt auf ERROR (statt WARNING) +
+    persistenter Counter, der ueber den Prometheus-Endpoint
+    (Iter 69) sichtbar wird. Vorher schluckte der WARN-Log nahezu
+    unbeachtet einen ausgefallenen Audit-Trail.
+    """
     from .audit import AuditRepository  # noqa: PLC0415
 
     db = get_database(hass)
@@ -148,8 +175,16 @@ async def audit(
             target_id=target_id,
             details=details,
         )
-    except (ValueError, RuntimeError) as err:
-        _LOGGER.warning("audit log failed: %s", err)
+    except (ValueError, RuntimeError):
+        global _audit_failure_count  # noqa: PLW0603
+        _audit_failure_count += 1
+        _LOGGER.exception(
+            "audit log failed (action=%s, target=%s/%s, total_failures=%d)",
+            action,
+            target_type,
+            target_id,
+            _audit_failure_count,
+        )
 
 
 class RequireAdminView(HomeAssistantView):

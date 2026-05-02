@@ -69,6 +69,21 @@ def test_knx_and_webhook_metrics() -> None:
     assert "messagehub_webhooks_total 7" in out
 
 
+def test_iter81_audit_failure_metric() -> None:
+    """Iter 81 / CR-30: Audit-Schreibfehler-Counter erscheint im
+    Prometheus-Output, default 0.
+    """
+    out = format_prometheus_metrics(
+        total=0,
+        severity_total={},
+        severity_24h={},
+        audit_failure_total=42,
+    )
+    assert "# HELP messagehub_audit_failures_total" in out
+    assert "# TYPE messagehub_audit_failures_total counter" in out
+    assert "messagehub_audit_failures_total 42" in out
+
+
 def test_output_ends_with_newline() -> None:
     # Prometheus-Spec verlangt trailing newline.
     out = format_prometheus_metrics(

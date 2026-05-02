@@ -1125,6 +1125,7 @@ class MetricsView(_RequireAdminView):
         from datetime import UTC, datetime, timedelta  # noqa: PLC0415
 
         from ..processing.prometheus import format_prometheus_metrics  # noqa: PLC0415
+        from ._helpers import get_audit_failure_count  # noqa: PLC0415
 
         self._check_admin(request)
         repos = _get_repos(request.app["hass"])
@@ -1161,6 +1162,7 @@ class MetricsView(_RequireAdminView):
             severity_24h=severity_24h,
             knx_total=knx_total,
             webhook_total=webhook_total,
+            audit_failure_total=get_audit_failure_count(),
         )
         return web.Response(
             body=body,

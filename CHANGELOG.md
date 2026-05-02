@@ -6,6 +6,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Operational (Iter 81 — CR-30 Audit-Fail-Handling)
+- **Audit-Schreibfehler werden jetzt sichtbar**: ERROR-Log statt
+  WARNING (mit Stack-Trace via `LOGGER.exception`), plus
+  `_audit_failure_count` als in-process Counter.
+- **Prometheus-Endpoint** liefert `messagehub_audit_failures_total`
+  als zusätzlichen Counter — User kann persistente DB-Probleme
+  jetzt überwachen.
+- 1 neuer Backend-Test in `test_prometheus_format.py`.
+
 ### Sicherheit + Performance (Iter 80 — CR-18 Streaming-Export)
 - **`ExportView` streamt jetzt page-by-page** statt alles im Memory
   zu bauen. Bei `limit=100 000` wurden vorher mehrere hundert MB

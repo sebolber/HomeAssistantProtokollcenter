@@ -23,6 +23,7 @@ def format_prometheus_metrics(
     severity_24h: Mapping[str, int],
     knx_total: int = 0,
     webhook_total: int = 0,
+    audit_failure_total: int = 0,
 ) -> str:
     """Erzeugt einen Prometheus-Text-Format-String.
 
@@ -72,5 +73,12 @@ def format_prometheus_metrics(
     lines.append("# HELP messagehub_webhooks_total Configured webhooks")
     lines.append("# TYPE messagehub_webhooks_total gauge")
     lines.append(f"messagehub_webhooks_total {webhook_total}")
+
+    # Iter 81 / CR-30: Audit-Schreibfehler-Counter.
+    lines.append(
+        "# HELP messagehub_audit_failures_total Audit-log writes that failed"
+    )
+    lines.append("# TYPE messagehub_audit_failures_total counter")
+    lines.append(f"messagehub_audit_failures_total {audit_failure_total}")
 
     return "\n".join(lines) + "\n"
