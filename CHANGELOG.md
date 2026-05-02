@@ -4,6 +4,23 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.9.4] – 2026-05-02
+
+Setup-Stabilitaets-Patch.
+
+### Behoben
+
+- **`configuration_url`** in `build_device_info()` und
+  `_ensure_device_registered()` korrigiert: war `f"/{DOMAIN}"` (relativer
+  Pfad), manche HA-Versionen lehnen das mit ungueltiger URL ab und
+  brechen das ganze Setup ab. Jetzt
+  `f"homeassistant://navigate/{DOMAIN}"` — HA-internes Schema, das
+  als Link auf das Sidebar-Panel interpretiert wird.
+- **`_ensure_device_registered()`** mit `try/except` umschlossen: die
+  Geraete-Registry-Eintragung ist Komfort, nicht kritisch. Sollte ein
+  zukuenftiger HA-API-Bruch das Verhalten aendern, laeuft das Setup
+  trotzdem weiter und nur die Geraete-Gruppe fehlt.
+
 ## [0.9.3] – 2026-05-02
 
 HACS-Validation-Patch. Der 0.9.2-Release-Workflow scheiterte an drei

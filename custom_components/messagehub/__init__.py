@@ -748,18 +748,26 @@ def _ensure_device_registered(hass: HomeAssistant, entry: ConfigEntry) -> None:
     hatte. Damit existieren das Geraet und seine identifiers garantiert,
     sodass HA die Entitaeten beim Setup zuordnen kann und der "Zu
     Dashboard hinzufuegen"-Knopf in Geraete & Dienste erscheint.
-    """
-    from homeassistant.helpers import device_registry as dr  # noqa: PLC0415
 
-    registry = dr.async_get(hass)
-    registry.async_get_or_create(
-        config_entry_id=entry.entry_id,
-        identifiers={(DOMAIN, entry.entry_id)},
-        manufacturer=DEVICE_MANUFACTURER,
-        model=DEVICE_MODEL,
-        name=DEVICE_NAME,
-        configuration_url=f"/{DOMAIN}",
-    )
+    Best-effort: wenn die Registry-API auf einer HA-Version unerwartet
+    reagiert, soll das den ganzen Setup nicht hart abbrechen.
+    """
+    try:
+        from homeassistant.helpers import device_registry as dr  # noqa: PLC0415
+
+        registry = dr.async_get(hass)
+        registry.async_get_or_create(
+            config_entry_id=entry.entry_id,
+            identifiers={(DOMAIN, entry.entry_id)},
+            manufacturer=DEVICE_MANUFACTURER,
+            model=DEVICE_MODEL,
+            name=DEVICE_NAME,
+            configuration_url=f"homeassistant://navigate/{DOMAIN}",
+        )
+    except Exception as err:  # noqa: BLE001
+        # Geraete-Registrierung ist Komfort, nicht kritisch — Setup soll
+        # weiterlaufen, Entitaeten zeigen sich dann ohne Geraete-Gruppe.
+        _LOGGER.warning("device-registry update skipped: %s", err)
 
 
 def _bundle_cache_buster(bundle_path: Path) -> str:

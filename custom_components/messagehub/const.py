@@ -31,7 +31,7 @@ def build_device_info(entry_id: str) -> dict[str, Any]:
         "name": DEVICE_NAME,
         "manufacturer": DEVICE_MANUFACTURER,
         "model": DEVICE_MODEL,
-        "configuration_url": f"/{DOMAIN}",
+        "configuration_url": f"homeassistant://navigate/{DOMAIN}",
     }
 
 # Datenbank-Pfad relativ zu hass.config.path
