@@ -7,6 +7,24 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased] – 0.11.0 (in Arbeit)
 
 ### Hinzugefügt
+- **Bus-weite Erfassung (Iter 20-27):** Alle KNX-Telegramme aus dem
+  Gruppenmonitor werden in `knx_raw_telegrams` (48 h Retention) und
+  `knx_telegram_counters` (365 Tage) erfasst — unabhängig von der
+  Whitelist. Cleanup-Job alle 6 h, Hard-Cap 5 Mio Raw-Zeilen.
+- **Idempotenter `customElement`-Decorator (Iter 28):** Behebt
+  Safari-Hot-Reload-Crash „name has already been used".
+- **Erweiterter Detail-Pane (Iter 29-31):** Source-Adresse, Liste der
+  Sibling-GAs (alle GAs des selben Geräts, klickbar), SVG-Sparkline
+  mit Wertverlauf (Hysterese-Hinweis bei engen Δ-Werten).
+- **Top-Geräte-Tabelle (Iter 32):** Neue Sektion „Welches Gerät erzeugt
+  am meisten Last?", aggregiert nach Source-Adresse mit Anteils-Anzeige.
+- **Bulk-Acknowledge per Geräte-Quelle (Iter 33):** Knopf in der
+  Geräte-Tabelle markiert alle GAs eines Geräts in einem Schritt als
+  bekannt (Hard-Cap 100 GAs, Audit-Log).
+- **Hersteller-Erkennung + Doku-Hinweise (Iter 34):** Source-Adressen
+  werden gegen das ETS-Projekt aufgelöst (Hörmann, MDT, Hager, Gira,
+  ABB, Theben, Busch-Jaeger, Zennio, Elsner). Detail-Pane zeigt
+  Hersteller-spezifische Tipps + Link zur Hersteller-Doku.
 - **KNX-Bus-Analyse-Tab unter Statistik:** Neuer Sub-Tab mit
   Empfehlungs-Engine, der überaktive Gruppenadressen identifiziert und
   konkrete ETS-Anpassungs-Empfehlungen liefert. Konzept siehe

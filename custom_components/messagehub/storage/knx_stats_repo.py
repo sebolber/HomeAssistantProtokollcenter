@@ -312,6 +312,38 @@ class KnxStatsRepository:
             )
         return out
 
+    # --- Sibling-GAs (Iter 29) ----------------------------------------------
+
+    async def gas_for_source(
+        self, dev_source: str, from_iso: str, to_iso: str, *, limit: int = 20
+    ) -> list[dict[str, Any]]:
+        """Liefert alle GAs eines Geraets (gleiche Source-Adresse) im Zeitraum.
+
+        Wird vom Detail-Pane genutzt, damit der User sieht, welche
+        anderen GAs dasselbe Geraet bedient — fuer „ist das ganze
+        Gerat kaputt oder nur diese eine Gruppenadresse?"
+        """
+        if not dev_source:
+            return []
+        rows = await self._db.fetch_all(
+            "SELECT r.destination AS ga, a.label AS label, COUNT(*) AS n "
+            "FROM knx_raw_telegrams r "
+            "LEFT JOIN knx_group_addresses a ON a.address = r.destination "
+            "WHERE r.source = ? AND r.timestamp >= ? AND r.timestamp < ? "
+            "GROUP BY r.destination, a.label "
+            "ORDER BY n DESC "
+            "LIMIT ?",
+            (dev_source, from_iso, to_iso, max(1, min(limit, 100))),
+        )
+        return [
+            {
+                "ga": str(row["ga"]),
+                "label": row["label"],
+                "count": int(row["n"]),
+            }
+            for row in rows
+        ]
+
     # --- Cleanup (Iter 24) --------------------------------------------------
 
     async def cleanup_raw_older_than(self, cutoff_iso: str) -> int:
@@ -426,6 +458,41 @@ class KnxStatsRepository:
         return int(row["n"] or 0)
 
     # --- Acknowledgements ---------------------------------------------------
+
+    async def ack_set_bulk(
+        self,
+        gas: list[str],
+        *,
+        note: str | None = None,
+        expiry_days: int | None = None,
+    ) -> int:
+        """Iter 33: setzt Acknowledge fuer eine Liste von GAs in einer
+        Transaktion. Liefert die Anzahl der angelegten/aktualisierten
+        Eintraege.
+
+        Hard-Cap auf 100 GAs pro Call wird vom API-Layer enforced
+        (Bulk-DoS-Schutz). Hier nehmen wir die Liste vertrauensvoll an.
+        """
+        if not gas:
+            return 0
+        now = datetime.now(UTC)
+        expires: str | None = None
+        if expiry_days and expiry_days > 0:
+            expires = (now + timedelta(days=expiry_days)).isoformat(timespec="seconds")
+        ts = now.isoformat(timespec="seconds")
+        for ga in gas:
+            await self._db.execute(
+                """
+                INSERT INTO knx_ga_acknowledgements (ga, note, acknowledged_at, expires_at)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(ga) DO UPDATE SET
+                    note            = excluded.note,
+                    acknowledged_at = excluded.acknowledged_at,
+                    expires_at      = excluded.expires_at
+                """,
+                (ga, note, ts, expires),
+            )
+        return len(gas)
 
     async def ack_set(
         self,

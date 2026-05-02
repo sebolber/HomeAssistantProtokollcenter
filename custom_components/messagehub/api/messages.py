@@ -17,6 +17,7 @@ from homeassistant.components.http import HomeAssistantView
 from ..const import DOMAIN, EVENT_MESSAGE_DELETED
 from .knx import KnxAddressDetailView, KnxAddressesView, KnxProjectDiscoveryView
 from .knx_stats import (
+    KnxStatsAcknowledgeBulkView,
     KnxStatsAcknowledgeDetailView,
     KnxStatsAcknowledgeView,
     KnxStatsAlarmsView,
@@ -1164,6 +1165,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         KnxStatsOrphansView,
         KnxStatsAlarmsView,
         KnxStatsAcknowledgeView,
+        KnxStatsAcknowledgeBulkView,
         KnxStatsAcknowledgeDetailView,
     ):
         view = view_cls()

@@ -21,6 +21,7 @@ import type {
 } from "../api-client.js";
 import { tokens, cards, pills, buttons } from "../styles/tokens.js";
 import "./knx-timeline-chart.js";
+import "./knx-value-sparkline.js";
 
 const STORAGE_KEY = "messagehub.knx-stats.filters";
 
@@ -91,6 +92,13 @@ export class StatsKnxView extends LitElement {
   @state() private _orphans: KnxStatsOrphansDto | null = null;
   @state() private _alarms: KnxStatsAlarmsDto | null = null;
   @state() private _top: KnxStatsTopRowDto[] = [];
+  @state() private _topBySource: Array<{
+    dev_source: string;
+    count: number;
+    ga_count: number;
+    manufacturer?: string;
+    device_name?: string;
+  }> = [];
   @state() private _timeline: KnxStatsTimelineDto | null = null;
   @state() private _selectedGa: string | null = null;
   @state() private _detail: KnxStatsGaDetailDto | null = null;
@@ -120,19 +128,22 @@ export class StatsKnxView extends LitElement {
     this._error = "";
     try {
       const f = this._apiFilters();
-      const [summary, top, busHealth, silence, orphans, alarms] = await Promise.all([
-        this.api.getKnxStatsSummary(f),
-        this.api.getKnxStatsTop(f),
-        this.api.getKnxStatsBusHealth(f),
-        this.api.getKnxStatsSilence({
-          ...f,
-          maxSilenceMinutes: this._suggestSilenceMinutes(),
-        }),
-        this.api.getKnxStatsOrphans(f).catch(() => null),
-        this.api.getKnxStatsAlarms(f).catch(() => null),
-      ]);
+      const [summary, top, topBySource, busHealth, silence, orphans, alarms] =
+        await Promise.all([
+          this.api.getKnxStatsSummary(f),
+          this.api.getKnxStatsTop(f),
+          this.api.getKnxStatsTopBySource(f),
+          this.api.getKnxStatsBusHealth(f),
+          this.api.getKnxStatsSilence({
+            ...f,
+            maxSilenceMinutes: this._suggestSilenceMinutes(),
+          }),
+          this.api.getKnxStatsOrphans(f).catch(() => null),
+          this.api.getKnxStatsAlarms(f).catch(() => null),
+        ]);
       this._summary = summary;
       this._top = top.items;
+      this._topBySource = topBySource.items;
       this._busHealth = busHealth;
       this._silence = silence;
       this._orphans = orphans;
@@ -152,6 +163,7 @@ export class StatsKnxView extends LitElement {
       this._error = (err as Error).message;
       this._summary = null;
       this._top = [];
+      this._topBySource = [];
       this._timeline = null;
       this._busHealth = null;
       this._silence = null;
@@ -443,11 +455,23 @@ export class StatsKnxView extends LitElement {
 
         <section class="mh-card">
           <header class="card-head">
-            <h3>Top-Sender</h3>
+            <h3>Top-Sender (Gruppenadressen)</h3>
             <span class="muted small">${this._top.length} sichtbar</span>
           </header>
           ${this._renderTopTable()}
         </section>
+
+        ${this._topBySource.length > 0
+          ? html`<section class="mh-card">
+              <header class="card-head">
+                <h3>Top-Geraete (Source-Adressen)</h3>
+                <span class="muted small">
+                  Welches physische Geraet erzeugt am meisten Last?
+                </span>
+              </header>
+              ${this._renderTopBySource()}
+            </section>`
+          : nothing}
 
         ${this._timeline !== null && this._timeline.items.length > 0
           ? html`<section class="mh-card">
@@ -562,7 +586,14 @@ export class StatsKnxView extends LitElement {
     return html`
       <section class="mh-card detail-pane">
         <header class="card-head">
-          <h3>${d.ga} — ${d.label ?? "Detail"}</h3>
+          <div class="detail-head-text">
+            <h3>${d.ga} — ${d.label ?? "Detail"}</h3>
+            <span class="muted small">
+              Geraet:
+              <code>${d.dev_source || "?"}</code>
+              ${d.dpt ? html` • DPT <code>${d.dpt}</code>` : nothing}
+            </span>
+          </div>
           <button
             class="mh-btn mh-btn--sm mh-btn--ghost"
             @click=${() => {
@@ -622,8 +653,179 @@ export class StatsKnxView extends LitElement {
               </ul>
             </div>`
           : nothing}
+
+        ${d.value_history.length >= 2
+          ? html`<div class="value-history">
+              <strong>Wertverlauf:</strong>
+              <knx-value-sparkline
+                .points=${d.value_history}
+                .width=${800}
+                .height=${100}
+              ></knx-value-sparkline>
+            </div>`
+          : nothing}
+
+        ${d.device || d.manufacturer_hints
+          ? this._renderDeviceInfo(d)
+          : nothing}
+
+        ${d.sibling_gas.length > 0
+          ? this._renderSiblingGas(d)
+          : nothing}
       </section>
     `;
+  }
+
+  private _renderDeviceInfo(d: KnxStatsGaDetailDto): TemplateResult {
+    const dev = d.device;
+    const hints = d.manufacturer_hints;
+    return html`
+      <div class="device-info">
+        ${dev
+          ? html`<strong>
+              Geraet: ${dev.manufacturer || "?"}
+              ${dev.name ? html` — ${dev.name}` : nothing}
+              ${dev.product
+                ? html`<span class="muted small">(${dev.product})</span>`
+                : nothing}
+            </strong>`
+          : html`<strong>Hersteller-Hinweise</strong>`}
+        ${hints && hints.tips.length > 0
+          ? html`<ul class="hints">
+              ${hints.tips.map((t) => html`<li>${t}</li>`)}
+            </ul>`
+          : nothing}
+        ${hints?.doc_url
+          ? html`<p class="muted small">
+              Hersteller-Doku:
+              <a href=${hints.doc_url} target="_blank" rel="noopener noreferrer">
+                ${hints.doc_url}
+              </a>
+            </p>`
+          : nothing}
+      </div>
+    `;
+  }
+
+  private _renderSiblingGas(d: KnxStatsGaDetailDto): TemplateResult {
+    return html`
+      <div class="siblings">
+        <strong>Andere GAs des Geraets <code>${d.dev_source}</code>:</strong>
+        <ul>
+          ${d.sibling_gas.slice(0, 10).map(
+            (s) => html`<li
+              class="sibling-row"
+              @click=${() => void this._onSelectGa(s.ga)}
+              title="Detail-Pane fuer ${s.ga} oeffnen"
+            >
+              <code class="ga">${s.ga}</code>
+              <span class="muted">${s.label ?? "—"}</span>
+              <span class="num">
+                ${s.rate_per_min.toLocaleString("de-DE", {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                })} Tel/Min
+              </span>
+              <span class="num muted">${s.count}</span>
+            </li>`
+          )}
+        </ul>
+        ${d.sibling_gas.length > 10
+          ? html`<p class="muted small">
+              … und ${d.sibling_gas.length - 10} weitere
+            </p>`
+          : nothing}
+      </div>
+    `;
+  }
+
+  private _renderTopBySource(): TemplateResult {
+    return html`
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Geraet (Source)</th>
+              <th>Hersteller / Modell</th>
+              <th class="num">GAs</th>
+              <th class="num">Telegramme</th>
+              <th class="num">Anteil</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${this._topBySource.slice(0, 25).map((row, idx) => {
+              const total = this._summary?.total_telegrams ?? 0;
+              const pct = total > 0 ? (row.count / total) * 100 : 0;
+              const manufacturer = row.manufacturer ?? "";
+              const deviceName = row.device_name ?? "";
+              return html`<tr>
+                <td class="num muted">${idx + 1}</td>
+                <td><code class="ga">${row.dev_source}</code></td>
+                <td class="device-cell">
+                  ${manufacturer || deviceName
+                    ? html`<span class="muted small"
+                        >${manufacturer}${manufacturer && deviceName ? " — " : ""}${deviceName}</span
+                      >`
+                    : html`<span class="muted small">—</span>`}
+                </td>
+                <td class="num">${row.ga_count}</td>
+                <td class="num strong">${row.count.toLocaleString("de-DE")}</td>
+                <td class="num muted">
+                  ${pct.toLocaleString("de-DE", {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1,
+                  })} %
+                </td>
+                <td class="actions">
+                  <button
+                    class="mh-btn mh-btn--sm mh-btn--ghost"
+                    title="Alle GAs dieses Geraets als bekannt markieren"
+                    @click=${(e: Event) => {
+                      e.stopPropagation();
+                      void this._ackBulk(row.dev_source);
+                    }}
+                  >
+                    ✓ Alle ${row.ga_count} bekannt
+                  </button>
+                </td>
+              </tr>`;
+            })}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  private async _ackBulk(devSource: string): Promise<void> {
+    if (!this.api) return;
+    if (
+      !window.confirm(
+        `Alle GAs des Geraets ${devSource} als bekannt markieren?`
+      )
+    ) {
+      return;
+    }
+    const note = window.prompt(
+      `Notiz fuer Bulk-Ack ${devSource} (optional):`,
+      "akzeptiert nach Pruefung"
+    );
+    if (note === null) return;
+    try {
+      const { from, to } = periodToIso(this._filters.periodId);
+      const result = await this.api.acknowledgeKnxBulk(devSource, {
+        note: note || undefined,
+        from,
+        to,
+      });
+      this._showToast(
+        `${devSource}: ${result.count} GAs als bekannt markiert`
+      );
+      await this._load();
+    } catch (err) {
+      this._showToast(`Bulk-Ack fehlgeschlagen: ${(err as Error).message}`);
+    }
   }
 
   private _renderAlarmBanner(): TemplateResult {
@@ -1139,6 +1341,82 @@ export class StatsKnxView extends LitElement {
         background: var(--mh-surface-2);
         border-radius: var(--mh-radius-sm);
         font-size: var(--mh-text-sm);
+      }
+
+      /* Detail-Pane: Sibling-GAs (Iter 30) */
+      .detail-head-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .detail-head-text code {
+        font-family: var(--ha-font-family-code, ui-monospace, monospace);
+        font-size: var(--mh-text-xs);
+        background: var(--mh-surface-2);
+        padding: 1px 6px;
+        border-radius: var(--mh-radius-sm);
+        color: var(--mh-fg);
+      }
+      .siblings {
+        margin-top: var(--mh-space-3);
+      }
+      .siblings ul {
+        list-style: none;
+        padding: 0;
+        margin: var(--mh-space-2) 0 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .sibling-row {
+        display: grid;
+        grid-template-columns: 80px 1fr auto auto;
+        gap: var(--mh-space-2);
+        padding: 4px var(--mh-space-2);
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-sm);
+        align-items: center;
+        cursor: pointer;
+        transition: background var(--mh-transition-fast);
+      }
+      .sibling-row:hover {
+        background: var(--mh-accent-soft);
+      }
+      .sibling-row code.ga {
+        font-family: var(--ha-font-family-code, ui-monospace, monospace);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
+      }
+
+      /* Hersteller-Info (Iter 34) */
+      .device-info {
+        margin-top: var(--mh-space-3);
+        padding: var(--mh-space-3);
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-sm);
+      }
+      .device-info ul.hints {
+        list-style: disc;
+        margin: var(--mh-space-2) 0 0 var(--mh-space-4);
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: var(--mh-text-sm);
+      }
+      .device-info a {
+        color: var(--mh-accent);
+        text-decoration: none;
+      }
+      .device-info a:hover {
+        text-decoration: underline;
+      }
+      .device-cell {
+        max-width: 240px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       /* Alarm-Banner */

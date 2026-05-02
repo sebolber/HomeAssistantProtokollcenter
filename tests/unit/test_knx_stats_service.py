@@ -167,3 +167,44 @@ class TestComputeGaDetail:
         assert d is not None
         kinds = {f.kind for f in d.findings}
         assert "constant_value" in kinds
+
+    @pytest.mark.asyncio
+    async def test_includes_dev_source(self, db: Database) -> None:
+        await _insert_knx(db, ts=_ts(0), ga="1/2/3", dev_source="1.1.220")
+        svc = KnxStatsService(KnxStatsRepository(db))
+        d = await svc.compute_ga_detail("1/2/3", _ts(0), _ts(60))
+        assert d is not None
+        assert d.dev_source == "1.1.220"
+
+    @pytest.mark.asyncio
+    async def test_lists_sibling_gas_same_source(self, db: Database) -> None:
+        # Geraet 1.1.220 sendet auf 3 GAs
+        for i in range(2):
+            await _insert_knx(
+                db, ts=_ts(i), ga="22/3/43", dev_source="1.1.220", label="Temp"
+            )
+        for i in range(5):
+            await _insert_knx(
+                db, ts=_ts(10 + i), ga="22/3/44", dev_source="1.1.220", label="Feuchte"
+            )
+        for i in range(3):
+            await _insert_knx(
+                db, ts=_ts(20 + i), ga="22/3/45", dev_source="1.1.220", label="Taupunkt"
+            )
+        svc = KnxStatsService(KnxStatsRepository(db))
+        d = await svc.compute_ga_detail("22/3/43", _ts(0), _ts(60))
+        assert d is not None
+        # 22/3/43 ist nicht in siblings, aber 22/3/44 und 22/3/45
+        gas = {s.ga for s in d.sibling_gas}
+        assert gas == {"22/3/44", "22/3/45"}
+
+    @pytest.mark.asyncio
+    async def test_value_history_capped_at_200_points(self, db: Database) -> None:
+        for i in range(500):
+            await _insert_knx(db, ts=_ts(i / 10), ga="1/2/3", value=i)
+        svc = KnxStatsService(KnxStatsRepository(db))
+        d = await svc.compute_ga_detail("1/2/3", _ts(0), _ts(60))
+        assert d is not None
+        assert len(d.value_history) <= 200
+        # erste Werte chronologisch
+        assert d.value_history[0]["value"] in (0, "0")

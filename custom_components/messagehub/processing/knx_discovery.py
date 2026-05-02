@@ -28,6 +28,22 @@ _GROUP_ATTRS = ("group_addresses", "groupaddresses", "groupranges", "group_range
 _GROUP_DICT_KEYS = ("group_addresses", "groupaddresses", "groupranges")
 _GROUP_ENTRY_ADDR_KEYS = ("address", "ga", "identifier")
 
+# Iter 34: Geraete-Discovery aus dem ETS-Projekt (Source-Adresse → Hersteller).
+_DEVICE_DICT_KEYS = ("devices",)
+_DEVICE_ATTRS = ("devices",)
+_DEVICE_INDIVIDUAL_KEYS = (
+    "individual_address",
+    "address",
+    "individualaddress",
+)
+_DEVICE_MANUFACTURER_KEYS = (
+    "manufacturer_name",
+    "manufacturer",
+    "vendor",
+)
+_DEVICE_NAME_KEYS = ("name", "description", "product")
+_DEVICE_PRODUCT_KEYS = ("product_name", "product", "model", "application_program")
+
 
 def find_knx_state(hass: HomeAssistant) -> Any:
     """Findet das KNX-Integrations-State-Object in `hass.data` (oder None)."""
@@ -138,6 +154,86 @@ def ga_sort_key(ga: str) -> tuple[int, int, int]:
     except (ValueError, TypeError):
         return (999, 999, 999)
     return (a, b, c)
+
+
+def find_raw_devices(project: Any) -> Any:
+    """Iter 34: Holt das devices-Mapping aus dem ETS-Projekt."""
+    for attr in _DEVICE_ATTRS:
+        candidate = getattr(project, attr, None)
+        if candidate:
+            return candidate
+    if isinstance(project, dict):
+        for key in _DEVICE_DICT_KEYS:
+            candidate = project.get(key)
+            if candidate:
+                return candidate
+    return None
+
+
+def _first_attr(data: Any, keys: tuple[str, ...]) -> Any:
+    """Holt den ersten nicht-leeren Wert aus dict-keys oder Object-Attrs."""
+    if isinstance(data, dict):
+        for k in keys:
+            v = data.get(k)
+            if v:
+                return v
+    else:
+        for k in keys:
+            v = getattr(data, k, None)
+            if v:
+                return v
+    return None
+
+
+def extract_device_entry(addr: Any, data: Any) -> dict[str, Any] | None:
+    """Wandelt einen Device-Eintrag in unser DTO. Liefert None, wenn
+    die Individual-Adresse nicht extrahiert werden kann."""
+    if isinstance(data, dict) and not addr:
+        addr = _first_attr(data, _DEVICE_INDIVIDUAL_KEYS)
+    individual = str(addr or "").strip()
+    if not individual:
+        return None
+    return {
+        "individual_address": individual,
+        "manufacturer": str(_first_attr(data, _DEVICE_MANUFACTURER_KEYS) or "").strip(),
+        "name": str(_first_attr(data, _DEVICE_NAME_KEYS) or "").strip(),
+        "product": str(_first_attr(data, _DEVICE_PRODUCT_KEYS) or "").strip(),
+    }
+
+
+def extract_devices(raw_devices: Any) -> list[dict[str, Any]]:
+    """Wandelt das devices-Mapping in eine Liste von DTOs."""
+    items: list[dict[str, Any]] = []
+    if isinstance(raw_devices, dict):
+        for addr, data in raw_devices.items():
+            entry = extract_device_entry(addr, data)
+            if entry is not None:
+                items.append(entry)
+    elif isinstance(raw_devices, list):
+        for entry in raw_devices:
+            converted = extract_device_entry(None, entry)
+            if converted is not None:
+                items.append(converted)
+    return items
+
+
+async def discover_knx_devices(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
+    """Iter 34: Liefert ein Mapping `individual_address -> {manufacturer, name, product}`.
+
+    Leeres Dict bei nicht verfuegbarem Projekt — robust gegen fehlende
+    KNX-Integration. Wird vom Top-Geraete-Endpoint gerufen, um die
+    Source-Adressen zu annotieren.
+    """
+    knx_state = find_knx_state(hass)
+    if knx_state is None:
+        return {}
+    project = find_project(knx_state)
+    if project is None:
+        return {}
+    raw = find_raw_devices(project)
+    if not raw:
+        return {}
+    return {entry["individual_address"]: entry for entry in extract_devices(raw)}
 
 
 async def discover_knx_project(hass: HomeAssistant) -> tuple[list[dict[str, Any]], str]:

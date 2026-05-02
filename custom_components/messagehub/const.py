@@ -136,3 +136,70 @@ KNX_RAW_HARD_CAP_ROWS: Final[int] = 5_000_000
 # Optionen-Keys (Config-Flow Phase 2)
 OPT_KNX_RAW_RETENTION_HOURS: Final = "knx_raw_retention_hours"
 OPT_KNX_COUNTER_RETENTION_DAYS: Final = "knx_counter_retention_days"
+
+# Iter 34: Hersteller-spezifische Hinweise fuer Detail-Pane.
+# Erweiterung pflegeleicht: Hersteller-String → kurze Tipps zur ETS-Konfig.
+# Keys werden case-insensitive gegen den ETS-Hersteller-String gematcht
+# (Substring-Match). Werte sind Listen von Tipps fuer den User.
+KNX_MANUFACTURER_HINTS: Final[dict[str, dict[str, list[str] | str]]] = {
+    "hörmann": {
+        "doc_url": "https://www.hoermann.de/produkte/knx",
+        "tips": [
+            "Tor-Klima-Group-Objects (Temperatur/Feuchte/Taupunkt) nur "
+            "aktivieren, wenn reale Sensorik angeschlossen ist — sonst "
+            "sendet das Gateway Default-0 zyklisch.",
+            "ETS-App: 'Verhalten bei Aenderung' auf 'nur bei Aenderung' (nicht 'zyklisch') setzen.",
+        ],
+    },
+    "mdt": {
+        "doc_url": "https://www.mdt.de/Downloads.html",
+        "tips": [
+            "DALI-Gateway-Status-Objects: 'Sendebremse' auf >= 1 s konfigurieren.",
+            "Dimmaktor: Stellgroesse mit Hysterese >= 2 % senden.",
+        ],
+    },
+    "hager": {
+        "doc_url": "https://hager.com/de/service/downloads",
+        "tips": [
+            "Schaltaktor-Status: 'nur bei Aenderung' aktivieren — "
+            "zyklisches Senden meist unnoetig.",
+        ],
+    },
+    "gira": {
+        "doc_url": "https://katalog.gira.de/de/datenblatt.html",
+        "tips": [
+            "Wetterstation: Helligkeits-Hysterese >= 50 Lux, Sendezyklus >= 5 Min.",
+            "Bewegungsmelder: Nachlaufzeit >= 30 s.",
+        ],
+    },
+    "abb": {
+        "doc_url": "https://library.e.abb.com/public/",
+        "tips": [
+            "Heizungsstellgroesse: 'Mindeststellgroessenaenderung' auf >= 2 % setzen.",
+        ],
+    },
+    "theben": {
+        "doc_url": "https://www.theben.de/de/service/downloads",
+        "tips": [
+            "Praesenzmelder: Helligkeits-Schwellwerte mit Hysterese, nicht gleitend.",
+        ],
+    },
+    "busch-jaeger": {
+        "doc_url": "https://www.busch-jaeger-katalog.de/",
+        "tips": [
+            "Raum-Thermostate: Temperatur mit Hysterese >= 0,2 K senden.",
+        ],
+    },
+    "zennio": {
+        "doc_url": "https://www.zennio.com/manuals",
+        "tips": [
+            "Multi-Sensor: pro Kanal individuelle Hysterese-Werte setzen.",
+        ],
+    },
+    "elsner": {
+        "doc_url": "https://www.elsner-elektronik.de/de/service/downloads.html",
+        "tips": [
+            "Wetterstation T-AP: Wind-Sendezyklus >= 5 Min, Sturm-Schwellen separat als eigene GA.",
+        ],
+    },
+}

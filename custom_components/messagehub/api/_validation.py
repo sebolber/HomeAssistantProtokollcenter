@@ -16,6 +16,7 @@ from aiohttp import web
 MAX_PERIOD_DAYS: Final[int] = 90
 
 _KNX_GA_RE: Final = re.compile(r"^\d{1,2}/\d{1,2}/\d{1,3}$")
+_KNX_INDIVIDUAL_RE: Final = re.compile(r"^\d{1,2}\.\d{1,2}\.\d{1,3}$")
 
 
 def parse_iso_period(params: Any, *, default_days: int = 7) -> tuple[str, str]:
@@ -68,6 +69,17 @@ def validate_knx_ga(ga: str) -> str:
     if not isinstance(ga, str) or not _KNX_GA_RE.match(ga):
         raise web.HTTPBadRequest(reason="invalid KNX group address format")
     return ga
+
+
+def validate_knx_individual_address(addr: str) -> str:
+    """Validiert das Individualadress-Format `B.L.G` (z. B. 1.1.220).
+
+    Wirft HTTPBadRequest bei Verstoss. Wird fuer Bulk-Endpoints
+    verwendet, die nach Source-Adresse aggregieren.
+    """
+    if not isinstance(addr, str) or not _KNX_INDIVIDUAL_RE.match(addr):
+        raise web.HTTPBadRequest(reason="invalid KNX individual address format (expected B.L.G)")
+    return addr
 
 
 def validate_note(note: object, *, max_length: int = 1000) -> str | None:

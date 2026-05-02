@@ -48,17 +48,30 @@ class TopRow:
 
 
 @dataclass(frozen=True, slots=True)
+class SiblingGa:
+    """Eine andere GA des selben Geraets — fuer Detail-Pane-Liste."""
+
+    ga: str
+    label: str | None
+    count: int
+    rate_per_min: float
+
+
+@dataclass(frozen=True, slots=True)
 class GaDetail:
-    """Detail-Sicht einer GA inkl. Recommendation + Findings."""
+    """Detail-Sicht einer GA inkl. Recommendation + Findings + Siblings."""
 
     ga: str
     dpt: str | None
     label: str | None
+    dev_source: str
     count: int
     rate_per_min: float
     recommended_rate: float
     recommendation: Recommendation
     findings: list[Finding]
+    sibling_gas: list[SiblingGa]
+    value_history: list[dict[str, Any]]
 
 
 def estimate_busload_pct(total_telegrams: int, period_seconds: float) -> float:
@@ -149,19 +162,12 @@ class KnxStatsService:
         samples_raw = await self._repo.ga_samples(ga, from_iso, to_iso)
         if not samples_raw:
             return None
-        # Bestimme dpt+label aus erster Top-Row mit dieser GA
-        # (effizienter waere ein separates Statement, aber wir sparen
-        # uns die zweite Query — die Sampling-Liste enthaelt dpt nicht).
-        first_dpt: str | None = None
-        first_label: str | None = None
-        # Als Fallback laden wir 1 row aus top_by_ga — nicht ideal,
-        # aber GAs sind Strings, dpt+label sind in messages.metadata.
-        # Wir extrahieren sie aus der ersten Row.
-        # Schneller: ein dedizierter SELECT mit ga-Filter.
         ga_row = await self._fetch_ga_meta(ga, from_iso, to_iso)
-        if ga_row is not None:
-            first_dpt = ga_row.get("dpt")
-            first_label = ga_row.get("label")
+        first_dpt: str | None = ga_row.get("dpt") if ga_row else None
+        first_label: str | None = ga_row.get("label") if ga_row else None
+        # Source-Adresse aus den Samples: typischerweise dieselbe in
+        # allen Eintraegen (1 Geraet sendet auf 1 GA).
+        dev_source = samples_raw[0].get("dev_source", "") if samples_raw else ""
 
         samples = [
             TelegramSample(
@@ -179,16 +185,48 @@ class KnxStatsService:
         recommended = recommended_rate_for(first_dpt)
         rec = build_recommendation(dpt=first_dpt, rate=rate, recommended=recommended)
         findings = detect_patterns(samples, dpt=first_dpt)
+
+        # Iter 29: Sibling-GAs derselben Source-Adresse, ausser uns selbst.
+        sibling_gas = await self._fetch_siblings(dev_source, ga, from_iso, to_iso, minutes)
+        # Iter 31-vorbereitend: Wertverlauf — Down-Sampled auf max 200
+        # Punkte fuer Sparkline; immer chronologisch.
+        value_history = _downsample_value_history(samples_raw, max_points=200)
+
         return GaDetail(
             ga=ga,
             dpt=first_dpt,
             label=first_label,
+            dev_source=dev_source,
             count=len(samples),
             rate_per_min=round(rate, 2),
             recommended_rate=recommended,
             recommendation=rec,
             findings=findings,
+            sibling_gas=sibling_gas,
+            value_history=value_history,
         )
+
+    async def _fetch_siblings(
+        self,
+        dev_source: str,
+        own_ga: str,
+        from_iso: str,
+        to_iso: str,
+        minutes: float,
+    ) -> list[SiblingGa]:
+        if not dev_source:
+            return []
+        rows = await self._repo.gas_for_source(dev_source, from_iso, to_iso, limit=20)
+        return [
+            SiblingGa(
+                ga=str(row["ga"]),
+                label=row.get("label"),
+                count=int(row["count"]),
+                rate_per_min=round(int(row["count"]) / minutes, 2),
+            )
+            for row in rows
+            if row["ga"] != own_ga
+        ]
 
     async def compute_timeline(
         self,
@@ -339,9 +377,32 @@ def ga_detail_to_dict(detail: GaDetail) -> dict[str, Any]:
         "ga": detail.ga,
         "dpt": detail.dpt,
         "label": detail.label,
+        "dev_source": detail.dev_source,
         "count": detail.count,
         "rate_per_min": detail.rate_per_min,
         "recommended_rate": detail.recommended_rate,
         "recommendation": asdict(detail.recommendation),
         "findings": [asdict(f) for f in detail.findings],
+        "sibling_gas": [asdict(s) for s in detail.sibling_gas],
+        "value_history": detail.value_history,
     }
+
+
+def _downsample_value_history(
+    samples: list[dict[str, Any]], *, max_points: int
+) -> list[dict[str, Any]]:
+    """Down-Sampling fuer die Sparkline. Behaelt Reihenfolge bei.
+
+    Bei <= max_points: alle uebernommen.
+    Sonst: gleichmaessig verteilte Subsequenz.
+    """
+    if max_points <= 0 or len(samples) == 0:
+        return []
+    if len(samples) <= max_points:
+        return [{"ts": s["ts"], "value": s["value"]} for s in samples]
+    step = len(samples) / max_points
+    out: list[dict[str, Any]] = []
+    for i in range(max_points):
+        sample = samples[int(i * step)]
+        out.append({"ts": sample["ts"], "value": sample["value"]})
+    return out

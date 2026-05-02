@@ -41,7 +41,12 @@ from ._helpers import (
     get_database,
     parse_int_param,
 )
-from ._validation import parse_iso_period, validate_knx_ga, validate_note
+from ._validation import (
+    parse_iso_period,
+    validate_knx_ga,
+    validate_knx_individual_address,
+    validate_note,
+)
 
 _DEFAULT_TOP_LIMIT = 50
 _HARD_TOP_LIMIT = 500
@@ -52,6 +57,9 @@ _HARD_TIMELINE_GAS = 20
 # Iter 19 Security-Fix: Hard-Limit fuer User-Input im Acknowledge-Note,
 # damit keine Bomb-Strings die DB belasten.
 _HARD_NOTE_LENGTH = 1000
+
+# Iter 33: Bulk-Ack auf max 100 GAs pro Call (DoS + Audit-Log-Spam-Schutz)
+_HARD_BULK_ACK_COUNT = 100
 
 
 def _service(hass: Any) -> KnxStatsService | None:
@@ -122,6 +130,8 @@ class KnxStatsTopBySourceView(RequireAdminView):
     name = "api:messagehub:knx-stats:top-by-source"
 
     async def get(self, request: web.Request) -> web.Response:
+        from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
+
         self._check_admin(request)
         db = get_database(request.app["hass"])
         if db is None:
@@ -137,6 +147,13 @@ class KnxStatsTopBySourceView(RequireAdminView):
             max_value=_HARD_TOP_LIMIT,
         )
         rows = await KnxStatsRepository(db).top_by_source(from_iso, to_iso, limit=limit)
+        # Iter 34: Hersteller annotieren falls ETS-Projekt verfuegbar.
+        devices = await discover_knx_devices(request.app["hass"])
+        for row in rows:
+            device = devices.get(row.get("dev_source", ""))
+            if device is not None:
+                row["manufacturer"] = device.get("manufacturer", "")
+                row["device_name"] = device.get("name", "")
         return self.json(
             {
                 "from": from_iso,
@@ -152,6 +169,11 @@ class KnxStatsGaDetailView(RequireAdminView):
     name = "api:messagehub:knx-stats:ga-detail"
 
     async def get(self, request: web.Request) -> web.Response:
+        from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
+        from ..processing.knx_manufacturer import (  # noqa: PLC0415
+            lookup_manufacturer_hints,
+        )
+
         self._check_admin(request)
         svc = _service(request.app["hass"])
         if svc is None:
@@ -163,7 +185,19 @@ class KnxStatsGaDetailView(RequireAdminView):
         detail = await svc.compute_ga_detail(ga, from_iso, to_iso)
         if detail is None:
             return self.json_message(ERR_NOT_FOUND, status_code=404)
-        return self.json(ga_detail_to_dict(detail))
+        result = ga_detail_to_dict(detail)
+        # Iter 34: Hersteller-Info aus dem ETS-Projekt anhaengen.
+        device_info = None
+        manufacturer_hints = None
+        if detail.dev_source:
+            devices = await discover_knx_devices(request.app["hass"])
+            device = devices.get(detail.dev_source)
+            if device is not None:
+                device_info = device
+                manufacturer_hints = lookup_manufacturer_hints(device.get("manufacturer", ""))
+        result["device"] = device_info
+        result["manufacturer_hints"] = manufacturer_hints
+        return self.json(result)
 
 
 class KnxStatsTimelineView(RequireAdminView):
@@ -405,6 +439,67 @@ class KnxStatsAcknowledgeView(RequireAdminView):
         return self.json({"ok": True, "ga": ga})
 
 
+class KnxStatsAcknowledgeBulkView(RequireAdminView):
+    """Iter 33: Bulk-Ack aller GAs eines Geraets (Source-Adresse).
+
+    Body: {"dev_source": "1.1.220", "note": "...", "expiry_days": 90}
+    """
+
+    url = "/api/messagehub/knx-stats/acknowledge-bulk"
+    name = "api:messagehub:knx-stats:acknowledge-bulk"
+
+    async def post(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        try:
+            data = await request.json()
+        except (ValueError, TypeError):
+            return self.json_message(ERR_INVALID_JSON, status_code=400)
+        dev_source = validate_knx_individual_address(str(data.get("dev_source", "")))
+        note_str = validate_note(data.get("note"), max_length=_HARD_NOTE_LENGTH)
+        expiry_days = data.get("expiry_days", DEFAULT_KNX_ACK_EXPIRY_DAYS)
+        try:
+            expiry_int = int(expiry_days) if expiry_days is not None else 0
+        except (ValueError, TypeError):
+            return self.json_message("invalid expiry_days", status_code=400)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        repo = KnxStatsRepository(db)
+        rows = await repo.gas_for_source(dev_source, from_iso, to_iso, limit=_HARD_BULK_ACK_COUNT)
+        gas = [str(row["ga"]) for row in rows]
+        if not gas:
+            return self.json({"ok": True, "dev_source": dev_source, "count": 0})
+        if len(gas) > _HARD_BULK_ACK_COUNT:
+            return self.json_message(
+                f"too many gas (max {_HARD_BULK_ACK_COUNT})",
+                status_code=400,
+            )
+        count = await repo.ack_set_bulk(gas, note=note_str, expiry_days=expiry_int)
+        await audit(
+            request.app["hass"],
+            request,
+            action="knx_stats_acknowledge_bulk",
+            target_type="knx_dev_source",
+            target_id=dev_source,
+            details={
+                "ga_count": count,
+                "note": note_str,
+                "expiry_days": expiry_int,
+            },
+        )
+        return self.json(
+            {
+                "ok": True,
+                "dev_source": dev_source,
+                "count": count,
+                "gas": gas,
+            }
+        )
+
+
 class KnxStatsAcknowledgeDetailView(RequireAdminView):
     """DELETE: acknowledge entfernen."""
 
@@ -441,4 +536,5 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsAlarmsView())
     hass.http.register_view(KnxStatsBusHealthView())
     hass.http.register_view(KnxStatsAcknowledgeView())
+    hass.http.register_view(KnxStatsAcknowledgeBulkView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())

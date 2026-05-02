@@ -48,6 +48,7 @@ const DETAIL: KnxStatsGaDetailDto = {
   ga: "5/2/14",
   dpt: "9.004",
   label: "Wetter Lux",
+  dev_source: "1.1.220",
   count: 600,
   rate_per_min: 142.3,
   recommended_rate: 2.0,
@@ -65,6 +66,13 @@ const DETAIL: KnxStatsGaDetailDto = {
       text: "Sensor sendet konstant 0",
     },
   ],
+  sibling_gas: [
+    { ga: "5/2/15", label: "Wetter Wind", count: 50, rate_per_min: 0.8 },
+  ],
+  value_history: [
+    { ts: "2026-05-02T16:00:00Z", value: 850 },
+    { ts: "2026-05-02T16:01:00Z", value: 870 },
+  ],
 };
 
 interface MockApi extends ApiClient {
@@ -80,6 +88,15 @@ function makeApi(): MockApi {
       to: SUMMARY.to,
       items: TOP_ROWS,
       total: TOP_ROWS.length,
+    })),
+    getKnxStatsTopBySource: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      items: [
+        { dev_source: "1.1.220", count: 600, ga_count: 1 },
+        { dev_source: "1.1.5", count: 50, ga_count: 1 },
+      ],
+      total: 2,
     })),
     getKnxStatsTimeline: vi.fn(async () => ({
       from: SUMMARY.from,
@@ -158,7 +175,9 @@ describe("stats-knx-view top table + detail pane", () => {
   it("rendert eine Tabellen-Zeile pro Top-Row", async () => {
     const api = makeApi();
     const el = await mount(api);
-    const rows = el.shadowRoot!.querySelectorAll("tbody tr");
+    // Top-Sender ist die erste Tabelle (Top-Geraete kommt danach, Iter 32)
+    const firstTable = el.shadowRoot!.querySelector(".table-wrap table");
+    const rows = firstTable!.querySelectorAll("tbody tr");
     expect(rows.length).toBe(2);
     const text = el.shadowRoot!.textContent ?? "";
     expect(text).toContain("5/2/14");

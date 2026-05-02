@@ -124,15 +124,32 @@ export interface KnxStatsFindingDto {
   text: string;
 }
 
+export interface KnxStatsSiblingGaDto {
+  ga: string;
+  label: string | null;
+  count: number;
+  rate_per_min: number;
+}
+
+export interface KnxStatsValuePoint {
+  ts: string;
+  value: unknown;
+}
+
 export interface KnxStatsGaDetailDto {
   ga: string;
   dpt: string | null;
   label: string | null;
+  dev_source: string;
   count: number;
   rate_per_min: number;
   recommended_rate: number;
   recommendation: KnxStatsRecommendationDto;
   findings: KnxStatsFindingDto[];
+  sibling_gas: KnxStatsSiblingGaDto[];
+  value_history: KnxStatsValuePoint[];
+  device?: KnxStatsDeviceInfo | null;
+  manufacturer_hints?: KnxStatsManufacturerHints | null;
 }
 
 export interface KnxStatsTimelineDto {
@@ -146,6 +163,21 @@ export interface KnxStatsTopBySourceRowDto {
   dev_source: string;
   count: number;
   ga_count: number;
+  manufacturer?: string;
+  device_name?: string;
+}
+
+export interface KnxStatsManufacturerHints {
+  matched_key: string;
+  doc_url: string;
+  tips: string[];
+}
+
+export interface KnxStatsDeviceInfo {
+  individual_address: string;
+  manufacturer: string;
+  name: string;
+  product: string;
 }
 
 export interface KnxStatsAlarmDto {
@@ -726,5 +758,30 @@ export class ApiClient {
     const url = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge/${encodeURIComponent(ga)}`;
     const res = await fetch(url, { method: "DELETE", headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async acknowledgeKnxBulk(
+    devSource: string,
+    payload: { note?: string; expiryDays?: number; from?: string; to?: string } = {}
+  ): Promise<{ ok: boolean; dev_source: string; count: number; gas: string[] }> {
+    const params = new URLSearchParams();
+    if (payload.from) params.set("from", payload.from);
+    if (payload.to) params.set("to", payload.to);
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge-bulk?${params.toString()}`;
+    const body: Record<string, unknown> = { dev_source: devSource };
+    if (payload.note !== undefined) body["note"] = payload.note;
+    if (payload.expiryDays !== undefined) body["expiry_days"] = payload.expiryDays;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as {
+      ok: boolean;
+      dev_source: string;
+      count: number;
+      gas: string[];
+    };
   }
 }
