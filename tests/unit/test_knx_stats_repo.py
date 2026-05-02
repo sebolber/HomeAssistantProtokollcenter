@@ -40,27 +40,27 @@ async def _insert_knx(
     dev_source: str = "1.1.5",
     value: object = 21.5,
     telegramtype: str = "GroupValueWrite",
+    repeated: bool = False,
 ) -> None:
-    metadata = {
-        "knx_ga": ga,
-        "knx_dpt": dpt,
-        "knx_label": label,
-        "knx_source": dev_source,
-        "knx_value": value,
-        "knx_telegramtype": telegramtype,
-    }
+    """Iter 22: schreibt in knx_raw_telegrams + (optional) knx_group_addresses
+    fuer DPT/Label-Lookup via JOIN."""
+    if dpt is not None or label != "Test":
+        await db.execute(
+            "INSERT OR IGNORE INTO knx_group_addresses "
+            "(address, label, dpt, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+            (ga, label, dpt, ts, ts),
+        )
     await db.execute(
-        "INSERT INTO messages "
-        "(timestamp, severity, source, text, metadata, fingerprint, "
-        " count, first_seen, last_seen, status) "
-        "VALUES (?, 'info', 'knx-bus', ?, ?, ?, 1, ?, ?, 'new')",
+        "INSERT INTO knx_raw_telegrams "
+        "(timestamp, destination, source, telegramtype, value, repeated) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
         (
             ts,
-            f"{label} = {value}",
-            json.dumps(metadata),
-            f"fp-{ts}-{ga}",
-            ts,
-            ts,
+            ga,
+            dev_source,
+            telegramtype,
+            json.dumps(value, default=str),
+            1 if repeated else 0,
         ),
     )
 

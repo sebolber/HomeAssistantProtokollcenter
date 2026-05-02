@@ -121,3 +121,18 @@ KNX_ALARM_REPEAT_RATE_PCT_DEFAULT: Final[float] = 0.5  # > X% Wiederholungen
 KNX_ALARM_SILENCE_COUNT_DEFAULT: Final[int] = 1  # >= X stumme Geraete
 # Eventbus-Schluessel fuer Alarm-Trigger
 EVENT_KNX_ALARM_TRIGGERED: Final = "messagehub_knx_alarm_triggered"
+
+# Iter 20: Bus-weite Telegramm-Erfassung (knx_raw_telegrams)
+# Retention: Vollerfassung wird nach N Stunden geloescht. Ueberlebt
+# damit Backups klein und HA schnell. Counter-Aggregate (knx_telegram_
+# counters) bleiben deutlich laenger.
+DEFAULT_KNX_RAW_RETENTION_HOURS: Final[int] = 48
+DEFAULT_KNX_COUNTER_RETENTION_DAYS: Final[int] = 365
+
+# Hard-Cap fuer knx_raw_telegrams (DoS-Schutz). Bei Erreichen werden
+# die aeltesten Zeilen zuerst geloescht.
+KNX_RAW_HARD_CAP_ROWS: Final[int] = 5_000_000
+
+# Optionen-Keys (Config-Flow Phase 2)
+OPT_KNX_RAW_RETENTION_HOURS: Final = "knx_raw_retention_hours"
+OPT_KNX_COUNTER_RETENTION_DAYS: Final = "knx_counter_retention_days"

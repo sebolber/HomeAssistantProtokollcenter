@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -15,6 +14,7 @@ from custom_components.messagehub.processing.knx_stats_service import (
 from custom_components.messagehub.storage.database import Database
 from custom_components.messagehub.storage.knx_stats_repo import KnxStatsRepository
 from custom_components.messagehub.storage.migrations import MigrationRunner
+from tests.conftest import insert_raw_telegram
 
 
 @pytest.fixture
@@ -44,27 +44,15 @@ async def _insert_knx(
     value: object = 21.5,
     telegramtype: str = "GroupValueWrite",
 ) -> None:
-    metadata = {
-        "knx_ga": ga,
-        "knx_dpt": dpt,
-        "knx_label": label,
-        "knx_source": dev_source,
-        "knx_value": value,
-        "knx_telegramtype": telegramtype,
-    }
-    await db.execute(
-        "INSERT INTO messages "
-        "(timestamp, severity, source, text, metadata, fingerprint, "
-        " count, first_seen, last_seen, status) "
-        "VALUES (?, 'info', 'knx-bus', ?, ?, ?, 1, ?, ?, 'new')",
-        (
-            ts,
-            f"{label} = {value}",
-            json.dumps(metadata),
-            f"fp-{ts}-{ga}",
-            ts,
-            ts,
-        ),
+    await insert_raw_telegram(
+        db,
+        ts=ts,
+        ga=ga,
+        dpt=dpt,
+        label=label,
+        dev_source=dev_source,
+        value=value,
+        telegramtype=telegramtype,
     )
 
 

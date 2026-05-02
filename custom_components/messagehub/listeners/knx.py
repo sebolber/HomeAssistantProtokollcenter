@@ -134,10 +134,6 @@ def _build_knx_message(cfg: Any, data: dict[str, Any] | KnxTelegramData) -> Any:
     )
 
 
-# ISO-Format minimum laenge fuer "YYYY-MM-DDTHH" — fuer Bucket-Truncation.
-_ISO_HOUR_PREFIX_LEN = 13
-
-
 def _build_listener_state(hass: HomeAssistant, database: Any) -> tuple[Any, Any]:
     """Initialisiert Whitelist-Cache + Schatten-Counter-Repo.
 
@@ -155,32 +151,35 @@ def _build_listener_state(hass: HomeAssistant, database: Any) -> tuple[Any, Any]
     return cache, counters_repo
 
 
-async def _maybe_increment_shadow_counter(
-    hass: HomeAssistant, counters_repo: Any, destination: str, msg: Any
+async def _record_bus_activity(
+    hass: HomeAssistant, counters_repo: Any, td: KnxTelegramData
 ) -> None:
-    """Iter 16: pflegt den Schatten-Counter-Cache — opt-out via hass.data."""
-    if not hass.data.get(DOMAIN, {}).get("_knx_shadow_counters_enabled", True):
-        return
-    try:
-        hour_bucket = _hour_bucket_now(msg)
-        await counters_repo.increment_counter(destination, hour_bucket)
-    except (ValueError, RuntimeError) as err:
-        # Counter-Pflege darf NIE den Hot-Path brechen — nur loggen
-        _LOGGER.debug("shadow counter update skipped: %s", err)
+    """Iter 21: bus-weite Telegramm-Erfassung. Schreibt Raw-Eintrag +
+    Counter-Increment fuer JEDE GA — unabhaengig von der Whitelist.
 
-
-def _hour_bucket_now(msg: Any) -> str:
-    """Liefert den Stunden-Bucket-String fuer den Schatten-Counter.
-
-    Format: ISO-Stunde (z. B. "2026-05-02T16:00:00") — kompatibel mit
-    BETWEEN-Filtern in der counter-Query.
+    Hot-Path-sicher: Fehler hier brechen die Telegramm-Verarbeitung
+    nicht ab, sondern werden nur als DEBUG geloggt.
     """
     from datetime import UTC, datetime  # noqa: PLC0415
 
-    ts = msg.timestamp_iso if hasattr(msg, "timestamp_iso") else None
-    if ts is None or not isinstance(ts, str) or len(ts) < _ISO_HOUR_PREFIX_LEN:
-        return datetime.now(UTC).strftime("%Y-%m-%dT%H:00:00")
-    return ts[:_ISO_HOUR_PREFIX_LEN] + ":00:00"
+    if not hass.data.get(DOMAIN, {}).get("_knx_shadow_counters_enabled", True):
+        return
+    now = datetime.now(UTC)
+    timestamp = now.isoformat(timespec="seconds")
+    hour_bucket = now.strftime("%Y-%m-%dT%H:00:00")
+    try:
+        await counters_repo.insert_raw(
+            timestamp=timestamp,
+            destination=td.destination,
+            source=td.source,
+            telegramtype=td.telegramtype,
+            value=td.best_value(),
+            repeated=td.repeated,
+        )
+        await counters_repo.increment_counter(td.destination, hour_bucket)
+    except (ValueError, RuntimeError) as err:
+        # Erfassung darf NIE den Hot-Path brechen — nur loggen
+        _LOGGER.debug("knx bus activity record skipped: %s", err)
 
 
 def _get_xknx_instance(hass: HomeAssistant) -> Any:
@@ -215,16 +214,20 @@ def async_register_knx_listener(hass: HomeAssistant, database: Any, repository: 
             )
         if not td.destination:
             return
+        # Iter 21: jede empfangene GA wird bus-weit erfasst — Raw-Eintrag
+        # + Counter — unabhaengig von der log_enabled-Whitelist. Der
+        # Whitelist-Pfad fuer das User-Logbuch (messages-Tabelle) bleibt
+        # erhalten und wird nur fuer cfg.log_enabled durchlaufen.
+        await _record_bus_activity(hass, counters_repo, td)
         cfg = await cache.get(td.destination)
         if cfg is None:
             _LOGGER.debug("knx %s: GA nicht in messagehub-Whitelist", td.destination)
             return
         if not cfg.log_enabled:
-            _LOGGER.debug("knx %s: log_enabled=0, skip", td.destination)
+            _LOGGER.debug("knx %s: log_enabled=0, skip messages-insert", td.destination)
             return
         msg = _build_knx_message(cfg, td)
         await repository.insert_or_aggregate(msg, window_minutes=10)
-        await _maybe_increment_shadow_counter(hass, counters_repo, td.destination, msg)
         fire_message_added(hass, msg)
         _LOGGER.info("messagehub knx-bus: %s -> %s [%s]", td.destination, msg.text, msg.severity)
 

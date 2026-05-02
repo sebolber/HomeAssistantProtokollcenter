@@ -1,9 +1,9 @@
-"""Repository fuer KNX-Statistik (Iter 4).
+"""Repository fuer KNX-Statistik.
 
-Aggregat-Queries auf der `messages`-Tabelle, gefiltert auf
-`source='knx-bus'`. Zugriff auf `metadata.knx_ga`, `metadata.knx_dpt`,
-`metadata.knx_source`, `metadata.knx_telegramtype` via SQLite
-`json_extract`.
+Iter 4: Erste Version, gelesen aus messages.metadata.knx_*.
+Iter 22: umgestellt auf knx_raw_telegrams (bus-weite Erfassung,
+unabhaengig von der log_enabled-Whitelist). DPT + Label kommen via
+LEFT JOIN aus knx_group_addresses, falls die GA dort gepflegt ist.
 
 Acknowledgement-Verwaltung: GAs als "bekannt" markieren; mit
 optionalem Ablauf (DEFAULT_KNX_ACK_EXPIRY_DAYS) — sonst sticky.
@@ -18,105 +18,98 @@ if TYPE_CHECKING:
     from .database import Database
 
 
+# Top-Sender mit DPT+Label aus der Whitelist (LEFT JOIN — auch nicht
+# whitelisted GAs landen in der Liste, dann mit dpt=NULL/label=NULL).
 _TOP_SQL = """
 SELECT
-    json_extract(metadata, '$.knx_ga')          AS ga,
-    json_extract(metadata, '$.knx_dpt')         AS dpt,
-    json_extract(metadata, '$.knx_label')       AS label,
-    json_extract(metadata, '$.knx_source')      AS dev_source,
-    COUNT(*)                                    AS n,
-    MIN(timestamp)                              AS first_seen,
-    MAX(timestamp)                              AS last_seen
-FROM messages
-WHERE source = 'knx-bus'
-  AND timestamp >= ?
-  AND timestamp <  ?
-GROUP BY ga, dpt, label
+    r.destination AS ga,
+    a.dpt         AS dpt,
+    a.label       AS label,
+    r.source      AS dev_source,
+    COUNT(*)      AS n,
+    MIN(r.timestamp) AS first_seen,
+    MAX(r.timestamp) AS last_seen
+FROM knx_raw_telegrams r
+LEFT JOIN knx_group_addresses a ON a.address = r.destination
+WHERE r.timestamp >= ?
+  AND r.timestamp <  ?
+GROUP BY r.destination, a.dpt, a.label
 ORDER BY n DESC
 LIMIT ?
 """
 
 _TOP_BY_SOURCE_SQL = """
 SELECT
-    json_extract(metadata, '$.knx_source') AS dev_source,
-    COUNT(*)                                AS n,
-    COUNT(DISTINCT json_extract(metadata, '$.knx_ga')) AS ga_count
-FROM messages
-WHERE source = 'knx-bus'
-  AND timestamp >= ?
-  AND timestamp <  ?
-GROUP BY dev_source
+    r.source AS dev_source,
+    COUNT(*) AS n,
+    COUNT(DISTINCT r.destination) AS ga_count
+FROM knx_raw_telegrams r
+WHERE r.timestamp >= ?
+  AND r.timestamp <  ?
+GROUP BY r.source
 ORDER BY n DESC
 LIMIT ?
 """
 
 _SUMMARY_SQL = """
 SELECT
-    COUNT(*) AS total_telegrams,
-    COUNT(DISTINCT json_extract(metadata, '$.knx_ga'))     AS active_gas,
-    COUNT(DISTINCT json_extract(metadata, '$.knx_source')) AS active_devices
-FROM messages
-WHERE source = 'knx-bus'
-  AND timestamp >= ?
+    COUNT(*)                          AS total_telegrams,
+    COUNT(DISTINCT destination)       AS active_gas,
+    COUNT(DISTINCT source)            AS active_devices
+FROM knx_raw_telegrams
+WHERE timestamp >= ?
   AND timestamp <  ?
 """
 
 # Telegramme einer GA als reiner Sample-Stream (fuer detect_patterns).
+# value ist als JSON-String in der Tabelle — die Engine vergleicht
+# ohnehin nur per repr(), also unkritisch.
 _GA_DETAIL_SAMPLES_SQL = """
 SELECT
-    timestamp                                       AS ts,
-    json_extract(metadata, '$.knx_value')          AS value,
-    json_extract(metadata, '$.knx_telegramtype')   AS telegramtype,
-    json_extract(metadata, '$.knx_source')         AS dev_source
-FROM messages
-WHERE source = 'knx-bus'
-  AND json_extract(metadata, '$.knx_ga') = ?
+    timestamp     AS ts,
+    value         AS value,
+    telegramtype  AS telegramtype,
+    source        AS dev_source
+FROM knx_raw_telegrams
+WHERE destination = ?
   AND timestamp >= ?
   AND timestamp <  ?
 ORDER BY timestamp ASC
 """
 
-# Time-Bucket-Aggregation. Bucket = ISO-String mit auf bucket_minutes
-# abgerundeter Minute. Beispiel: bucket_minutes=10 -> Minuten 0,10,20,30,40,50.
-# Eine einzige bucket_minutes-Bindung im SELECT (Modulo subtrahiert
-# ueberzaehlige Minuten).
 _BUS_HEALTH_SQL = """
 SELECT
     COUNT(*) AS total,
-    SUM(CASE WHEN json_extract(metadata, '$.knx_repeated') IN (1, 'true', true)
-             THEN 1 ELSE 0 END) AS repeated_count
-FROM messages
-WHERE source = 'knx-bus'
-  AND timestamp >= ?
+    SUM(CASE WHEN repeated = 1 THEN 1 ELSE 0 END) AS repeated_count
+FROM knx_raw_telegrams
+WHERE timestamp >= ?
   AND timestamp <  ?
 """
 
 _SILENCE_DETECT_SQL = """
 SELECT
-    json_extract(metadata, '$.knx_source') AS dev_source,
+    source         AS dev_source,
     MAX(timestamp) AS last_seen,
-    COUNT(*) AS total
-FROM messages
-WHERE source = 'knx-bus'
-  AND timestamp >= ?
+    COUNT(*)       AS total
+FROM knx_raw_telegrams
+WHERE timestamp >= ?
   AND timestamp <  ?
-GROUP BY dev_source
+GROUP BY source
 HAVING dev_source IS NOT NULL AND dev_source <> ''
 ORDER BY last_seen ASC
 """
 
 _BUS_HEALTH_PER_GA_SQL = """
 SELECT
-    json_extract(metadata, '$.knx_ga') AS ga,
-    json_extract(metadata, '$.knx_label') AS label,
-    COUNT(*) AS total,
-    SUM(CASE WHEN json_extract(metadata, '$.knx_repeated') IN (1, 'true', true)
-             THEN 1 ELSE 0 END) AS repeated_count
-FROM messages
-WHERE source = 'knx-bus'
-  AND timestamp >= ?
-  AND timestamp <  ?
-GROUP BY ga, label
+    r.destination AS ga,
+    a.label       AS label,
+    COUNT(*)      AS total,
+    SUM(CASE WHEN r.repeated = 1 THEN 1 ELSE 0 END) AS repeated_count
+FROM knx_raw_telegrams r
+LEFT JOIN knx_group_addresses a ON a.address = r.destination
+WHERE r.timestamp >= ?
+  AND r.timestamp <  ?
+GROUP BY r.destination, a.label
 HAVING repeated_count > 0
 ORDER BY repeated_count DESC, total DESC
 LIMIT ?
@@ -124,7 +117,7 @@ LIMIT ?
 
 _TIMELINE_SQL = """
 SELECT
-    json_extract(metadata, '$.knx_ga') AS ga,
+    destination AS ga,
     strftime('%Y-%m-%dT%H:', timestamp) ||
     printf(
         '%02d:00',
@@ -132,11 +125,10 @@ SELECT
         (CAST(strftime('%M', timestamp) AS INTEGER) % ?)
     ) AS bucket,
     COUNT(*) AS n
-FROM messages
-WHERE source = 'knx-bus'
-  AND timestamp >= ?
+FROM knx_raw_telegrams
+WHERE timestamp >= ?
   AND timestamp <  ?
-  AND json_extract(metadata, '$.knx_ga') IN ({placeholders})
+  AND destination IN ({placeholders})
 GROUP BY ga, bucket
 ORDER BY bucket ASC, ga ASC
 """
@@ -188,16 +180,29 @@ class KnxStatsRepository:
         ]
 
     async def ga_samples(self, ga: str, from_iso: str, to_iso: str) -> list[dict[str, Any]]:
+        import contextlib  # noqa: PLC0415
+        import json as _json  # noqa: PLC0415
+
         rows = await self._db.fetch_all(_GA_DETAIL_SAMPLES_SQL, (ga, from_iso, to_iso))
-        return [
-            {
-                "ts": str(row["ts"]),
-                "value": row["value"],
-                "telegramtype": row["telegramtype"],
-                "dev_source": str(row["dev_source"] or ""),
-            }
-            for row in rows
-        ]
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            raw_value: Any = row["value"]
+            # value liegt als JSON-Repr in der Tabelle (insert_raw); wir
+            # decoden zurueck zum Original-Typ, damit detect_patterns
+            # konsistent vergleichen kann (Float-Toleranz, Integer-
+            # Identitaet). Nicht-decodbare Werte bleiben Strings.
+            if isinstance(raw_value, str):
+                with contextlib.suppress(ValueError, TypeError):
+                    raw_value = _json.loads(raw_value)
+            out.append(
+                {
+                    "ts": str(row["ts"]),
+                    "value": raw_value,
+                    "telegramtype": row["telegramtype"],
+                    "dev_source": str(row["dev_source"] or ""),
+                }
+            )
+        return out
 
     async def timeline(
         self,
@@ -306,6 +311,43 @@ class KnxStatsRepository:
                 }
             )
         return out
+
+    # --- Raw-Erfassung (Iter 21, bus-weit) ----------------------------------
+
+    async def insert_raw(
+        self,
+        *,
+        timestamp: str,
+        destination: str,
+        source: str,
+        telegramtype: str | None,
+        value: object,
+        repeated: bool,
+    ) -> None:
+        """Iter 21: schreibt jedes vom Bus gesehene Telegramm in
+        knx_raw_telegrams — unabhaengig von der log_enabled-Whitelist.
+
+        value wird als String serialisiert (json-konvertierter Repr).
+        """
+        import json as _json  # noqa: PLC0415
+
+        try:
+            value_str = _json.dumps(value, default=str, ensure_ascii=False)
+        except (TypeError, ValueError):
+            value_str = str(value)
+        await self._db.execute(
+            "INSERT INTO knx_raw_telegrams "
+            "(timestamp, destination, source, telegramtype, value, repeated) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                timestamp,
+                destination,
+                source or "",
+                telegramtype,
+                value_str,
+                1 if repeated else 0,
+            ),
+        )
 
     # --- Schatten-Counter (Iter 16, Phase-2-Vorbereitung) -------------------
 

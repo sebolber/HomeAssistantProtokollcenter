@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -12,6 +11,7 @@ from custom_components.messagehub.processing.knx_stats_service import KnxStatsSe
 from custom_components.messagehub.storage.database import Database
 from custom_components.messagehub.storage.knx_stats_repo import KnxStatsRepository
 from custom_components.messagehub.storage.migrations import MigrationRunner
+from tests.conftest import insert_raw_telegram
 
 
 @pytest.fixture
@@ -31,21 +31,7 @@ def _ts(offset_min: float) -> str:
 
 
 async def _insert(db: Database, *, ts: str, ga: str, label: str = "x") -> None:
-    metadata = {
-        "knx_ga": ga,
-        "knx_dpt": "1.001",
-        "knx_label": label,
-        "knx_source": "1.1.5",
-        "knx_value": 1,
-        "knx_telegramtype": "GroupValueWrite",
-    }
-    await db.execute(
-        "INSERT INTO messages "
-        "(timestamp, severity, source, text, metadata, fingerprint, "
-        " count, first_seen, last_seen, status) "
-        "VALUES (?, 'info', 'knx-bus', ?, ?, ?, 1, ?, ?, 'new')",
-        (ts, "x", json.dumps(metadata), f"fp-{ts}-{ga}", ts, ts),
-    )
+    await insert_raw_telegram(db, ts=ts, ga=ga, label=label, dpt="1.001")
 
 
 class TestComputeOrphans:
