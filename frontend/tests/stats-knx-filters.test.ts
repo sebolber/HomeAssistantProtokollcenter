@@ -115,6 +115,25 @@ function makeApi(spy?: { calls: KnxStatsSummaryDto[] }): ApiClient {
         },
       ],
     })),
+    getKnxStatsSensitiveLog: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      addresses: [
+        { ga: "1/0/1", label: "Tuerschloss Eingang", dpt: "1.001" },
+        { ga: "1/0/2", label: "Alarmanlage", dpt: "1.001" },
+      ],
+      telegrams: [
+        {
+          ts: "2026-05-02T08:15:00",
+          ga: "1/0/1",
+          dev_source: "1.1.50",
+          value: "1",
+          telegramtype: "GroupValueWrite",
+          label: "Tuerschloss Eingang",
+          dpt: "1.001",
+        },
+      ],
+    })),
   } as unknown as ApiClient;
 }
 
@@ -164,6 +183,20 @@ describe("stats-knx-view filter bar", () => {
     expect(text).toContain("312");
     expect(text).toContain("22");
     expect(text).toContain("6,4");
+  });
+
+  it("Iter 42: Sicherheits-Audit-Card listet GAs + Telegramme", async () => {
+    const el = await mount();
+    const card = el.shadowRoot!.querySelector(".sensitive");
+    expect(card).not.toBeNull();
+    const addrItems = card!.querySelectorAll(".sensitive__addr-list li");
+    expect(addrItems.length).toBe(2);
+    const text = card!.textContent ?? "";
+    expect(text).toContain("Tuerschloss Eingang");
+    expect(text).toContain("Alarmanlage");
+    // Telegramm-Tabelle enthaelt 1 Eintrag
+    const tBodyRows = card!.querySelectorAll(".sensitive__table tbody tr");
+    expect(tBodyRows.length).toBe(1);
   });
 
   it("Iter 41: Bursts-Card erscheint wenn Spitzen vorhanden sind", async () => {

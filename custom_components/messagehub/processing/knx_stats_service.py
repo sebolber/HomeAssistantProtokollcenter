@@ -305,6 +305,29 @@ class KnxStatsService:
     ) -> list[dict[str, Any]]:
         return await self._repo.timeline(from_iso, to_iso, gas=gas, bucket_minutes=bucket_minutes)
 
+    # --- Sensitive-Log (Iter 42, Feature N) ---------------------------------
+
+    async def sensitive_log(
+        self,
+        *,
+        from_iso: str,
+        to_iso: str,
+        limit: int = 200,
+    ) -> dict[str, Any]:
+        """Liefert sensitive GA-Liste + Telegramm-Stream im Zeitraum.
+
+        Wird sowohl vom Stats-Tab (Sektion "Sicherheits-Audit") als auch
+        zukuenftig von einem Sensor/Notification-Channel genutzt.
+        """
+        addresses = await self._repo.sensitive_addresses()
+        telegrams = await self._repo.sensitive_telegrams(from_iso, to_iso, limit=limit)
+        return {
+            "from": from_iso,
+            "to": to_iso,
+            "addresses": addresses,
+            "telegrams": telegrams,
+        }
+
     # --- Burst-Detector (Iter 40, Feature C) --------------------------------
 
     BURST_DEFAULT_WINDOW_S: int = 5

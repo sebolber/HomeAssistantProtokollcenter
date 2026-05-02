@@ -168,6 +168,12 @@ function makeApi(): MockApi {
       threshold_pct: 30.0,
       bursts: [],
     })),
+    getKnxStatsSensitiveLog: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      addresses: [],
+      telegrams: [],
+    })),
     getKnxStatsGaDetail: vi.fn(async (ga: string) => {
       if (ga !== "5/2/14") throw new Error("not found");
       return DETAIL;

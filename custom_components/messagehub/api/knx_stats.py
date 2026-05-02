@@ -378,6 +378,62 @@ class KnxStatsSilenceView(RequireAdminView):
         )
 
 
+class KnxStatsSensitiveLogView(RequireAdminView):
+    """Iter 42 (Feature N): Audit-Log fuer is_sensitive-markierte GAs."""
+
+    url = "/api/messagehub/knx-stats/sensitive-log"
+    name = "api:messagehub:knx-stats:sensitive-log"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        svc = _service(request.app["hass"])
+        if svc is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        limit = parse_int_param(request.query, "limit", 200, min_value=1, max_value=1000)
+        result = await svc.sensitive_log(from_iso=from_iso, to_iso=to_iso, limit=limit)
+        return self.json(result)
+
+
+class KnxStatsSensitiveSetView(RequireAdminView):
+    """Iter 42 (Feature N): is_sensitive-Flag setzen (POST/DELETE).
+
+    POST /sensitive/{ga}  -> setzt das Flag = 1
+    DELETE /sensitive/{ga} -> setzt das Flag = 0
+
+    Beide Aktionen erzeugen ein Audit-Log mit dem Admin als Subject.
+    """
+
+    url = "/api/messagehub/knx-stats/sensitive/{ga}"
+    name = "api:messagehub:knx-stats:sensitive-set"
+
+    async def post(self, request: web.Request) -> web.Response:
+        return await self._toggle(request, sensitive=True)
+
+    async def delete(self, request: web.Request) -> web.Response:
+        return await self._toggle(request, sensitive=False)
+
+    async def _toggle(self, request: web.Request, *, sensitive: bool) -> web.Response:
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        ga = validate_knx_ga(request.match_info["ga"])
+        repo = KnxStatsRepository(db)
+        await repo.set_sensitive(ga, sensitive=sensitive)
+        await audit(
+            request.app["hass"],
+            request,
+            action="knx_stats_sensitive_set" if sensitive else "knx_stats_sensitive_clear",
+            target_type="knx_ga",
+            target_id=ga,
+            details={"sensitive": sensitive},
+        )
+        return self.json({"ok": True, "ga": ga, "sensitive": sensitive})
+
+
 class KnxStatsBurstsView(RequireAdminView):
     """Iter 40 (Feature C): Burst-Detector — kurze Telegrammfluten.
 
@@ -703,6 +759,8 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsHealthScoreView())
     hass.http.register_view(KnxStatsLongTermView())
     hass.http.register_view(KnxStatsBurstsView())
+    hass.http.register_view(KnxStatsSensitiveLogView())
+    hass.http.register_view(KnxStatsSensitiveSetView())
     hass.http.register_view(KnxStatsAcknowledgeView())
     hass.http.register_view(KnxStatsAcknowledgeBulkView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())

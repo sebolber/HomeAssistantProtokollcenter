@@ -18,6 +18,7 @@ import type {
   KnxStatsHealthScoreDto,
   KnxStatsLongTermDto,
   KnxStatsOrphansDto,
+  KnxStatsSensitiveLogDto,
   KnxStatsSilenceDto,
   KnxStatsSummaryDto,
   KnxStatsTimelineDto,
@@ -112,6 +113,7 @@ export class StatsKnxView extends LitElement {
   @state() private _health: KnxStatsHealthScoreDto | null = null;
   @state() private _longTerm: KnxStatsLongTermDto | null = null;
   @state() private _bursts: KnxStatsBurstsDto | null = null;
+  @state() private _sensitiveLog: KnxStatsSensitiveLogDto | null = null;
   @state() private _silence: KnxStatsSilenceDto | null = null;
   @state() private _orphans: KnxStatsOrphansDto | null = null;
   @state() private _alarms: KnxStatsAlarmsDto | null = null;
@@ -185,6 +187,7 @@ export class StatsKnxView extends LitElement {
         health,
         longTerm,
         bursts,
+        sensitiveLog,
       ] = await Promise.all([
         this.api.getKnxStatsSummary(fRaw),
         this.api.getKnxStatsTop(fRaw),
@@ -204,6 +207,7 @@ export class StatsKnxView extends LitElement {
           ? this.api.getKnxStatsLongTerm(fLongTerm).catch(() => null)
           : Promise.resolve(null),
         this.api.getKnxStatsBursts(fRaw).catch(() => null),
+        this.api.getKnxStatsSensitiveLog(fRaw).catch(() => null),
       ]);
       this._summary = summary;
       this._top = top.items;
@@ -216,6 +220,7 @@ export class StatsKnxView extends LitElement {
       this._health = health;
       this._longTerm = longTerm;
       this._bursts = bursts;
+      this._sensitiveLog = sensitiveLog;
       // Timeline fuer Top-5 GAs (mehr Linien werden unleserlich).
       // Nutzt fRaw (kappiert auf 48h im Long-Term-Modus) — Timeline-Endpoint
       // liest aus knx_raw_telegrams.
@@ -243,6 +248,7 @@ export class StatsKnxView extends LitElement {
       this._health = null;
       this._longTerm = null;
       this._bursts = null;
+      this._sensitiveLog = null;
     } finally {
       this._loading = false;
     }
@@ -575,6 +581,68 @@ export class StatsKnxView extends LitElement {
     }
   }
 
+  // Iter 42: Sicherheits-Audit-Card ---------------------------------------
+
+  private _renderSensitiveLog(): TemplateResult {
+    const log = this._sensitiveLog!;
+    const fmtTs = (ts: string) => this._formatTs(ts);
+    return html`
+      <section class="mh-card sensitive">
+        <header class="card-head">
+          <h3>Sicherheits-Audit</h3>
+          <span class="muted small">
+            ${log.addresses.length} markierte GAs · ${log.telegrams.length} Telegramme im Zeitraum
+          </span>
+        </header>
+        <div class="sensitive__addresses">
+          <h4>Sensitive GAs</h4>
+          <ul class="sensitive__addr-list">
+            ${log.addresses.map(
+              (a) => html`<li>
+                <code>${a.ga}</code>
+                ${a.label ? html`<span class="muted small">${a.label}</span>` : nothing}
+                ${a.dpt ? html`<span class="mh-pill mh-pill--neutral">${a.dpt}</span>` : nothing}
+              </li>`
+            )}
+          </ul>
+        </div>
+        <div class="sensitive__telegrams">
+          <h4>Letzte Telegramme</h4>
+          ${log.telegrams.length === 0
+            ? html`<p class="muted small">Keine Aktivitaet im Zeitraum.</p>`
+            : html`<div class="table-wrap">
+                <table class="sensitive__table">
+                  <thead>
+                    <tr>
+                      <th>Zeit</th>
+                      <th>GA</th>
+                      <th>Geraet</th>
+                      <th>Wert</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${log.telegrams.slice(0, 50).map(
+                      (t) => html`<tr>
+                        <td class="bursts__ts">${fmtTs(t.ts)}</td>
+                        <td>
+                          <code>${t.ga}</code>
+                          ${t.label ? html`<span class="muted small">${t.label}</span>` : nothing}
+                        </td>
+                        <td><code>${t.dev_source}</code></td>
+                        <td><code>${t.value ?? "—"}</code></td>
+                      </tr>`
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              ${log.telegrams.length > 50
+                ? html`<p class="muted small">… und ${log.telegrams.length - 50} weitere</p>`
+                : nothing}`}
+        </div>
+      </section>
+    `;
+  }
+
   // Iter 41: Burst-Detector-Card -----------------------------------------
 
   private _renderBursts(): TemplateResult {
@@ -735,6 +803,9 @@ export class StatsKnxView extends LitElement {
         ${this._longTerm !== null ? this._renderLongTerm() : nothing}
         ${this._bursts !== null && this._bursts.bursts.length > 0
           ? this._renderBursts()
+          : nothing}
+        ${this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0
+          ? this._renderSensitiveLog()
           : nothing}
 
         <section class="mh-card kpi-card">
@@ -1700,6 +1771,50 @@ export class StatsKnxView extends LitElement {
       .bursts__pct {
         font-weight: var(--mh-weight-semibold);
         color: var(--mh-warning);
+      }
+      /* Iter 42: Sensitive-Log-Card */
+      .sensitive {
+        border-left: 4px solid var(--mh-error);
+      }
+      .sensitive h4 {
+        margin: var(--mh-space-3) 0 var(--mh-space-2) 0;
+        font-size: var(--mh-text-sm);
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .sensitive__addr-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--mh-space-2);
+      }
+      .sensitive__addr-list li {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--mh-space-1);
+        padding: var(--mh-space-1) var(--mh-space-2);
+        background: var(--mh-bg-subtle, rgba(0, 0, 0, 0.04));
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-sm);
+      }
+      .sensitive__table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .sensitive__table th,
+      .sensitive__table td {
+        padding: var(--mh-space-1) var(--mh-space-2);
+        border-bottom: 1px solid var(--mh-divider);
+        font-size: var(--mh-text-sm);
+        text-align: left;
+      }
+      .sensitive__table th {
+        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-semibold);
       }
       .severity-counts {
         display: flex;

@@ -380,6 +380,91 @@ class KnxStatsRepository:
             )
         return out
 
+    # --- Sensitive-Log (Iter 42, Feature N) ---------------------------------
+
+    async def sensitive_addresses(self) -> list[dict[str, Any]]:
+        """Liefert die Liste der als is_sensitive markierten GAs."""
+        rows = await self._db.fetch_all(
+            "SELECT address AS ga, label, dpt FROM knx_group_addresses "
+            "WHERE is_sensitive = 1 ORDER BY address ASC"
+        )
+        return [
+            {
+                "ga": str(row["ga"]),
+                "label": row["label"],
+                "dpt": row["dpt"],
+            }
+            for row in rows
+        ]
+
+    async def sensitive_telegrams(
+        self, from_iso: str, to_iso: str, *, limit: int = 200
+    ) -> list[dict[str, Any]]:
+        """Liefert Telegramme von is_sensitive=1-GAs im Zeitraum.
+
+        Sortiert DESC nach Zeit (neueste zuerst), limitiert auf max 1000
+        Eintraege fuer DoS-Schutz.
+        """
+        capped = max(1, min(int(limit), 1000))
+        rows = await self._db.fetch_all(
+            """
+            SELECT
+                r.timestamp     AS ts,
+                r.destination   AS ga,
+                r.source        AS dev_source,
+                r.value         AS value,
+                r.telegramtype  AS telegramtype,
+                a.label         AS label,
+                a.dpt           AS dpt
+            FROM knx_raw_telegrams r
+            INNER JOIN knx_group_addresses a ON a.address = r.destination
+            WHERE a.is_sensitive = 1
+              AND r.timestamp >= ?
+              AND r.timestamp <  ?
+            ORDER BY r.timestamp DESC
+            LIMIT ?
+            """,
+            (from_iso, to_iso, capped),
+        )
+        return [
+            {
+                "ts": str(row["ts"]),
+                "ga": str(row["ga"]),
+                "dev_source": str(row["dev_source"] or ""),
+                "value": row["value"],
+                "telegramtype": row["telegramtype"],
+                "label": row["label"],
+                "dpt": row["dpt"],
+            }
+            for row in rows
+        ]
+
+    async def set_sensitive(self, ga: str, *, sensitive: bool) -> None:
+        """Schaltet das is_sensitive-Flag fuer eine GA.
+
+        Falls die GA noch nicht in knx_group_addresses existiert (z. B.
+        weil sie noch nie auf dem Bus gesehen wurde), wird ein minimaler
+        Eintrag mit Default-Label="Sensitive GA" angelegt — Admin kann
+        das Label spaeter im KNX-Adressen-Tab anpassen.
+        """
+        flag = 1 if sensitive else 0
+        now = datetime.now(UTC).isoformat(timespec="seconds")
+        existing = await self._db.fetch_one(
+            "SELECT 1 AS x FROM knx_group_addresses WHERE address = ?", (ga,)
+        )
+        if existing is None:
+            await self._db.execute(
+                "INSERT INTO knx_group_addresses "
+                "(address, label, is_sensitive, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (ga, "Sensitive GA", flag, now, now),
+            )
+        else:
+            await self._db.execute(
+                "UPDATE knx_group_addresses SET is_sensitive = ?, updated_at = ? WHERE address = ?",
+                (flag, now, ga),
+            )
+
     # --- Burst-Detector (Iter 40, Feature C) --------------------------------
 
     async def burst_detect(

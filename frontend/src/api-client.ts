@@ -312,6 +312,29 @@ export interface KnxStatsBurstsDto {
   bursts: KnxStatsBurst[];
 }
 
+export interface KnxStatsSensitiveAddress {
+  ga: string;
+  label: string | null;
+  dpt: string | null;
+}
+
+export interface KnxStatsSensitiveTelegram {
+  ts: string;
+  ga: string;
+  dev_source: string;
+  value: string | null;
+  telegramtype: string | null;
+  label: string | null;
+  dpt: string | null;
+}
+
+export interface KnxStatsSensitiveLogDto {
+  from: string;
+  to: string;
+  addresses: KnxStatsSensitiveAddress[];
+  telegrams: KnxStatsSensitiveTelegram[];
+}
+
 export interface KnxStatsFilters {
   from?: string;
   to?: string;
@@ -880,6 +903,25 @@ export class ApiClient {
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxStatsBurstsDto;
+  }
+
+  async getKnxStatsSensitiveLog(
+    f: KnxStatsFilters
+  ): Promise<KnxStatsSensitiveLogDto> {
+    const params = this._knxStatsParams(f);
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/sensitive-log?${params.toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsSensitiveLogDto;
+  }
+
+  async setKnxStatsSensitive(ga: string, sensitive: boolean): Promise<void> {
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/sensitive/${encodeURIComponent(ga)}`;
+    const res = await fetch(url, {
+      method: sensitive ? "POST" : "DELETE",
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
   }
 
   async unacknowledgeKnxGa(ga: string): Promise<void> {
