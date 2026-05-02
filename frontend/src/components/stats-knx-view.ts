@@ -126,6 +126,68 @@ export function severityPillClass(
   }
 }
 
+// Iter 60 / U5: Sortierbare Top-Sender-Tabelle. Pure helper, damit ohne
+// Mount testbar. Severity-Sort nutzt Schweregrad-Rang (rot > orange >
+// gelb > gruen).
+export type TopSenderSortKey =
+  | "ga"
+  | "label"
+  | "rate_per_min"
+  | "recommended_rate"
+  | "severity";
+
+const _SEVERITY_RANK: Record<"green" | "yellow" | "orange" | "red", number> = {
+  green: 0,
+  yellow: 1,
+  orange: 2,
+  red: 3,
+};
+
+interface SortableTopSenderRow {
+  ga: string;
+  label?: string | null;
+  rate_per_min: number;
+  recommended_rate: number;
+  severity: "green" | "yellow" | "orange" | "red";
+}
+
+export function sortTopSender<T extends SortableTopSenderRow>(
+  rows: T[],
+  key: TopSenderSortKey,
+  dir: "asc" | "desc"
+): T[] {
+  const sorted = [...rows].sort((a, b) => {
+    let cmp: number;
+    switch (key) {
+      case "ga":
+        cmp = a.ga.localeCompare(b.ga);
+        break;
+      case "label": {
+        // Leere Labels ans Ende, egal ob asc/desc — sind nicht sinnvoll
+        // sortierbar und stoeren bei Suche.
+        const aEmpty = !a.label;
+        const bEmpty = !b.label;
+        if (aEmpty && bEmpty) cmp = 0;
+        else if (aEmpty) return 1;
+        else if (bEmpty) return -1;
+        else cmp = (a.label as string).localeCompare(b.label as string);
+        break;
+      }
+      case "rate_per_min":
+        cmp = a.rate_per_min - b.rate_per_min;
+        break;
+      case "recommended_rate":
+        cmp = a.recommended_rate - b.recommended_rate;
+        break;
+      case "severity":
+        cmp = _SEVERITY_RANK[a.severity] - _SEVERITY_RANK[b.severity];
+        break;
+    }
+    return dir === "desc" ? -cmp : cmp;
+  });
+  return sorted;
+}
+
 @customElement("stats-knx-view")
 export class StatsKnxView extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
@@ -146,6 +208,10 @@ export class StatsKnxView extends LitElement {
   // (haeufigster Sender oben).
   @state() private _devicesSortKey: "dev_source" | "ga_count" | "count" = "count";
   @state() private _devicesSortDir: "asc" | "desc" = "desc";
+  // Iter 60 / U5: Sortierung Top-Sender-Tabelle. Default: nach
+  // Tel/Min desc (= heutige Reihenfolge vom Backend).
+  @state() private _topSortKey: TopSenderSortKey = "rate_per_min";
+  @state() private _topSortDir: "asc" | "desc" = "desc";
   // Iter 51: Sichtbarkeit fuer einzeln gefailte Endpunkte. Vorher hat
   // .catch(() => null) Fehler stillschweigend geschluckt — und der User
   // sah leere Cards, ohne zu wissen warum. Jetzt: Banner mit Liste der
@@ -517,16 +583,21 @@ export class StatsKnxView extends LitElement {
     current: number,
     onChange: (n: number) => void
   ): TemplateResult {
+    // Iter 60 / U6: Label "zeige" davor, mehr Padding pro Button.
+    // Macht den Selektor sichtbarer und eindeutiger interpretierbar.
     return html`
-      <span class="inline-topn" role="group" aria-label="Anzahl Einträge">
-        ${TOP_N_OPTIONS.map(
-          (n) => html`<button
-            class=${`inline-topn__btn ${current === n ? "active" : ""}`}
-            @click=${() => onChange(n)}
-          >
-            ${n}
-          </button>`
-        )}
+      <span class="inline-topn-wrap">
+        <span class="inline-topn-label">zeige</span>
+        <span class="inline-topn" role="group" aria-label="Anzahl Einträge">
+          ${TOP_N_OPTIONS.map(
+            (n) => html`<button
+              class=${`inline-topn__btn ${current === n ? "active" : ""}`}
+              @click=${() => onChange(n)}
+            >
+              ${n}
+            </button>`
+          )}
+        </span>
       </span>
     `;
   }
@@ -593,9 +664,10 @@ export class StatsKnxView extends LitElement {
         </label>
 
         <button
-          class="mh-btn mh-btn--sm"
+          class="mh-btn mh-btn--sm mh-btn--primary"
           @click=${() => void this._load()}
           ?disabled=${this._loading}
+          title="Alle Cards neu vom Backend laden"
         >
           ${this._loading ? "lade…" : "↻ Aktualisieren"}
         </button>
@@ -647,17 +719,33 @@ export class StatsKnxView extends LitElement {
           <span class="kpi-label">Buslast</span>
           ${bl === null
             ? html`<span class="kpi-value">${fmtPct(s.estimated_busload_pct)} %</span>
-                <span class="kpi-hint">Ø ueber Zeitraum</span>`
+                <span class="kpi-hint">Ø über Zeitraum</span>`
             : html`<span class="kpi-value">${fmtPct(bl.summary.max_pct)} %</span>
                 <span class="kpi-hint">
                   jetzt ${fmtPct(bl.summary.current_pct)} % · Ø ${fmtPct(bl.summary.avg_pct)} %
                   · Bucket ${this._formatBucket(bl.bucket_seconds)}
                 </span>`}
+          <!-- Iter 60 / U7: 0–100 %-Verlaufs-Bar statt nur Schwellen-
+               Sprung. Hintergrund mit linear-gradient gruen→gelb→orange→
+               rot, Marker an Position min(refPct, 100). -->
+          <div
+            class="busload-bar"
+            role="meter"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow=${refPct.toFixed(1)}
+            title=${`Buslast ${fmtPct(refPct)} % auf Skala 0–100`}
+          >
+            <div
+              class="busload-bar__marker"
+              style=${`left: ${Math.min(100, Math.max(0, refPct)).toFixed(1)}%;`}
+            ></div>
+          </div>
         </div>
       </div>
       <div class="severity-counts">
         ${(["red", "orange", "yellow", "green"] as const).map(
-          (sev) => html`<span class=${`mh-pill mh-pill--${sev === "red" ? "error" : sev === "orange" ? "warning" : sev === "yellow" ? "info" : "neutral"}`}>
+          (sev) => html`<span class=${`mh-pill ${severityPillClass(sev)}`}>
             <span class="mh-pill__dot"></span>
             ${this._severityLabel(sev)}: ${counts[sev] ?? 0}
           </span>`
@@ -1000,7 +1088,9 @@ export class StatsKnxView extends LitElement {
             <h3>Top-Sender (Gruppenadressen)</h3>
             <div class="card-head__meta">
               ${this._renderInlineTopN(this._filters.topN, (n) => this._onTopN(n))}
-              <span class="muted small">${this._top.length} sichtbar</span>
+              <span class="muted small">
+                Welche GA sendet am häufigsten? · ${this._top.length} sichtbar
+              </span>
             </div>
           </header>
           ${this._renderTopTable()}
@@ -1051,23 +1141,59 @@ export class StatsKnxView extends LitElement {
     if (this._top.length === 0) {
       return html`<p class="muted">Keine Telegramme in diesem Zeitraum.</p>`;
     }
+    // Iter 60 / U5: Sortierte Kopie. Backend liefert per rate_per_min
+    // desc, der User soll aber nach allen anderen Spalten sortieren
+    // koennen. Pure Funktion — kein Backend-Roundtrip pro Klick.
+    const sortKey = this._topSortKey;
+    const sortDir = this._topSortDir;
+    const sorted = sortTopSender(this._top, sortKey, sortDir);
     return html`
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>GA</th>
-              <th>Label</th>
+              <th
+                class="sortable"
+                @click=${() => this._toggleTopSort("ga")}
+                title="Nach Gruppenadresse sortieren"
+              >
+                GA${this._sortArrow(sortKey, "ga", sortDir)}
+              </th>
+              <th
+                class="sortable"
+                @click=${() => this._toggleTopSort("label")}
+                title="Nach Label sortieren"
+              >
+                Label${this._sortArrow(sortKey, "label", sortDir)}
+              </th>
               <th>DPT</th>
-              <th class="num">Tel/Min</th>
-              <th class="num">Soll</th>
-              <th>Status</th>
+              <th
+                class="num sortable"
+                @click=${() => this._toggleTopSort("rate_per_min")}
+                title="Nach Telegrammen/Min sortieren"
+              >
+                Tel/Min${this._sortArrow(sortKey, "rate_per_min", sortDir)}
+              </th>
+              <th
+                class="num sortable"
+                @click=${() => this._toggleTopSort("recommended_rate")}
+                title="Nach Soll-Rate sortieren"
+              >
+                Soll${this._sortArrow(sortKey, "recommended_rate", sortDir)}
+              </th>
+              <th
+                class="sortable"
+                @click=${() => this._toggleTopSort("severity")}
+                title="Nach Schweregrad sortieren"
+              >
+                Status${this._sortArrow(sortKey, "severity", sortDir)}
+              </th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            ${this._top.map(
+            ${sorted.map(
               (row, idx) => html`<tr
                 class=${`row-${row.severity} ${row.acknowledged ? "ack" : ""} ${
                   this._selectedGa === row.ga ? "selected" : ""
@@ -1303,6 +1429,18 @@ export class StatsKnxView extends LitElement {
     }
   }
 
+  // Iter 60 / U5: Sort-Toggle Top-Sender. Default-Direction asc fuer
+  // String-Spalten (ga, label), desc fuer numerische und severity (red
+  // top zeigt Probleme zuerst).
+  private _toggleTopSort(key: TopSenderSortKey): void {
+    if (this._topSortKey === key) {
+      this._topSortDir = this._topSortDir === "desc" ? "asc" : "desc";
+    } else {
+      this._topSortKey = key;
+      this._topSortDir = key === "ga" || key === "label" ? "asc" : "desc";
+    }
+  }
+
   private _sortArrow(
     activeKey: string,
     columnKey: string,
@@ -1366,13 +1504,18 @@ export class StatsKnxView extends LitElement {
               const pct = total > 0 ? (row.count / total) * 100 : 0;
               const manufacturer = row.manufacturer ?? "";
               const deviceName = row.device_name ?? "";
+              const fullDeviceText = manufacturer && deviceName
+                ? `${manufacturer} — ${deviceName}`
+                : manufacturer || deviceName;
               return html`<tr>
                 <td class="num muted">${idx + 1}</td>
                 <td><code class="ga">${row.dev_source}</code></td>
                 <td class="device-cell">
-                  ${manufacturer || deviceName
-                    ? html`<span class="muted small"
-                        >${manufacturer}${manufacturer && deviceName ? " — " : ""}${deviceName}</span
+                  ${fullDeviceText
+                    ? html`<span
+                        class="muted small device-cell__text"
+                        title=${fullDeviceText}
+                        >${fullDeviceText}</span
                       >`
                     : html`<span class="muted small">—</span>`}
                 </td>
@@ -1718,6 +1861,17 @@ export class StatsKnxView extends LitElement {
         gap: var(--mh-space-3);
         flex-wrap: wrap;
       }
+      .inline-topn-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .inline-topn-label {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        text-transform: lowercase;
+        letter-spacing: 0.02em;
+      }
       .inline-topn {
         display: inline-flex;
         gap: 0;
@@ -1728,7 +1882,7 @@ export class StatsKnxView extends LitElement {
       .inline-topn__btn {
         background: transparent;
         border: 0;
-        padding: 2px 8px;
+        padding: 4px 10px;
         font-size: var(--mh-text-xs);
         color: var(--mh-fg-muted);
         cursor: pointer;
@@ -1790,13 +1944,40 @@ export class StatsKnxView extends LitElement {
         border-left: 3px solid var(--mh-success);
       }
       .busload--elevated {
-        border-left: 3px solid var(--mh-info);
+        /* Iter 60: gelb statt info-blau, konsistent mit Ampel-Mapping. */
+        border-left: 3px solid var(--mh-caution);
       }
       .busload--warning {
         border-left: 3px solid var(--mh-warning);
       }
       .busload--danger {
         border-left: 3px solid var(--mh-error);
+      }
+      /* Iter 60 / U7: 0–100 %-Verlaufs-Bar unter dem Buslast-KPI-Wert.
+         Gradient zeigt Skala (gruen → gelb → orange → rot), Marker
+         visualisiert aktuellen Wert ohne Schwellen-Sprung. */
+      .busload-bar {
+        position: relative;
+        height: 4px;
+        margin-top: 6px;
+        border-radius: 2px;
+        background: linear-gradient(
+          to right,
+          var(--mh-success) 0%,
+          var(--mh-caution) 33%,
+          var(--mh-warning) 66%,
+          var(--mh-error) 100%
+        );
+        opacity: 0.5;
+      }
+      .busload-bar__marker {
+        position: absolute;
+        top: -2px;
+        bottom: -2px;
+        width: 2px;
+        background: var(--mh-fg);
+        border-radius: 1px;
+        transform: translateX(-1px);
       }
       /* Iter 37 (Feature K): Bus-Health-Score-Card */
       .health-score {
@@ -1806,7 +1987,8 @@ export class StatsKnxView extends LitElement {
         border-left-color: var(--mh-success);
       }
       .health-score--yellow {
-        border-left-color: var(--mh-info);
+        /* Iter 60: gelb statt info-blau, konsistent mit B2-Mapping. */
+        border-left-color: var(--mh-caution);
       }
       .health-score--orange {
         border-left-color: var(--mh-warning);
@@ -1853,7 +2035,7 @@ export class StatsKnxView extends LitElement {
         color: var(--mh-success);
       }
       .health-score--yellow .health-score__label {
-        color: var(--mh-info);
+        color: var(--mh-caution);
       }
       .health-score--orange .health-score__label {
         color: var(--mh-warning);
@@ -2237,11 +2419,20 @@ export class StatsKnxView extends LitElement {
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+      /* Iter 60 / U4: Acknowledge-Status als dezente Pille mit
+         success-soft-Hintergrund. Vorher reiner muted Text — heute klar
+         als positiver Status erkennbar, ohne aufdringlich zu sein. */
       .ack-pill {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
         margin-left: 6px;
+        padding: 1px 6px;
+        border-radius: var(--mh-radius-pill);
+        background: var(--mh-success-soft);
+        color: var(--mh-success);
         font-size: var(--mh-text-xs);
-        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-semibold);
       }
       td.actions {
         text-align: right;
@@ -2383,9 +2574,17 @@ export class StatsKnxView extends LitElement {
       }
       .device-cell {
         max-width: 240px;
+      }
+      /* Iter 60 / U11: Tooltip-fähig durch title-Attr auf dem inneren
+         span. Truncation via inline-block + overflow:hidden, weil td
+         direkt overflow:hidden nicht zuverlässig trimmt. */
+      .device-cell__text {
+        display: inline-block;
+        max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        vertical-align: middle;
       }
 
       /* Alarm-Banner */

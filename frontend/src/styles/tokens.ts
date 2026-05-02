@@ -156,6 +156,15 @@ export const buttons = css`
     width: 34px;
     height: 34px;
     justify-content: center;
+    /* Iter 60 / U12: Icon-Buttons sichtbarer durch dezente Border, sonst
+       waren sie als reine Ghost-Buttons in der Top-Bar leicht zu
+       übersehen. Border bleibt subtil (divider statt accent), Hover hebt
+       hervor. */
+    border-color: var(--mh-divider);
+    color: var(--mh-fg);
+  }
+  .mh-btn--icon.mh-btn--ghost:hover:not(:disabled) {
+    border-color: var(--mh-fg-muted);
   }
   .mh-btn--sm {
     padding: 4px 10px;

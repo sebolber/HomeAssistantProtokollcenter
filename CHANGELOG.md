@@ -6,6 +6,49 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt / Geändert (Iter 60 — UX-Quick-Wins Visual)
+- **U6 Inline-Top-N-Selektor mit Label „zeige" + mehr Padding** —
+  Selektor war vorher leicht zu übersehen (2 px Padding, kein Label).
+  Neue Wrap-Span mit muted „zeige"-Label und 4×10 px Button-Padding.
+- **U10 Helper-Text bei Top-Sender-Card** — analog zu Top-Geräte
+  („Welche GA sendet am häufigsten? · X sichtbar"); Konsistenz beider
+  Cards.
+- **U11 Hersteller/Modell-Truncation mit Tooltip** — `device-cell__text`
+  als inline-block mit `overflow:hidden`, voller Text via `title`-Attribut
+  als Hover-Tooltip. Vorher hartes „…" ohne Sicht auf den vollen Wert.
+- **U12 Reload-Icon-Buttons sichtbarer** — `mh-btn--icon` jetzt mit
+  dezenter Border (divider) statt komplett transparent. Hover hebt zur
+  fg-muted-Border. Top-Bar-Reload bekommt sichtbares Affordance.
+- **U2 KNX-Stats Aktualisieren-Button als primary** — war Ghost-Button,
+  jetzt `mh-btn--primary mh-btn--sm` mit Tooltip „Alle Cards neu vom
+  Backend laden". Zentrale Re-Fetch-Aktion klar erkennbar.
+- **U4 Acknowledge-Pille als dezente Status-Pille** — vorher reiner
+  muted Text mit `✓ bekannt`. Jetzt success-soft Hintergrund, success-
+  Foreground, semibold — klar als positiver Status, nicht als Werbung.
+- **U5 Top-Sender-Tabelle sortierbar** (analog Iter 57 Top-Geräte) —
+  GA, Label, Tel/Min, Soll, Status (Severity-Rang). Pure Helper
+  `sortTopSender` mit `TopSenderSortKey`-Type, modul-level export. 9
+  neue Tests in `tests/top-sender-sort.test.ts`. Default: rate_per_min
+  desc (= heutiges Backend-Order). String-Spalten asc, numerische und
+  Severity desc als Default-Direction. Leere Labels werden bei Label-
+  Sort ans Ende sortiert.
+- **U7 Buslast-KPI mit 0–100 %-Verlaufs-Bar** — vorher nur 4-stufige
+  Border-Sprünge an Schwellen 10/20/30 %. Jetzt zusätzlich Mini-Bar
+  unter dem Wert mit linear-gradient grün→gelb→orange→rot über die
+  volle 0–100-Skala, vertikaler Marker an aktueller Position.
+  ARIA-`role="meter"` mit min/max/now für Screenreader.
+- **U8 Severity-Spalte bei inaktiven KNX-GAs** — vorher nur „—". Jetzt
+  Default-Severity (`warning`) als gestrichelte muted Pille mit Tooltip
+  „Severity beim Aktivieren". User sieht direkt, was beim Aktivieren
+  greift.
+
+- **B2 Nachzug**: severity-counts-Badges in der KPI-Card und
+  `.busload--elevated` / `.health-score--yellow` nutzten weiter
+  `mh-pill--info` (blau) statt `mh-pill--caution` (gelb). Jetzt durch
+  zentralen `severityPillClass`-Helper konsistent.
+- **B4 Nachzug**: „Ø ueber Zeitraum" → „Ø über Zeitraum" im
+  Buslast-KPI-Hint.
+
 ### Behoben (Iter 59 — Bug-Sammel B1–B4)
 - **B1 Audit-Detail-Summary zeigte `{deleted_count}` wörtlich.** Der
   Renderer `_renderDetailsSummary` listete bei jedem Detail-Objekt nur

@@ -875,7 +875,16 @@ export class KnxAddressesView extends LitElement {
                                       : nothing}
                                     <span class="sev-caret" aria-hidden="true">▾</span>
                                   </button>`
-                                : html`<span class="muted">—</span>`}
+                                : html`<!-- Iter 60 / U8: bei inaktiven GAs
+                                       Default-Severity in muted Pille
+                                       statt nur "—". User sieht direkt,
+                                       was beim Loggen-Aktivieren greifen
+                                       würde. -->
+                                  <span
+                                    class="mh-pill mh-pill--neutral sev-pill--inactive"
+                                    title="Severity beim Aktivieren (Loggen ist aus)"
+                                    >${it.log_severity || "warning"}</span
+                                  >`}
                             </td>
                             <td class="col-toggle">
                               <label class="switch" title=${it.log_enabled
@@ -1380,6 +1389,13 @@ export class KnxAddressesView extends LitElement {
       button.sev-trigger:focus-visible {
         outline: var(--mh-focus-ring);
         outline-offset: 2px;
+      }
+      /* Iter 60 / U8: Default-Severity bei inaktiven GAs in muted Pille
+         mit gestricheltem Border, damit sie als "noch nicht aktiv"
+         erkennbar ist und sich klar von acked/active-Pills abhebt. */
+      .sev-pill--inactive {
+        opacity: 0.65;
+        border: 1px dashed var(--mh-divider);
       }
       .sev-caret {
         font-size: 0.7em;
