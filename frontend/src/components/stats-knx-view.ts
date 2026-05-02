@@ -8,6 +8,7 @@ import { LitElement, css, html, nothing, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type {
   ApiClient,
+  KnxStatsAlarmsDto,
   KnxStatsBusHealthDto,
   KnxStatsFilters,
   KnxStatsGaDetailDto,
@@ -83,6 +84,7 @@ export class StatsKnxView extends LitElement {
   @state() private _busHealth: KnxStatsBusHealthDto | null = null;
   @state() private _silence: KnxStatsSilenceDto | null = null;
   @state() private _orphans: KnxStatsOrphansDto | null = null;
+  @state() private _alarms: KnxStatsAlarmsDto | null = null;
   @state() private _top: KnxStatsTopRowDto[] = [];
   @state() private _timeline: KnxStatsTimelineDto | null = null;
   @state() private _selectedGa: string | null = null;
@@ -113,7 +115,7 @@ export class StatsKnxView extends LitElement {
     this._error = "";
     try {
       const f = this._apiFilters();
-      const [summary, top, busHealth, silence, orphans] = await Promise.all([
+      const [summary, top, busHealth, silence, orphans, alarms] = await Promise.all([
         this.api.getKnxStatsSummary(f),
         this.api.getKnxStatsTop(f),
         this.api.getKnxStatsBusHealth(f),
@@ -122,12 +124,14 @@ export class StatsKnxView extends LitElement {
           maxSilenceMinutes: this._suggestSilenceMinutes(),
         }),
         this.api.getKnxStatsOrphans(f).catch(() => null),
+        this.api.getKnxStatsAlarms(f).catch(() => null),
       ]);
       this._summary = summary;
       this._top = top.items;
       this._busHealth = busHealth;
       this._silence = silence;
       this._orphans = orphans;
+      this._alarms = alarms;
       // Timeline fuer Top-5 GAs (mehr Linien werden unleserlich).
       const topGas = top.items.slice(0, 5).map((r) => r.ga);
       if (topGas.length > 0) {
@@ -147,6 +151,7 @@ export class StatsKnxView extends LitElement {
       this._busHealth = null;
       this._silence = null;
       this._orphans = null;
+      this._alarms = null;
     } finally {
       this._loading = false;
     }
@@ -398,6 +403,9 @@ export class StatsKnxView extends LitElement {
         ${this._error
           ? html`<div class="error">${this._error}</div>`
           : nothing}
+        ${this._alarms !== null && this._alarms.triggered_count > 0
+          ? this._renderAlarmBanner()
+          : nothing}
 
         <section class="mh-card kpi-card">
           <header class="card-head">
@@ -602,6 +610,24 @@ export class StatsKnxView extends LitElement {
               </ul>
             </div>`
           : nothing}
+      </section>
+    `;
+  }
+
+  private _renderAlarmBanner(): TemplateResult {
+    const a = this._alarms!;
+    const triggered = a.alarms.filter((x) => x.triggered);
+    return html`
+      <section class="alarm-banner">
+        <strong>⚠ ${triggered.length} Alarm(e) aktiv</strong>
+        <ul>
+          ${triggered.map(
+            (alarm) => html`<li>
+              <span class="alarm-rule">${alarm.rule}</span>
+              <span class="alarm-msg">${alarm.message}</span>
+            </li>`
+          )}
+        </ul>
       </section>
     `;
   }
@@ -1089,6 +1115,39 @@ export class StatsKnxView extends LitElement {
         background: var(--mh-surface-2);
         border-radius: var(--mh-radius-sm);
         font-size: var(--mh-text-sm);
+      }
+
+      /* Alarm-Banner */
+      .alarm-banner {
+        padding: var(--mh-space-3);
+        background: var(--mh-error-soft);
+        border-left: 4px solid var(--mh-error);
+        border-radius: var(--mh-radius-sm);
+      }
+      .alarm-banner strong {
+        color: var(--mh-error);
+        display: block;
+        margin-bottom: var(--mh-space-2);
+      }
+      .alarm-banner ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .alarm-banner li {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: var(--mh-space-2);
+        font-size: var(--mh-text-sm);
+      }
+      .alarm-rule {
+        font-family: var(--ha-font-family-code, ui-monospace, monospace);
+        font-size: var(--mh-text-xs);
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-error);
       }
 
       /* Orphans-Card */

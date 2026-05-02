@@ -109,6 +109,12 @@ function makeApi(): MockApi {
       log_total: 0,
       discovery_status: "ok",
     })),
+    getKnxStatsAlarms: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      alarms: [],
+      triggered_count: 0,
+    })),
     getKnxStatsGaDetail: vi.fn(async (ga: string) => {
       if (ga !== "5/2/14") throw new Error("not found");
       return DETAIL;

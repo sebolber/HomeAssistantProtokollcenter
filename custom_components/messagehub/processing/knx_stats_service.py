@@ -8,7 +8,7 @@ Layer und (spaeter) von Alarm-Regeln benutzt.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from .knx_stats import (
@@ -206,6 +206,79 @@ class KnxStatsService:
         return await self._repo.timeline(
             from_iso, to_iso, gas=gas, bucket_minutes=bucket_minutes
         )
+
+    async def evaluate_alarms(
+        self,
+        from_iso: str,
+        to_iso: str,
+        *,
+        busload_pct_threshold: float,
+        repeat_rate_pct_threshold: float,
+        silence_count_threshold: int,
+        max_silence_minutes: int,
+    ) -> list[dict[str, Any]]:
+        """Iter 15 (QS-l): wertet drei Default-Alarm-Regeln aus.
+
+        Liefert eine Liste von Alarmen, jeweils mit `rule`, `triggered`,
+        `actual`, `threshold`, `message`. UI/Eventbus-Code nutzt nur die
+        triggered=True-Eintraege.
+
+        Schwellwerte werden vom Aufrufer hereingegeben — der API-Layer
+        kann sie aus Config-Flow-Options lesen.
+        """
+        _dt = datetime  # alias to keep diff small
+
+        summary = await self._repo.summary(from_iso, to_iso)
+        bus_health = await self._repo.bus_health(from_iso, to_iso)
+        # Periode in Sek fuer Buslast-Schaetzung wiederverwenden
+        from_dt = _dt.fromisoformat(from_iso)
+        to_dt = _dt.fromisoformat(to_iso)
+        period_sec = max(0.0, (to_dt - from_dt).total_seconds())
+        busload = estimate_busload_pct(summary["total_telegrams"], period_sec)
+
+        now_iso = _dt.now(UTC).isoformat(timespec="seconds")
+        silence_rows = await self._repo.silence_detect(
+            from_iso, to_iso,
+            now_iso=now_iso, max_silence_minutes=max_silence_minutes,
+        )
+        silence_alarms = sum(1 for r in silence_rows if r["alarm"])
+
+        return [
+            {
+                "rule": "bus_load_above",
+                "triggered": busload > busload_pct_threshold,
+                "actual": round(busload, 2),
+                "threshold": busload_pct_threshold,
+                "unit": "%",
+                "message": (
+                    f"Geschaetzte Buslast {busload:.1f}% liegt ueber dem "
+                    f"Schwellwert von {busload_pct_threshold:.0f}%."
+                ),
+            },
+            {
+                "rule": "repeat_rate_above",
+                "triggered": bus_health["ratio_pct"] > repeat_rate_pct_threshold,
+                "actual": bus_health["ratio_pct"],
+                "threshold": repeat_rate_pct_threshold,
+                "unit": "%",
+                "message": (
+                    f"Wiederhol-Quote {bus_health['ratio_pct']:.2f}% liegt "
+                    f"ueber dem Schwellwert von {repeat_rate_pct_threshold}%. "
+                    f"Hinweis auf Verkabelung/EMV-Stoerung."
+                ),
+            },
+            {
+                "rule": "silence_alarm",
+                "triggered": silence_alarms >= silence_count_threshold,
+                "actual": silence_alarms,
+                "threshold": silence_count_threshold,
+                "unit": "Geraet(e)",
+                "message": (
+                    f"{silence_alarms} Geraet(e) haben laenger als "
+                    f"{max_silence_minutes} Min nicht gesendet."
+                ),
+            },
+        ]
 
     async def compute_orphans(
         self,

@@ -148,6 +148,22 @@ export interface KnxStatsTopBySourceRowDto {
   ga_count: number;
 }
 
+export interface KnxStatsAlarmDto {
+  rule: string;
+  triggered: boolean;
+  actual: number;
+  threshold: number;
+  unit: string;
+  message: string;
+}
+
+export interface KnxStatsAlarmsDto {
+  from: string;
+  to: string;
+  alarms: KnxStatsAlarmDto[];
+  triggered_count: number;
+}
+
 export interface KnxStatsOrphansDto {
   from: string;
   to: string;
@@ -670,6 +686,13 @@ export class ApiClient {
       body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  async getKnxStatsAlarms(f: KnxStatsFilters): Promise<KnxStatsAlarmsDto> {
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/alarms?${this._knxStatsParams(f).toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsAlarmsDto;
   }
 
   async getKnxStatsOrphans(f: KnxStatsFilters): Promise<KnxStatsOrphansDto> {

@@ -113,3 +113,11 @@ DEFAULT_KNX_ACK_EXPIRY_DAYS: Final[int] = 90
 
 # Default-Auswertezeitraum fuer KNX-Stats-Tab (Tage)
 DEFAULT_KNX_STATS_PERIOD_DAYS: Final[int] = 7
+
+# QS-(l) Default-Alarm-Schwellen — siehe docs/messagehub_knx_statistik.md
+# Werden in Phase 2 ueber Config-Flow-Options konfigurierbar.
+KNX_ALARM_BUSLOAD_PCT_DEFAULT: Final[float] = 25.0  # > X% Buslast
+KNX_ALARM_REPEAT_RATE_PCT_DEFAULT: Final[float] = 0.5  # > X% Wiederholungen
+KNX_ALARM_SILENCE_COUNT_DEFAULT: Final[int] = 1  # >= X stumme Geraete
+# Eventbus-Schluessel fuer Alarm-Trigger
+EVENT_KNX_ALARM_TRIGGERED: Final = "messagehub_knx_alarm_triggered"

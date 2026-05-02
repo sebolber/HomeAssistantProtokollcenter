@@ -18,7 +18,14 @@ from typing import Any
 
 from aiohttp import web
 
-from ..const import DEFAULT_KNX_ACK_EXPIRY_DAYS, DEFAULT_KNX_STATS_PERIOD_DAYS
+from ..const import (
+    DEFAULT_KNX_ACK_EXPIRY_DAYS,
+    DEFAULT_KNX_STATS_PERIOD_DAYS,
+    EVENT_KNX_ALARM_TRIGGERED,
+    KNX_ALARM_BUSLOAD_PCT_DEFAULT,
+    KNX_ALARM_REPEAT_RATE_PCT_DEFAULT,
+    KNX_ALARM_SILENCE_COUNT_DEFAULT,
+)
 from ..processing.knx_stats_service import (
     KnxStatsService,
     ga_detail_to_dict,
@@ -170,6 +177,67 @@ class KnxStatsTimelineView(RequireAdminView):
         return self.json({
             "from": from_iso, "to": to_iso,
             "bucket_minutes": bucket, "items": items,
+        })
+
+
+class KnxStatsAlarmsView(RequireAdminView):
+    """Iter 15 (QS-l): wertet Default-Alarm-Regeln aus + feuert
+    HA-Eventbus-Event je triggered Alarm.
+
+    Schwellwerte (Phase 1) aus const.py — koennen via Query-Param
+    (busload_threshold, repeat_threshold, silence_threshold) ueber-
+    schrieben werden, was auch fuer Frontend-Tests brauchbar ist.
+    """
+
+    url = "/api/messagehub/knx-stats/alarms"
+    name = "api:messagehub:knx-stats:alarms"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        svc = _service(request.app["hass"])
+        if svc is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        try:
+            busload_th = float(
+                request.query.get(
+                    "busload_threshold", KNX_ALARM_BUSLOAD_PCT_DEFAULT
+                )
+            )
+            repeat_th = float(
+                request.query.get(
+                    "repeat_threshold", KNX_ALARM_REPEAT_RATE_PCT_DEFAULT
+                )
+            )
+        except (ValueError, TypeError) as err:
+            raise web.HTTPBadRequest(reason="invalid threshold") from err
+        silence_th = parse_int_param(
+            request.query, "silence_threshold",
+            KNX_ALARM_SILENCE_COUNT_DEFAULT,
+            min_value=1, max_value=1000,
+        )
+        max_silence = parse_int_param(
+            request.query, "max_silence_min", 1440,
+            min_value=1, max_value=43200,
+        )
+        alarms = await svc.evaluate_alarms(
+            from_iso, to_iso,
+            busload_pct_threshold=busload_th,
+            repeat_rate_pct_threshold=repeat_th,
+            silence_count_threshold=silence_th,
+            max_silence_minutes=max_silence,
+        )
+        # Eventbus-Trigger fuer triggered Alarme
+        bus = request.app["hass"].bus
+        for alarm in alarms:
+            if alarm["triggered"]:
+                bus.async_fire(EVENT_KNX_ALARM_TRIGGERED, alarm)
+        return self.json({
+            "from": from_iso, "to": to_iso,
+            "alarms": alarms,
+            "triggered_count": sum(1 for a in alarms if a["triggered"]),
         })
 
 
@@ -332,6 +400,7 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsTimelineView())
     hass.http.register_view(KnxStatsSilenceView())
     hass.http.register_view(KnxStatsOrphansView())
+    hass.http.register_view(KnxStatsAlarmsView())
     hass.http.register_view(KnxStatsBusHealthView())
     hass.http.register_view(KnxStatsAcknowledgeView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())
