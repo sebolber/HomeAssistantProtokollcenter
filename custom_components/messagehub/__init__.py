@@ -238,53 +238,64 @@ def _async_register_dispatch_listener(hass: HomeAssistant, dispatch: Any) -> Any
     return hass.bus.async_listen(EVENT_MESSAGE_ADDED, _on_added)
 
 
+async def _execute_remediation_hook(hass: HomeAssistant, source: str, hook: Any) -> None:
+    """Fuehrt einen einzelnen Remediation-Hook aus oder loggt einen Vorschlag."""
+    if hook.confirm_required:
+        _LOGGER.info(
+            "remediation suggestion: %s -> %s (manual confirm)",
+            source,
+            hook.automation_id,
+        )
+        return
+    domain, _, name = hook.automation_id.partition(".")
+    if not domain or not name:
+        return
+    try:
+        await hass.services.async_call(
+            domain, "turn_on", {"entity_id": hook.automation_id}, blocking=False
+        )
+        _LOGGER.info("remediation auto-executed: %s -> %s", source, hook.automation_id)
+    except (ValueError, RuntimeError) as err:
+        _LOGGER.warning("remediation %s failed: %s", hook.automation_id, err)
+
+
+class _RemediationHookCache:
+    """30-Sekunden-Cache fuer die Liste aktiver Remediation-Hooks."""
+
+    TTL_SECONDS = 30.0
+
+    def __init__(self, repo: Any) -> None:
+        self._repo = repo
+        self._hooks: list[Any] | None = None
+        self._ts: float = 0.0
+
+    async def get(self) -> list[Any]:
+        from time import monotonic  # noqa: PLC0415
+
+        now = monotonic()
+        if self._hooks is None or now - self._ts > self.TTL_SECONDS:
+            self._hooks = await self._repo.list_enabled()
+            self._ts = now
+        return self._hooks
+
+
 def _async_register_remediation_listener(hass: HomeAssistant, database: Any) -> Any:
     """Iter 47: lauscht auf message_added, matched gegen Hooks, fuehrt
     auto-Modus aus oder setzt eine Vorschlag-Notiz."""
     from .processing.remediation import matches as hook_matches  # noqa: PLC0415
     from .processing.remediation_repo import RemediationHookRepository  # noqa: PLC0415
 
-    repo = RemediationHookRepository(database)
-    cache: dict[str, Any] = {"hooks": None, "ts": 0.0}
-    cache_ttl = 30.0
-
-    async def _hooks() -> list[Any]:
-        from time import monotonic  # noqa: PLC0415
-
-        now = monotonic()
-        if cache["hooks"] is None or now - cache["ts"] > cache_ttl:
-            cache["hooks"] = await repo.list_enabled()
-            cache["ts"] = now
-        hooks: list[Any] = cache["hooks"]
-        return hooks
+    cache = _RemediationHookCache(RemediationHookRepository(database))
 
     async def _on_added(event: Any) -> None:
         try:
-            data = dict(event.data)
-            source = str(data.get("source", ""))
+            source = str(dict(event.data).get("source", ""))
             # Auto-Vermeidung: keine Remediation auf eigene Meta-Sources.
             if source.startswith("messagehub."):
                 return
-            for hook in await _hooks():
-                if not hook_matches(hook, source, None):
-                    continue
-                if hook.confirm_required:
-                    _LOGGER.info(
-                        "remediation suggestion: %s -> %s (manual confirm)",
-                        source,
-                        hook.automation_id,
-                    )
-                    continue
-                domain, _, name = hook.automation_id.partition(".")
-                if not domain or not name:
-                    continue
-                try:
-                    await hass.services.async_call(
-                        domain, "turn_on", {"entity_id": hook.automation_id}, blocking=False
-                    )
-                    _LOGGER.info("remediation auto-executed: %s -> %s", source, hook.automation_id)
-                except (ValueError, RuntimeError) as err:
-                    _LOGGER.warning("remediation %s failed: %s", hook.automation_id, err)
+            for hook in await cache.get():
+                if hook_matches(hook, source, None):
+                    await _execute_remediation_hook(hass, source, hook)
         except (ValueError, RuntimeError) as err:
             _LOGGER.debug("remediation listener skipped: %s", err)
 
@@ -469,6 +480,47 @@ def _async_register_pattern_mining(hass: HomeAssistant, database: Any, repositor
     return async_track_time_change(hass, _job, hour=4, minute=15, second=0)
 
 
+def _log_knx_event(seen_first: dict[str, bool], ga: str, data: dict[str, Any]) -> None:
+    """Loggt das erste empfangene knx_event auf INFO-Level, alle weiteren auf DEBUG."""
+    if not seen_first["flag"]:
+        seen_first["flag"] = True
+        _LOGGER.info(
+            "messagehub: erstes knx_event empfangen — ga=%s keys=%s",
+            ga,
+            sorted(data.keys()),
+        )
+    else:
+        _LOGGER.debug("knx_event ga=%s data=%s", ga, data)
+
+
+def _build_knx_message(cfg: Any, data: dict[str, Any]) -> Any:
+    """Baut die Message-DTO aus knx_event-Payload + GA-Konfiguration."""
+    from .processing.knx_dpt import format_value as format_knx_value  # noqa: PLC0415
+    from .processing.knx_repo import resolve_severity  # noqa: PLC0415
+    from .storage import Message, Severity  # noqa: PLC0415
+
+    telegramtype = data.get("telegramtype")
+    value = data.get("value") if data.get("value") is not None else data.get("data")
+    severity = Severity.normalise(resolve_severity(cfg, value))
+    formatted = format_knx_value(cfg.dpt, value)
+    text = f"{cfg.label} = {formatted}" if formatted else cfg.label
+    if telegramtype and telegramtype != "GroupValueWrite":
+        text = f"{text} ({telegramtype})"
+    return Message(
+        severity=severity,
+        source="knx-bus",
+        text=text,
+        metadata={
+            "knx_ga": data.get("destination"),
+            "knx_label": cfg.label,
+            "knx_dpt": cfg.dpt,
+            "knx_value": value,
+            "knx_source": data.get("source"),
+            "knx_telegramtype": telegramtype,
+        },
+    )
+
+
 def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository: Any) -> Any:
     """Iter 48: lauscht auf knx_event und loggt nur GAs, die in
     knx_group_addresses mit log_enabled=1 hinterlegt sind.
@@ -477,12 +529,7 @@ def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository:
     konfiguriert. Sie feuert pro Telegramm 'knx_event' mit den Feldern
     destination (Gruppenadresse), source (Geraete-Adresse), telegramtype,
     value, data."""
-    from .processing.knx_dpt import format_value as format_knx_value  # noqa: PLC0415
-    from .processing.knx_repo import (  # noqa: PLC0415
-        KnxAddressRepository,
-        resolve_severity,
-    )
-    from .storage import Message, Severity  # noqa: PLC0415
+    from .processing.knx_repo import KnxAddressRepository  # noqa: PLC0415
 
     knx_repo = KnxAddressRepository(database)
     seen_first_event = {"flag": False}
@@ -491,15 +538,7 @@ def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository:
         try:
             data = dict(event.data)
             ga = str(data.get("destination") or "").strip()
-            if not seen_first_event["flag"]:
-                seen_first_event["flag"] = True
-                _LOGGER.info(
-                    "messagehub: erstes knx_event empfangen — ga=%s keys=%s",
-                    ga,
-                    sorted(data.keys()),
-                )
-            else:
-                _LOGGER.debug("knx_event ga=%s data=%s", ga, data)
+            _log_knx_event(seen_first_event, ga, data)
             if not ga:
                 return
             cfg = await knx_repo.get(ga)
@@ -509,31 +548,10 @@ def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository:
             if not cfg.log_enabled:
                 _LOGGER.debug("knx_event %s: log_enabled=0, skip", ga)
                 return
-            telegramtype = data.get("telegramtype")
-            value = data.get("value")
-            if value is None:
-                value = data.get("data")
-            severity = Severity.normalise(resolve_severity(cfg, value))
-            formatted = format_knx_value(cfg.dpt, value)
-            text = f"{cfg.label} = {formatted}" if formatted else cfg.label
-            if telegramtype and telegramtype != "GroupValueWrite":
-                text = f"{text} ({telegramtype})"
-            msg = Message(
-                severity=severity,
-                source="knx-bus",
-                text=text,
-                metadata={
-                    "knx_ga": ga,
-                    "knx_label": cfg.label,
-                    "knx_dpt": cfg.dpt,
-                    "knx_value": value,
-                    "knx_source": data.get("source"),
-                    "knx_telegramtype": telegramtype,
-                },
-            )
+            msg = _build_knx_message(cfg, data)
             await repository.insert_or_aggregate(msg, window_minutes=10)
             _fire_added(hass, msg)
-            _LOGGER.info("messagehub knx-bus: %s -> %s [%s]", ga, text, severity)
+            _LOGGER.info("messagehub knx-bus: %s -> %s [%s]", ga, msg.text, msg.severity)
         except (ValueError, TypeError, KeyError) as err:
             _LOGGER.debug("knx_event ingest skipped: %s", err)
 
@@ -555,73 +573,109 @@ def _fire_added(hass: HomeAssistant, message: Any) -> None:
     )
 
 
-def _async_register_periodic_jobs(hass: HomeAssistant, database: Any, repository: Any) -> Any:
-    """Iter 35: Heartbeat-Check, Iter 36: Anomalie-Evaluierung — beides 60s."""
+async def _handle_silent_heartbeat(
+    hass: HomeAssistant, repository: Any, hb_repo: Any, hb: Any
+) -> None:
+    """Erzeugt eine Heartbeat-Silent-Message und markiert die Quelle als gemeldet."""
+    from .storage import Message, Severity  # noqa: PLC0415
+
+    msg = Message(
+        severity=Severity.WARNING,
+        source="messagehub.heartbeat",
+        text=f"silent: {hb.source} (>1.5x interval)",
+        metadata={"heartbeat_source": hb.source},
+    )
+    await repository.insert_or_aggregate(msg)
+    await hb_repo.set_silent(hb.source, True)
+    _fire_added(hass, msg)
+
+
+async def _run_heartbeat_tick(hass: HomeAssistant, repository: Any, hb_repo: Any) -> None:
+    """Iter 35: prueft alle Heartbeats und meldet stille Quellen."""
+    from .processing.heartbeat import is_silent  # noqa: PLC0415
+
+    try:
+        for hb in await hb_repo.list_all():
+            if not hb.enabled or hb.silent_alert_active:
+                continue
+            if is_silent(hb):
+                await _handle_silent_heartbeat(hass, repository, hb_repo, hb)
+    except (ValueError, RuntimeError) as err:
+        _LOGGER.warning("heartbeat tick failed: %s", err)
+
+
+async def _handle_anomaly_row(
+    hass: HomeAssistant,
+    repository: Any,
+    metrics_repo: Any,
+    source: str,
+    cnt: int,
+    now_bucket: str,
+) -> None:
+    """Wertet eine source/count-Zeile aus, meldet Anomalien und aktualisiert Metriken."""
+    from .processing.anomaly import is_anomaly, update  # noqa: PLC0415
+    from .storage import Message, Severity  # noqa: PLC0415
+
+    metric = await metrics_repo.get(source)
+    if metric.last_bucket == now_bucket:
+        return
+    if is_anomaly(metric, cnt):
+        msg = Message(
+            severity=Severity.WARNING,
+            source="messagehub.anomaly",
+            text=f"{source}: {cnt}/min (mean ~{metric.ewma_rate:.1f})",
+            metadata={"anomaly_source": source, "rate": cnt},
+        )
+        await repository.insert_or_aggregate(msg, window_minutes=15)
+        _fire_added(hass, msg)
+    metric = update(metric, cnt)
+    metric.last_bucket = now_bucket
+    await metrics_repo.save(metric)
+
+
+async def _run_anomaly_tick(
+    hass: HomeAssistant, repository: Any, database: Any, metrics_repo: Any
+) -> None:
+    """Iter 36: vergleicht 1-Min-Bucket-Counts pro Source mit EWMA-Mean."""
     from datetime import UTC as _UTC  # noqa: PLC0415
     from datetime import datetime as _dt  # noqa: PLC0415
     from datetime import timedelta as _td  # noqa: PLC0415
 
+    try:
+        cutoff = (_dt.now(_UTC) - _td(minutes=1)).isoformat(timespec="seconds")
+        rows = await database.fetch_all(
+            "SELECT source, COUNT(*) AS cnt FROM messages WHERE timestamp >= ? GROUP BY source",
+            (cutoff,),
+        )
+        now_bucket = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M")
+        for row in rows:
+            source = str(row["source"])
+            if source.startswith("messagehub."):
+                continue
+            await _handle_anomaly_row(
+                hass, repository, metrics_repo, source, int(row["cnt"]), now_bucket
+            )
+    except (ValueError, RuntimeError) as err:
+        _LOGGER.warning("anomaly tick failed: %s", err)
+
+
+def _async_register_periodic_jobs(hass: HomeAssistant, database: Any, repository: Any) -> Any:
+    """Iter 35: Heartbeat-Check, Iter 36: Anomalie-Evaluierung — beides 60s."""
+    from datetime import timedelta as _td  # noqa: PLC0415
+
     from homeassistant.helpers.event import async_track_time_interval  # noqa: PLC0415
 
-    from .processing.anomaly import (  # noqa: PLC0415
-        SourceMetricsRepository,
-        is_anomaly,
-        update,
-    )
-    from .processing.heartbeat import HeartbeatRepository, is_silent  # noqa: PLC0415
-    from .storage import Message, Severity  # noqa: PLC0415
+    from .processing.anomaly import SourceMetricsRepository  # noqa: PLC0415
+    from .processing.heartbeat import HeartbeatRepository  # noqa: PLC0415
 
     hb_repo = HeartbeatRepository(database)
     metrics_repo = SourceMetricsRepository(database)
 
-    async def _heartbeat_tick(_now: _dt) -> None:
-        try:
-            for hb in await hb_repo.list_all():
-                if not hb.enabled or hb.silent_alert_active:
-                    continue
-                if is_silent(hb):
-                    msg = Message(
-                        severity=Severity.WARNING,
-                        source="messagehub.heartbeat",
-                        text=f"silent: {hb.source} (>1.5x interval)",
-                        metadata={"heartbeat_source": hb.source},
-                    )
-                    await repository.insert_or_aggregate(msg)
-                    await hb_repo.set_silent(hb.source, True)
-                    _fire_added(hass, msg)
-        except (ValueError, RuntimeError) as err:
-            _LOGGER.warning("heartbeat tick failed: %s", err)
+    async def _heartbeat_tick(_now: Any) -> None:
+        await _run_heartbeat_tick(hass, repository, hb_repo)
 
-    async def _anomaly_tick(_now: _dt) -> None:
-        try:
-            cutoff = (_dt.now(_UTC) - _td(minutes=1)).isoformat(timespec="seconds")
-            rows = await database.fetch_all(
-                "SELECT source, COUNT(*) AS cnt FROM messages WHERE timestamp >= ? GROUP BY source",
-                (cutoff,),
-            )
-            now_bucket = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M")
-            for row in rows:
-                source = str(row["source"])
-                if source.startswith("messagehub."):
-                    continue
-                cnt = int(row["cnt"])
-                metric = await metrics_repo.get(source)
-                if metric.last_bucket == now_bucket:
-                    continue
-                if is_anomaly(metric, cnt):
-                    msg = Message(
-                        severity=Severity.WARNING,
-                        source="messagehub.anomaly",
-                        text=f"{source}: {cnt}/min (mean ~{metric.ewma_rate:.1f})",
-                        metadata={"anomaly_source": source, "rate": cnt},
-                    )
-                    await repository.insert_or_aggregate(msg, window_minutes=15)
-                    _fire_added(hass, msg)
-                metric = update(metric, cnt)
-                metric.last_bucket = now_bucket
-                await metrics_repo.save(metric)
-        except (ValueError, RuntimeError) as err:
-            _LOGGER.warning("anomaly tick failed: %s", err)
+    async def _anomaly_tick(_now: Any) -> None:
+        await _run_anomaly_tick(hass, repository, database, metrics_repo)
 
     unsub_hb = async_track_time_interval(hass, _heartbeat_tick, _td(seconds=60))
     unsub_an = async_track_time_interval(hass, _anomaly_tick, _td(seconds=60))
