@@ -217,11 +217,14 @@ export class MessageHubPanel extends LitElement {
 
   private async _bulkDelete(scope: "filter" | "all"): Promise<void> {
     if (this._total === 0) return;
-    const count = scope === "all" ? this._total : this._total;
+    // Hinweis: wir kennen die "gefilterte" Anzahl nicht separat — der Server
+    // zaehlt erst beim Delete. Wir zeigen daher in beiden Faellen this._total
+    // als "betroffen, max." an. Genaue Loesch-Anzahl kommt aus dem Toast.
+    const count = this._total;
     const label =
       scope === "all"
         ? `ALLE ${count} Nachrichten dauerhaft löschen?`
-        : `${count} gefilterte Nachrichten dauerhaft löschen?`;
+        : `Bis zu ${count} gefilterte Nachrichten dauerhaft löschen?`;
     if (!window.confirm(label)) return;
 
     try {

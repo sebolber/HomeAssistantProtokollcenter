@@ -502,6 +502,23 @@ Architektur-Spec siehe [docs/messagehub_konzept.md](docs/messagehub_konzept.md).
 TDD-Workflow und Quality Gates: [claude-code-runbook.md](claude-code-runbook.md).
 Aktuelle Projekt-Regeln: [CLAUDE.md](CLAUDE.md).
 
+### SonarCloud-Setup (für Maintainer)
+
+Das Repo enthält [`sonar-project.properties`](sonar-project.properties) mit
+Excludes für `frontend_dist/` (gebauter Vite-Output → sonst hunderte
+False-Positives) und Pfad-bezogenen Regel-Ignorierungen für Tests.
+
+Damit Sonar die Properties auch wirklich liest, in SonarCloud:
+
+1. **Project → Administration → Analysis Method** → von „Automatic Analysis"
+   auf **„CI-based"** umstellen
+2. Im CI (GitHub Action) den `sonar-scanner` aufrufen, der die Properties
+   automatisch aus dem Repo-Root liest
+
+Solange „Automatic Analysis" aktiv bleibt, ignoriert Sonar die Properties-
+Datei und meldet die Bundle-Findings weiter. Das ist die wahrscheinlichste
+Ursache, falls trotz commited Properties der Bundle-Lärm bestehen bleibt.
+
 ## Lizenz
 
 MIT — siehe [LICENSE](LICENSE).

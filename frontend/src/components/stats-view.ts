@@ -58,7 +58,7 @@ export class StatsView extends LitElement {
   }
 
   private _renderHeatmap(): TemplateResult {
-    const grid: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0));
+    const grid: number[][] = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0));
     let max = 0;
     for (const cell of this._heatmap) {
       if (cell.weekday >= 0 && cell.weekday < 7 && cell.hour >= 0 && cell.hour < 24) {

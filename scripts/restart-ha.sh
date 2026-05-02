@@ -11,7 +11,7 @@ cd "$(dirname "$0")/.."
 
 COMPOSE_FILE="docker-compose.dev.yml"
 
-if [ ! -f "$COMPOSE_FILE" ]; then
+if [[ ! -f "$COMPOSE_FILE" ]]; then
   echo "Fehler: $COMPOSE_FILE nicht gefunden" >&2
   exit 1
 fi

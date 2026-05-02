@@ -14,7 +14,7 @@ CONFIG_DIR=".dev/ha-config"
 CONFIG_YAML="$CONFIG_DIR/configuration.yaml"
 LOG_FILE="$CONFIG_DIR/home-assistant.log"
 
-if [ ! -f "$CONFIG_YAML" ]; then
+if [[ ! -f "$CONFIG_YAML" ]]; then
   echo "ERROR: $CONFIG_YAML existiert nicht — laeuft HA wirklich aus diesem Repo?" >&2
   exit 1
 fi
@@ -42,7 +42,7 @@ sleep 30
 
 echo "[4/4] Log-Auszug (Treffer fuer messagehub/knx):"
 echo "--------------------------------------------------"
-if [ -f "$LOG_FILE" ]; then
+if [[ -f "$LOG_FILE" ]]; then
   grep -iE 'messagehub|knx_event|knx-bus|xknx' "$LOG_FILE" | tail -100 || echo "(kein Treffer)"
 else
   echo "ERROR: $LOG_FILE nicht vorhanden"

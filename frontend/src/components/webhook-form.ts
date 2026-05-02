@@ -24,12 +24,12 @@ function sanitizeSource(input: string): string {
   return input
     .toLowerCase()
     .normalize("NFKD")
-    .replace(/[äÄ]/g, "ae")
-    .replace(/[öÖ]/g, "oe")
-    .replace(/[üÜ]/g, "ue")
-    .replace(/ß/g, "ss")
-    .replace(/[\s/\\]+/g, "-")
-    .replace(/[^a-z0-9._-]/g, "")
+    .replaceAll(/[äÄ]/g, "ae")
+    .replaceAll(/[öÖ]/g, "oe")
+    .replaceAll(/[üÜ]/g, "ue")
+    .replaceAll(/ß/g, "ss")
+    .replaceAll(/[\s/\\]+/g, "-")
+    .replaceAll(/[^a-z0-9._-]/g, "")
     .slice(0, 64);
 }
 

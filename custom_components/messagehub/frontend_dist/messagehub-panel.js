@@ -1909,7 +1909,7 @@ let z = (ee = class extends b {
   async _addTag() {
     if (!this.api || !this._newTag.trim())
       return;
-    const e = this._newTag.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, "-");
+    const e = this._newTag.trim().toLowerCase().replaceAll(/[^a-z0-9._-]+/g, "-");
     try {
       this._tags = await this.api.addMessageTag(this.msg.id, e), this._newTag = "";
     } catch {
@@ -2282,7 +2282,7 @@ const ds = ["debug", "info", "warning", "error"], cs = JSON.stringify({
   metadata: "$.extra"
 }, null, 2), Ie = /^[a-z0-9._-]{1,64}$/;
 function hs(i) {
-  return i.toLowerCase().normalize("NFKD").replace(/[äÄ]/g, "ae").replace(/[öÖ]/g, "oe").replace(/[üÜ]/g, "ue").replace(/ß/g, "ss").replace(/[\s/\\]+/g, "-").replace(/[^a-z0-9._-]/g, "").slice(0, 64);
+  return i.toLowerCase().normalize("NFKD").replaceAll(/[äÄ]/g, "ae").replaceAll(/[öÖ]/g, "oe").replaceAll(/[üÜ]/g, "ue").replaceAll(/ß/g, "ss").replaceAll(/[\s/\\]+/g, "-").replaceAll(/[^a-z0-9._-]/g, "").slice(0, 64);
 }
 var te;
 let A = (te = class extends b {
@@ -5121,7 +5121,7 @@ let R = (le = class extends b {
     }
   }
   _renderHeatmap() {
-    const e = Array.from({ length: 7 }, () => Array(24).fill(0));
+    const e = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0));
     let t = 0;
     for (const s of this._heatmap)
       s.weekday >= 0 && s.weekday < 7 && s.hour >= 0 && s.hour < 24 && (e[s.weekday][s.hour] = s.count, s.count > t && (t = s.count));
@@ -6142,7 +6142,7 @@ let $ = class extends b {
   }
   async _bulkDelete(i) {
     if (this._total === 0) return;
-    const e = i === "all" ? this._total : this._total, t = i === "all" ? `ALLE ${e} Nachrichten dauerhaft löschen?` : `${e} gefilterte Nachrichten dauerhaft löschen?`;
+    const e = this._total, t = i === "all" ? `ALLE ${e} Nachrichten dauerhaft löschen?` : `Bis zu ${e} gefilterte Nachrichten dauerhaft löschen?`;
     if (window.confirm(t))
       try {
         const s = i === "all" ? {} : {

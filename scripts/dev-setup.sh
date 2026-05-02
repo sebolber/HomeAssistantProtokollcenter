@@ -24,14 +24,14 @@ pip install -r requirements_dev.txt --quiet
 step "creating dev directories (git-ignored)"
 mkdir -p .dev/ha-config
 
-if [ -f .pre-commit-config.yaml ]; then
+if [[ -f .pre-commit-config.yaml ]]; then
   step "installing pre-commit hooks"
   pre-commit install --install-hooks
 else
   warn ".pre-commit-config.yaml fehlt — wird in Iteration 1 angelegt"
 fi
 
-if [ -d frontend ] && [ -f frontend/package.json ]; then
+if [[ -d frontend && -f frontend/package.json ]]; then
   step "installing frontend dependencies"
   (cd frontend && npm install --silent)
 else

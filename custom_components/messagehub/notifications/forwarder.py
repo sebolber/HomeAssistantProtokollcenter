@@ -100,7 +100,7 @@ class Forwarder:
         return (time_module.monotonic() - last) < ch.throttle_seconds
 
 
-async def telegram_handler(ch: ChannelConfig, msg: Message) -> None:
+async def telegram_handler(ch: ChannelConfig, msg: Message) -> None:  # NOSONAR: Channel-Handler-Polymorphismus, gemeinsame async-Signatur mit pushover/ntfy/notify
     """Iter 30: Telegram via HA-notify.telegram. Stub fuer Tests; in HA wird
     dispatch ueber hass.services aufgerufen — siehe async_register_telegram_handler."""
     cfg = ch.config or {}

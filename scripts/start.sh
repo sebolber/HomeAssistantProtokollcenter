@@ -71,7 +71,7 @@ for arg in "$@"; do
     --*)           fail "Unbekannte Option: $arg (--help fuer Hilfe)" ;;
     -*)            fail "Unbekannte Option: $arg (--help fuer Hilfe)" ;;
     *)
-      if [ -z "$BRANCH" ]; then
+      if [[ -z "$BRANCH" ]]; then
         BRANCH="$arg"
       else
         fail "Mehrere Branches angegeben: '$BRANCH' und '$arg'"
@@ -85,17 +85,17 @@ cd "$(dirname "$0")/.."
 REPO_ROOT="$(pwd)"
 COMPOSE_FILE="docker-compose.dev.yml"
 
-[ -f "$COMPOSE_FILE" ] || fail "$COMPOSE_FILE nicht gefunden — bist du im Repo-Root?"
+[[ -f "$COMPOSE_FILE" ]] || fail "$COMPOSE_FILE nicht gefunden — bist du im Repo-Root?"
 
 echo
 echo -e "${BOLD}messagehub Dev-Start${NC}  (${REPO_ROOT})"
-[ -n "$BRANCH" ] && echo -e "Branch:               ${BOLD}${BRANCH}${NC}"
+[[ -n "$BRANCH" ]] && echo -e "Branch:               ${BOLD}${BRANCH}${NC}"
 echo
 
 # ── 0. Git-Update (optional) ───────────────────────────────────────────────────
-if [ -n "$BRANCH" ]; then
+if [[ -n "$BRANCH" ]]; then
   command -v git >/dev/null 2>&1 || fail "git nicht gefunden, aber Branch '$BRANCH' angefordert"
-  [ -d .git ] || fail "kein git-Repo in $REPO_ROOT"
+  [[ -d .git ]] || fail "kein git-Repo in $REPO_ROOT"
 
   step "aktualisiere aus origin (Branch: $BRANCH)"
 
@@ -108,13 +108,13 @@ if [ -n "$BRANCH" ]; then
   # Mit Retries, falls das Netz wackelt.
   fetch_ok=0
   for delay in 0 2 4 8; do
-    [ "$delay" -gt 0 ] && { warn "git fetch fehlgeschlagen, retry in ${delay}s"; sleep "$delay"; }
+    [[ "$delay" -gt 0 ]] && { warn "git fetch fehlgeschlagen, retry in ${delay}s"; sleep "$delay"; }
     if git fetch origin "$BRANCH" 2>&1; then
       fetch_ok=1
       break
     fi
   done
-  [ "$fetch_ok" -eq 1 ] || fail "git fetch origin $BRANCH wiederholt fehlgeschlagen"
+  [[ "$fetch_ok" -eq 1 ]] || fail "git fetch origin $BRANCH wiederholt fehlgeschlagen"
 
   # Existiert der Branch lokal? Wenn nein, neu von origin/<BRANCH> auschecken.
   if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
@@ -141,13 +141,13 @@ PKG_INSTALL=""
 PKG_UPDATE=""
 NEEDS_SUDO=0
 
-if [ "$(uname -s)" = "Darwin" ]; then
+if [[ "$(uname -s)" = "Darwin" ]]; then
   OS_FAMILY="macos"
   if command -v brew >/dev/null 2>&1; then
     PKG_INSTALL="brew install"
     PKG_UPDATE="brew update"
   fi
-elif [ -f /etc/os-release ]; then
+elif [[ -f /etc/os-release ]]; then
   # shellcheck source=/dev/null
   . /etc/os-release
   case "${ID:-}${ID_LIKE:-}" in
@@ -182,14 +182,14 @@ info "OS-Family:     $OS_FAMILY"
 
 # sudo nur, wenn nicht root
 SUDO=""
-if [ "$NEEDS_SUDO" -eq 1 ] && [ "$(id -u)" -ne 0 ]; then
+if [[ "$NEEDS_SUDO" -eq 1 && "$(id -u)" -ne 0 ]]; then
   SUDO="sudo"
 fi
 
 confirm() {
   # confirm "<frage>" — true bei y/Y oder ASSUME_YES, false sonst
   local prompt="$1"
-  if [ "$ASSUME_YES" -eq 1 ]; then
+  if [[ "$ASSUME_YES" -eq 1 ]]; then
     info "$prompt (auto-yes)"
     return 0
   fi
@@ -203,7 +203,7 @@ confirm() {
 
 run_install() {
   # run_install <kommandos...>
-  if [ -z "$PKG_INSTALL" ]; then
+  if [[ -z "$PKG_INSTALL" ]]; then
     return 1
   fi
   # shellcheck disable=SC2086
@@ -214,7 +214,7 @@ run_install() {
 
 ensure_brew() {
   # Nur auf macOS relevant.
-  if [ "$OS_FAMILY" != "macos" ]; then
+  if [[ "$OS_FAMILY" != "macos" ]]; then
     return 0
   fi
   if command -v brew >/dev/null 2>&1; then
@@ -222,7 +222,7 @@ ensure_brew() {
   fi
 
   warn "Homebrew nicht gefunden"
-  if [ "$AUTO_INSTALL" -eq 0 ]; then
+  if [[ "$AUTO_INSTALL" -eq 0 ]]; then
     fail "Homebrew benoetigt — Installation: https://brew.sh"
   fi
   if ! confirm "Homebrew installieren? (offizielles Install-Skript von brew.sh)"; then
@@ -230,16 +230,16 @@ ensure_brew() {
   fi
 
   local brew_install_url="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
-  if [ "$ASSUME_YES" -eq 1 ]; then
+  if [[ "$ASSUME_YES" -eq 1 ]]; then
     NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL "$brew_install_url")"
   else
     /bin/bash -c "$(curl -fsSL "$brew_install_url")"
   fi
 
   # PATH-Setup je nach Architektur (Apple Silicon vs Intel).
-  if [ -x /opt/homebrew/bin/brew ]; then
+  if [[ -x /opt/homebrew/bin/brew ]]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
-  elif [ -x /usr/local/bin/brew ]; then
+  elif [[ -x /usr/local/bin/brew ]]; then
     eval "$(/usr/local/bin/brew shellenv)"
   fi
 
@@ -254,7 +254,7 @@ ensure_python() {
       ver=$("$cand" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
       major=${ver%%.*}
       minor=${ver##*.}
-      if [ "$major" -eq 3 ] && [ "$minor" -ge 12 ]; then
+      if [[ "$major" -eq 3 && "$minor" -ge 12 ]]; then
         PYTHON_BIN="$cand"
         info "Python:        $cand ($ver)"
         return 0
@@ -263,7 +263,7 @@ ensure_python() {
   done
 
   warn "Python 3.12+ nicht gefunden"
-  if [ "$AUTO_INSTALL" -eq 0 ]; then
+  if [[ "$AUTO_INSTALL" -eq 0 ]]; then
     fail "Bitte Python 3.12+ installieren (siehe README) oder ohne --no-install starten"
   fi
 
@@ -332,7 +332,7 @@ ensure_docker() {
   fi
 
   warn "docker nicht gefunden"
-  if [ "$AUTO_INSTALL" -eq 0 ]; then
+  if [[ "$AUTO_INSTALL" -eq 0 ]]; then
     fail "Bitte Docker installieren (siehe https://docs.docker.com/get-docker)"
   fi
 
@@ -341,7 +341,7 @@ ensure_docker() {
       if confirm "Docker via get.docker.com Skript installieren? (curl | sh, sudo)"; then
         curl -fsSL https://get.docker.com | $SUDO sh
         # Wenn nicht root: Benutzer in docker-Gruppe aufnehmen
-        if [ "$(id -u)" -ne 0 ]; then
+        if [[ "$(id -u)" -ne 0 ]]; then
           $SUDO usermod -aG docker "$USER" || true
           warn "Du wurdest zur Gruppe 'docker' hinzugefuegt — bitte einmal aus-/einloggen, dann start.sh erneut starten"
           exit 0
@@ -382,7 +382,7 @@ ensure_compose() {
   fi
 
   warn "weder 'docker compose' noch 'docker-compose' verfuegbar"
-  if [ "$AUTO_INSTALL" -eq 0 ]; then
+  if [[ "$AUTO_INSTALL" -eq 0 ]]; then
     fail "Bitte docker-compose-plugin installieren"
   fi
 
@@ -421,7 +421,7 @@ ensure_docker
 ensure_compose
 
 # ── 2. venv ────────────────────────────────────────────────────────────────────
-if [ ! -d .venv ]; then
+if [[ ! -d .venv ]]; then
   step "lege virtualenv .venv/ an ($PYTHON_BIN)"
   "$PYTHON_BIN" -m venv .venv
 else
@@ -436,13 +436,13 @@ step "installiere Dev-Dependencies (requirements_dev.txt)"
 python -m pip install --quiet --upgrade pip
 pip install --quiet -r requirements_dev.txt
 
-if [ -f .pre-commit-config.yaml ]; then
+if [[ -f .pre-commit-config.yaml ]]; then
   step "installiere pre-commit-Hooks"
   pre-commit install --install-hooks >/dev/null 2>&1 || warn "pre-commit install fehlgeschlagen (ueberspringe)"
 fi
 
 # ── 4. Smoke-Tests (optional) ──────────────────────────────────────────────────
-if [ "$RUN_TESTS" -eq 1 ]; then
+if [[ "$RUN_TESTS" -eq 1 ]]; then
   step "fuehre Unit-Tests aus (Smoke-Test, --no-tests zum Ueberspringen)"
   if pytest tests/unit -q --override-ini="asyncio_mode=auto"; then
     info "Unit-Tests gruen"
@@ -452,7 +452,7 @@ if [ "$RUN_TESTS" -eq 1 ]; then
 fi
 
 # ── 5. Reset (optional) ────────────────────────────────────────────────────────
-if [ "$RESET_HA" -eq 1 ]; then
+if [[ "$RESET_HA" -eq 1 ]]; then
   step "reset Dev-HA: stoppe Container und loesche .dev/ha-config"
   $COMPOSE -f "$COMPOSE_FILE" down -v >/dev/null 2>&1 || true
   rm -rf .dev/ha-config
@@ -469,7 +469,7 @@ step "warte auf healthy-Status (max 90 s)"
 ready=0
 for _ in $(seq 1 45); do
   status=$(docker inspect --format='{{.State.Health.Status}}' ha-messagehub-dev 2>/dev/null || echo "starting")
-  if [ "$status" = "healthy" ]; then
+  if [[ "$status" = "healthy" ]]; then
     ready=1
     break
   fi
@@ -478,7 +478,7 @@ for _ in $(seq 1 45); do
 done
 echo
 
-if [ "$ready" -eq 1 ]; then
+if [[ "$ready" -eq 1 ]]; then
   info "Dev-HA ist bereit"
 else
   warn "Dev-HA nicht innerhalb 90 s healthy — pruefe Logs:  $COMPOSE -f $COMPOSE_FILE logs -f"
@@ -494,7 +494,7 @@ ${GREEN}${BOLD}✓ Setup abgeschlossen${NC}
   DB-Pfad:    .dev/ha-config/messagehub/messages.db (nach erstem Start)
 EOF
 
-if [ -n "$BRANCH" ]; then
+if [[ -n "$BRANCH" ]]; then
   echo "  Branch:     $BRANCH @ $(git rev-parse --short HEAD)"
 fi
 
@@ -516,7 +516,7 @@ Nuetzliche Kommandos:
 EOF
 
 # ── 9. Logs (optional) ─────────────────────────────────────────────────────────
-if [ "$TAIL_LOGS" -eq 1 ]; then
+if [[ "$TAIL_LOGS" -eq 1 ]]; then
   step "tailing logs (Strg-C beendet nur den Tail, HA laeuft weiter)"
   exec $COMPOSE -f "$COMPOSE_FILE" logs -f --tail=80 homeassistant
 fi

@@ -74,7 +74,7 @@ export class DetailPane extends LitElement {
 
   private async _addTag(): Promise<void> {
     if (!this.api || !this._newTag.trim()) return;
-    const tag = this._newTag.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, "-");
+    const tag = this._newTag.trim().toLowerCase().replaceAll(/[^a-z0-9._-]+/g, "-");
     try {
       this._tags = await this.api.addMessageTag(this.msg.id, tag);
       this._newTag = "";

@@ -52,13 +52,13 @@ function visibleAddresses(el: KnxAddressesView): string[] {
   return Array.from(rows).map((r) => r.querySelector("td")?.textContent?.trim() || "");
 }
 
-function setOnlyEnabled(el: KnxAddressesView, on: boolean): Promise<void> {
+async function setOnlyEnabled(el: KnxAddressesView, on: boolean): Promise<void> {
   const cb = el.shadowRoot!.querySelector(
     'input[type="checkbox"]',
   ) as HTMLInputElement;
   cb.checked = on;
   cb.dispatchEvent(new Event("change", { bubbles: true }));
-  return el.updateComplete;
+  await el.updateComplete;
 }
 
 describe("knx-addresses-view filter 'nur aktive'", () => {
