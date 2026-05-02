@@ -15,6 +15,7 @@ import type {
   KnxStatsFilters,
   KnxStatsGaDetailDto,
   KnxStatsHealthScoreDto,
+  KnxStatsLongTermDto,
   KnxStatsOrphansDto,
   KnxStatsSilenceDto,
   KnxStatsSummaryDto,
@@ -28,16 +29,21 @@ import "./knx-value-sparkline.js";
 const STORAGE_KEY = "messagehub.knx-stats.filters";
 
 // Periode-Presets in Tagen.
-// Iter 22: Raw-Telegramm-Tabelle hat 48h Retention — laengere Perioden
-// werden in Phase 2 ueber Counter-Aggregate ergaenzt. Aktuell beschraenken
-// wir die UI bewusst auf <=48h, damit die Stats die volle Bus-Aktivitaet
-// abdecken (bus-weit, nicht nur Whitelist).
+// Iter 22: Raw-Telegramm-Tabelle hat 48h Retention.
+// Iter 39: > 48h sind Long-Term-Perioden — die UI wechselt in den
+// degradierten Modus (Counter-Tabelle: nur Counts, keine Werte/Source).
 const PERIOD_PRESETS: ReadonlyArray<{ id: string; label: string; days: number }> = [
   { id: "1h", label: "1 Std", days: 1 / 24 },
   { id: "6h", label: "6 Std", days: 0.25 },
   { id: "24h", label: "24 Std", days: 1 },
   { id: "48h", label: "48 Std", days: 2 },
+  { id: "7d", label: "7 Tage", days: 7 },
+  { id: "30d", label: "30 Tage", days: 30 },
+  { id: "365d", label: "365 Tage", days: 365 },
 ];
+
+// Periode-IDs, die Long-Term-Modus aktivieren (Counter-Tabelle statt Raw).
+const LONG_TERM_PERIOD_IDS: ReadonlySet<string> = new Set(["7d", "30d", "365d"]);
 
 const TOP_N_OPTIONS = [10, 25, 50, 100] as const;
 
@@ -83,6 +89,17 @@ function periodToIso(periodId: string): { from: string; to: string } {
   return { from: from.toISOString(), to: to.toISOString() };
 }
 
+// Iter 39: Im Long-Term-Modus muessen Raw-Endpoints (top, summary, busload,
+// timeline, bus-health, silence) auf die letzten 48h gekappt werden — sie
+// lesen aus knx_raw_telegrams (max 48h Retention) und wuerden bei groesseren
+// Perioden 400-Bad-Request liefern.
+const RAW_LIVE_WINDOW_HOURS = 48;
+function rawLiveWindow(): { from: string; to: string } {
+  const to = new Date();
+  const from = new Date(to.getTime() - RAW_LIVE_WINDOW_HOURS * 3600 * 1000);
+  return { from: from.toISOString(), to: to.toISOString() };
+}
+
 @customElement("stats-knx-view")
 export class StatsKnxView extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
@@ -92,6 +109,7 @@ export class StatsKnxView extends LitElement {
   @state() private _busHealth: KnxStatsBusHealthDto | null = null;
   @state() private _busload: KnxStatsBusloadDto | null = null;
   @state() private _health: KnxStatsHealthScoreDto | null = null;
+  @state() private _longTerm: KnxStatsLongTermDto | null = null;
   @state() private _silence: KnxStatsSilenceDto | null = null;
   @state() private _orphans: KnxStatsOrphansDto | null = null;
   @state() private _alarms: KnxStatsAlarmsDto | null = null;
@@ -126,12 +144,33 @@ export class StatsKnxView extends LitElement {
     };
   }
 
+  private _isLongTermMode(): boolean {
+    return LONG_TERM_PERIOD_IDS.has(this._filters.periodId);
+  }
+
+  // Im Long-Term-Modus laufen die Raw-Endpunkte auf die letzten 48h —
+  // alles dahinter liegt in der Counter-Tabelle und wird ueber den
+  // Long-Term-Endpoint geliefert.
+  private _liveFiltersForRaw(): KnxStatsFilters {
+    if (!this._isLongTermMode()) return this._apiFilters();
+    const { from, to } = rawLiveWindow();
+    return {
+      from,
+      to,
+      limit: this._filters.topN,
+      minRate: this._filters.minRate,
+      includeAcknowledged: this._filters.includeAck,
+    };
+  }
+
   private async _load(): Promise<void> {
     if (!this.api) return;
     this._loading = true;
     this._error = "";
     try {
-      const f = this._apiFilters();
+      const longTermMode = this._isLongTermMode();
+      const fLongTerm = this._apiFilters();
+      const fRaw = this._liveFiltersForRaw();
       const [
         summary,
         top,
@@ -142,21 +181,25 @@ export class StatsKnxView extends LitElement {
         alarms,
         busload,
         health,
+        longTerm,
       ] = await Promise.all([
-        this.api.getKnxStatsSummary(f),
-        this.api.getKnxStatsTop(f),
-        this.api.getKnxStatsTopBySource(f),
-        this.api.getKnxStatsBusHealth(f),
+        this.api.getKnxStatsSummary(fRaw),
+        this.api.getKnxStatsTop(fRaw),
+        this.api.getKnxStatsTopBySource(fRaw),
+        this.api.getKnxStatsBusHealth(fRaw),
         this.api.getKnxStatsSilence({
-          ...f,
+          ...fRaw,
           maxSilenceMinutes: this._suggestSilenceMinutes(),
         }),
-        this.api.getKnxStatsOrphans(f).catch(() => null),
-        this.api.getKnxStatsAlarms(f).catch(() => null),
+        this.api.getKnxStatsOrphans(fRaw).catch(() => null),
+        this.api.getKnxStatsAlarms(fRaw).catch(() => null),
         this.api
-          .getKnxStatsBusload(f, this._suggestBusloadBucketSeconds())
+          .getKnxStatsBusload(fRaw, this._suggestBusloadBucketSeconds())
           .catch(() => null),
-        this.api.getKnxStatsHealthScore(f).catch(() => null),
+        this.api.getKnxStatsHealthScore(fRaw).catch(() => null),
+        longTermMode
+          ? this.api.getKnxStatsLongTerm(fLongTerm).catch(() => null)
+          : Promise.resolve(null),
       ]);
       this._summary = summary;
       this._top = top.items;
@@ -167,11 +210,14 @@ export class StatsKnxView extends LitElement {
       this._alarms = alarms;
       this._busload = busload;
       this._health = health;
+      this._longTerm = longTerm;
       // Timeline fuer Top-5 GAs (mehr Linien werden unleserlich).
+      // Nutzt fRaw (kappiert auf 48h im Long-Term-Modus) — Timeline-Endpoint
+      // liest aus knx_raw_telegrams.
       const topGas = top.items.slice(0, 5).map((r) => r.ga);
       if (topGas.length > 0) {
         this._timeline = await this.api.getKnxStatsTimeline({
-          ...f,
+          ...fRaw,
           gas: topGas,
           bucketMinutes: this._suggestBucketMinutes(),
         });
@@ -190,6 +236,7 @@ export class StatsKnxView extends LitElement {
       this._alarms = null;
       this._busload = null;
       this._health = null;
+      this._longTerm = null;
     } finally {
       this._loading = false;
     }
@@ -522,6 +569,69 @@ export class StatsKnxView extends LitElement {
     }
   }
 
+  // Iter 39: Long-Term-Modus-Hinweis + Counter-Karte ----------------------
+
+  private _renderLongTermBanner(): TemplateResult {
+    return html`
+      <div class="long-term-banner">
+        <span class="long-term-banner__icon">⏳</span>
+        <div>
+          <strong>Long-Term-Modus aktiv</strong>
+          <p class="muted small">
+            Periode ueber 48 Std — die Counter-Tabelle liefert Telegramm-Counts pro
+            Stunde/Tag, aber keine Source-Adressen, keine Werte und keine Repeats.
+            Live-KPIs darunter zeigen die letzten 48 Std aus den Roh-Telegrammen.
+          </p>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderLongTerm(): TemplateResult {
+    const lt = this._longTerm!;
+    const maxCount = Math.max(1, ...lt.series.map((b) => b.count));
+    const fmtNum = (n: number) => n.toLocaleString("de-DE");
+    return html`
+      <section class="mh-card long-term">
+        <header class="card-head">
+          <h3>Long-Term-Sicht</h3>
+          <span class="muted small">
+            ${fmtNum(lt.total)} Telegramme · ${lt.bucket === "day" ? "Tages-Buckets" : "Stunden-Buckets"}
+          </span>
+        </header>
+        <div class="long-term__body">
+          <div class="long-term__chart">
+            ${lt.series.length === 0
+              ? html`<p class="muted">Keine Daten in der Counter-Tabelle.</p>`
+              : html`<div class="long-term__bars">
+                  ${lt.series.map(
+                    (b) => html`<div
+                      class="long-term__bar"
+                      style=${`height: ${(b.count / maxCount) * 100}%`}
+                      title="${b.bucket} — ${fmtNum(b.count)}"
+                    ></div>`
+                  )}
+                </div>`}
+          </div>
+          <div class="long-term__top">
+            <h4>Top-GAs in der Periode</h4>
+            ${lt.top_gas.length === 0
+              ? html`<p class="muted small">Keine GAs aktiv.</p>`
+              : html`<ol class="long-term__top-list">
+                  ${lt.top_gas.slice(0, 10).map(
+                    (g) => html`<li>
+                      <code>${g.ga}</code>
+                      ${g.label ? html`<span class="muted small">${g.label}</span>` : nothing}
+                      <span class="long-term__top-count">${fmtNum(g.count)}</span>
+                    </li>`
+                  )}
+                </ol>`}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
   private _formatBucket(seconds: number): string {
     if (seconds < 60) return `${seconds}s`;
     if (seconds < 3600) return `${Math.round(seconds / 60)}min`;
@@ -559,11 +669,13 @@ export class StatsKnxView extends LitElement {
           ? this._renderAlarmBanner()
           : nothing}
 
+        ${this._isLongTermMode() ? this._renderLongTermBanner() : nothing}
         ${this._health !== null ? this._renderHealthScore() : nothing}
+        ${this._longTerm !== null ? this._renderLongTerm() : nothing}
 
         <section class="mh-card kpi-card">
           <header class="card-head">
-            <h3>Uebersicht</h3>
+            <h3>${this._isLongTermMode() ? "Live-Snapshot (letzte 48 Std)" : "Uebersicht"}</h3>
             <span class="muted small">letzte ${this._filters.periodId}</span>
           </header>
           ${this._loading && this._summary === null
@@ -1420,6 +1532,79 @@ export class StatsKnxView extends LitElement {
       }
       .health-finding--critical .health-finding__dot {
         background: var(--mh-error);
+      }
+      /* Iter 39: Long-Term-Modus */
+      .long-term-banner {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--mh-space-3);
+        padding: var(--mh-space-3) var(--mh-space-4);
+        background: var(--mh-info-soft, rgba(0, 120, 255, 0.08));
+        border-left: 3px solid var(--mh-info);
+        border-radius: var(--mh-radius-md);
+      }
+      .long-term-banner__icon {
+        font-size: 1.5em;
+        line-height: 1;
+      }
+      .long-term__body {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: var(--mh-space-4);
+      }
+      @media (max-width: 768px) {
+        .long-term__body {
+          grid-template-columns: 1fr;
+        }
+      }
+      .long-term__chart {
+        min-height: 120px;
+      }
+      .long-term__bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 120px;
+        padding: var(--mh-space-2) 0;
+      }
+      .long-term__bar {
+        flex: 1;
+        min-height: 2px;
+        background: var(--mh-info);
+        border-radius: 2px 2px 0 0;
+        transition: opacity 0.2s ease;
+      }
+      .long-term__bar:hover {
+        opacity: 0.7;
+      }
+      .long-term__top h4 {
+        margin: 0 0 var(--mh-space-2) 0;
+        font-size: var(--mh-text-sm);
+        font-weight: var(--mh-weight-semibold);
+        color: var(--mh-fg-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .long-term__top-list {
+        margin: 0;
+        padding-left: var(--mh-space-4);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: var(--mh-text-sm);
+      }
+      .long-term__top-list li {
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-2);
+      }
+      .long-term__top-list code {
+        font-family: var(--mh-font-mono, monospace);
+      }
+      .long-term__top-count {
+        margin-left: auto;
+        font-variant-numeric: tabular-nums;
+        color: var(--mh-fg-muted);
       }
       .severity-counts {
         display: flex;

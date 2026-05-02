@@ -85,6 +85,21 @@ function makeApi(spy?: { calls: KnxStatsSummaryDto[] }): ApiClient {
         },
       ],
     })),
+    getKnxStatsLongTerm: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      bucket: "day" as const,
+      total: 1_234_567,
+      top_gas: [
+        { ga: "1/2/3", label: "Tor Garage", dpt: "1.001", count: 800_000 },
+        { ga: "5/2/14", label: null, dpt: null, count: 200_000 },
+      ],
+      series: [
+        { bucket: "2026-04-25T00:00:00", count: 100_000 },
+        { bucket: "2026-04-26T00:00:00", count: 200_000 },
+        { bucket: "2026-04-27T00:00:00", count: 150_000 },
+      ],
+    })),
   } as unknown as ApiClient;
 }
 
@@ -114,10 +129,11 @@ describe("stats-knx-view filter bar", () => {
     }
   });
 
-  it("zeigt vier Periode-Presets, vier Top-N-Optionen und Bekannte-Toggle", async () => {
+  it("zeigt sieben Periode-Presets, vier Top-N-Optionen und Bekannte-Toggle", async () => {
+    // Iter 39: 4 Live-Perioden (1h/6h/24h/48h) + 3 Long-Term (7d/30d/365d)
     const el = await mount();
     const periods = el.shadowRoot!.querySelectorAll(".filter-group:nth-child(1) .seg-btn");
-    expect(periods.length).toBe(4);
+    expect(periods.length).toBe(7);
     const topN = el.shadowRoot!.querySelectorAll(".filter-group:nth-child(2) .seg-btn");
     expect(topN.length).toBe(4);
     const ackToggle = el.shadowRoot!.querySelector("input[type=checkbox]");
@@ -174,6 +190,28 @@ describe("stats-knx-view filter bar", () => {
     expect(text).toContain("11");
     expect(text).toContain("23");
     expect(text).toContain("274");
+  });
+
+  it("Iter 39: 7d-Periode aktiviert Long-Term-Banner + Counter-Card", async () => {
+    localStorage.setItem(
+      "messagehub.knx-stats.filters",
+      JSON.stringify({ periodId: "7d", topN: 50, minRate: 0, includeAck: true })
+    );
+    const el = await mount();
+    // Banner sichtbar
+    const banner = el.shadowRoot!.querySelector(".long-term-banner");
+    expect(banner).not.toBeNull();
+    // Long-Term-Card mit Bars + Top-Liste
+    const card = el.shadowRoot!.querySelector(".long-term");
+    expect(card).not.toBeNull();
+    const bars = card!.querySelectorAll(".long-term__bar");
+    expect(bars.length).toBe(3);
+    const topList = card!.querySelector(".long-term__top-list");
+    expect(topList).not.toBeNull();
+    expect(topList!.querySelectorAll("li").length).toBe(2);
+    // Live-Snapshot-Header sichtbar
+    const text = el.shadowRoot!.textContent ?? "";
+    expect(text).toContain("Live-Snapshot");
   });
 
   it("default-Periode ist 24 Std (Iter 26: max 48h Raw-Retention)", async () => {

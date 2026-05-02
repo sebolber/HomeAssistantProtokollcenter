@@ -275,6 +275,27 @@ export interface KnxStatsHealthScoreDto {
   findings: KnxStatsHealthFinding[];
 }
 
+export interface KnxStatsLongTermBucket {
+  bucket: string;
+  count: number;
+}
+
+export interface KnxStatsLongTermTopGa {
+  ga: string;
+  label: string | null;
+  dpt: string | null;
+  count: number;
+}
+
+export interface KnxStatsLongTermDto {
+  from: string;
+  to: string;
+  bucket: "hour" | "day";
+  total: number;
+  top_gas: KnxStatsLongTermTopGa[];
+  series: KnxStatsLongTermBucket[];
+}
+
 export interface KnxStatsFilters {
   from?: string;
   to?: string;
@@ -814,6 +835,18 @@ export class ApiClient {
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxStatsHealthScoreDto;
+  }
+
+  async getKnxStatsLongTerm(
+    f: KnxStatsFilters,
+    bucket: "auto" | "hour" | "day" = "auto"
+  ): Promise<KnxStatsLongTermDto> {
+    const params = this._knxStatsParams(f);
+    if (bucket !== "auto") params.set("bucket", bucket);
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/long-term?${params.toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsLongTermDto;
   }
 
   async unacknowledgeKnxGa(ga: string): Promise<void> {
