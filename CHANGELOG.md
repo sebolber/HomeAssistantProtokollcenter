@@ -6,6 +6,21 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Refactor + Performance (Iter 77 — CR-12 + CR-23 compute_top)
+- **`compute_top` zerlegt** in 3 Helper-Methoden:
+  `_filter_top_rows`, `_enrich_top_samples`, `_build_top_row`. Vorher
+  67 Zeilen mit Cognitive-Complexity ~17, jetzt der Public-Pfad
+  unter 30 Zeilen.
+- **CR-12 Filter-First**: rate + ack-Filter laufen JETZT vor dem
+  Bulk-Sample-Lookup. Bei restriktivem `min_rate_per_min` werden
+  Samples nur für die survivors geladen — bei sehr hoher
+  Min-Rate-Threshold (z. B. „nur >= 5 Tel/Min") kann das den
+  Bulk-Lookup um 80%+ kürzen.
+- **DPT-Inferenz nur für GAs ohne DPT** (CR-12-Detail): vorher lief
+  `infer_dpt_from_samples` auch für GAs mit gepflegtem ETS-DPT —
+  unnötiger Aufwand.
+- 648 Tests bleiben grün — kein Verhaltensunterschied.
+
 ### Sicherheit (Iter 76 — CR-17 Alarm-Eventbus-Dedup)
 - **`AlarmDedupCache`** (in-process Set + TTL) verhindert mehrfaches
   Eventbus-Fire desselben Alarms innerhalb derselben Minute. Bei

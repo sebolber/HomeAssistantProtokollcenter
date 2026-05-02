@@ -226,65 +226,122 @@ class KnxStatsService:
         min_rate_per_min: float = 0.0,
         include_acknowledged: bool = True,
     ) -> list[TopRow]:
+        # Iter 77 / CR-23: compute_top in Helper-Methoden zerlegt, um
+        # Cognitive-Complexity unter 15 zu halten. Filter-First-Phase
+        # (CR-12): Filter VOR dem teuren Bulk-Sample-Lookup, sonst
+        # holen wir Samples auch fuer GAs, die durch min_rate
+        # rausfliegen.
         rows = await self._repo.top_by_ga(from_iso, to_iso, limit=limit)
         from_dt = datetime.fromisoformat(from_iso)
         to_dt = datetime.fromisoformat(to_iso)
         minutes = _period_minutes(from_dt, to_dt)
         ack_set = await self._repo.ack_active_set()
 
-        # Iter 62 / WR-T + Iter 63 / U13: Bulk-Sample-Lookup fuer
-        # DPT-Inferenz UND Anti-Pattern-Lightweight-Check. Beide nutzen
-        # dieselben 30 letzten Werte pro GA — kostet nur eine zusaetzliche
-        # Query gegenueber dem Top-Listen-Lookup.
-        # GAs ohne DPT bekommen Inferenz; ALLE Top-GAs bekommen den
-        # Anti-Pattern-Check (Konstant-Wert-Spam tritt auch bei
-        # gepflegten DPTs auf — Hörmann-Tor mit DPT 9.x sendet 0).
-        all_top_gas = [r["ga"] for r in rows][:200]
-        inferred_map: dict[str, str] = {}
-        findings_set: set[str] = set()
-        if all_top_gas:
-            samples_map = await self._repo.bulk_values_for_dpt_infer(
-                all_top_gas, from_iso, to_iso, per_ga_limit=30
+        survivors = self._filter_top_rows(
+            rows,
+            minutes=minutes,
+            min_rate_per_min=min_rate_per_min,
+            include_acknowledged=include_acknowledged,
+            ack_set=ack_set,
+        )
+        inferred_map, findings_set = await self._enrich_top_samples(
+            survivors, from_iso, to_iso
+        )
+        return [
+            self._build_top_row(
+                row,
+                minutes=minutes,
+                ack_set=ack_set,
+                inferred_map=inferred_map,
+                findings_set=findings_set,
             )
-            for ga, samples in samples_map.items():
-                guessed = infer_dpt_from_samples(samples)
-                if guessed is not None:
-                    inferred_map[ga] = guessed
-                if has_anti_pattern_in_samples(samples):
-                    findings_set.add(ga)
+            for row in survivors
+        ]
 
-        out: list[TopRow] = []
+    @staticmethod
+    def _filter_top_rows(
+        rows: list[dict[str, Any]],
+        *,
+        minutes: float,
+        min_rate_per_min: float,
+        include_acknowledged: bool,
+        ack_set: set[str],
+    ) -> list[dict[str, Any]]:
+        """Filter-First: rate + ack-Filter VOR dem Bulk-Sample-Lookup."""
+        out: list[dict[str, Any]] = []
         for row in rows:
             rate = row["count"] / minutes
             if rate < min_rate_per_min:
                 continue
-            ga = row["ga"]
-            is_ack = ga in ack_set
-            if not include_acknowledged and is_ack:
+            if not include_acknowledged and row["ga"] in ack_set:
                 continue
-            row_dpt = row["dpt"]
-            dpt_inferred = False
-            if not row_dpt and ga in inferred_map:
-                row_dpt = inferred_map[ga]
-                dpt_inferred = True
-            recommended = recommended_rate_for(row_dpt)
-            out.append(
-                TopRow(
-                    ga=ga,
-                    dpt=row_dpt,
-                    label=row["label"],
-                    dev_source=row["dev_source"],
-                    count=row["count"],
-                    rate_per_min=round(rate, 2),
-                    recommended_rate=recommended,
-                    ratio=safe_ratio(rate, recommended),
-                    severity=classify_severity(rate, recommended),
-                    acknowledged=is_ack,
-                    dpt_inferred=dpt_inferred,
-                    has_findings=ga in findings_set,
-                )
-            )
+            out.append(row)
         return out
+
+    async def _enrich_top_samples(
+        self,
+        survivors: list[dict[str, Any]],
+        from_iso: str,
+        to_iso: str,
+    ) -> tuple[dict[str, str], set[str]]:
+        """Iter 77 / CR-12: Bulk-Sample-Lookup nur fuer survivors. DPT-
+        Inferenz nur fuer GAs ohne DPT (sonst kein Erkenntnisgewinn);
+        Anti-Pattern-Check fuer ALLE survivors (Konstant-Spam tritt
+        auch mit korrektem DPT auf).
+        """
+        if not survivors:
+            return {}, set()
+        gas_for_dpt_infer = [r["ga"] for r in survivors if not r.get("dpt")][:200]
+        all_gas = [r["ga"] for r in survivors][:200]
+        # Wenn nichts zu inferieren UND keine Findings noetig — gibts
+        # nichts. Aktuell holen wir aber immer fuer Anti-Pattern.
+        if not all_gas:
+            return {}, set()
+        samples_map = await self._repo.bulk_values_for_dpt_infer(
+            all_gas, from_iso, to_iso, per_ga_limit=30
+        )
+        inferred_map: dict[str, str] = {}
+        findings_set: set[str] = set()
+        for ga, samples in samples_map.items():
+            if ga in gas_for_dpt_infer:
+                guessed = infer_dpt_from_samples(samples)
+                if guessed is not None:
+                    inferred_map[ga] = guessed
+            if has_anti_pattern_in_samples(samples):
+                findings_set.add(ga)
+        return inferred_map, findings_set
+
+    @staticmethod
+    def _build_top_row(
+        row: dict[str, Any],
+        *,
+        minutes: float,
+        ack_set: set[str],
+        inferred_map: dict[str, str],
+        findings_set: set[str],
+    ) -> TopRow:
+        ga = row["ga"]
+        rate = row["count"] / minutes
+        row_dpt = row["dpt"]
+        dpt_inferred = False
+        if not row_dpt and ga in inferred_map:
+            row_dpt = inferred_map[ga]
+            dpt_inferred = True
+        recommended = recommended_rate_for(row_dpt)
+        return TopRow(
+            ga=ga,
+            dpt=row_dpt,
+            label=row["label"],
+            dev_source=row["dev_source"],
+            count=row["count"],
+            rate_per_min=round(rate, 2),
+            recommended_rate=recommended,
+            ratio=safe_ratio(rate, recommended),
+            severity=classify_severity(rate, recommended),
+            acknowledged=ga in ack_set,
+            dpt_inferred=dpt_inferred,
+            has_findings=ga in findings_set,
+        )
 
     async def compute_ga_detail(self, ga: str, from_iso: str, to_iso: str) -> GaDetail | None:
         samples_raw = await self._repo.ga_samples(ga, from_iso, to_iso)
