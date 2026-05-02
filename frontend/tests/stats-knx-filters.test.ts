@@ -18,6 +18,12 @@ function makeApi(spy?: { calls: KnxStatsSummaryDto[] }): ApiClient {
       if (spy) spy.calls.push(SUMMARY);
       return SUMMARY;
     }),
+    getKnxStatsTop: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      items: [],
+      total: 0,
+    })),
   } as unknown as ApiClient;
 }
 
