@@ -6,6 +6,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Performance (Iter 78 — CR-9 Bulk-INSERT für `ack_set_bulk`)
+- **`Database.executemany`** als neue Bulk-Variante zu `execute` (ein
+  einziger fsync-Commit über N Rows). Bei `ack_set_bulk` mit 100 GAs
+  ~50× schnellere Bulk-Acknowledge-Operation.
+- `KnxStatsRepository.ack_set_bulk` nutzt jetzt `executemany` statt
+  N einzelner `execute`-Calls.
+- 648 Tests bleiben grün — bestehende Bulk-Ack-Tests verifizieren das
+  Verhalten.
+
 ### Refactor + Performance (Iter 77 — CR-12 + CR-23 compute_top)
 - **`compute_top` zerlegt** in 3 Helper-Methoden:
   `_filter_top_rows`, `_enrich_top_samples`, `_build_top_row`. Vorher

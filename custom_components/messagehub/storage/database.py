@@ -110,6 +110,18 @@ class Database:
         await self.connection.execute(sql, parameters or ())
         await self.connection.commit()
 
+    async def executemany(
+        self,
+        sql: str,
+        rows: Iterable[Iterable[object]],
+    ) -> None:
+        """Iter 78 / CR-9: Fuehrt ein Statement N-mal aus und committet
+        einmal. Ein einziger fsync statt N. Wichtig fuer Bulk-INSERTs
+        (z. B. ack_set_bulk mit 100 GAs).
+        """
+        await self.connection.executemany(sql, rows)
+        await self.connection.commit()
+
     async def executescript(self, sql: str) -> None:
         """Fuehrt ein Multi-Statement-Skript in einer Transaktion aus."""
         await self.connection.executescript(sql)
