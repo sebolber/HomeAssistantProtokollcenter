@@ -108,7 +108,7 @@ class ChannelRepository:
         await self._db.connection.commit()
         deleted = cursor.rowcount > 0
         await cursor.close()
-        return deleted
+        return bool(deleted)
 
     async def list_all(self) -> list[Channel]:
         rows = await self._db.fetch_all("SELECT * FROM notification_channels ORDER BY name")

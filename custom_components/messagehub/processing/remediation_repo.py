@@ -84,7 +84,7 @@ class RemediationHookRepository:
         await self._db.connection.commit()
         deleted = cursor.rowcount > 0
         await cursor.close()
-        return deleted
+        return bool(deleted)
 
     async def list_all(self) -> list[RemediationHook]:
         rows = await self._db.fetch_all("SELECT * FROM remediation_hooks ORDER BY name")

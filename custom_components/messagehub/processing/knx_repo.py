@@ -113,7 +113,7 @@ class KnxAddressRepository:
         await self._db.connection.commit()
         deleted = cursor.rowcount > 0
         await cursor.close()
-        return deleted
+        return bool(deleted)
 
     async def list_all(self) -> list[KnxAddress]:
         rows = await self._db.fetch_all("SELECT * FROM knx_group_addresses ORDER BY address")

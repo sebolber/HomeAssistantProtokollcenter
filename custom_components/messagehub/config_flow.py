@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"]
 
 
-class MessageHubConfigFlow(ConfigFlow, domain=DOMAIN):
+class MessageHubConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[misc, call-arg]
     """Erstinstallation: Single-Instance ohne Pflichtfelder."""
 
     VERSION = 1

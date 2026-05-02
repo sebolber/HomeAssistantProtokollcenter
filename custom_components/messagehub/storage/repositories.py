@@ -60,7 +60,7 @@ class MessageRepository:
         if new_id is None:
             raise RuntimeError("INSERT did not produce a lastrowid")
         message.id = new_id
-        return new_id
+        return int(new_id)
 
     async def insert_or_aggregate(
         self, message: Message, *, window_minutes: int = 10
@@ -103,7 +103,7 @@ class MessageRepository:
             message.id = msg_id
         return msg_id, True
 
-    async def _select_active_dup(self, fp: str, cutoff: str) -> object | None:
+    async def _select_active_dup(self, fp: str, cutoff: str) -> Any | None:
         cursor = await self._db.connection.execute(
             """
             SELECT id, count FROM messages
@@ -116,9 +116,10 @@ class MessageRepository:
             (fp, cutoff),
         )
         try:
-            return await cursor.fetchone()
+            row = await cursor.fetchone()
         finally:
             await cursor.close()
+        return row
 
     async def _insert_in_tx(self, message: Message, fp: str) -> int:
         ts = message.timestamp_iso
@@ -159,7 +160,7 @@ class MessageRepository:
         await self._db.connection.commit()
         ok = cursor.rowcount > 0
         await cursor.close()
-        return ok
+        return bool(ok)
 
     async def set_severity(self, message_id: int, severity: str) -> bool:
         """UI-Inline-Edit: Severity einer einzelnen Nachricht aendern."""
@@ -172,7 +173,7 @@ class MessageRepository:
         await self._db.connection.commit()
         ok = cursor.rowcount > 0
         await cursor.close()
-        return ok
+        return bool(ok)
 
     async def delete_filtered(
         self,
@@ -344,7 +345,7 @@ class MessageRepository:
         await self._db.connection.commit()
         deleted = cursor.rowcount > 0
         await cursor.close()
-        return deleted
+        return bool(deleted)
 
     async def list_recent(self, limit: int = 100) -> list[Message]:
         """Liefert die juengsten `limit` Nachrichten (timestamp DESC, dann id DESC)."""
@@ -521,7 +522,7 @@ class WebhookConfigRepository:
         if new_id is None:
             raise RuntimeError("INSERT did not produce a lastrowid")
         cfg.id = new_id
-        return new_id
+        return int(new_id)
 
     async def get(self, webhook_id: str) -> WebhookConfig | None:
         row = await self._db.fetch_one(
@@ -560,7 +561,7 @@ class WebhookConfigRepository:
         await self._db.connection.commit()
         deleted = cursor.rowcount > 0
         await cursor.close()
-        return deleted
+        return bool(deleted)
 
     async def list_all(self) -> list[WebhookConfig]:
         rows = await self._db.fetch_all("SELECT * FROM webhook_configs ORDER BY created_at DESC")

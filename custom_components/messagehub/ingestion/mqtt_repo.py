@@ -84,7 +84,7 @@ class MqttTopicRepository:
         await self._db.connection.commit()
         deleted = cursor.rowcount > 0
         await cursor.close()
-        return deleted
+        return bool(deleted)
 
     async def list_all(self) -> list[MqttTopic]:
         rows = await self._db.fetch_all("SELECT * FROM mqtt_topics ORDER BY topic_pattern")

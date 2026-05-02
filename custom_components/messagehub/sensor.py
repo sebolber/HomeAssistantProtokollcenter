@@ -156,7 +156,7 @@ class SourceHealthSensor(_BaseMessageSensor):
         self._attr_native_value = worst if sources else 100
         self._attr_extra_state_attributes = {
             "source_scores": scores,
-            "worst_source": min(scores, key=scores.get) if scores else None,
+            "worst_source": min(scores, key=lambda k: scores[k]) if scores else None,
         }
 
 

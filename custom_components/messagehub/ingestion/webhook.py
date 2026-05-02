@@ -188,7 +188,8 @@ def _get_repo(hass: HomeAssistant) -> MessageRepository | None:
     if not domain_data:
         return None
     state = next(iter(domain_data.values()))
-    return state.get("repository")
+    repo: MessageRepository | None = state.get("repository")
+    return repo
 
 
 async def _enrich_knx(  # noqa: PLR0911

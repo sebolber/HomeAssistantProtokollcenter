@@ -255,7 +255,8 @@ def _async_register_remediation_listener(hass: HomeAssistant, database: Any) -> 
         if cache["hooks"] is None or now - cache["ts"] > cache_ttl:
             cache["hooks"] = await repo.list_enabled()
             cache["ts"] = now
-        return cache["hooks"]
+        hooks: list[Any] = cache["hooks"]
+        return hooks
 
     async def _on_added(event: Any) -> None:
         try:
@@ -719,7 +720,7 @@ async def _async_register_panel(hass: HomeAssistant) -> None:
     if "messagehub" in hass.data.get("frontend_panels", {}):
         return
     try:
-        await panel_custom.async_register_panel(  # type: ignore[attr-defined]
+        await panel_custom.async_register_panel(
             hass,
             webcomponent_name="messagehub-panel",
             frontend_url_path="messagehub",
@@ -782,7 +783,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await database.close()
     if not domain_data and hass.services.has_service(DOMAIN, SERVICE_ADD_MESSAGE):
         hass.services.async_remove(DOMAIN, SERVICE_ADD_MESSAGE)
-    return unload_ok
+    return bool(unload_ok)
 
 
 def _register_services(hass: HomeAssistant, repository: MessageRepository) -> None:

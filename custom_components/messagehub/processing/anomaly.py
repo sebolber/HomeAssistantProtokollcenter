@@ -41,9 +41,9 @@ def is_anomaly(metric: SourceMetric, count_in_bucket: int) -> bool:
     min_samples = 10
     if metric.samples < min_samples:
         return False
-    stddev = metric.ewma_variance**0.5
-    threshold = metric.ewma_rate + SIGMA_FACTOR * stddev
-    return count_in_bucket > threshold
+    stddev: float = metric.ewma_variance**0.5
+    threshold: float = metric.ewma_rate + SIGMA_FACTOR * stddev
+    return bool(count_in_bucket > threshold)
 
 
 class SourceMetricsRepository:

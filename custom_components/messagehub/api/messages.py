@@ -815,7 +815,8 @@ async def _load_from_storage_file(hass: HomeAssistant) -> list[dict[str, Any]]:
         for p in candidates:
             if p.is_file():
                 try:
-                    return _json.loads(p.read_text(encoding="utf-8"))
+                    parsed: dict[str, Any] = _json.loads(p.read_text(encoding="utf-8"))
+                    return parsed
                 except (OSError, ValueError):
                     continue
         return None
