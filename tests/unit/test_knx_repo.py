@@ -146,3 +146,18 @@ def test_to_dict_normalizes_log_enabled_to_bool() -> None:
     assert addr.to_dict()["log_enabled"] is True
     addr2 = KnxAddress(address="1/2/4", label="y", log_enabled=0)  # type: ignore[arg-type]
     assert addr2.to_dict()["log_enabled"] is False
+
+
+def test_to_dict_covers_all_dataclass_fields() -> None:
+    """Contract-Test: wenn jemand der KnxAddress ein Feld hinzufuegt,
+    soll dieser Test sofort schlagen, falls er es in to_dict() vergisst.
+    So bleibt das JSON-Schema strukturell mit dem Modell synchron."""
+    from dataclasses import fields
+
+    addr = KnxAddress(address="1/2/3", label="x")
+    expected_keys = {f.name for f in fields(KnxAddress)}
+    actual_keys = set(addr.to_dict().keys())
+    missing = expected_keys - actual_keys
+    extra = actual_keys - expected_keys
+    assert not missing, f"to_dict() fehlt Felder: {missing}"
+    assert not extra, f"to_dict() hat unbekannte Felder: {extra}"
