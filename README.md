@@ -251,6 +251,9 @@ Settings → Geräte & Dienste → Message Hub → **Konfigurieren**:
 | `weekly_notify_service` | leer | z. B. `notify.email_admin` — bekommt jeden Sonntag den Wochenreport |
 | `syslog_enabled` | false | UDP-Syslog-Listener aktivieren |
 | `syslog_port` | 5514 | Port (Standard-Syslog 514 braucht Root, daher 5514 als Default) |
+| `knx_alarm_busload_pct` | 25.0 | Buslast-Schwellwert in % für `KnxStatsAlarms`-Trigger (Iter 87 / P2-2) |
+| `knx_alarm_repeat_rate_pct` | 0.5 | Wiederhol-Quote in % über der ein Alarm feuert |
+| `knx_alarm_silence_count` | 1 | Min. Anzahl stummer Geräte für Stille-Alarm |
 
 ## Nachrichten erzeugen
 

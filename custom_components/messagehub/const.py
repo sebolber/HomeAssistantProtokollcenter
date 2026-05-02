@@ -120,6 +120,12 @@ KNX_ALARM_BUSLOAD_PCT_DEFAULT: Final[float] = 25.0  # > X% Buslast
 KNX_ALARM_REPEAT_RATE_PCT_DEFAULT: Final[float] = 0.5  # > X% Wiederholungen
 KNX_ALARM_SILENCE_COUNT_DEFAULT: Final[int] = 1  # >= X stumme Geraete
 
+# Iter 87 / P2-2: Alarm-Schwellen ueber Config-Flow konfigurierbar.
+# Keys fuer entry.options.
+OPT_KNX_ALARM_BUSLOAD_PCT: Final[str] = "knx_alarm_busload_pct"
+OPT_KNX_ALARM_REPEAT_RATE_PCT: Final[str] = "knx_alarm_repeat_rate_pct"
+OPT_KNX_ALARM_SILENCE_COUNT: Final[str] = "knx_alarm_silence_count"
+
 # Iter 36: Buslast-%-Berechnung (Feature A).
 # KNX TP1 traegt 9600 bps physikalisch. Ein durchschnittliches Telegramm
 # belegt inkl. Inter-Frame-Pausen (50 Bit vor + 15 Bit nach) und ueblicher

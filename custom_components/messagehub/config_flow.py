@@ -20,8 +20,14 @@ from .const import (
     DEFAULT_RETENTION_INFO_DAYS,
     DEFAULT_RETENTION_WARNING_DAYS,
     DOMAIN,
+    KNX_ALARM_BUSLOAD_PCT_DEFAULT,
+    KNX_ALARM_REPEAT_RATE_PCT_DEFAULT,
+    KNX_ALARM_SILENCE_COUNT_DEFAULT,
     OPT_AGGREGATION_WINDOW_MINUTES,
     OPT_HARD_CAP_TOTAL,
+    OPT_KNX_ALARM_BUSLOAD_PCT,
+    OPT_KNX_ALARM_REPEAT_RATE_PCT,
+    OPT_KNX_ALARM_SILENCE_COUNT,
     OPT_LOG_LEVEL,
     OPT_RETENTION_DEBUG_DAYS,
     OPT_RETENTION_ERROR_DAYS,
@@ -108,6 +114,28 @@ class MessageHubOptionsFlow(OptionsFlow):
                     "syslog_port",
                     default=opts.get("syslog_port", 5514),
                 ): vol.All(vol.Coerce(int), vol.Range(min=1024, max=65535)),
+                # Iter 87 / P2-2: KNX-Alarm-Schwellen konfigurierbar.
+                vol.Optional(
+                    OPT_KNX_ALARM_BUSLOAD_PCT,
+                    default=opts.get(
+                        OPT_KNX_ALARM_BUSLOAD_PCT,
+                        KNX_ALARM_BUSLOAD_PCT_DEFAULT,
+                    ),
+                ): vol.All(vol.Coerce(float), vol.Range(min=1.0, max=100.0)),
+                vol.Optional(
+                    OPT_KNX_ALARM_REPEAT_RATE_PCT,
+                    default=opts.get(
+                        OPT_KNX_ALARM_REPEAT_RATE_PCT,
+                        KNX_ALARM_REPEAT_RATE_PCT_DEFAULT,
+                    ),
+                ): vol.All(vol.Coerce(float), vol.Range(min=0.0, max=100.0)),
+                vol.Optional(
+                    OPT_KNX_ALARM_SILENCE_COUNT,
+                    default=opts.get(
+                        OPT_KNX_ALARM_SILENCE_COUNT,
+                        KNX_ALARM_SILENCE_COUNT_DEFAULT,
+                    ),
+                ): vol.All(vol.Coerce(int), vol.Range(min=1, max=1000)),
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)

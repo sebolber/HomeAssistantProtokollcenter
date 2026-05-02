@@ -6,6 +6,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 87 — P2-2 Alarm-Schwellen via Config-Flow)
+- **3 neue Config-Flow-Options** im OptionsFlow: `knx_alarm_busload_pct`,
+  `knx_alarm_repeat_rate_pct`, `knx_alarm_silence_count`. Setzt User
+  via Settings → Geräte & Dienste → Message Hub → Konfigurieren.
+- **`KnxStatsAlarmsView`** liest die Werte aus dem ersten ConfigEntry
+  (`_first_entry_options`-Helper) und nutzt sie als Defaults — Query-
+  Param-Override gewinnt weiter.
+- README-Tabelle „Optionen" um die drei Schlüssel ergänzt.
+
 ### Code-Hygiene + Doku (Iter 86 — LOW-Findings Sammel 2)
 - **CR-3 Magic Numbers extrahiert**: Trend-Severity-Schwellen
   (25 / 100 / 300 % Δ) als benannte Konstanten am Modul-Top von

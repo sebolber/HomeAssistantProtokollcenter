@@ -98,6 +98,21 @@ def _service(hass: Any) -> KnxStatsService | None:
     return KnxStatsService(KnxStatsRepository(db))
 
 
+def _first_entry_options(hass: Any) -> dict[str, Any]:
+    """Iter 87 / P2-2: Liefert die `options` des ersten ConfigEntry,
+    aus dem die Alarm-Schwellen u. a. ueberschrieben werden koennen.
+
+    Defensiv: bei nicht-initialisiertem ConfigEntry-Stack gibt's leeres
+    Dict — Aufrufer fallen auf hardcoded Defaults zurueck.
+    """
+    entries = list(hass.config_entries.async_entries(DOMAIN)) if hasattr(
+        hass, "config_entries"
+    ) else []
+    if not entries:
+        return {}
+    return dict(entries[0].options or {})
+
+
 class KnxStatsSummaryView(RequireAdminView):
     url = "/api/messagehub/knx-stats/summary"
     name = "api:messagehub:knx-stats:summary"
@@ -395,19 +410,32 @@ class KnxStatsAlarmsView(RequireAdminView):
         from_iso, to_iso = parse_iso_period(
             request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
         )
+        # Iter 87 / P2-2: Alarm-Schwellen aus Config-Flow-Options
+        # auslesen, fallback auf hardcoded Defaults. Query-Param-Override
+        # gewinnt (fuer Frontend-Tests + manuelle Overrides).
+        from ..const import (  # noqa: PLC0415
+            OPT_KNX_ALARM_BUSLOAD_PCT,
+            OPT_KNX_ALARM_REPEAT_RATE_PCT,
+            OPT_KNX_ALARM_SILENCE_COUNT,
+        )
+
+        opts = _first_entry_options(request.app["hass"])
+        opt_busload = float(opts.get(OPT_KNX_ALARM_BUSLOAD_PCT, KNX_ALARM_BUSLOAD_PCT_DEFAULT))
+        opt_repeat = float(
+            opts.get(OPT_KNX_ALARM_REPEAT_RATE_PCT, KNX_ALARM_REPEAT_RATE_PCT_DEFAULT)
+        )
+        opt_silence = int(
+            opts.get(OPT_KNX_ALARM_SILENCE_COUNT, KNX_ALARM_SILENCE_COUNT_DEFAULT)
+        )
         try:
-            busload_th = float(
-                request.query.get("busload_threshold", KNX_ALARM_BUSLOAD_PCT_DEFAULT)
-            )
-            repeat_th = float(
-                request.query.get("repeat_threshold", KNX_ALARM_REPEAT_RATE_PCT_DEFAULT)
-            )
+            busload_th = float(request.query.get("busload_threshold", opt_busload))
+            repeat_th = float(request.query.get("repeat_threshold", opt_repeat))
         except (ValueError, TypeError) as err:
             raise web.HTTPBadRequest(reason="invalid threshold") from err
         silence_th = parse_int_param(
             request.query,
             "silence_threshold",
-            KNX_ALARM_SILENCE_COUNT_DEFAULT,
+            opt_silence,
             min_value=1,
             max_value=1000,
         )
