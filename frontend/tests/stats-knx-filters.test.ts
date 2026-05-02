@@ -71,6 +71,20 @@ function makeApi(spy?: { calls: KnxStatsSummaryDto[] }): ApiClient {
       },
       series: [],
     })),
+    getKnxStatsHealthScore: vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      score: 87,
+      severity: "yellow" as const,
+      components: { repeat: 80, busload: 75, silence: 100, alarms: 100 },
+      findings: [
+        {
+          severity: "warn" as const,
+          code: "high-repeat-rate",
+          message: "Wiederhol-Quote 2,00 % (Empfehlung <0,50 %)",
+        },
+      ],
+    })),
   } as unknown as ApiClient;
 }
 
@@ -119,6 +133,22 @@ describe("stats-knx-view filter bar", () => {
     expect(text).toContain("312");
     expect(text).toContain("22");
     expect(text).toContain("6,4");
+  });
+
+  it("Iter 37: Health-Score-Card zeigt Score + Findings", async () => {
+    const el = await mount();
+    const card = el.shadowRoot!.querySelector(".health-score");
+    expect(card).not.toBeNull();
+    expect(card!.classList.contains("health-score--yellow")).toBe(true);
+    const value = card!.querySelector(".health-score__value");
+    expect(value!.textContent?.trim()).toBe("87");
+    // Komponenten-Bars sind alle 4 sichtbar
+    const components = card!.querySelectorAll(".health-score__component");
+    expect(components.length).toBe(4);
+    // Finding mit Wiederhol-Quote ist enthalten
+    const findings = card!.querySelectorAll(".health-finding");
+    expect(findings.length).toBe(1);
+    expect(findings[0].textContent).toContain("Wiederhol-Quote");
   });
 
   it("Iter 36: Busload-KPI zeigt max + jetzt + Avg + Bucket-Groesse", async () => {

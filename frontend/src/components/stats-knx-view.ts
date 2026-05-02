@@ -14,6 +14,7 @@ import type {
   KnxStatsBusloadDto,
   KnxStatsFilters,
   KnxStatsGaDetailDto,
+  KnxStatsHealthScoreDto,
   KnxStatsOrphansDto,
   KnxStatsSilenceDto,
   KnxStatsSummaryDto,
@@ -90,6 +91,7 @@ export class StatsKnxView extends LitElement {
   @state() private _summary: KnxStatsSummaryDto | null = null;
   @state() private _busHealth: KnxStatsBusHealthDto | null = null;
   @state() private _busload: KnxStatsBusloadDto | null = null;
+  @state() private _health: KnxStatsHealthScoreDto | null = null;
   @state() private _silence: KnxStatsSilenceDto | null = null;
   @state() private _orphans: KnxStatsOrphansDto | null = null;
   @state() private _alarms: KnxStatsAlarmsDto | null = null;
@@ -130,22 +132,32 @@ export class StatsKnxView extends LitElement {
     this._error = "";
     try {
       const f = this._apiFilters();
-      const [summary, top, topBySource, busHealth, silence, orphans, alarms, busload] =
-        await Promise.all([
-          this.api.getKnxStatsSummary(f),
-          this.api.getKnxStatsTop(f),
-          this.api.getKnxStatsTopBySource(f),
-          this.api.getKnxStatsBusHealth(f),
-          this.api.getKnxStatsSilence({
-            ...f,
-            maxSilenceMinutes: this._suggestSilenceMinutes(),
-          }),
-          this.api.getKnxStatsOrphans(f).catch(() => null),
-          this.api.getKnxStatsAlarms(f).catch(() => null),
-          this.api
-            .getKnxStatsBusload(f, this._suggestBusloadBucketSeconds())
-            .catch(() => null),
-        ]);
+      const [
+        summary,
+        top,
+        topBySource,
+        busHealth,
+        silence,
+        orphans,
+        alarms,
+        busload,
+        health,
+      ] = await Promise.all([
+        this.api.getKnxStatsSummary(f),
+        this.api.getKnxStatsTop(f),
+        this.api.getKnxStatsTopBySource(f),
+        this.api.getKnxStatsBusHealth(f),
+        this.api.getKnxStatsSilence({
+          ...f,
+          maxSilenceMinutes: this._suggestSilenceMinutes(),
+        }),
+        this.api.getKnxStatsOrphans(f).catch(() => null),
+        this.api.getKnxStatsAlarms(f).catch(() => null),
+        this.api
+          .getKnxStatsBusload(f, this._suggestBusloadBucketSeconds())
+          .catch(() => null),
+        this.api.getKnxStatsHealthScore(f).catch(() => null),
+      ]);
       this._summary = summary;
       this._top = top.items;
       this._topBySource = topBySource.items;
@@ -154,6 +166,7 @@ export class StatsKnxView extends LitElement {
       this._orphans = orphans;
       this._alarms = alarms;
       this._busload = busload;
+      this._health = health;
       // Timeline fuer Top-5 GAs (mehr Linien werden unleserlich).
       const topGas = top.items.slice(0, 5).map((r) => r.ga);
       if (topGas.length > 0) {
@@ -176,6 +189,7 @@ export class StatsKnxView extends LitElement {
       this._orphans = null;
       this._alarms = null;
       this._busload = null;
+      this._health = null;
     } finally {
       this._loading = false;
     }
@@ -439,6 +453,75 @@ export class StatsKnxView extends LitElement {
     `;
   }
 
+  private _renderHealthScore(): TemplateResult {
+    const h = this._health!;
+    return html`
+      <section class=${`mh-card health-score health-score--${h.severity}`}>
+        <header class="card-head">
+          <h3>Bus-Health-Score</h3>
+          <span class="muted small">aggregiert aus 4 KPIs · letzte ${this._filters.periodId}</span>
+        </header>
+        <div class="health-score__body">
+          <div class="health-score__big">
+            <span class="health-score__value">${h.score}</span>
+            <span class="health-score__unit">/ 100</span>
+            <span class="health-score__label">${this._healthLabel(h.severity)}</span>
+          </div>
+          <div class="health-score__components">
+            ${(["repeat", "busload", "silence", "alarms"] as const).map(
+              (key) => html`<div class="health-score__component">
+                <span class="health-score__component-label">${this._componentLabel(key)}</span>
+                <div class="health-score__bar">
+                  <div
+                    class="health-score__bar-fill"
+                    style=${`width: ${h.components[key]}%`}
+                  ></div>
+                </div>
+                <span class="health-score__component-value">${h.components[key]}</span>
+              </div>`
+            )}
+          </div>
+          ${h.findings.length > 0
+            ? html`<ul class="health-score__findings">
+                ${h.findings.map(
+                  (f) => html`<li class=${`health-finding health-finding--${f.severity}`}>
+                    <span class="health-finding__dot"></span>
+                    <span>${f.message}</span>
+                  </li>`
+                )}
+              </ul>`
+            : html`<p class="muted small">Alle Indikatoren im gruenen Bereich.</p>`}
+        </div>
+      </section>
+    `;
+  }
+
+  private _healthLabel(severity: "green" | "yellow" | "orange" | "red"): string {
+    switch (severity) {
+      case "green":
+        return "gesund";
+      case "yellow":
+        return "leicht erhoeht";
+      case "orange":
+        return "auffaellig";
+      case "red":
+        return "kritisch";
+    }
+  }
+
+  private _componentLabel(key: "repeat" | "busload" | "silence" | "alarms"): string {
+    switch (key) {
+      case "repeat":
+        return "Wiederholungen";
+      case "busload":
+        return "Buslast-Spitze";
+      case "silence":
+        return "stumme Geraete";
+      case "alarms":
+        return "offene Alarme";
+    }
+  }
+
   private _formatBucket(seconds: number): string {
     if (seconds < 60) return `${seconds}s`;
     if (seconds < 3600) return `${Math.round(seconds / 60)}min`;
@@ -475,6 +558,8 @@ export class StatsKnxView extends LitElement {
         ${this._alarms !== null && this._alarms.triggered_count > 0
           ? this._renderAlarmBanner()
           : nothing}
+
+        ${this._health !== null ? this._renderHealthScore() : nothing}
 
         <section class="mh-card kpi-card">
           <header class="card-head">
@@ -1213,6 +1298,128 @@ export class StatsKnxView extends LitElement {
       }
       .busload--danger {
         border-left: 3px solid var(--mh-error);
+      }
+      /* Iter 37 (Feature K): Bus-Health-Score-Card */
+      .health-score {
+        border-left: 4px solid var(--mh-divider);
+      }
+      .health-score--green {
+        border-left-color: var(--mh-success);
+      }
+      .health-score--yellow {
+        border-left-color: var(--mh-info);
+      }
+      .health-score--orange {
+        border-left-color: var(--mh-warning);
+      }
+      .health-score--red {
+        border-left-color: var(--mh-error);
+      }
+      .health-score__body {
+        display: grid;
+        grid-template-columns: minmax(140px, 200px) 1fr;
+        gap: var(--mh-space-4);
+        align-items: start;
+      }
+      @media (max-width: 640px) {
+        .health-score__body {
+          grid-template-columns: 1fr;
+        }
+      }
+      .health-score__big {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+      }
+      .health-score__value {
+        font-size: 3rem;
+        font-weight: var(--mh-weight-bold);
+        line-height: 1;
+        color: var(--mh-fg);
+        font-variant-numeric: tabular-nums;
+      }
+      .health-score__unit {
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+      }
+      .health-score__label {
+        margin-top: var(--mh-space-2);
+        font-size: var(--mh-text-sm);
+        font-weight: var(--mh-weight-semibold);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .health-score--green .health-score__label {
+        color: var(--mh-success);
+      }
+      .health-score--yellow .health-score__label {
+        color: var(--mh-info);
+      }
+      .health-score--orange .health-score__label {
+        color: var(--mh-warning);
+      }
+      .health-score--red .health-score__label {
+        color: var(--mh-error);
+      }
+      .health-score__components {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-2);
+      }
+      .health-score__component {
+        display: grid;
+        grid-template-columns: 130px 1fr 30px;
+        align-items: center;
+        gap: var(--mh-space-2);
+        font-size: var(--mh-text-sm);
+      }
+      .health-score__component-label {
+        color: var(--mh-fg-muted);
+      }
+      .health-score__bar {
+        height: 6px;
+        background: var(--mh-divider);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .health-score__bar-fill {
+        height: 100%;
+        background: var(--mh-success);
+        transition: width 0.2s ease;
+      }
+      .health-score__component-value {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        color: var(--mh-fg);
+      }
+      .health-score__findings {
+        grid-column: 1 / -1;
+        list-style: none;
+        margin: var(--mh-space-3) 0 0 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-1);
+      }
+      .health-finding {
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-2);
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg);
+      }
+      .health-finding__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--mh-info);
+      }
+      .health-finding--warn .health-finding__dot {
+        background: var(--mh-warning);
+      }
+      .health-finding--critical .health-finding__dot {
+        background: var(--mh-error);
       }
       .severity-counts {
         display: flex;

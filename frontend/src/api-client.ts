@@ -255,6 +255,26 @@ export interface KnxStatsBusloadDto {
   series: KnxStatsBusloadBucket[];
 }
 
+export interface KnxStatsHealthFinding {
+  severity: "info" | "warn" | "critical";
+  code: string;
+  message: string;
+}
+
+export interface KnxStatsHealthScoreDto {
+  from: string;
+  to: string;
+  score: number;
+  severity: "green" | "yellow" | "orange" | "red";
+  components: {
+    repeat: number;
+    busload: number;
+    silence: number;
+    alarms: number;
+  };
+  findings: KnxStatsHealthFinding[];
+}
+
 export interface KnxStatsFilters {
   from?: string;
   to?: string;
@@ -786,6 +806,14 @@ export class ApiClient {
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxStatsBusloadDto;
+  }
+
+  async getKnxStatsHealthScore(f: KnxStatsFilters): Promise<KnxStatsHealthScoreDto> {
+    const params = this._knxStatsParams(f);
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/health-score?${params.toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsHealthScoreDto;
   }
 
   async unacknowledgeKnxGa(ga: string): Promise<void> {

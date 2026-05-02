@@ -377,3 +377,166 @@ def detect_patterns(
     # (z. B. Status-Schleife nur fuer DPT 1.001).
     _ = dpt
     return findings
+
+
+# =============================================================================
+# Iter 37 (Feature K): Bus-Health-Score 0-100
+# =============================================================================
+#
+# Aggregiert die vier KPIs zu einer Single-Glance-Zahl. Reine Funktion;
+# der Service holt die Inputs aus Repo-Aggregaten und reicht sie hier
+# durch. Die Schwellen sind bewusst konservativ, damit der Score in
+# einer gesunden Anlage knapp unter 100 schwankt — Abweichungen fallen
+# damit sofort auf.
+
+# Wertebereich pro Komponente (oberhalb wird auf 0 geclampt):
+_REPEAT_PCT_LIMIT: Final[float] = 10.0  # 10 % Wiederholungen -> 0 Punkte
+_BUSLOAD_PCT_LIMIT: Final[float] = 50.0  # 50 % Buslast -> 0 Punkte
+_SILENCE_DEVICES_LIMIT: Final[int] = 10
+_OPEN_ALARMS_LIMIT: Final[int] = 20
+
+# Empfehlungs-Schwellen (Alles darueber generiert ein Finding).
+_REPEAT_PCT_FINDING_THRESHOLD: Final[float] = 0.5  # KNX-Praxis "<0,5 %"
+_BUSLOAD_PCT_FINDING_THRESHOLD: Final[float] = 20.0
+_SILENCE_FINDING_THRESHOLD: Final[int] = 1
+_ALARMS_FINDING_THRESHOLD: Final[int] = 1
+
+# Schwellen, ab denen ein Finding von "warn" auf "critical" eskaliert.
+_REPEAT_PCT_CRITICAL: Final[float] = 5.0
+_BUSLOAD_PCT_CRITICAL: Final[float] = 40.0
+_ALARMS_CRITICAL: Final[int] = 5
+
+# Gewichtung der Komponenten (Summe = 1.0).
+_WEIGHT_REPEAT: Final[float] = 0.30
+_WEIGHT_BUSLOAD: Final[float] = 0.30
+_WEIGHT_SILENCE: Final[float] = 0.20
+_WEIGHT_ALARMS: Final[float] = 0.20
+
+# Severity-Schwellen (Score >= X -> Severity).
+_SCORE_GREEN_MIN: Final[int] = 90
+_SCORE_YELLOW_MIN: Final[int] = 70
+_SCORE_ORANGE_MIN: Final[int] = 50
+
+
+@dataclass(frozen=True, slots=True)
+class HealthScoreInput:
+    """Eingaben fuer den Bus-Health-Score.
+
+    Alle Werte stammen aus existierenden Repo-Aggregaten:
+    - repeat_ratio_pct: KnxStatsRepository.bus_health
+    - busload_max_pct: busload_timeseries -> max_pct (Iter 36)
+    - silent_devices: Anzahl mit alarm=True aus silence_detect
+    - open_alarms: alarms.triggered_count (Iter 15)
+    """
+
+    repeat_ratio_pct: float
+    busload_max_pct: float
+    silent_devices: int
+    open_alarms: int
+
+
+class HealthFinding(dict):  # type: ignore[type-arg]
+    """TypedDict-aehnlich; einfach als dict serialisierbar fuer JSON."""
+
+    severity: str
+    code: str
+    message: str
+
+
+def _component_health(value: float, limit: float) -> int:
+    """Linearer Score 100→0 zwischen 0 und limit, geclamped."""
+    if value <= 0.0 or limit <= 0.0:
+        return 100
+    pct = min(value / limit, 1.0)
+    return max(0, round(100 * (1.0 - pct)))
+
+
+def _severity_for_score(score: int) -> KnxSeverity:
+    if score >= _SCORE_GREEN_MIN:
+        return "green"
+    if score >= _SCORE_YELLOW_MIN:
+        return "yellow"
+    if score >= _SCORE_ORANGE_MIN:
+        return "orange"
+    return "red"
+
+
+def _de_pct(value: float) -> str:
+    """Locale-freier de-DE-Stil mit Komma + 2 Nachkommastellen."""
+    return f"{value:.2f}".replace(".", ",")
+
+
+def _build_health_findings(input_: HealthScoreInput) -> list[HealthFinding]:
+    out: list[HealthFinding] = []
+    if input_.repeat_ratio_pct > _REPEAT_PCT_FINDING_THRESHOLD:
+        out.append(
+            HealthFinding(
+                severity="warn" if input_.repeat_ratio_pct < _REPEAT_PCT_CRITICAL else "critical",
+                code="high-repeat-rate",
+                message=(
+                    f"Wiederhol-Quote {_de_pct(input_.repeat_ratio_pct)} % "
+                    f"(Empfehlung <{_de_pct(_REPEAT_PCT_FINDING_THRESHOLD)} %)"
+                ),
+            )
+        )
+    if input_.busload_max_pct > _BUSLOAD_PCT_FINDING_THRESHOLD:
+        out.append(
+            HealthFinding(
+                severity="warn" if input_.busload_max_pct < _BUSLOAD_PCT_CRITICAL else "critical",
+                code="high-busload",
+                message=(
+                    f"Buslast-Spitze {_de_pct(input_.busload_max_pct)} % "
+                    f"(Empfehlung <{int(_BUSLOAD_PCT_FINDING_THRESHOLD)} %)"
+                ),
+            )
+        )
+    if input_.silent_devices >= _SILENCE_FINDING_THRESHOLD:
+        out.append(
+            HealthFinding(
+                severity="warn",
+                code="silent-devices",
+                message=(
+                    f"{input_.silent_devices} stumme(s) Geraet(e) — "
+                    f"Source-Adressen ohne Telegramm im Beobachtungsfenster"
+                ),
+            )
+        )
+    if input_.open_alarms >= _ALARMS_FINDING_THRESHOLD:
+        out.append(
+            HealthFinding(
+                severity="warn" if input_.open_alarms < _ALARMS_CRITICAL else "critical",
+                code="open-alarms",
+                message=f"{input_.open_alarms} offene Alarm(e) im Zeitraum",
+            )
+        )
+    return out
+
+
+def compute_health_score(input_: HealthScoreInput) -> dict[str, Any]:
+    """Berechnet den Bus-Health-Score aus den vier Eingangs-KPIs.
+
+    Liefert dict mit:
+    - score: int 0..100
+    - severity: green/yellow/orange/red
+    - components: dict pro Komponente (0..100)
+    - findings: list[HealthFinding] mit konkreten Hinweisen
+    """
+    components = {
+        "repeat": _component_health(input_.repeat_ratio_pct, _REPEAT_PCT_LIMIT),
+        "busload": _component_health(input_.busload_max_pct, _BUSLOAD_PCT_LIMIT),
+        "silence": _component_health(float(input_.silent_devices), float(_SILENCE_DEVICES_LIMIT)),
+        "alarms": _component_health(float(input_.open_alarms), float(_OPEN_ALARMS_LIMIT)),
+    }
+    weighted = (
+        _WEIGHT_REPEAT * components["repeat"]
+        + _WEIGHT_BUSLOAD * components["busload"]
+        + _WEIGHT_SILENCE * components["silence"]
+        + _WEIGHT_ALARMS * components["alarms"]
+    )
+    score = max(0, min(100, round(weighted)))
+    return {
+        "score": score,
+        "severity": _severity_for_score(score),
+        "components": components,
+        "findings": _build_health_findings(input_),
+    }

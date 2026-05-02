@@ -20,10 +20,12 @@ from ..const import (
 )
 from .knx_stats import (
     Finding,
+    HealthScoreInput,
     Recommendation,
     TelegramSample,
     build_recommendation,
     classify_severity,
+    compute_health_score,
     detect_patterns,
     recommended_rate_for,
     safe_ratio,
@@ -302,6 +304,50 @@ class KnxStatsService:
         bucket_minutes: int = 10,
     ) -> list[dict[str, Any]]:
         return await self._repo.timeline(from_iso, to_iso, gas=gas, bucket_minutes=bucket_minutes)
+
+    # --- Bus-Health-Score (Iter 37, Feature K) ------------------------------
+
+    async def health_score(
+        self,
+        from_iso: str,
+        to_iso: str,
+        *,
+        now_iso: str,
+        max_silence_minutes: int,
+    ) -> dict[str, Any]:
+        """Aggregiert die vier KPIs zu einem 0..100-Score + Findings.
+
+        Verwendet als Buslast-Wert die Spitze (max_pct) aus dem 10s/60s-
+        Bucketing — fuer kurze Bursts (Sturm-Telegramme) ist die Spitze
+        aussagekraeftiger als der Period-Avg.
+        """
+        bus_h = await self._repo.bus_health(from_iso, to_iso)
+        busload = await self.busload(from_iso, to_iso)
+        silence_rows = await self._repo.silence_detect(
+            from_iso,
+            to_iso,
+            now_iso=now_iso,
+            max_silence_minutes=max_silence_minutes,
+        )
+        silent_devices = sum(1 for r in silence_rows if r["alarm"])
+        # Open-Alarms haben wir hier nicht direkt — die werden im
+        # /alarms-Endpoint gegen User-Schwellen evaluiert. Fuer den Score
+        # zaehlen wir aktuell die "stumm laenger als Limit"-Geraete; die
+        # zwei anderen Default-Regeln (bus_load_above, repeat_rate_above)
+        # gehen bereits ueber repeat_ratio_pct + busload_max_pct in den
+        # Score ein, also waeren sie hier doppelt. Iter 37: open_alarms=0,
+        # Iter 42 erweitert um echte ack-pflichtige Alarme.
+        result = compute_health_score(
+            HealthScoreInput(
+                repeat_ratio_pct=float(bus_h["ratio_pct"]),
+                busload_max_pct=float(busload["summary"]["max_pct"]),
+                silent_devices=silent_devices,
+                open_alarms=0,
+            )
+        )
+        result["from"] = from_iso
+        result["to"] = to_iso
+        return result
 
     async def evaluate_alarms(
         self,

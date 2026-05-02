@@ -377,6 +377,43 @@ class KnxStatsSilenceView(RequireAdminView):
         )
 
 
+class KnxStatsHealthScoreView(RequireAdminView):
+    """Iter 37 (Feature K): Bus-Health-Score 0..100 + Findings.
+
+    Single-Glance-KPI fuer Stats-Tab + (optional) Sensor-Quelle. Aggregiert
+    Wiederhol-Quote, Buslast-Spitze, Stille-Geraete und offene Alarme.
+    """
+
+    url = "/api/messagehub/knx-stats/health-score"
+    name = "api:messagehub:knx-stats:health-score"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        svc = _service(request.app["hass"])
+        if svc is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        max_silence = parse_int_param(
+            request.query,
+            "max_silence_min",
+            1440,
+            min_value=1,
+            max_value=43200,
+        )
+        from datetime import UTC, datetime  # noqa: PLC0415
+
+        now_iso = datetime.now(UTC).isoformat(timespec="seconds")
+        result = await svc.health_score(
+            from_iso=from_iso,
+            to_iso=to_iso,
+            now_iso=now_iso,
+            max_silence_minutes=max_silence,
+        )
+        return self.json(result)
+
+
 class KnxStatsBusloadView(RequireAdminView):
     """Iter 36 (Feature A): Buslast-%-KPI mit konfigurierbarem Bucket.
 
@@ -570,6 +607,7 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsAlarmsView())
     hass.http.register_view(KnxStatsBusHealthView())
     hass.http.register_view(KnxStatsBusloadView())
+    hass.http.register_view(KnxStatsHealthScoreView())
     hass.http.register_view(KnxStatsAcknowledgeView())
     hass.http.register_view(KnxStatsAcknowledgeBulkView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())
