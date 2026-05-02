@@ -12,6 +12,11 @@ und ein neuer REST-Endpoint für gezielte MTTR-Abfragen.
 
 ### Hinzugefügt
 
+- **App-Icon** (`assets/icon.svg` + PNGs in 256/512/1024 px, plus
+  `custom_components/messagehub/icon.png` für HACS): Inbox-Symbol mit
+  drei Severity-Dots (rot/gelb/grün) auf HA-Blau-Tile. Erscheint in
+  der HACS-UI, im Panel-Header (als Inline-SVG mit `--mh-accent`) und
+  im GitHub-README.
 - **REST-Endpoint** `GET /api/messagehub/mttr?days=N` (default 30, max 365)
   liefert Mean-Time-To-Resolution pro Source als eigener Endpoint.
   Frontends/Skripte können MTTR jetzt abfragen, ohne den ganzen
