@@ -314,65 +314,10 @@ def _async_register_remediation_listener(hass: HomeAssistant, database: Any) -> 
     return hass.bus.async_listen(EVENT_MESSAGE_ADDED, _on_added)
 
 
-async def _async_register_mqtt_subscriptions(
-    hass: HomeAssistant, database: Any, repository: Any
-) -> Any:
-    """Iter 37: registriert MQTT-Subscriptions fuer alle aktivierten topic_patterns."""
-    from .ingestion.mqtt_repo import MqttTopicRepository  # noqa: PLC0415
-    from .storage import Message, Severity  # noqa: PLC0415
-
-    if "mqtt" not in hass.config.components:
-        _LOGGER.debug("mqtt not loaded — skipping MQTT subscriptions")
-        return None
-
-    try:
-        from homeassistant.components import mqtt  # noqa: PLC0415
-    except ImportError:
-        return None
-
-    repo = MqttTopicRepository(database)
-    topics = await repo.list_all()
-    unsubs: list[Any] = []
-
-    for topic in topics:
-        if not topic.enabled:
-            continue
-        sev = Severity.normalise(topic.severity)
-        captured_topic = topic
-
-        async def _handler(message: Any, _t: Any = captured_topic, _s: Any = sev) -> None:
-            try:
-                payload = (
-                    message.payload.decode("utf-8", errors="replace")
-                    if isinstance(message.payload, bytes | bytearray)
-                    else str(message.payload)
-                )
-                msg = Message(
-                    severity=_s,
-                    source=_t.source,
-                    text=f"[{message.topic}] {payload}"[:8000],
-                    metadata={"mqtt_topic": message.topic},
-                )
-                await repository.insert_or_aggregate(msg, window_minutes=10)
-                _fire_added(hass, msg)
-            except (ValueError, TypeError) as err:
-                _LOGGER.debug("MQTT ingest skipped: %s", err)
-
-        try:
-            unsub = await mqtt.async_subscribe(hass, topic.topic_pattern, _handler)
-            unsubs.append(unsub)
-            _LOGGER.info("subscribed to MQTT %s -> %s", topic.topic_pattern, topic.source)
-        except (ValueError, RuntimeError) as err:
-            _LOGGER.warning("MQTT subscribe %s failed: %s", topic.topic_pattern, err)
-
-    def _unsub_all() -> None:
-        import contextlib  # noqa: PLC0415
-
-        for u in unsubs:
-            with contextlib.suppress(ValueError, RuntimeError):
-                u()
-
-    return _unsub_all
+# MQTT-Subscriptions in listeners/mqtt.py extrahiert.
+from .listeners.mqtt import (  # noqa: E402
+    async_register_mqtt_subscriptions as _async_register_mqtt_subscriptions,
+)
 
 
 def _async_register_weekly_report(hass: HomeAssistant, entry: ConfigEntry, database: Any) -> Any:
@@ -408,49 +353,10 @@ def _async_register_weekly_report(hass: HomeAssistant, entry: ConfigEntry, datab
     return async_track_time_change(hass, _job, hour=23, minute=0, second=0)
 
 
-async def _async_register_syslog_listener(
-    hass: HomeAssistant, entry: ConfigEntry, repository: Any
-) -> Any:
-    """Iter 39: optionaler Syslog-UDP-Listener (Default off)."""
-    import asyncio  # noqa: PLC0415
-
-    from .ingestion.syslog import parse_rfc3164  # noqa: PLC0415
-    from .storage import Message  # noqa: PLC0415
-
-    if not entry.options.get("syslog_enabled", False):
-        return None
-    port = int(entry.options.get("syslog_port", 5514))
-    min_port, max_port = 1024, 65535
-    if not (min_port <= port <= max_port):
-        _LOGGER.warning("syslog_port %d ungueltig (%d-%d), skip", port, min_port, max_port)
-        return None
-
-    class _SyslogProtocol(asyncio.DatagramProtocol):
-        def datagram_received(self, data: bytes, addr: Any) -> None:
-            try:
-                line = data.decode("utf-8", errors="replace").strip()
-                parsed = parse_rfc3164(line)
-                msg = Message(
-                    severity=parsed.severity,
-                    source=f"syslog.{parsed.hostname.lower()}"[:64].replace(" ", "-"),
-                    text=parsed.text[:8000] if parsed.text else line[:8000],
-                    metadata={"syslog_facility": parsed.facility, "remote": str(addr)},
-                )
-                hass.async_create_task(repository.insert_or_aggregate(msg, window_minutes=10))
-                _fire_added(hass, msg)
-            except (ValueError, UnicodeDecodeError):
-                pass
-
-    loop = asyncio.get_event_loop()
-    transport, _ = await loop.create_datagram_endpoint(
-        _SyslogProtocol, local_addr=("0.0.0.0", port)
-    )
-    _LOGGER.info("syslog UDP listener active on :%d", port)
-
-    def _unsub() -> None:
-        transport.close()
-
-    return _unsub
+# Syslog-Listener nach listeners/syslog.py ausgelagert.
+from .listeners.syslog import (  # noqa: E402
+    async_register_syslog_listener as _async_register_syslog_listener,
+)
 
 
 def _async_register_pattern_mining(hass: HomeAssistant, database: Any, repository: Any) -> Any:
@@ -492,308 +398,35 @@ def _async_register_pattern_mining(hass: HomeAssistant, database: Any, repositor
     return async_track_time_change(hass, _job, hour=4, minute=15, second=0)
 
 
-def _log_knx_event(seen_first: dict[str, bool], ga: str, data: dict[str, Any]) -> None:
-    """Loggt das erste empfangene knx_event auf INFO-Level, alle weiteren auf DEBUG."""
-    if not seen_first["flag"]:
-        seen_first["flag"] = True
-        _LOGGER.info(
-            "messagehub: erstes knx_event empfangen — ga=%s keys=%s",
-            ga,
-            sorted(data.keys()),
-        )
-    else:
-        _LOGGER.debug("knx_event ga=%s data=%s", ga, data)
-
-
-def _telegram_to_knx_event_data(telegram: Any) -> dict[str, Any]:
-    """Wandelt ein xknx-Telegram-Objekt in das knx_event-Datenschema um.
-
-    Damit kann _build_knx_message() weiterhin auf einer einheitlichen
-    Datenstruktur arbeiten — egal ob das Telegramm aus dem
-    HA-Eventbus oder direkt aus dem xknx-Telegram-Hook kommt.
-    """
-    payload = getattr(telegram, "payload", None)
-    payload_type = type(payload).__name__ if payload is not None else None
-    # Telegram-Typ-Strings wie sie HA-KNX im knx_event verwendet:
-    # "GroupValueWrite", "GroupValueRead", "GroupValueResponse"
-    telegramtype = payload_type if payload_type and payload_type.startswith("GroupValue") else None
-    value = getattr(payload, "value", None)
-    raw = getattr(payload, "raw_value", None) or getattr(payload, "value_raw", None)
-    return {
-        "destination": str(getattr(telegram, "destination_address", "")),
-        "source": str(getattr(telegram, "source_address", "")),
-        "telegramtype": telegramtype,
-        "value": value,
-        "data": raw,
-    }
-
-
-def _build_knx_message(cfg: Any, data: dict[str, Any]) -> Any:
-    """Baut die Message-DTO aus knx_event-Payload + GA-Konfiguration."""
-    from .processing.knx_dpt import format_value as format_knx_value  # noqa: PLC0415
-    from .processing.knx_repo import resolve_severity  # noqa: PLC0415
-    from .storage import Message, Severity  # noqa: PLC0415
-
-    telegramtype = data.get("telegramtype")
-    value = data.get("value") if data.get("value") is not None else data.get("data")
-    severity = Severity.normalise(resolve_severity(cfg, value))
-    formatted = format_knx_value(cfg.dpt, value)
-    text = f"{cfg.label} = {formatted}" if formatted else cfg.label
-    if telegramtype and telegramtype != "GroupValueWrite":
-        text = f"{text} ({telegramtype})"
-    return Message(
-        severity=severity,
-        source="knx-bus",
-        text=text,
-        metadata={
-            "knx_ga": data.get("destination"),
-            "knx_label": cfg.label,
-            "knx_dpt": cfg.dpt,
-            "knx_value": value,
-            "knx_source": data.get("source"),
-            "knx_telegramtype": telegramtype,
-        },
-    )
-
-
-def _get_xknx_instance(hass: HomeAssistant) -> Any:
-    """Best-effort: holt die xknx-Instance aus der HA-KNX-Integration.
-
-    HA-KNX legt eine KNXModule-Instanz mit .xknx in hass.data['knx'] ab.
-    Aeltere Versionen nutzen ein dict mit key 'xknx' direkt.
-    Wenn nichts gefunden wird, kommt None zurueck — Caller faellt
-    dann auf den knx_event-Bus zurueck.
-    """
-    knx_data = hass.data.get("knx")
-    if knx_data is None:
-        return None
-    # Variante 1: KNXModule-Objekt mit Attribut xknx
-    xknx = getattr(knx_data, "xknx", None)
-    if xknx is not None:
-        return xknx
-    # Variante 2: dict-Form
-    if isinstance(knx_data, dict):
-        return knx_data.get("xknx")
-    return None
-
-
-def _async_register_knx_listener(hass: HomeAssistant, database: Any, repository: Any) -> Any:
-    """Lauscht auf KNX-Telegramme und loggt nur GAs, die in
-    knx_group_addresses mit log_enabled=1 hinterlegt sind.
-
-    Primaer: direkter Hook in xknx.telegram_queue — damit braucht der
-    User keine 'event:'-Konfiguration in der HA-KNX-Integration. Die
-    messagehub-GA-Whitelist ist single source of truth, kein Doppelt-
-    Pflegen, kein 'event: "*"'-Spam.
-
-    Fallback: HA-Eventbus 'knx_event' — fuer Faelle, in denen die
-    xknx-Instance nicht ueber hass.data zugaenglich ist (z. B.
-    HA-Versionen mit anderer KNX-Modul-Struktur).
-    """
-    from .processing.knx_cache import KnxWhitelistCache  # noqa: PLC0415
-    from .processing.knx_repo import KnxAddressRepository  # noqa: PLC0415
-
-    knx_repo = KnxAddressRepository(database)
-    cache = KnxWhitelistCache(knx_repo)
-    # Cache als Singleton in hass.data ablegen — der API-Endpoint
-    # invalidiert ihn beim CRUD, damit der Listener Konfig-Aenderungen
-    # ohne TTL-Wartezeit sieht.
-    hass.data.setdefault(DOMAIN, {}).setdefault("_knx_whitelist_cache", cache)
-    seen_first = {"flag": False}
-
-    async def _ingest(data: dict[str, Any]) -> None:
-        """Gemeinsamer Pfad fuer Telegram-Data — egal aus welcher Quelle."""
-        ga = str(data.get("destination") or "").strip()
-        _log_knx_event(seen_first, ga, data)
-        if not ga:
-            return
-        cfg = await cache.get(ga)
-        if cfg is None:
-            _LOGGER.debug("knx %s: GA nicht in messagehub-Whitelist", ga)
-            return
-        if not cfg.log_enabled:
-            _LOGGER.debug("knx %s: log_enabled=0, skip", ga)
-            return
-        msg = _build_knx_message(cfg, data)
-        await repository.insert_or_aggregate(msg, window_minutes=10)
-        _fire_added(hass, msg)
-        _LOGGER.info("messagehub knx-bus: %s -> %s [%s]", ga, msg.text, msg.severity)
-
-    # ---- Primaer: xknx-Telegram-Hook ----
-    xknx = _get_xknx_instance(hass)
-    if xknx is not None:
-        try:
-            queue = getattr(xknx, "telegram_queue", None) or getattr(xknx, "telegrams", None)
-            if queue is not None and hasattr(queue, "register_telegram_received_cb"):
-
-                async def _on_telegram(telegram: Any) -> None:
-                    try:
-                        await _ingest(_telegram_to_knx_event_data(telegram))
-                    except (ValueError, TypeError, KeyError) as err:
-                        _LOGGER.debug("knx telegram ingest skipped: %s", err)
-
-                queue.register_telegram_received_cb(_on_telegram)
-                _LOGGER.info(
-                    "messagehub: KNX-Listener via xknx-Telegram-Hook aktiv "
-                    "(keine 'event:'-Konfig in HA-KNX noetig)"
-                )
-
-                def _unsub_xknx() -> None:
-                    try:
-                        queue.unregister_telegram_received_cb(_on_telegram)
-                    except (ValueError, AttributeError, TypeError) as err:
-                        _LOGGER.debug("xknx unregister skipped: %s", err)
-
-                return _unsub_xknx
-        except (AttributeError, TypeError) as err:
-            _LOGGER.warning(
-                "messagehub: xknx-Hook nicht verfuegbar (%s) — "
-                "falle auf knx_event-Bus zurueck",
-                err,
-            )
-
-    # ---- Fallback: HA-Eventbus 'knx_event' ----
-    _LOGGER.warning(
-        "messagehub: kein xknx-Hook moeglich — falle auf knx_event-Bus zurueck. "
-        "Damit Telegramme ankommen, in configuration.yaml 'knx: event: <ga-liste>' eintragen."
-    )
-
-    async def _on_knx_event(event: Any) -> None:
-        try:
-            await _ingest(dict(event.data))
-        except (ValueError, TypeError, KeyError) as err:
-            _LOGGER.debug("knx_event ingest skipped: %s", err)
-
-    return hass.bus.async_listen("knx_event", _on_knx_event)
+# KNX-Listener-Funktionen sind nach listeners/knx.py umgezogen.
+# Re-Exports fuer Backward-Compat: Tests und alte Import-Pfade
+# erwarten die alten privaten Namen weiterhin in __init__.
+from .listeners.knx import (  # noqa: E402
+    _build_knx_message,
+    _get_xknx_instance,
+    _log_knx_event,
+    _telegram_to_knx_event_data,
+)
+from .listeners.knx import async_register_knx_listener as _async_register_knx_listener  # noqa: E402
 
 
 def _fire_added(hass: HomeAssistant, message: Any) -> None:
-    """Helper: feuert messagehub_message_added konsistent."""
-    hass.bus.async_fire(
-        EVENT_MESSAGE_ADDED,
-        {
-            "id": message.id,
-            "severity": message.severity.value,
-            "source": message.source,
-            "text": message.text,
-            "metadata": message.metadata,
-            "timestamp": message.timestamp_iso,
-        },
-    )
+    """Backward-compat-Wrapper. Neue Implementation in helpers.py."""
+    from .helpers import fire_message_added  # noqa: PLC0415
+
+    fire_message_added(hass, message)
 
 
-async def _handle_silent_heartbeat(
-    hass: HomeAssistant, repository: Any, hb_repo: Any, hb: Any
-) -> None:
-    """Erzeugt eine Heartbeat-Silent-Message und markiert die Quelle als gemeldet."""
-    from .storage import Message, Severity  # noqa: PLC0415
-
-    msg = Message(
-        severity=Severity.WARNING,
-        source="messagehub.heartbeat",
-        text=f"silent: {hb.source} (>1.5x interval)",
-        metadata={"heartbeat_source": hb.source},
-    )
-    await repository.insert_or_aggregate(msg)
-    await hb_repo.set_silent(hb.source, True)
-    _fire_added(hass, msg)
-
-
-async def _run_heartbeat_tick(hass: HomeAssistant, repository: Any, hb_repo: Any) -> None:
-    """Iter 35: prueft alle Heartbeats und meldet stille Quellen."""
-    from .processing.heartbeat import is_silent  # noqa: PLC0415
-
-    try:
-        for hb in await hb_repo.list_all():
-            if not hb.enabled or hb.silent_alert_active:
-                continue
-            if is_silent(hb):
-                await _handle_silent_heartbeat(hass, repository, hb_repo, hb)
-    except (ValueError, RuntimeError) as err:
-        _LOGGER.warning("heartbeat tick failed: %s", err)
-
-
-async def _handle_anomaly_row(
-    hass: HomeAssistant,
-    repository: Any,
-    metrics_repo: Any,
-    source: str,
-    cnt: int,
-    now_bucket: str,
-) -> None:
-    """Wertet eine source/count-Zeile aus, meldet Anomalien und aktualisiert Metriken."""
-    from .processing.anomaly import is_anomaly, update  # noqa: PLC0415
-    from .storage import Message, Severity  # noqa: PLC0415
-
-    metric = await metrics_repo.get(source)
-    if metric.last_bucket == now_bucket:
-        return
-    if is_anomaly(metric, cnt):
-        msg = Message(
-            severity=Severity.WARNING,
-            source="messagehub.anomaly",
-            text=f"{source}: {cnt}/min (mean ~{metric.ewma_rate:.1f})",
-            metadata={"anomaly_source": source, "rate": cnt},
-        )
-        await repository.insert_or_aggregate(msg, window_minutes=15)
-        _fire_added(hass, msg)
-    metric = update(metric, cnt)
-    metric.last_bucket = now_bucket
-    await metrics_repo.save(metric)
-
-
-async def _run_anomaly_tick(
-    hass: HomeAssistant, repository: Any, database: Any, metrics_repo: Any
-) -> None:
-    """Iter 36: vergleicht 1-Min-Bucket-Counts pro Source mit EWMA-Mean."""
-    from datetime import UTC as _UTC  # noqa: PLC0415
-    from datetime import datetime as _dt  # noqa: PLC0415
-    from datetime import timedelta as _td  # noqa: PLC0415
-
-    try:
-        cutoff = (_dt.now(_UTC) - _td(minutes=1)).isoformat(timespec="seconds")
-        rows = await database.fetch_all(
-            "SELECT source, COUNT(*) AS cnt FROM messages WHERE timestamp >= ? GROUP BY source",
-            (cutoff,),
-        )
-        now_bucket = _dt.now(_UTC).strftime("%Y-%m-%dT%H:%M")
-        for row in rows:
-            source = str(row["source"])
-            if source.startswith("messagehub."):
-                continue
-            await _handle_anomaly_row(
-                hass, repository, metrics_repo, source, int(row["cnt"]), now_bucket
-            )
-    except (ValueError, RuntimeError) as err:
-        _LOGGER.warning("anomaly tick failed: %s", err)
-
-
-def _async_register_periodic_jobs(hass: HomeAssistant, database: Any, repository: Any) -> Any:
-    """Iter 35: Heartbeat-Check, Iter 36: Anomalie-Evaluierung — beides 60s."""
-    from datetime import timedelta as _td  # noqa: PLC0415
-
-    from homeassistant.helpers.event import async_track_time_interval  # noqa: PLC0415
-
-    from .processing.anomaly import SourceMetricsRepository  # noqa: PLC0415
-    from .processing.heartbeat import HeartbeatRepository  # noqa: PLC0415
-
-    hb_repo = HeartbeatRepository(database)
-    metrics_repo = SourceMetricsRepository(database)
-
-    async def _heartbeat_tick(_now: Any) -> None:
-        await _run_heartbeat_tick(hass, repository, hb_repo)
-
-    async def _anomaly_tick(_now: Any) -> None:
-        await _run_anomaly_tick(hass, repository, database, metrics_repo)
-
-    unsub_hb = async_track_time_interval(hass, _heartbeat_tick, _td(seconds=60))
-    unsub_an = async_track_time_interval(hass, _anomaly_tick, _td(seconds=60))
-
-    def _unsub() -> None:
-        unsub_hb()
-        unsub_an()
-
-    return _unsub
+# Periodic-Jobs nach jobs/periodic.py ausgelagert.
+from .jobs.periodic import (  # noqa: E402
+    _handle_anomaly_row,
+    _handle_silent_heartbeat,
+    _run_anomaly_tick,
+    _run_heartbeat_tick,
+)
+from .jobs.periodic import (  # noqa: E402
+    async_register_periodic_jobs as _async_register_periodic_jobs,
+)
 
 
 def _async_register_retention(hass: HomeAssistant, entry: ConfigEntry, database: Any) -> None:
