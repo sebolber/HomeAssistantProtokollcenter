@@ -4,33 +4,66 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
-## [Unreleased]
+## [0.7.0] – 2026-05-02
+
+UX-/Branding-Release. Sub-Tabs in den Einstellungen lösen das
+„KNX-Liste-blockiert-alles"-Scroll-Problem, das App-Icon gibt der
+Integration eine erkennbare visuelle Identität, das Repo wurde von
+historischen Iterations-Artefakten befreit.
 
 ### Hinzugefügt
 
 - **Sub-Tabs in den Einstellungen**: Webhooks, KNX-Bus, Channels, MQTT,
   Heartbeats und Auto-Remediation liegen jetzt in eigenen Tabs statt
-  alle untereinander. Hintergrund: bei 3000+ KNX-Adressen war das
-  endlose Scrollen zwischen den Sektionen unbrauchbar. Tab-Auswahl
-  wird in `localStorage` persistiert (`messagehub.settings.tab`).
-- 6 neue jsdom-Tests für die Tab-Logik (Render, Switch, Persistierung).
+  alle untereinander.
+  - Hintergrund: bei 3000+ KNX-Adressen war das endlose Scrollen
+    zwischen den Sektionen unbrauchbar.
+  - Tab-Auswahl wird in `localStorage` persistiert
+    (`messagehub.settings.tab`).
+  - Nur der aktive Tab ist im DOM — wenn du auf Webhooks bist, wird die
+    `knx-addresses-view` mit ihren 3000 Einträgen gar nicht erst gerendert.
+  - Mobile-Layout responsive (horizontale Scroll-Bar in der Tab-Leiste).
+- **App-Icon** (`assets/icon.svg` + PNGs in 256/512/1024 px, plus
+  `custom_components/messagehub/icon.png` für HACS): Inbox-Symbol mit
+  drei Severity-Dots (rot/gelb/grün) auf HA-Blau-Tile. Erscheint in
+  der HACS-UI, im Panel-Header (als Inline-SVG mit `--mh-accent`) und
+  im GitHub-README.
+- 6 neue jsdom-Tests für die Tab-Logik (Render-Order, Default,
+  Click-Switch, localStorage-Persist, kaputter Wert).
 
 ### Entfernt
 
 - **8 Iterations-Artefakte aus dem Repo-Root** gelöscht — sie stammten
-  aus der initialen v0.1-Implementierungsphase und sind durch
-  CHANGELOG / CLAUDE.md / README abgedeckt:
+  aus der initialen v0.1-Implementierungsphase und waren durch
+  CHANGELOG / CLAUDE.md / README längst abgedeckt:
   `BACKLOG.md`, `BLOCKERS.md`, `CODE-REVIEW.md`, `FINAL-REPORT.md`,
   `ITERATION-AUDIT.md`, `ITERATIONS.md`, `STARTHERE.md`,
   `claude-code-runbook.md`.
 
 ### Geändert
 
-- `CLAUDE.md` mit konkreten Inline-Quality-Gates statt Verweis auf den
-  gelöschten Runbook (TDD-Pflicht, Cognitive-Complexity-Limit,
-  Build-/Release-Workflow).
-- `DEVELOPMENT.md` Setup-Anleitung von der initialen Iter-1-Mission
-  auf den aktuellen User-Workflow umgestellt.
+- **`CLAUDE.md`** mit konkreten Inline-Quality-Gates statt Verweis auf
+  den gelöschten Runbook: TDD-Pflicht, Cognitive-Complexity-Limit ≤ 15,
+  Build-/Release-Workflow, Frontend-Position-Fixed-Pattern.
+- **`DEVELOPMENT.md`** Setup-Anleitung von der initialen
+  Iter-1-Mission auf den aktuellen User-Workflow umgestellt.
+- **README** „Konfiguration"-Sektion ergänzt um Hinweis, dass die
+  Konfigs in Sub-Tabs liegen und die Tab-Auswahl persistiert wird.
+- **Panel-Header** zeigt das App-Icon jetzt als Inline-SVG (statt
+  📨-Emoji). HA-Theme-Variable `--mh-accent` als Tile-Hintergrund
+  passt sich Light/Dark automatisch an.
+
+### Tests
+
+- **+6 neue Frontend-Tests** in `tests/settings-tabs.test.ts`.
+- **Stand:** 46 Frontend-Tests grün (9 Test-Dateien), 242 Backend-Tests
+  grün.
+
+### Doku
+
+- **`README.md`**: Konfigurations-Hinweis auf Sub-Tabs, Icon-Vorschau
+  rechts oben, Verweis auf gelöschten Runbook entfernt.
+- **`info.md`** (HACS-Beschreibung) mit Icon-Vorschau ergänzt.
 
 ## [0.6.0] – 2026-05-02
 

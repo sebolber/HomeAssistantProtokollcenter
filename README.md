@@ -99,6 +99,13 @@ Konfiguration läuft an drei Orten:
 | Retention, Hard-Cap, Syslog-Port, Log-Level | **Settings → Geräte & Dienste → Message Hub → Konfigurieren** | Laufzeit |
 | Datenbank-Speicherort, Zeitzone, Wartung | Automatisch, keine Aktion nötig | — |
 
+Im Panel-Tab **Einstellungen** liegen alle Konfigurations-Bereiche in
+**eigenen Sub-Tabs** (Webhooks · KNX-Bus · Channels · MQTT · Heartbeats ·
+Auto-Remediation). Die KNX-Tabelle mit ihren bis zu 3000 Einträgen ist
+damit von den anderen Sektionen entkoppelt — kein endloses Scrollen
+mehr. Die Tab-Auswahl wird in `localStorage` gemerkt, du landest beim
+nächsten Öffnen wieder im zuletzt benutzten Tab.
+
 ### Webhooks
 
 **Wozu:** externe Quellen (Pi-hole, Grafana, Skripte, IoT) per `HTTP-POST`
