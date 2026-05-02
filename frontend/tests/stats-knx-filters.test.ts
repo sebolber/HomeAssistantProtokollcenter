@@ -113,10 +113,10 @@ describe("stats-knx-view filter bar", () => {
     expect(text).toContain("274");
   });
 
-  it("default-Periode ist 7d (laut Konzept)", async () => {
+  it("default-Periode ist 24 Std (Iter 26: max 48h Raw-Retention)", async () => {
     const el = await mount();
     const active = el.shadowRoot!.querySelector(".filter-group:nth-child(1) .seg-btn.active");
-    expect(active!.textContent?.trim()).toBe("7 Tage");
+    expect(active!.textContent?.trim()).toBe("24 Std");
   });
 
   it("persistiert Filter beim Wechsel der Periode", async () => {
@@ -131,10 +131,10 @@ describe("stats-knx-view filter bar", () => {
   it("liest persistierte Filter beim Mount wieder ein", async () => {
     localStorage.setItem(
       "messagehub.knx-stats.filters",
-      JSON.stringify({ periodId: "30d", topN: 100, minRate: 5, includeAck: false })
+      JSON.stringify({ periodId: "48h", topN: 100, minRate: 5, includeAck: false })
     );
     const el = await mount();
     const active = el.shadowRoot!.querySelector(".filter-group:nth-child(1) .seg-btn.active");
-    expect(active!.textContent?.trim()).toBe("30 Tage");
+    expect(active!.textContent?.trim()).toBe("48 Std");
   });
 });

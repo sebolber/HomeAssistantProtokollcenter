@@ -157,9 +157,7 @@ def async_register_periodic_jobs(hass: HomeAssistant, database: Any, repository:
 
     unsub_hb = async_track_time_interval(hass, _heartbeat_tick, timedelta(seconds=60))
     unsub_an = async_track_time_interval(hass, _anomaly_tick, timedelta(seconds=60))
-    unsub_cleanup = async_track_time_interval(
-        hass, _knx_cleanup_tick, timedelta(hours=6)
-    )
+    unsub_cleanup = async_track_time_interval(hass, _knx_cleanup_tick, timedelta(hours=6))
 
     def _unsub() -> None:
         unsub_hb()

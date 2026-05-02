@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 const Me = globalThis, et = Me.ShadowRoot && (Me.ShadyCSS === void 0 || Me.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, tt = Symbol(), dt = /* @__PURE__ */ new WeakMap();
-let Rt = class {
+let Lt = class {
   constructor(e, t, s) {
     if (this._$cssResult$ = !0, s !== tt) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
     this.cssText = e, this.t = t;
@@ -22,13 +22,13 @@ let Rt = class {
     return this.cssText;
   }
 };
-const Wt = (i) => new Rt(typeof i == "string" ? i : i + "", void 0, tt), _ = (i, ...e) => {
+const Wt = (i) => new Lt(typeof i == "string" ? i : i + "", void 0, tt), _ = (i, ...e) => {
   const t = i.length === 1 ? i[0] : e.reduce((s, a, r) => s + ((o) => {
     if (o._$cssResult$ === !0) return o.cssText;
     if (typeof o == "number") return o;
     throw Error("Value passed to 'css' function must be a 'css' function result: " + o + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
   })(a) + i[r + 1], i[0]);
-  return new Rt(t, i, tt);
+  return new Lt(t, i, tt);
 }, Vt = (i, e) => {
   if (et) i.adoptedStyleSheets = e.map((t) => t instanceof CSSStyleSheet ? t : t.styleSheet);
   else for (const t of e) {
@@ -284,7 +284,7 @@ Q.elementStyles = [], Q.shadowRootOptions = { mode: "open" }, Q[ye("elementPrope
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const $e = globalThis, ut = (i) => i, Ne = $e.trustedTypes, mt = Ne ? Ne.createPolicy("lit-html", { createHTML: (i) => i }) : void 0, Lt = "$lit$", M = `lit$${Math.random().toFixed(9).slice(2)}$`, Mt = "?" + M, ts = `<${Mt}>`, W = document, ke = () => W.createComment(""), Se = (i) => i === null || typeof i != "object" && typeof i != "function", at = Array.isArray, ss = (i) => at(i) || typeof (i == null ? void 0 : i[Symbol.iterator]) == "function", We = `[ 	
+const $e = globalThis, ut = (i) => i, Ne = $e.trustedTypes, mt = Ne ? Ne.createPolicy("lit-html", { createHTML: (i) => i }) : void 0, Rt = "$lit$", M = `lit$${Math.random().toFixed(9).slice(2)}$`, Mt = "?" + M, ts = `<${Mt}>`, W = document, ke = () => W.createComment(""), Se = (i) => i === null || typeof i != "object" && typeof i != "function", at = Array.isArray, ss = (i) => at(i) || typeof (i == null ? void 0 : i[Symbol.iterator]) == "function", We = `[ 	
 \f\r]`, xe = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, gt = /-->/g, vt = />/g, F = RegExp(`>|${We}(?:([^\\s"'>=/]+)(${We}*=${We}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), ft = /'/g, bt = /"/g, jt = /^(?:script|style|textarea|title)$/i, as = (i) => (e, ...t) => ({ _$litType$: i, strings: e, values: t }), n = as(1), V = Symbol.for("lit-noChange"), h = Symbol.for("lit-nothing"), _t = /* @__PURE__ */ new WeakMap(), K = W.createTreeWalker(W, 129);
 function Nt(i, e) {
@@ -299,7 +299,7 @@ const rs = (i, e) => {
     let p, g, u = -1, v = 0;
     for (; v < c.length && (o.lastIndex = v, g = o.exec(c), g !== null); ) v = o.lastIndex, o === xe ? g[1] === "!--" ? o = gt : g[1] !== void 0 ? o = vt : g[2] !== void 0 ? (jt.test(g[2]) && (a = RegExp("</" + g[2], "g")), o = F) : g[3] !== void 0 && (o = F) : o === F ? g[0] === ">" ? (o = a ?? xe, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, p = g[1], o = g[3] === void 0 ? F : g[3] === '"' ? bt : ft) : o === bt || o === ft ? o = F : o === gt || o === vt ? o = xe : (o = F, a = void 0);
     const m = o === F && i[l + 1].startsWith("/>") ? " " : "";
-    r += o === xe ? c + ts : u >= 0 ? (s.push(p), c.slice(0, u) + Lt + c.slice(u) + M + m) : c + M + (u === -2 ? l : m);
+    r += o === xe ? c + ts : u >= 0 ? (s.push(p), c.slice(0, u) + Rt + c.slice(u) + M + m) : c + M + (u === -2 ? l : m);
   }
   return [Nt(i, r + (i[t] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), s];
 };
@@ -315,7 +315,7 @@ class Te {
     }
     for (; (a = K.nextNode()) !== null && c.length < l; ) {
       if (a.nodeType === 1) {
-        if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Lt)) {
+        if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Rt)) {
           const v = g[o++], m = a.getAttribute(u).split(M), x = /([.?@])?(.*)/.exec(v);
           c.push({ type: 1, index: r, name: x[2], strings: m, ctor: x[1] === "." ? os : x[1] === "?" ? ns : x[1] === "@" ? ls : Ue }), a.removeAttribute(u);
         } else u.startsWith(M) && (c.push({ type: 6, index: r }), a.removeAttribute(u));
@@ -1939,7 +1939,7 @@ var U = function(i, e, t, s) {
   else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
   return a > 3 && r && Object.defineProperty(e, t, r), r;
 }, se;
-let R = (se = class extends b {
+let L = (se = class extends b {
   constructor() {
     super(...arguments), this._status = "new", this._tags = [], this._newTag = "", this._runbook = null, this._busy = !1;
   }
@@ -2326,28 +2326,28 @@ let R = (se = class extends b {
   `, se);
 U([
   f({ attribute: !1 })
-], R.prototype, "msg", void 0);
+], L.prototype, "msg", void 0);
 U([
   f({ attribute: !1 })
-], R.prototype, "api", void 0);
+], L.prototype, "api", void 0);
 U([
   d()
-], R.prototype, "_status", void 0);
+], L.prototype, "_status", void 0);
 U([
   d()
-], R.prototype, "_tags", void 0);
+], L.prototype, "_tags", void 0);
 U([
   d()
-], R.prototype, "_newTag", void 0);
+], L.prototype, "_newTag", void 0);
 U([
   d()
-], R.prototype, "_runbook", void 0);
+], L.prototype, "_runbook", void 0);
 U([
   d()
-], R.prototype, "_busy", void 0);
-R = U([
+], L.prototype, "_busy", void 0);
+L = U([
   w("detail-pane")
-], R);
+], L);
 var D = function(i, e, t, s) {
   var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
   if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
@@ -4604,7 +4604,7 @@ y([
 N = y([
   w("remediation-view")
 ], N);
-var L = function(i, e, t, s) {
+var R = function(i, e, t, s) {
   var a = arguments.length, r = a < 3 ? e : s === null ? s = Object.getOwnPropertyDescriptor(e, t) : s, o;
   if (typeof Reflect == "object" && typeof Reflect.decorate == "function") r = Reflect.decorate(i, e, t, s);
   else for (var l = i.length - 1; l >= 0; l--) (o = i[l]) && (r = (a < 3 ? o(r) : a > 3 ? o(e, t, r) : o(e, t)) || r);
@@ -5216,31 +5216,31 @@ let z = (de = class extends b {
       }
     `
 ], de);
-L([
+R([
   f({ attribute: !1 })
 ], z.prototype, "api", void 0);
-L([
+R([
   d()
 ], z.prototype, "_items", void 0);
-L([
+R([
   d()
 ], z.prototype, "_loading", void 0);
-L([
+R([
   d()
 ], z.prototype, "_showForm", void 0);
-L([
+R([
   d()
 ], z.prototype, "_editing", void 0);
-L([
+R([
   d()
 ], z.prototype, "_toast", void 0);
-L([
+R([
   d()
 ], z.prototype, "_menuOpenId", void 0);
-L([
+R([
   d()
 ], z.prototype, "_activeTab", void 0);
-z = L([
+z = R([
   w("settings-view")
 ], z);
 var J = function(i, e, t, s) {
@@ -5703,16 +5703,16 @@ var A = function(i, e, t, s) {
 };
 const Gt = "messagehub.knx-stats.filters", Ze = [
   { id: "1h", label: "1 Std", days: 1 / 24 },
+  { id: "6h", label: "6 Std", days: 0.25 },
   { id: "24h", label: "24 Std", days: 1 },
-  { id: "7d", label: "7 Tage", days: 7 },
-  { id: "30d", label: "30 Tage", days: 30 }
-], Rs = [10, 25, 50, 100], zt = {
-  periodId: "7d",
+  { id: "48h", label: "48 Std", days: 2 }
+], Ls = [10, 25, 50, 100], zt = {
+  periodId: "24h",
   topN: 50,
   minRate: 1,
   includeAck: !0
 };
-function Ls() {
+function Rs() {
   try {
     const i = localStorage.getItem(Gt);
     if (i) {
@@ -5723,7 +5723,7 @@ function Ls() {
   }
   return { ...zt };
 }
-function Re(i) {
+function Le(i) {
   try {
     localStorage.setItem(Gt, JSON.stringify(i));
   } catch {
@@ -5736,7 +5736,7 @@ function Ms(i) {
 var pe;
 let k = (pe = class extends b {
   constructor() {
-    super(...arguments), this._filters = Ls(), this._summary = null, this._busHealth = null, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._loading = !1, this._error = "", this._toast = "";
+    super(...arguments), this._filters = Rs(), this._summary = null, this._busHealth = null, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._loading = !1, this._error = "", this._toast = "";
   }
   async firstUpdated() {
     await this._load();
@@ -5784,25 +5784,26 @@ let k = (pe = class extends b {
     switch (this._filters.periodId) {
       case "1h":
         return 1;
+      case "6h":
+        return 5;
       case "24h":
         return 10;
-      case "7d":
-      case "30d":
+      case "48h":
       default:
-        return 60;
+        return 30;
     }
   }
   _suggestSilenceMinutes() {
     switch (this._filters.periodId) {
       case "1h":
         return 30;
+      case "6h":
+        return 120;
       case "24h":
         return 360;
-      case "7d":
-        return 1440;
-      case "30d":
+      case "48h":
       default:
-        return 4320;
+        return 720;
     }
   }
   async _loadDetail(e) {
@@ -5848,16 +5849,16 @@ let k = (pe = class extends b {
     this._toast = e, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
   }
   _onPeriod(e) {
-    this._filters = { ...this._filters, periodId: e }, Re(this._filters), this._load();
+    this._filters = { ...this._filters, periodId: e }, Le(this._filters), this._load();
   }
   _onTopN(e) {
-    this._filters = { ...this._filters, topN: e }, Re(this._filters), this._load();
+    this._filters = { ...this._filters, topN: e }, Le(this._filters), this._load();
   }
   _onMinRate(e) {
-    this._filters = { ...this._filters, minRate: Math.max(0, e) }, Re(this._filters), this._load();
+    this._filters = { ...this._filters, minRate: Math.max(0, e) }, Le(this._filters), this._load();
   }
   _onAckToggle() {
-    this._filters = { ...this._filters, includeAck: !this._filters.includeAck }, Re(this._filters), this._load();
+    this._filters = { ...this._filters, includeAck: !this._filters.includeAck }, Le(this._filters), this._load();
   }
   _renderFilterBar() {
     return n`
@@ -5877,7 +5878,7 @@ let k = (pe = class extends b {
         <div class="filter-group">
           <span class="filter-label">Top-N</span>
           <div class="seg">
-            ${Rs.map((e) => n`<button
+            ${Ls.map((e) => n`<button
                 class=${`seg-btn ${this._filters.topN === e ? "active" : ""}`}
                 @click=${() => this._onTopN(e)}
               >
@@ -5968,6 +5969,13 @@ let k = (pe = class extends b {
   render() {
     return n`
       <div class="root">
+        <div class="info-banner">
+          <strong>Bus-weite Auswertung:</strong>
+          alle Telegramme aus dem Gruppenmonitor werden 48 h vorgehalten —
+          unabhaengig davon, ob die GA in der Whitelist (Einstellungen →
+          KNX-Adressen) als „Loggen aktiv" markiert ist. Whitelisted GAs
+          landen zusaetzlich im Logbuch (Tab „Nachrichten").
+        </div>
         ${this._renderFilterBar()}
         ${this._error ? n`<div class="error">${this._error}</div>` : h}
         ${this._alarms !== null && this._alarms.triggered_count > 0 ? this._renderAlarmBanner() : h}
@@ -6436,6 +6444,18 @@ let k = (pe = class extends b {
         color: var(--mh-error);
         border-radius: var(--mh-radius-sm);
         font-size: var(--mh-text-sm);
+      }
+      .info-banner {
+        padding: var(--mh-space-2) var(--mh-space-3);
+        background: var(--mh-surface);
+        border-left: 3px solid var(--mh-info);
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        line-height: 1.5;
+      }
+      .info-banner strong {
+        color: var(--mh-fg);
       }
 
       /* Top-Tabelle */
@@ -7305,7 +7325,7 @@ var Hs = Object.defineProperty, Is = Object.getOwnPropertyDescriptor, E = (i, e,
     (o = i[r]) && (a = (s ? o(e, t, a) : o(a)) || a);
   return s && a && Hs(e, t, a), a;
 };
-const Dt = "messagehub.filters", Le = {
+const Dt = "messagehub.filters", Re = {
   severity: ["error", "warning", "info"],
   source: "",
   search: ""
@@ -7369,10 +7389,10 @@ let S = class extends b {
   _loadFilters() {
     try {
       const i = localStorage.getItem(Dt);
-      if (i) return { ...Le, ...JSON.parse(i) };
+      if (i) return { ...Re, ...JSON.parse(i) };
     } catch {
     }
-    return { ...Le };
+    return { ...Re };
   }
   _persistFilters() {
     try {
@@ -7381,7 +7401,7 @@ let S = class extends b {
     }
   }
   _resetFilters() {
-    this._filters = { ...Le }, this._persistFilters(), this._reload();
+    this._filters = { ...Re }, this._persistFilters(), this._reload();
   }
   async _reload() {
     this._loading = !0;
@@ -7453,7 +7473,7 @@ let S = class extends b {
     }, 300);
   }
   _hasActiveFilters() {
-    return this._filters.severity.length !== Le.severity.length || this._filters.source !== "" || this._filters.search !== "" || this._filters.fromIso !== void 0;
+    return this._filters.severity.length !== Re.severity.length || this._filters.source !== "" || this._filters.search !== "" || this._filters.fromIso !== void 0;
   }
   _exportUrl(i) {
     return this._api.exportUrl({

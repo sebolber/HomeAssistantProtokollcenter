@@ -23,12 +23,16 @@ import "./knx-timeline-chart.js";
 
 const STORAGE_KEY = "messagehub.knx-stats.filters";
 
-// Periode-Presets in Tagen
+// Periode-Presets in Tagen.
+// Iter 22: Raw-Telegramm-Tabelle hat 48h Retention — laengere Perioden
+// werden in Phase 2 ueber Counter-Aggregate ergaenzt. Aktuell beschraenken
+// wir die UI bewusst auf <=48h, damit die Stats die volle Bus-Aktivitaet
+// abdecken (bus-weit, nicht nur Whitelist).
 const PERIOD_PRESETS: ReadonlyArray<{ id: string; label: string; days: number }> = [
   { id: "1h", label: "1 Std", days: 1 / 24 },
+  { id: "6h", label: "6 Std", days: 0.25 },
   { id: "24h", label: "24 Std", days: 1 },
-  { id: "7d", label: "7 Tage", days: 7 },
-  { id: "30d", label: "30 Tage", days: 30 },
+  { id: "48h", label: "48 Std", days: 2 },
 ];
 
 const TOP_N_OPTIONS = [10, 25, 50, 100] as const;
@@ -41,7 +45,7 @@ interface UiFilters {
 }
 
 const DEFAULT_FILTERS: UiFilters = {
-  periodId: "7d",
+  periodId: "24h",
   topN: 50,
   minRate: 1.0,
   includeAck: true,
@@ -158,16 +162,16 @@ export class StatsKnxView extends LitElement {
   }
 
   private _suggestBucketMinutes(): number {
-    // 1h -> 1min, 24h -> 10min, 7d -> 60min, 30d -> 60min
     switch (this._filters.periodId) {
       case "1h":
         return 1;
+      case "6h":
+        return 5;
       case "24h":
         return 10;
-      case "7d":
-      case "30d":
+      case "48h":
       default:
-        return 60;
+        return 30;
     }
   }
 
@@ -176,13 +180,13 @@ export class StatsKnxView extends LitElement {
     switch (this._filters.periodId) {
       case "1h":
         return 30;
+      case "6h":
+        return 120; // 2h
       case "24h":
         return 360; // 6h
-      case "7d":
-        return 1440; // 24h
-      case "30d":
+      case "48h":
       default:
-        return 4320; // 3d
+        return 720; // 12h
     }
   }
 
@@ -399,6 +403,13 @@ export class StatsKnxView extends LitElement {
   override render(): TemplateResult {
     return html`
       <div class="root">
+        <div class="info-banner">
+          <strong>Bus-weite Auswertung:</strong>
+          alle Telegramme aus dem Gruppenmonitor werden 48 h vorgehalten —
+          unabhaengig davon, ob die GA in der Whitelist (Einstellungen →
+          KNX-Adressen) als „Loggen aktiv" markiert ist. Whitelisted GAs
+          landen zusaetzlich im Logbuch (Tab „Nachrichten").
+        </div>
         ${this._renderFilterBar()}
         ${this._error
           ? html`<div class="error">${this._error}</div>`
@@ -968,6 +979,18 @@ export class StatsKnxView extends LitElement {
         color: var(--mh-error);
         border-radius: var(--mh-radius-sm);
         font-size: var(--mh-text-sm);
+      }
+      .info-banner {
+        padding: var(--mh-space-2) var(--mh-space-3);
+        background: var(--mh-surface);
+        border-left: 3px solid var(--mh-info);
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-sm);
+        color: var(--mh-fg-muted);
+        line-height: 1.5;
+      }
+      .info-banner strong {
+        color: var(--mh-fg);
       }
 
       /* Top-Tabelle */
