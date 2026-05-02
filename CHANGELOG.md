@@ -6,6 +6,12 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt (Iter 83 — CR-4 MQTT-Topic-PUT-Handler)
+- **`MqttTopicDetailView.put`** für `/api/messagehub/mqtt-topics/{id}`.
+  Vorher musste das Frontend DELETE+POST simulieren — die Topic-ID
+  änderte sich dabei. Mit PUT bleibt die ID stabil; `_audit` schreibt
+  `mqtt_topic_update`.
+
 ### Tests (Iter 82 — CR-35 High-Volume-Concurrency)
 - **3 neue Stress-Tests** für `MessageRepository.insert_or_aggregate`:
   1000 parallele Inserts auf gleichem Fingerprint → genau ein

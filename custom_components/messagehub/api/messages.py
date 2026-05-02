@@ -943,6 +943,54 @@ class MqttTopicDetailView(_RequireAdminView):
     url = "/api/messagehub/mqtt-topics/{topic_id}"
     name = "api:messagehub:mqtt-topic-detail"
 
+    async def put(self, request: web.Request, topic_id: str) -> web.Response:
+        """Iter 83 / CR-4: PUT-Handler für MQTT-Topic-Edit. Vorher fehlte
+        er — Frontend musste DELETE+POST simulieren, was die ID
+        unkonservativ veränderte und die ID-Stabilität nicht garantierte.
+        """
+        from ..ingestion.mqtt_repo import (  # noqa: PLC0415
+            MqttTopic,
+            MqttTopicRepository,
+        )
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
+        try:
+            tid = int(topic_id)
+        except ValueError:
+            return self.json_message(_ERR_INVALID_ID, status_code=400)
+        try:
+            data = await request.json()
+            updated = MqttTopic(
+                id=tid,
+                topic_pattern=str(data["topic_pattern"]),
+                source=str(data["source"]),
+                severity=str(data.get("severity", "info")),
+                enabled=bool(data.get("enabled", True)),
+            )
+            await MqttTopicRepository(db).update(updated)
+        except (KeyError, ValueError, TypeError) as err:
+            return self.json_message(f"invalid: {err}", status_code=400)
+        await _audit(
+            hass,
+            request,
+            action="mqtt_topic_update",
+            target_type="mqtt_topic",
+            target_id=topic_id,
+        )
+        return self.json(
+            {
+                "id": updated.id,
+                "topic_pattern": updated.topic_pattern,
+                "source": updated.source,
+                "severity": updated.severity,
+                "enabled": updated.enabled,
+            }
+        )
+
     async def delete(self, request: web.Request, topic_id: str) -> web.Response:
         from ..ingestion.mqtt_repo import MqttTopicRepository  # noqa: PLC0415
 
