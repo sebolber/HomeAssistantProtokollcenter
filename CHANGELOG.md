@@ -4,6 +4,24 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.9.1] – 2026-05-02
+
+Hassfest-Fix. Der 0.9.0-Release-Workflow scheiterte, weil `mqtt` als
+Dependency nicht im Manifest stand:
+
+```
+[DEPENDENCIES] Using component mqtt but it's not in 'dependencies'
+or 'after_dependencies'
+```
+
+### Behoben
+
+- **`manifest.json`** ergänzt um `"after_dependencies": ["mqtt"]`.
+  `after_dependencies` ist die richtige Wahl — wir nutzen MQTT nur
+  konditional (`if "mqtt" not in hass.config.components: return`),
+  also keine harte Abhängigkeit. Wenn HA-MQTT läuft, wird messagehub
+  erst danach geladen.
+
 ## [0.9.0] – 2026-05-02
 
 Konsolidierungs-Release. Bündelt alle Verbesserungen aus den 0.8.x-

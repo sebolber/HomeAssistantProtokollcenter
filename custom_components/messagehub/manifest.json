@@ -1,12 +1,13 @@
 {
   "domain": "messagehub",
   "name": "Message Hub",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "documentation": "https://github.com/sebolber/HomeAssistantProtokollcenter",
   "issue_tracker": "https://github.com/sebolber/HomeAssistantProtokollcenter/issues",
   "codeowners": ["@sebolber"],
   "requirements": ["aiosqlite>=0.20,<1.0", "jsonpath-ng>=1.6,<2.0"],
   "dependencies": ["http", "frontend", "websocket_api", "webhook"],
+  "after_dependencies": ["mqtt"],
   "config_flow": true,
   "iot_class": "local_push",
   "integration_type": "service"
