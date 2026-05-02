@@ -4,6 +4,22 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.7.1] – 2026-05-02
+
+Patch-Release. Eine reine CI-Konfigurations-Aenderung, kein Code- oder
+Feature-Update — die Integration verhaelt sich identisch zu 0.7.0.
+
+### Geändert
+
+- **`.github/workflows/sonar.yml`** ergaenzt — laeuft bei Push/PR auf
+  main mit `SonarSource/sonarqube-scan-action@v4`. Sobald er einmal mit
+  `SONAR_TOKEN` durchgelaufen ist, schaltet SonarCloud "Automatic
+  Analysis" automatisch ab und liest stattdessen die `sonar-project.properties`
+  aus dem Repo-Root. Damit greifen endlich die `frontend_dist`-Excludes,
+  `sonar.python.version=3.12,3.13` und die Test-Pragmas — die bisher
+  ~100 Bundle-Findings und die Python-Version-Warning verschwinden beim
+  naechsten Scan.
+
 ## [0.7.0] – 2026-05-02
 
 UX-/Branding-Release. Sub-Tabs in den Einstellungen lösen das
