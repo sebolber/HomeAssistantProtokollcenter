@@ -267,9 +267,15 @@ class KnxStatsGaExportView(RequireAdminView):
     name = "api:messagehub:knx-stats:ga-export"
 
     async def get(self, request: web.Request) -> web.Response:
-        import csv  # noqa: PLC0415
-        import io  # noqa: PLC0415
-        import json  # noqa: PLC0415
+        # Iter 70 / CR-32: Encoding-Logik in pure Helpers ausgelagert
+        # (processing/knx_stats_export.py), damit Hard-Cap + CSV-Quoting
+        # + JSON-Wrapper unit-getestet werden koennen.
+        from ..processing.knx_stats_export import (  # noqa: PLC0415
+            cap_samples,
+            format_ga_export_csv,
+            format_ga_export_json,
+            safe_export_filename,
+        )
 
         self._check_admin(request)
         db = get_database(request.app["hass"])
@@ -283,9 +289,7 @@ class KnxStatsGaExportView(RequireAdminView):
         if fmt not in ("csv", "json"):
             raise web.HTTPBadRequest(reason="format must be csv or json")
         samples = await KnxStatsRepository(db).ga_samples(ga, from_iso, to_iso)
-        # Hard-Cap nach 50k — schuetzt vor Memory-Bombs.
-        capped = samples[:50_000]
-        # Audit-Log: Export ist eine bewusste Mutation des Wissens-Gefaelles.
+        capped = cap_samples(samples)
         audit(
             request.app["hass"],
             "knx_stats_ga_export",
@@ -297,57 +301,23 @@ class KnxStatsGaExportView(RequireAdminView):
                 "count": len(capped),
             },
         )
-        # Sicherer Filename: GA-Format aus validate_knx_ga ist "n/n/n",
-        # Slashes ersetzen wir durch Bindestriche.
-        safe_ga = ga.replace("/", "-")
         if fmt == "csv":
-            buf = io.StringIO()
-            writer = csv.writer(buf, lineterminator="\n")
-            writer.writerow(["ts", "ga", "dev_source", "telegramtype", "value"])
-            for s in capped:
-                writer.writerow(
-                    [
-                        s["ts"],
-                        ga,
-                        s["dev_source"],
-                        s["telegramtype"] or "",
-                        json.dumps(s["value"], ensure_ascii=False)
-                        if not isinstance(s["value"], (str, int, float, bool, type(None)))
-                        else (s["value"] if s["value"] is not None else ""),
-                    ]
-                )
+            csv_filename = safe_export_filename(ga, "csv")
             return web.Response(
-                body=buf.getvalue(),
+                body=format_ga_export_csv(ga, capped),
                 content_type="text/csv",
                 charset="utf-8",
                 headers={
-                    "Content-Disposition": f'attachment; filename="ga-{safe_ga}.csv"',
+                    "Content-Disposition": f'attachment; filename="{csv_filename}"',
                 },
             )
-        # JSON
+        json_filename = safe_export_filename(ga, "json")
         return web.Response(
-            body=json.dumps(
-                {
-                    "ga": ga,
-                    "from": from_iso,
-                    "to": to_iso,
-                    "count": len(capped),
-                    "samples": [
-                        {
-                            "ts": s["ts"],
-                            "value": s["value"],
-                            "telegramtype": s["telegramtype"],
-                            "dev_source": s["dev_source"],
-                        }
-                        for s in capped
-                    ],
-                },
-                ensure_ascii=False,
-            ),
+            body=format_ga_export_json(ga, from_iso, to_iso, capped),
             content_type="application/json",
             charset="utf-8",
             headers={
-                "Content-Disposition": f'attachment; filename="ga-{safe_ga}.json"',
+                "Content-Disposition": f'attachment; filename="{json_filename}"',
             },
         )
 

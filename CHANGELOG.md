@@ -6,6 +6,21 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Tests / Refactor (Iter 70 — CR-32 GA-Export-Tests)
+- **18 neue Backend-Tests** für GA-Werteverlauf-Export (Iter 68 hatte
+  Endpoint inline ohne Tests). Pure Helpers in
+  `processing/knx_stats_export.py` (`cap_samples`,
+  `format_ga_export_csv`, `format_ga_export_json`,
+  `safe_export_filename`).
+- Tests decken ab: Hard-Cap (50 000 Samples), CSV-Quoting bei
+  Kommas/Anführungszeichen im Wert, Dict-/List-Werte als JSON,
+  None-Werte als leere Cells, LF-statt-CRLF Lineterminator,
+  JSON-Wrapper-Format, Unicode-Erhalt, Filename-Slash-Escape.
+- `KnxStatsGaExportView` nutzt jetzt die Helpers — Lines-of-Code im
+  View von 84 auf 33 reduziert.
+- `compute_trend` (Iter 67) hat bereits 3 Tests — CR-33 ist damit
+  als „abgehakt" verifiziert.
+
 ### Hinzugefügt (Iter 69 — K2 Prometheus `/metrics`-Endpoint)
 - **Neuer Endpoint** `GET /api/messagehub/metrics` liefert Counts im
   Prometheus-Text-Format. Pure Funktion `format_prometheus_metrics`
