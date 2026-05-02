@@ -6,6 +6,46 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.14.0] – 2026-05-02
+
+Großer Quality + Feature-Release. Sammelt Iter 59–93 (35 Iterationen):
+Bug-Fixes aus zwei Screenshot-Reviews, 15 UX-Quick-Wins, sieben neue
+Backlog-Features (WR-T DPT-Auto-Erkennung, U13 Anti-Pattern-Badge,
+WR-P HA-KNX-Direktlinks, P2-3 Rate-Limit, WR-V ASCII-Decoder, WR-I
+Trend-Vergleich, WR-F GA-Werteverlauf-Export, K2 Prometheus-Metrics,
+WR-G GA-Heatmap, K1 Saved Filters), plus 30+ Code-Review-Findings
+(Sustainability, Performance, Security, Clean Code, Testabdeckung).
+
+Tests: 545 → 679 Backend-Unit-Tests (+134), 96 → 124 Vitest (+28).
+Bundle: 316 KB → 348 KB (+32 KB / 10 % für 9 neue Features).
+
+Highlights:
+- **Tests + Auth**: Pure-Helper-Refactors für GA-Export (Iter 70)
+  und Auth (Iter 71), Stress-Tests für Per-Fingerprint-Lock (Iter 82),
+  KNX-Hot-Path-Resilienz (Iter 90).
+- **Performance**: N+1-Fix in `compute_ga_detail` (Iter 73), Bulk-
+  INSERT für `ack_set_bulk` (Iter 78), TTL-Cache für
+  `discover_knx_devices` (Iter 79), Streaming-Export (Iter 80),
+  Filter-First in `compute_top` (Iter 77).
+- **Security**: FTS5-Injection-Fix (Iter 74), Channels-SSRF-
+  Validation (Iter 75), Sensitive-GA-Export-Audit (Iter 75),
+  Alarm-Eventbus-Dedup (Iter 76), Rate-Limit für ChannelTestView
+  (Iter 88), Prometheus-Audit-Failure-Counter (Iter 81).
+- **Refactors**: Helper-Duplikat-Auflösung in `api/messages.py`
+  (Iter 72), `format_value` Strategy-Pattern (Iter 84),
+  `compute_top` Helper-Splits (Iter 77).
+- **Features**: WR-T (DPT-Auto), U13 (Findings-Badge), WR-P
+  (HA-KNX-Links), WR-V (ASCII-Decoder), WR-I (Trend-Card), WR-F
+  (CSV/JSON-Export), K2 (Prometheus `/metrics`), P2-2 (Alarm-
+  Schwellen via Config-Flow), WR-G (GA-Heatmap), K1 (Saved
+  Filters).
+- **UX**: 15 Quick-Wins (Top-N-Selektor, Sortierung, Pagination,
+  Filter-Pill-State, Truncation-Tooltip, Anti-Pattern-Badge, etc.)
+  und alle Bugs B1–B5 aus zwei Screenshot-Reviews.
+
+Siehe `[Unreleased]` unter dieser Sektion für die einzelnen Iter-
+Einträge in chronologischer Reihenfolge.
+
 ### Hinzugefügt (Iter 93 — K1 Saved Filters Frontend)
 - **Saved-Filters-Dropdown** im Filter-Bar des Nachrichten-Tabs
   („📋 Filter ▾"): Liste aller gespeicherten Filter-Presets, Klick →
