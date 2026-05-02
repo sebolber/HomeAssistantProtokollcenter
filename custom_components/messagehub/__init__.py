@@ -18,7 +18,14 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from .const import DOMAIN, EVENT_MESSAGE_ADDED, SEVERITIES
+from .const import (
+    DEVICE_MANUFACTURER,
+    DEVICE_MODEL,
+    DEVICE_NAME,
+    DOMAIN,
+    EVENT_MESSAGE_ADDED,
+    SEVERITIES,
+)
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -126,6 +133,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "webhook_repository": webhook_repository,
     }
     domain_data[entry.entry_id] = state
+
+    # v0.8.2: explizit das Geraet im Device-Registry anlegen, damit
+    # bestehende Entitaeten aus aelteren Versionen (ohne device_info)
+    # nach dem Update auch ohne Re-Setup mit dem Geraet verknuepft werden.
+    _ensure_device_registered(hass, entry)
 
     # Iter 30/31: Notification-Dispatch
     from .notifications.dispatch import DispatchManager  # noqa: PLC0415
@@ -726,6 +738,28 @@ def _async_register_retention(hass: HomeAssistant, entry: ConfigEntry, database:
 
     state = hass.data[DOMAIN][entry.entry_id]
     state["retention_unsub"] = async_track_time_change(hass, _job, hour=3, minute=30, second=0)
+
+
+def _ensure_device_registered(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Legt das messagehub-Geraet im HA-Device-Registry an (oder updated es).
+
+    Wird beim Setup aufgerufen — auch beim Reload nach einem Update von
+    einer alten Version, die noch kein DeviceInfo auf den Entitaeten
+    hatte. Damit existieren das Geraet und seine identifiers garantiert,
+    sodass HA die Entitaeten beim Setup zuordnen kann und der "Zu
+    Dashboard hinzufuegen"-Knopf in Geraete & Dienste erscheint.
+    """
+    from homeassistant.helpers import device_registry as dr  # noqa: PLC0415
+
+    registry = dr.async_get(hass)
+    registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, entry.entry_id)},
+        manufacturer=DEVICE_MANUFACTURER,
+        model=DEVICE_MODEL,
+        name=DEVICE_NAME,
+        configuration_url=f"/{DOMAIN}",
+    )
 
 
 def _bundle_cache_buster(bundle_path: Path) -> str:

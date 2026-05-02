@@ -4,6 +4,42 @@ Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
+## [0.8.2] – 2026-05-02
+
+Patch-Release. Behebt zwei UI-Stolpersteine: Brand-Icon-Vorbereitung und
+das fehlende Geräte-Grouping nach Update von 0.8.0 auf 0.8.1.
+
+### Behoben
+
+- **Geräte-Eintrag bei Update von ≤ 0.8.0:** existierende Entitäten
+  hatten kein `device_info` und blieben nach dem Update auf 0.8.1
+  weiter „geräte-los" — Settings → Geräte & Dienste zeigte „12 Entitäten"
+  ohne Geräte-Gruppe.
+  Fix: `_ensure_device_registered()` legt das Gerät beim Setup
+  explizit im HA-Device-Registry an. Damit existiert es garantiert,
+  und alle Entitäten werden beim nächsten Update-Tick mit dem Gerät
+  verknüpft.
+
+### Hinzugefügt
+
+- **`assets/brands/messagehub/`** mit den vier vom
+  [home-assistant/brands](https://github.com/home-assistant/brands)-Repo
+  geforderten PNGs in exakter Größe:
+  - `icon.png` (256 × 256), `icon@2x.png` (512 × 512)
+  - `logo.png` (480 × 256), `logo@2x.png` (960 × 512)
+- **`assets/logo.svg`** als Source — Icon links + Wortmarke „Message
+  Hub" rechts.
+- **`docs/brand-pr.md`** mit Schritt-für-Schritt-Anleitung für den PR
+  an `home-assistant/brands` (Web-UI- und gh-CLI-Variante).
+
+### Hinweis
+
+Der Brand-Icon-Eintrag in `home-assistant/brands` ist ein **manueller
+PR-Prozess** (Lead-Time 1–3 Tage Maintainer-Review). Solange das nicht
+gemerged ist, zeigt HA-Core in *Settings → Geräte & Dienste* weiterhin
+„icon not available". HACS-UI und Panel-Header zeigen das Icon aber
+sofort, weil sie das Repo-`icon.png` bzw. das Frontend-Bundle nutzen.
+
 ## [0.8.1] – 2026-05-02
 
 Patch-Release. Macht alle messagehub-Sensoren zu einem zusammenhängenden
