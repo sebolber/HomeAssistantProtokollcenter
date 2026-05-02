@@ -1,8 +1,9 @@
 name: Release
 
 # Stoesst HACS-/HA-Validierung bei jedem v*-Tag an, plus optional manuell.
-# Stellt sicher, dass die manifest.json-Version mit dem Tag uebereinstimmt
-# und dass HACS das Repo akzeptieren wird.
+# Stellt sicher, dass die manifest.json-Version mit dem Tag uebereinstimmt,
+# dass HACS das Repo akzeptieren wird, und legt einen GitHub-Release mit
+# CHANGELOG-Auszug an.
 
 on:
   push:
@@ -33,6 +34,18 @@ jobs:
             exit 1
           fi
 
+      - name: Verify frontend bundle is present
+        # HACS-Nutzer ziehen das Repo direkt ohne Build-Schritt.
+        # Wenn frontend_dist/ nicht im Tag eingecheckt ist, hat das
+        # Panel beim Nutzer keine Bundle-Datei und das UI bleibt leer.
+        run: |
+          set -euo pipefail
+          if [ ! -f custom_components/messagehub/frontend_dist/messagehub-panel.js ]; then
+            echo "::error::frontend_dist/messagehub-panel.js fehlt — bitte 'npm run build' lokal vor Tag-Push"
+            exit 1
+          fi
+          echo "frontend bundle ok ($(wc -c < custom_components/messagehub/frontend_dist/messagehub-panel.js) bytes)"
+
       - name: Hassfest (HA Core integration validation)
         uses: home-assistant/actions/hassfest@master
 
@@ -40,3 +53,33 @@ jobs:
         uses: hacs/action@main
         with:
           category: integration
+
+  publish:
+    name: Publish GitHub Release
+    needs: validate
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract release notes from CHANGELOG
+        # Liest den Block der aktuellen Version aus CHANGELOG.md.
+        # Format: ## [0.5.0] – 2026-05-01  ... bis zum naechsten "## ["
+        id: notes
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF##refs/tags/v}"
+          awk "/^## \\[$version\\]/{flag=1; next} /^## \\[/{flag=0} flag" CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "Release $version (kein CHANGELOG-Eintrag gefunden)" > release-notes.md
+          fi
+          echo "---- release notes ----"
+          cat release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release-notes.md
+          generate_release_notes: false
