@@ -298,6 +298,11 @@ UI-getrieben über `config_flow.py`:
 
 ## 13. Phasen-Plan für die Implementierung
 
+**Status:** Alle 12 Phasen abgeschlossen — siehe `CHANGELOG.md`
+für die released Iterationen. Spätere Erweiterungen sind in
+`messagehub_erweiterungen.md` und `messagehub_knx_statistik.md`
+dokumentiert.
+
 Sequenziell, jede Phase abgeschlossen testbar:
 
 | Phase | Inhalt | Artefakt |
@@ -319,14 +324,19 @@ Sequenziell, jede Phase abgeschlossen testbar:
 
 ## 14. Optionale Erweiterungen (später)
 
-- **Acknowledge-Flag:** Nachricht als „gelesen" markieren, Filter „nur unbestätigte"
-- **Severity-Eskalation:** Bei N Errors innerhalb T Minuten → Aggregat-Nachricht `critical`
-- **Telegram/Pushover-Forwarder:** konfigurierbar, mit Severity-Filter
-- **Saved Filters:** Benutzer-spezifische Filter-Presets in DB
-- **Korrelations-IDs:** Gruppierung zusammenhängender Nachrichten (z. B. ein Backup-Lauf)
-- **Volltextsuche via FTS5:** SQLite-FTS5-Tabelle als Schatten-Index für `text`
-- **MQTT-Eingang:** zusätzlich zu Webhooks, mit Topic-zu-Source-Mapping
-- **Prometheus-Endpoint:** Counts pro Severity als `/metrics`
+Bereits umgesetzt (siehe `messagehub_erweiterungen.md` und `CHANGELOG.md`):
+
+- **Acknowledge-Flag** → Status-Lifecycle `new → acknowledged → resolved` (v0.2)
+- **Severity-Eskalation** → `processing/escalation.py` (v0.2)
+- **Telegram/Pushover-Forwarder** → `notifications/` mit Channels-UI (v0.2)
+- **Korrelations-IDs** → `trace_id`-Spalte + Auto-Gruppierung (v0.3)
+- **Volltextsuche via FTS5** → Migration `0006_fts5.sql` (v0.3)
+- **MQTT-Eingang** → `listeners/mqtt.py` + Topic-Mapping (v0.3)
+
+Noch offen:
+
+- **Saved Filters serverseitig:** aktuell nur LocalStorage pro Browser.
+- **Prometheus-Endpoint `/metrics`:** Counts pro Severity als Scrape-Target.
 
 ---
 

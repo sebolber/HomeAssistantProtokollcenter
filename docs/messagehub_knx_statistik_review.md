@@ -286,18 +286,20 @@ neuen Components verwendet. ✓
 
 ### Phasen-Reife
 
-- **Phase 1 (in Arbeit / 0.11.0):** alles abgedeckt — 4 QS-Features +
-  Hauptkonzept + Schatten-Counter-Pflege.
+- **Phase 1 (released, 0.11.0 → 0.12.0):** alles abgedeckt — 4 QS-Features
+  + Hauptkonzept + Schatten-Counter-Pflege. Iter 36–49 (Buslast-KPI,
+  Health-Score, Long-Term, Burst-Detector, Sensitive-Audit, ETS-Sync,
+  Bus-Analyse-Toggle) ausgeliefert mit 0.12.0.
 - **Phase 2 (Backlog):**
-  - Schatten-Counter-Lese-API + UI
-  - Alarm-Schwellen ueber Config-Flow konfigurierbar
-  - Rate-Limit fuer Alarm-Endpoint
+  - Schatten-Counter-Lese-API + UI (Schreib-Pfad in Iter 16 aktiv).
+  - Alarm-Schwellen ueber Config-Flow konfigurierbar.
+  - Rate-Limit fuer Alarm-Endpoint.
 
 ### Empfehlung
 
-Release 0.11.0 ist freigabereif, nachdem der User es in seiner HA-
-Installation kurz validiert hat. Tag-Push ist im Sandbox blockiert —
-manuelles Anlegen ueber GitHub-Web-UI noetig.
+Release 0.12.0 ist freigegeben; der Hotfix `1b83fd6` registriert noch
+fehlende KNX-Stats-Views (Burst, Buslast, Health, Sensitive, Long-Term,
+Bus-Analyse-Toggle) — Folgerelease (0.12.1) noch zu taggen.
 
 ---
 

@@ -1,8 +1,10 @@
 # Konzept: Statistik-Tabs + KNX-Telegrammanalyse
 
-**Status:** Konzept (noch nicht implementiert)
+**Status:** Phase 1 implementiert (Release 0.11.0, ausgebaut bis 0.12.0)
 **Datum:** 2026-05-02
-**Iteration:** geplant ab Release 0.11.0
+**Iteration:** Iter 1–49 abgeschlossen — siehe `CHANGELOG.md` und
+`messagehub_knx_statistik_review.md`. Phase-2-Backlog (Schatten-
+Counter-Lese-API, Alarm-Config-Flow, Rate-Limit) noch offen.
 
 ---
 

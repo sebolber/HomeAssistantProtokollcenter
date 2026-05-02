@@ -176,7 +176,5 @@ Alles andere (Geo-Anreicherung, Pattern-Mining, Reports) lohnt erst nach 2–3 M
 | 4.4 Audit-Log | 44 |
 | 5.1 Stats-Dashboard | 41 |
 | 5.2 Wochenreport | 46 |
-
-Nicht aufgenommen (Backlog für v0.2):
-- 2.2 Recurring-Pattern-Erkennung
-- 3.3 Geo-Kontext via MaxMind
+| 2.2 Recurring-Pattern-Erkennung | v0.3 (`processing/patterns.py`, Job in `__init__.py`) |
+| 3.3 Geo-Kontext via MaxMind | v0.3 (`processing/geoip.py`, Webhook-Pfad in `ingestion/webhook.py`) |
