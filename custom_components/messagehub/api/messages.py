@@ -16,6 +16,7 @@ from homeassistant.components.http import HomeAssistantView
 
 from ..const import DOMAIN, EVENT_MESSAGE_DELETED
 from .knx import (
+    KnxAddressBulkView,
     KnxAddressDetailView,
     KnxAddressesView,
     KnxProjectDiscoveryView,
@@ -1176,6 +1177,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         WebhooksView,
         WebhookDetailView,
         KnxAddressesView,
+        KnxAddressBulkView,
         KnxAddressDetailView,
         KnxProjectDiscoveryView,
         KnxProjectSyncView,

@@ -54,6 +54,12 @@ class KnxProjectDiscoveryView(RequireAdminView):
 # < 5000 GAs, alles darueber waere verdaechtig (DoS / Fehl-Aufruf).
 _SYNC_MAX_ITEMS = 10_000
 
+# Iter 56: Hard-Cap fuer Bulk-Patch. Verhindert versehentliche oder
+# boeswillige "alle 3593 GAs auf einmal aendern"-Aufrufe. 500 deckt
+# realistische Bulk-Edits ab; mehr braucht es typisch nicht in einem
+# Schritt.
+_BULK_MAX_ADDRESSES = 500
+
 
 class KnxProjectSyncView(RequireAdminView):
     """Iter 46 (N4): Intelligenter ETS-Projektdatei-Abgleich.
@@ -219,6 +225,101 @@ class KnxAddressesView(RequireAdminView):
             details={"label": item.label, "log_enabled": item.log_enabled},
         )
         return self.json(item.to_dict())
+
+
+class KnxAddressBulkView(RequireAdminView):
+    """Iter 56: Bulk-Patch ueber mehrere KNX-Gruppenadressen.
+
+    POST /api/messagehub/knx-addresses/bulk
+
+    Body: {
+      "addresses": ["1/2/3", "1/2/4", ...],
+      "patch": {
+        "log_enabled": true|false,
+        "log_severity": "warning"|"error"|...,
+        "severity_on_true": "..." | null,
+        "severity_on_false": "..." | null
+      }
+    }
+
+    Nur Felder, die im Patch vorhanden sind, werden geschrieben. Liefert
+    {"updated": N}. Hard-Cap _BULK_MAX_ADDRESSES.
+    """
+
+    url = "/api/messagehub/knx-addresses/bulk"
+    name = "api:messagehub:knx-addresses:bulk"
+
+    async def post(self, request: web.Request) -> web.Response:
+        from ..processing.knx_repo import (  # noqa: PLC0415
+            _SENTINEL_KEEP,
+            KnxAddressRepository,
+        )
+
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        parsed, err = await self._parse_bulk_body(request)
+        if err is not None:
+            return err
+        addresses_str: list[str] = parsed["addresses"]
+        patch: dict[str, Any] = parsed["patch"]
+
+        repo = KnxAddressRepository(db)
+        try:
+            updated = await repo.bulk_patch(
+                addresses_str,
+                log_enabled=patch.get("log_enabled"),
+                log_severity=patch.get("log_severity"),
+                # Iter 56: Sentinel-Logik fuer "Feld nicht aendern" vs.
+                # "auf NULL setzen". Key fehlt -> _SENTINEL_KEEP.
+                severity_on_true=patch.get("severity_on_true", _SENTINEL_KEEP),
+                severity_on_false=patch.get("severity_on_false", _SENTINEL_KEEP),
+            )
+        except (ValueError, TypeError) as exc:
+            return self.json_message(f"bulk patch invalid: {exc}", status_code=400)
+        _invalidate_knx_cache(request.app["hass"])
+        await audit(
+            request.app["hass"],
+            request,
+            action="knx_bulk_patch",
+            target_type="knx_address",
+            details={
+                "address_count": len(addresses_str),
+                "updated": updated,
+                # Patch-Felder nur als Schluessel logge — keine Werte,
+                # damit der Audit-Log nicht 500 GAs * Severity-Strings
+                # aufblaeht.
+                "patch_fields": sorted(patch.keys()),
+            },
+        )
+        return self.json({"updated": updated, "address_count": len(addresses_str)})
+
+    async def _parse_bulk_body(
+        self, request: web.Request
+    ) -> tuple[dict[str, Any], web.Response | None]:
+        """Validiert + normalisiert den Bulk-Patch-Body.
+
+        Trennt Validierung vom Handler, damit post() unter PLR0911
+        (max 6 returns) bleibt.
+        """
+        try:
+            data = await request.json()
+        except (ValueError, TypeError):
+            return {}, self.json_message(ERR_INVALID_JSON, status_code=400)
+        if not isinstance(data, dict):
+            return {}, self.json_message("body must be JSON object", status_code=400)
+        addresses = data.get("addresses")
+        if not isinstance(addresses, list) or not addresses:
+            return {}, self.json_message("body.addresses must be a non-empty list", status_code=400)
+        if len(addresses) > _BULK_MAX_ADDRESSES:
+            return {}, self.json_message(
+                f"too many addresses (max {_BULK_MAX_ADDRESSES})", status_code=400
+            )
+        patch = data.get("patch")
+        if not isinstance(patch, dict):
+            return {}, self.json_message("body.patch must be an object", status_code=400)
+        return {"addresses": [str(a) for a in addresses], "patch": patch}, None
 
 
 class KnxAddressDetailView(RequireAdminView):

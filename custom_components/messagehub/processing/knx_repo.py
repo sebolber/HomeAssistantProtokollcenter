@@ -24,6 +24,11 @@ _GA_PATTERN = re.compile(r"^\d{1,2}/\d{1,2}/\d{1,3}$")
 _VALID_SEVERITIES = Severity.values()
 _VALID_LOG_SEVERITIES = _VALID_SEVERITIES | frozenset({"auto"})
 
+# Iter 56: Sentinel fuer "Feld unveraendert lassen" in bulk_patch.
+# None bedeutet "auf SQL-NULL setzen" (gueltiger Severity-Wert), hier
+# brauchen wir ein drittes Signal: "Feld nicht aendern".
+_SENTINEL_KEEP: object = object()
+
 
 @dataclass(slots=True)
 class KnxAddress:
@@ -158,6 +163,67 @@ class KnxAddressRepository:
             except RuntimeError:
                 skipped += 1
         return {"imported": imported, "skipped": skipped, "errors": errors}
+
+    # --- Bulk-Edit (Iter 56) ------------------------------------------------
+
+    async def bulk_patch(
+        self,
+        addresses: list[str],
+        *,
+        log_enabled: bool | None = None,
+        log_severity: str | None = None,
+        severity_on_true: str | None | object = _SENTINEL_KEEP,
+        severity_on_false: str | None | object = _SENTINEL_KEEP,
+    ) -> int:
+        """Wendet ein Patch auf eine Liste von GAs an.
+
+        Nur Felder, die nicht None sind, werden aktualisiert. severity_on_true
+        und severity_on_false haben einen separaten Sentinel _SENTINEL_KEEP,
+        damit der Caller unterscheiden kann zwischen "auf NULL setzen" und
+        "unangetastet lassen".
+
+        Liefert die Anzahl tatsaechlich aktualisierter Zeilen.
+        """
+        if not addresses:
+            return 0
+        # Validate all addresses up front, sonst koennten Teil-Updates
+        # zurueckbleiben. Severity-Validierung ebenfalls vorab.
+        for addr in addresses:
+            validate_address(addr)
+        if log_severity is not None:
+            _validate_severity(log_severity, allow_auto=True)
+        if severity_on_true is not _SENTINEL_KEEP:
+            _validate_severity(severity_on_true)  # type: ignore[arg-type]
+        if severity_on_false is not _SENTINEL_KEEP:
+            _validate_severity(severity_on_false)  # type: ignore[arg-type]
+
+        sets: list[str] = []
+        params: list[Any] = []
+        if log_enabled is not None:
+            sets.append("log_enabled = ?")
+            params.append(1 if log_enabled else 0)
+        if log_severity is not None:
+            sets.append("log_severity = ?")
+            params.append(log_severity)
+        if severity_on_true is not _SENTINEL_KEEP:
+            sets.append("severity_on_true = ?")
+            params.append(severity_on_true)
+        if severity_on_false is not _SENTINEL_KEEP:
+            sets.append("severity_on_false = ?")
+            params.append(severity_on_false)
+        if not sets:
+            # Nichts zu patchen — kein Datenbank-Hit.
+            return 0
+        now = datetime.now(UTC).isoformat(timespec="seconds")
+        sets.append("updated_at = ?")
+        params.append(now)
+        placeholders = ",".join("?" * len(addresses))
+        sql = f"UPDATE knx_group_addresses SET {', '.join(sets)} WHERE address IN ({placeholders})"
+        cursor = await self._db.connection.execute(sql, [*params, *addresses])
+        await self._db.connection.commit()
+        updated = int(cursor.rowcount or 0)
+        await cursor.close()
+        return updated
 
     # --- ETS-Sync (Iter 46, N4) ---------------------------------------------
 
