@@ -6,6 +6,13 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Refactor (Iter 84 — CR-24 `format_value` Strategy-Pattern)
+- **`format_value` (KNX-DPT-Formatter) auf Dispatch-Tabelle umgestellt**.
+  Vorher 8 Returns + 12 Branches mit `noqa: PLR0911, PLR0912`. Jetzt
+  ein dict-ähnliches Lookup `_DPT_HANDLERS: list[tuple[prefix, fn]]` +
+  Default-Handler für numerische Werte mit Einheit.
+- Pure Refactor — alle 660 Tests bleiben grün, kein Verhaltens-Diff.
+
 ### Hinzugefügt (Iter 83 — CR-4 MQTT-Topic-PUT-Handler)
 - **`MqttTopicDetailView.put`** für `/api/messagehub/mqtt-topics/{id}`.
   Vorher musste das Frontend DELETE+POST simulieren — die Topic-ID

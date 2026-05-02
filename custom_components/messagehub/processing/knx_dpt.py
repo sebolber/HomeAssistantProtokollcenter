@@ -139,73 +139,87 @@ def _try_decode_byte_tuple_as_string(value: Any) -> str | None:
     return decoded if decoded else None
 
 
-def format_value(dpt: str | None, value: Any) -> str:  # noqa: PLR0911, PLR0912
-    """Liefert Wert als lesbaren String anhand des DPT."""
-    if value is None:
-        return ""
-    if not dpt:
-        # Iter 66 / WR-V: Tupel von Byte-Werten als String dekodieren,
-        # wenn die Heuristik passt (z. B. unkonfigurierte DPT-16-Strings).
-        decoded = _try_decode_byte_tuple_as_string(value)
-        if decoded is not None:
-            return decoded
-        return str(value)
+# Iter 84 / CR-24: Strategy-Pattern statt If-Else-Kaskade. Dispatch-
+# Tabelle ueber DPT-Prefixe; jeder Handler kapselt eine DPT-Familie.
+# Default-Handler greift bei unbekannten DPTs mit Einheit.
 
-    # 1.x — Boolean
-    if dpt.startswith("1."):
-        on_label, off_label = _BOOL_DPT_LABELS.get(dpt, ("True", "False"))
-        if isinstance(value, bool):
-            return on_label if value else off_label
-        if isinstance(value, int | float):
-            return on_label if value else off_label
-        if isinstance(value, str):
-            v = value.lower()
-            if v in {"true", "on", "1"}:
-                return on_label
-            if v in {"false", "off", "0"}:
-                return off_label
-        return str(value)
 
-    # 16.x — String (DPT 16.000 ASCII, 16.001 Latin-1)
-    if dpt.startswith("16."):
-        # Iter 66 / WR-V: Wenn xknx ein Bytes-Tupel statt String liefert
-        # (haeufig bei direktem Telegram-Hook), dekodieren statt das
-        # rohe Tupel anzuzeigen.
-        decoded = _try_decode_byte_tuple_as_string(value)
-        if decoded is not None:
-            return decoded
-        return str(value).strip()
+def _format_dpt_1(dpt: str, value: Any) -> str:
+    """1.x — Boolean (Schalt, Toggle, Bewegung, ...)."""
+    on_label, off_label = _BOOL_DPT_LABELS.get(dpt, ("True", "False"))
+    if isinstance(value, bool):
+        return on_label if value else off_label
+    if isinstance(value, int | float):
+        return on_label if value else off_label
+    if isinstance(value, str):
+        v = value.lower()
+        if v in {"true", "on", "1"}:
+            return on_label
+        if v in {"false", "off", "0"}:
+            return off_label
+    return str(value)
 
-    # 232.x — RGB
-    if dpt.startswith("232."):
-        if isinstance(value, dict):
-            r = value.get("red", value.get("r", "?"))
-            g = value.get("green", value.get("g", "?"))
-            b = value.get("blue", value.get("b", "?"))
-            return f"RGB({r}, {g}, {b})"
-        return str(value)
 
-    # 10.x — TimeOfDay (3 Byte: dow|hour, min, sec)
-    if dpt.startswith("10."):
-        return _format_time_of_day(value)
+def _format_dpt_16(_dpt: str, value: Any) -> str:
+    """16.x — Character String (DPT 16.000 ASCII, 16.001 Latin-1)."""
+    decoded = _try_decode_byte_tuple_as_string(value)
+    if decoded is not None:
+        return decoded
+    return str(value).strip()
 
-    # 11.x — Date (3 Byte: day, month, year-2-stellig)
-    if dpt.startswith("11."):
-        return _format_date(value)
 
-    # 19.x — DateTime (8 Byte)
-    if dpt.startswith("19."):
-        return _format_datetime(value)
+def _format_dpt_232(_dpt: str, value: Any) -> str:
+    """232.x — RGB-Farbe."""
+    if isinstance(value, dict):
+        r = value.get("red", value.get("r", "?"))
+        g = value.get("green", value.get("g", "?"))
+        b = value.get("blue", value.get("b", "?"))
+        return f"RGB({r}, {g}, {b})"
+    return str(value)
 
-    # Numerisch mit Einheit
+
+def _format_default_numeric(dpt: str, value: Any) -> str:
+    """Default: numerischer DPT mit optionaler Einheit."""
     unit = _UNIT_BY_DPT.get(dpt, "")
     if isinstance(value, float):
-        # Sinnvolle Rundung auf 2 Nachkommastellen
         formatted = f"{value:.2f}".rstrip("0").rstrip(".")
         return f"{formatted} {unit}".strip()
     if isinstance(value, int):
         return f"{value} {unit}".strip()
     return f"{value}{(' ' + unit) if unit else ''}"
+
+
+# Prefix → Handler. Reihenfolge irrelevant, weil unique Prefixes.
+_DPT_HANDLERS: list[tuple[str, Any]] = [
+    ("1.", _format_dpt_1),
+    ("16.", _format_dpt_16),
+    ("232.", _format_dpt_232),
+    ("10.", lambda _dpt, v: _format_time_of_day(v)),
+    ("11.", lambda _dpt, v: _format_date(v)),
+    ("19.", lambda _dpt, v: _format_datetime(v)),
+]
+
+
+def format_value(dpt: str | None, value: Any) -> str:
+    """Liefert Wert als lesbaren String anhand des DPT.
+
+    Iter 84 / CR-24: Dispatch ueber `_DPT_HANDLERS`-Tabelle statt
+    If-Else-Kaskade. Cognitive-Complexity reduziert; PLR0911/PLR0912
+    nicht mehr noetig.
+    """
+    if value is None:
+        return ""
+    if not dpt:
+        decoded = _try_decode_byte_tuple_as_string(value)
+        if decoded is not None:
+            return decoded
+        return str(value)
+
+    for prefix, handler in _DPT_HANDLERS:
+        if dpt.startswith(prefix):
+            return handler(dpt, value)
+
+    return _format_default_numeric(dpt, value)
 
 
 _DOW_LABELS = ["", "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
