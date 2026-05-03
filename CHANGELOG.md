@@ -6,6 +6,8 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.22.0] – 2026-05-03
+
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Wiring-Audit + Phase 6+7)
 - **Iter 31 — Detector `SEND_TO_NOWHERE`.**
   Neuer Detector `processing/findings/send_to_nowhere.py:detect_send_to_nowhere`
