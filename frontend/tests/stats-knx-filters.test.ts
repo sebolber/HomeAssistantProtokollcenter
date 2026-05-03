@@ -648,8 +648,10 @@ describe("stats-knx-view filter bar", () => {
     // Retention-Hinweis ist sichtbar
     const hint = trendCard!.querySelector(".trend-retention-hint");
     expect(hint).not.toBeNull();
-    expect(hint!.textContent).toContain("Raw-Telegramme");
-    expect(hint!.textContent).toContain("48");
+    // Iter aiohttp-error-ZU9UA / UX-P3.6: Hint-Wording wurde
+    // generischer (Counter-Tabelle als Datenquelle, 24h+ inkludiert).
+    expect(hint!.textContent).toContain("Vergleich nicht verfuegbar");
+    expect(hint!.textContent).toContain("Vorperioden-Zeitraum");
     // Lists und Top-N-Selektor sind versteckt
     expect(trendCard!.querySelector(".trend-grid")).toBeNull();
     expect(trendCard!.querySelector(".inline-topn")).toBeNull();

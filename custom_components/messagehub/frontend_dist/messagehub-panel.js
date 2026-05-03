@@ -7681,10 +7681,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </div>
         </header>
         ${o ? n`<p class="trend-retention-hint muted small">
-              Vergleich nicht verfuegbar fuer diese Periode — Raw-Telegramme
-              werden nur 48 Stunden vorgehalten, die Vorperiode liegt
-              ausserhalb. Fuer aussagekraeftige Trends 1 Std / 6 Std / 24 Std
-              waehlen.
+              Vergleich nicht verfuegbar — keine Telegramme im
+              Vorperioden-Zeitraum vorhanden. Bei einer frischen
+              Installation laeuft der Counter erst voll, wenn genug
+              Zeit verstrichen ist. Bei kurzen Perioden 1 Std / 6 Std
+              probieren.
             </p>` : i ? n`<p class="trend-short-hint muted small">
                 Hinweis: Bei kurzen Perioden vergleicht sich z. B. 04–05 Uhr mit
                 03–04 Uhr — Tag/Nacht-Übergaenge und Automation-Trigger lassen
@@ -7752,19 +7753,24 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     return this._filters.periodId === "1h" || this._filters.periodId === "6h";
   }
   /**
-   * Iter aiohttp-error-ZU9UA / Trend-Fix A: Periode, deren Vorperiode
-   * komplett ausserhalb der 48h-Raw-Retention liegt. compute_trend
-   * liest aus knx_raw_telegrams (48h Cap), also ist total_prev fuer
-   * diese Perioden zwangslaeufig 0 — der Vergleich ist sinnlos.
+   * Iter aiohttp-error-ZU9UA / Trend-Fix A + UX-P3.6: Perioden, bei
+   * denen ein leeres total_prev "keine Vergleichsdaten" bedeutet
+   * (statt eines echten Trends).
    *
-   * 48h: Vorperiode 48-96h zurueck → ausserhalb
-   * 7d / 30d / 365d: Vorperiode noch viel weiter zurueck → ausserhalb
+   * Vor Iter 6 (Backend Trend-Counter): nur Raw-Source, also alles >=
+   * 48h leer wenn Vorperiode ausserhalb 48h-Retention.
    *
-   * 24h ist Grenzfall (Vorperiode 24-48h, am Rand der Retention) — wir
-   * lassen es noch durch und vertrauen auf die echten Daten.
+   * Nach Iter 6: 24h+ liest aus Counter (365d-Retention). Wenn die
+   * Counter-Tabelle aber bei langer Periode noch leer ist (frische
+   * Installation, gerade erst eingeschaltet), zeigen wir trotzdem den
+   * "kein Vergleich verfuegbar"-Hinweis statt einer leeren Card.
+   *
+   * 1h/6h sind ausgenommen — die brauchen Raw und sind in Retention.
    */
   _isLongRetentionGapPeriod() {
-    return ["48h", "7d", "30d", "365d"].includes(this._filters.periodId);
+    return ["24h", "48h", "7d", "30d", "365d"].includes(
+      this._filters.periodId
+    );
   }
   /**
    * Iter 91 / WR-G: GA-Heatmap als CSS-Grid. Zeilen = Top-N GAs,

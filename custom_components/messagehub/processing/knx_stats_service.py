@@ -43,12 +43,21 @@ if TYPE_CHECKING:
 _AVG_TELEGRAM_BITS: float = float(KNX_AVG_TELEGRAM_BITS)
 _TP1_BITRATE: float = float(KNX_TP_BAUDRATE_BPS)
 
-# Iter aiohttp-error-ZU9UA / Trend-Fix B+C: Schwellwert in Minuten,
-# ab dem compute_trend die Counter-Tabelle statt Raw-Telegramme nutzt.
-# 48h = 2880 min = Raw-Retention. Bei dieser Periode oder laenger ist
-# die Vorperiode (gleiche Laenge davor) ausserhalb der Raw-Retention,
-# Counter ist die einzige Quelle mit verlaesslichem Vergleichswert.
-_TREND_COUNTER_THRESHOLD_MIN: int = 2880
+# Iter aiohttp-error-ZU9UA / Trend-Fix B+C + UX-P3.6: Schwellwert in
+# Minuten, ab dem compute_trend die Counter-Tabelle statt Raw-Telegramme
+# nutzt.
+#
+# Anfangs auf 2880 (48h) gesetzt — die Raw-Retention. Aber bei genau
+# 24h liegt die Vorperiode (24-48h zurueck) am Rand der Retention; je
+# nach Cleanup-Timing ist sie teilweise oder ganz ausgeraeumt. Das
+# fuehrt zu unterschaetztem total_prev und damit kuenstlich aufgeblasenen
+# %-Anstiegen.
+#
+# Loesung (Iter 6): Schwelle auf 1440 (24h) senken. Counter hat
+# hourly-Granularitaet — bei 24h-Aggregaten ist das verlustfrei. 1h/6h
+# bleiben bei Raw (sub-stuendliche Praezision noetig fuer kurze
+# Perioden, prev_period max 12h zurueck = sicher in Retention).
+_TREND_COUNTER_THRESHOLD_MIN: int = 1440
 
 
 def _hour_align_period(from_iso: str, to_iso: str) -> tuple[str, str]:

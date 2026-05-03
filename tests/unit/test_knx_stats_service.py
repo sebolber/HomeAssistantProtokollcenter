@@ -346,6 +346,52 @@ class TestComputeTrend:
         assert downs["1/0/2"]["count_prev"] == 35
 
     @pytest.mark.asyncio
+    async def test_24h_period_reads_from_counter(self, db: Database) -> None:
+        """Iter aiohttp-error-ZU9UA / UX-P3.6: 24h ist jetzt der
+        Schwellwert (vorher 48h). Bei genau 24h liegt die Vorperiode
+        (24-48h zurueck) am Rand der Raw-Retention — je nach Cleanup
+        teilweise/ganz weg. Counter (365d Retention) ist die korrekte
+        Quelle, auch bei 24h-Boundary.
+        """
+        repo = KnxStatsRepository(db)
+        base = datetime(2026, 5, 1, 0, 0, 0, tzinfo=UTC)
+        # Counter-Inserts. NOW: tag 2 (24h-Periode), PREV: tag 1.
+        for h in range(24):
+            ts_now = (base + timedelta(days=1, hours=h)).strftime("%Y-%m-%dT%H:00:00")
+            ts_prev = (base + timedelta(hours=h)).strftime("%Y-%m-%dT%H:00:00")
+            await repo.increment_counter("1/0/1", ts_now)
+            await repo.increment_counter("1/0/1", ts_prev)
+        # Periode = 24h = 1440 min, genau auf der Schwelle.
+        from_iso = (base + timedelta(days=1)).isoformat()
+        to_iso = (base + timedelta(days=2)).isoformat()
+        svc = KnxStatsService(repo)
+        result = await svc.compute_trend(from_iso, to_iso, top_n=10)
+        assert result["period_minutes"] == 1440
+        # Beide aus Counter (kein raw-Insert) → wenn Werte da, ist es Counter.
+        assert result["total_now"] == 24
+        assert result["total_prev"] == 24
+        assert result["total_delta_pct"] == 0.0
+
+    @pytest.mark.asyncio
+    async def test_below_24h_still_reads_from_raw(self, db: Database) -> None:
+        """6h-Periode darf weiterhin aus Raw lesen — kein Counter-
+        Insert in diesem Test. Wenn das Resultat Daten enthaelt, kommt
+        es zwingend aus Raw. Periode 360-720 min, prev 0-360 min.
+        """
+        # 20 Telegramme in NOW (360-720 min)
+        for i in range(20):
+            await _insert_knx(db, ts=_ts(400 + i), ga="1/0/1")
+        # 8 Telegramme in PREV (0-360 min)
+        for i in range(8):
+            await _insert_knx(db, ts=_ts(50 + i), ga="1/0/1")
+        # 6h-Periode = 360 min, deutlich unter 1440-Schwelle.
+        svc = KnxStatsService(KnxStatsRepository(db))
+        result = await svc.compute_trend(_ts(360), _ts(720), top_n=10)
+        assert result["period_minutes"] == 360
+        assert result["total_now"] == 20
+        assert result["total_prev"] == 8
+
+    @pytest.mark.asyncio
     async def test_short_period_still_reads_from_raw(self, db: Database) -> None:
         """Iter aiohttp-error-ZU9UA / Trend-Fix B+C: bei Perioden < 48h
         soll compute_trend weiter die Raw-Telegramme nutzen. Test
