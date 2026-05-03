@@ -5,210 +5,210 @@
  */
 const De = globalThis, Ye = De.ShadowRoot && (De.ShadyCSS === void 0 || De.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, Ze = Symbol(), at = /* @__PURE__ */ new WeakMap();
 let Rt = class {
-  constructor(e, s, a) {
-    if (this._$cssResult$ = !0, a !== Ze) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
-    this.cssText = e, this.t = s;
+  constructor(t, s, r) {
+    if (this._$cssResult$ = !0, r !== Ze) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
+    this.cssText = t, this.t = s;
   }
   get styleSheet() {
-    let e = this.o;
+    let t = this.o;
     const s = this.t;
-    if (Ye && e === void 0) {
-      const a = s !== void 0 && s.length === 1;
-      a && (e = at.get(s)), e === void 0 && ((this.o = e = new CSSStyleSheet()).replaceSync(this.cssText), a && at.set(s, e));
+    if (Ye && t === void 0) {
+      const r = s !== void 0 && s.length === 1;
+      r && (t = at.get(s)), t === void 0 && ((this.o = t = new CSSStyleSheet()).replaceSync(this.cssText), r && at.set(s, t));
     }
-    return e;
+    return t;
   }
   toString() {
     return this.cssText;
   }
 };
-const es = (t) => new Rt(typeof t == "string" ? t : t + "", void 0, Ze), y = (t, ...e) => {
-  const s = t.length === 1 ? t[0] : e.reduce((a, r, i) => a + ((o) => {
+const es = (e) => new Rt(typeof e == "string" ? e : e + "", void 0, Ze), y = (e, ...t) => {
+  const s = e.length === 1 ? e[0] : t.reduce((r, a, i) => r + ((o) => {
     if (o._$cssResult$ === !0) return o.cssText;
     if (typeof o == "number") return o;
     throw Error("Value passed to 'css' function must be a 'css' function result: " + o + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
-  })(r) + t[i + 1], t[0]);
-  return new Rt(s, t, Ze);
-}, ts = (t, e) => {
-  if (Ye) t.adoptedStyleSheets = e.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
-  else for (const s of e) {
-    const a = document.createElement("style"), r = De.litNonce;
-    r !== void 0 && a.setAttribute("nonce", r), a.textContent = s.cssText, t.appendChild(a);
+  })(a) + e[i + 1], e[0]);
+  return new Rt(s, e, Ze);
+}, ts = (e, t) => {
+  if (Ye) e.adoptedStyleSheets = t.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
+  else for (const s of t) {
+    const r = document.createElement("style"), a = De.litNonce;
+    a !== void 0 && r.setAttribute("nonce", a), r.textContent = s.cssText, e.appendChild(r);
   }
-}, it = Ye ? (t) => t : (t) => t instanceof CSSStyleSheet ? ((e) => {
+}, it = Ye ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((t) => {
   let s = "";
-  for (const a of e.cssRules) s += a.cssText;
+  for (const r of t.cssRules) s += r.cssText;
   return es(s);
-})(t) : t;
+})(e) : e;
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: ss, defineProperty: rs, getOwnPropertyDescriptor: as, getOwnPropertyNames: is, getOwnPropertySymbols: ns, getPrototypeOf: os } = Object, j = globalThis, nt = j.trustedTypes, ls = nt ? nt.emptyScript : "", Ue = j.reactiveElementPolyfillSupport, _e = (t, e) => t, ze = { toAttribute(t, e) {
-  switch (e) {
+const { is: ss, defineProperty: rs, getOwnPropertyDescriptor: as, getOwnPropertyNames: is, getOwnPropertySymbols: ns, getPrototypeOf: os } = Object, G = globalThis, nt = G.trustedTypes, ls = nt ? nt.emptyScript : "", Ue = G.reactiveElementPolyfillSupport, _e = (e, t) => e, ze = { toAttribute(e, t) {
+  switch (t) {
     case Boolean:
-      t = t ? ls : null;
+      e = e ? ls : null;
       break;
     case Object:
     case Array:
-      t = t == null ? t : JSON.stringify(t);
+      e = e == null ? e : JSON.stringify(e);
   }
-  return t;
-}, fromAttribute(t, e) {
-  let s = t;
-  switch (e) {
+  return e;
+}, fromAttribute(e, t) {
+  let s = e;
+  switch (t) {
     case Boolean:
-      s = t !== null;
+      s = e !== null;
       break;
     case Number:
-      s = t === null ? null : Number(t);
+      s = e === null ? null : Number(e);
       break;
     case Object:
     case Array:
       try {
-        s = JSON.parse(t);
+        s = JSON.parse(e);
       } catch {
         s = null;
       }
   }
   return s;
-} }, Xe = (t, e) => !ss(t, e), ot = { attribute: !0, type: String, converter: ze, reflect: !1, useDefault: !1, hasChanged: Xe };
-Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), j.litPropertyMetadata ?? (j.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
+} }, Xe = (e, t) => !ss(e, t), ot = { attribute: !0, type: String, converter: ze, reflect: !1, useDefault: !1, hasChanged: Xe };
+Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), G.litPropertyMetadata ?? (G.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
 let oe = class extends HTMLElement {
-  static addInitializer(e) {
-    this._$Ei(), (this.l ?? (this.l = [])).push(e);
+  static addInitializer(t) {
+    this._$Ei(), (this.l ?? (this.l = [])).push(t);
   }
   static get observedAttributes() {
     return this.finalize(), this._$Eh && [...this._$Eh.keys()];
   }
-  static createProperty(e, s = ot) {
-    if (s.state && (s.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((s = Object.create(s)).wrapped = !0), this.elementProperties.set(e, s), !s.noAccessor) {
-      const a = Symbol(), r = this.getPropertyDescriptor(e, a, s);
-      r !== void 0 && rs(this.prototype, e, r);
+  static createProperty(t, s = ot) {
+    if (s.state && (s.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(t) && ((s = Object.create(s)).wrapped = !0), this.elementProperties.set(t, s), !s.noAccessor) {
+      const r = Symbol(), a = this.getPropertyDescriptor(t, r, s);
+      a !== void 0 && rs(this.prototype, t, a);
     }
   }
-  static getPropertyDescriptor(e, s, a) {
-    const { get: r, set: i } = as(this.prototype, e) ?? { get() {
+  static getPropertyDescriptor(t, s, r) {
+    const { get: a, set: i } = as(this.prototype, t) ?? { get() {
       return this[s];
     }, set(o) {
       this[s] = o;
     } };
-    return { get: r, set(o) {
-      const d = r == null ? void 0 : r.call(this);
-      i == null || i.call(this, o), this.requestUpdate(e, d, a);
+    return { get: a, set(o) {
+      const d = a == null ? void 0 : a.call(this);
+      i == null || i.call(this, o), this.requestUpdate(t, d, r);
     }, configurable: !0, enumerable: !0 };
   }
-  static getPropertyOptions(e) {
-    return this.elementProperties.get(e) ?? ot;
+  static getPropertyOptions(t) {
+    return this.elementProperties.get(t) ?? ot;
   }
   static _$Ei() {
     if (this.hasOwnProperty(_e("elementProperties"))) return;
-    const e = os(this);
-    e.finalize(), e.l !== void 0 && (this.l = [...e.l]), this.elementProperties = new Map(e.elementProperties);
+    const t = os(this);
+    t.finalize(), t.l !== void 0 && (this.l = [...t.l]), this.elementProperties = new Map(t.elementProperties);
   }
   static finalize() {
     if (this.hasOwnProperty(_e("finalized"))) return;
     if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(_e("properties"))) {
-      const s = this.properties, a = [...is(s), ...ns(s)];
-      for (const r of a) this.createProperty(r, s[r]);
+      const s = this.properties, r = [...is(s), ...ns(s)];
+      for (const a of r) this.createProperty(a, s[a]);
     }
-    const e = this[Symbol.metadata];
-    if (e !== null) {
-      const s = litPropertyMetadata.get(e);
-      if (s !== void 0) for (const [a, r] of s) this.elementProperties.set(a, r);
+    const t = this[Symbol.metadata];
+    if (t !== null) {
+      const s = litPropertyMetadata.get(t);
+      if (s !== void 0) for (const [r, a] of s) this.elementProperties.set(r, a);
     }
     this._$Eh = /* @__PURE__ */ new Map();
-    for (const [s, a] of this.elementProperties) {
-      const r = this._$Eu(s, a);
-      r !== void 0 && this._$Eh.set(r, s);
+    for (const [s, r] of this.elementProperties) {
+      const a = this._$Eu(s, r);
+      a !== void 0 && this._$Eh.set(a, s);
     }
     this.elementStyles = this.finalizeStyles(this.styles);
   }
-  static finalizeStyles(e) {
+  static finalizeStyles(t) {
     const s = [];
-    if (Array.isArray(e)) {
-      const a = new Set(e.flat(1 / 0).reverse());
-      for (const r of a) s.unshift(it(r));
-    } else e !== void 0 && s.push(it(e));
+    if (Array.isArray(t)) {
+      const r = new Set(t.flat(1 / 0).reverse());
+      for (const a of r) s.unshift(it(a));
+    } else t !== void 0 && s.push(it(t));
     return s;
   }
-  static _$Eu(e, s) {
-    const a = s.attribute;
-    return a === !1 ? void 0 : typeof a == "string" ? a : typeof e == "string" ? e.toLowerCase() : void 0;
+  static _$Eu(t, s) {
+    const r = s.attribute;
+    return r === !1 ? void 0 : typeof r == "string" ? r : typeof t == "string" ? t.toLowerCase() : void 0;
   }
   constructor() {
     super(), this._$Ep = void 0, this.isUpdatePending = !1, this.hasUpdated = !1, this._$Em = null, this._$Ev();
   }
   _$Ev() {
-    var e;
-    this._$ES = new Promise((s) => this.enableUpdating = s), this._$AL = /* @__PURE__ */ new Map(), this._$E_(), this.requestUpdate(), (e = this.constructor.l) == null || e.forEach((s) => s(this));
+    var t;
+    this._$ES = new Promise((s) => this.enableUpdating = s), this._$AL = /* @__PURE__ */ new Map(), this._$E_(), this.requestUpdate(), (t = this.constructor.l) == null || t.forEach((s) => s(this));
   }
-  addController(e) {
+  addController(t) {
     var s;
-    (this._$EO ?? (this._$EO = /* @__PURE__ */ new Set())).add(e), this.renderRoot !== void 0 && this.isConnected && ((s = e.hostConnected) == null || s.call(e));
+    (this._$EO ?? (this._$EO = /* @__PURE__ */ new Set())).add(t), this.renderRoot !== void 0 && this.isConnected && ((s = t.hostConnected) == null || s.call(t));
   }
-  removeController(e) {
+  removeController(t) {
     var s;
-    (s = this._$EO) == null || s.delete(e);
+    (s = this._$EO) == null || s.delete(t);
   }
   _$E_() {
-    const e = /* @__PURE__ */ new Map(), s = this.constructor.elementProperties;
-    for (const a of s.keys()) this.hasOwnProperty(a) && (e.set(a, this[a]), delete this[a]);
-    e.size > 0 && (this._$Ep = e);
+    const t = /* @__PURE__ */ new Map(), s = this.constructor.elementProperties;
+    for (const r of s.keys()) this.hasOwnProperty(r) && (t.set(r, this[r]), delete this[r]);
+    t.size > 0 && (this._$Ep = t);
   }
   createRenderRoot() {
-    const e = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-    return ts(e, this.constructor.elementStyles), e;
+    const t = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
+    return ts(t, this.constructor.elementStyles), t;
   }
   connectedCallback() {
-    var e;
-    this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this.enableUpdating(!0), (e = this._$EO) == null || e.forEach((s) => {
-      var a;
-      return (a = s.hostConnected) == null ? void 0 : a.call(s);
+    var t;
+    this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this.enableUpdating(!0), (t = this._$EO) == null || t.forEach((s) => {
+      var r;
+      return (r = s.hostConnected) == null ? void 0 : r.call(s);
     });
   }
-  enableUpdating(e) {
+  enableUpdating(t) {
   }
   disconnectedCallback() {
-    var e;
-    (e = this._$EO) == null || e.forEach((s) => {
-      var a;
-      return (a = s.hostDisconnected) == null ? void 0 : a.call(s);
+    var t;
+    (t = this._$EO) == null || t.forEach((s) => {
+      var r;
+      return (r = s.hostDisconnected) == null ? void 0 : r.call(s);
     });
   }
-  attributeChangedCallback(e, s, a) {
-    this._$AK(e, a);
+  attributeChangedCallback(t, s, r) {
+    this._$AK(t, r);
   }
-  _$ET(e, s) {
+  _$ET(t, s) {
     var i;
-    const a = this.constructor.elementProperties.get(e), r = this.constructor._$Eu(e, a);
-    if (r !== void 0 && a.reflect === !0) {
-      const o = (((i = a.converter) == null ? void 0 : i.toAttribute) !== void 0 ? a.converter : ze).toAttribute(s, a.type);
-      this._$Em = e, o == null ? this.removeAttribute(r) : this.setAttribute(r, o), this._$Em = null;
+    const r = this.constructor.elementProperties.get(t), a = this.constructor._$Eu(t, r);
+    if (a !== void 0 && r.reflect === !0) {
+      const o = (((i = r.converter) == null ? void 0 : i.toAttribute) !== void 0 ? r.converter : ze).toAttribute(s, r.type);
+      this._$Em = t, o == null ? this.removeAttribute(a) : this.setAttribute(a, o), this._$Em = null;
     }
   }
-  _$AK(e, s) {
+  _$AK(t, s) {
     var i, o;
-    const a = this.constructor, r = a._$Eh.get(e);
-    if (r !== void 0 && this._$Em !== r) {
-      const d = a.getPropertyOptions(r), h = typeof d.converter == "function" ? { fromAttribute: d.converter } : ((i = d.converter) == null ? void 0 : i.fromAttribute) !== void 0 ? d.converter : ze;
-      this._$Em = r;
+    const r = this.constructor, a = r._$Eh.get(t);
+    if (a !== void 0 && this._$Em !== a) {
+      const d = r.getPropertyOptions(a), h = typeof d.converter == "function" ? { fromAttribute: d.converter } : ((i = d.converter) == null ? void 0 : i.fromAttribute) !== void 0 ? d.converter : ze;
+      this._$Em = a;
       const m = h.fromAttribute(s, d.type);
-      this[r] = m ?? ((o = this._$Ej) == null ? void 0 : o.get(r)) ?? m, this._$Em = null;
+      this[a] = m ?? ((o = this._$Ej) == null ? void 0 : o.get(a)) ?? m, this._$Em = null;
     }
   }
-  requestUpdate(e, s, a, r = !1, i) {
+  requestUpdate(t, s, r, a = !1, i) {
     var o;
-    if (e !== void 0) {
+    if (t !== void 0) {
       const d = this.constructor;
-      if (r === !1 && (i = this[e]), a ?? (a = d.getPropertyOptions(e)), !((a.hasChanged ?? Xe)(i, s) || a.useDefault && a.reflect && i === ((o = this._$Ej) == null ? void 0 : o.get(e)) && !this.hasAttribute(d._$Eu(e, a)))) return;
-      this.C(e, s, a);
+      if (a === !1 && (i = this[t]), r ?? (r = d.getPropertyOptions(t)), !((r.hasChanged ?? Xe)(i, s) || r.useDefault && r.reflect && i === ((o = this._$Ej) == null ? void 0 : o.get(t)) && !this.hasAttribute(d._$Eu(t, r)))) return;
+      this.C(t, s, r);
     }
     this.isUpdatePending === !1 && (this._$ES = this._$EP());
   }
-  C(e, s, { useDefault: a, reflect: r, wrapped: i }, o) {
-    a && !(this._$Ej ?? (this._$Ej = /* @__PURE__ */ new Map())).has(e) && (this._$Ej.set(e, o ?? s ?? this[e]), i !== !0 || o !== void 0) || (this._$AL.has(e) || (this.hasUpdated || a || (s = void 0), this._$AL.set(e, s)), r === !0 && this._$Em !== e && (this._$Eq ?? (this._$Eq = /* @__PURE__ */ new Set())).add(e));
+  C(t, s, { useDefault: r, reflect: a, wrapped: i }, o) {
+    r && !(this._$Ej ?? (this._$Ej = /* @__PURE__ */ new Map())).has(t) && (this._$Ej.set(t, o ?? s ?? this[t]), i !== !0 || o !== void 0) || (this._$AL.has(t) || (this.hasUpdated || r || (s = void 0), this._$AL.set(t, s)), a === !0 && this._$Em !== t && (this._$Eq ?? (this._$Eq = /* @__PURE__ */ new Set())).add(t));
   }
   async _$EP() {
     this.isUpdatePending = !0;
@@ -217,46 +217,46 @@ let oe = class extends HTMLElement {
     } catch (s) {
       Promise.reject(s);
     }
-    const e = this.scheduleUpdate();
-    return e != null && await e, !this.isUpdatePending;
+    const t = this.scheduleUpdate();
+    return t != null && await t, !this.isUpdatePending;
   }
   scheduleUpdate() {
     return this.performUpdate();
   }
   performUpdate() {
-    var a;
+    var r;
     if (!this.isUpdatePending) return;
     if (!this.hasUpdated) {
       if (this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this._$Ep) {
         for (const [i, o] of this._$Ep) this[i] = o;
         this._$Ep = void 0;
       }
-      const r = this.constructor.elementProperties;
-      if (r.size > 0) for (const [i, o] of r) {
+      const a = this.constructor.elementProperties;
+      if (a.size > 0) for (const [i, o] of a) {
         const { wrapped: d } = o, h = this[i];
         d !== !0 || this._$AL.has(i) || h === void 0 || this.C(i, void 0, o, h);
       }
     }
-    let e = !1;
+    let t = !1;
     const s = this._$AL;
     try {
-      e = this.shouldUpdate(s), e ? (this.willUpdate(s), (a = this._$EO) == null || a.forEach((r) => {
+      t = this.shouldUpdate(s), t ? (this.willUpdate(s), (r = this._$EO) == null || r.forEach((a) => {
         var i;
-        return (i = r.hostUpdate) == null ? void 0 : i.call(r);
+        return (i = a.hostUpdate) == null ? void 0 : i.call(a);
       }), this.update(s)) : this._$EM();
-    } catch (r) {
-      throw e = !1, this._$EM(), r;
+    } catch (a) {
+      throw t = !1, this._$EM(), a;
     }
-    e && this._$AE(s);
+    t && this._$AE(s);
   }
-  willUpdate(e) {
+  willUpdate(t) {
   }
-  _$AE(e) {
+  _$AE(t) {
     var s;
-    (s = this._$EO) == null || s.forEach((a) => {
-      var r;
-      return (r = a.hostUpdated) == null ? void 0 : r.call(a);
-    }), this.hasUpdated || (this.hasUpdated = !0, this.firstUpdated(e)), this.updated(e);
+    (s = this._$EO) == null || s.forEach((r) => {
+      var a;
+      return (a = r.hostUpdated) == null ? void 0 : a.call(r);
+    }), this.hasUpdated || (this.hasUpdated = !0, this.firstUpdated(t)), this.updated(t);
   }
   _$EM() {
     this._$AL = /* @__PURE__ */ new Map(), this.isUpdatePending = !1;
@@ -267,89 +267,89 @@ let oe = class extends HTMLElement {
   getUpdateComplete() {
     return this._$ES;
   }
-  shouldUpdate(e) {
+  shouldUpdate(t) {
     return !0;
   }
-  update(e) {
+  update(t) {
     this._$Eq && (this._$Eq = this._$Eq.forEach((s) => this._$ET(s, this[s]))), this._$EM();
   }
-  updated(e) {
+  updated(t) {
   }
-  firstUpdated(e) {
+  firstUpdated(t) {
   }
 };
-oe.elementStyles = [], oe.shadowRootOptions = { mode: "open" }, oe[_e("elementProperties")] = /* @__PURE__ */ new Map(), oe[_e("finalized")] = /* @__PURE__ */ new Map(), Ue == null || Ue({ ReactiveElement: oe }), (j.reactiveElementVersions ?? (j.reactiveElementVersions = [])).push("2.1.2");
+oe.elementStyles = [], oe.shadowRootOptions = { mode: "open" }, oe[_e("elementProperties")] = /* @__PURE__ */ new Map(), oe[_e("finalized")] = /* @__PURE__ */ new Map(), Ue == null || Ue({ ReactiveElement: oe }), (G.reactiveElementVersions ?? (G.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const we = globalThis, lt = (t) => t, Le = we.trustedTypes, dt = Le ? Le.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Mt = "$lit$", B = `lit$${Math.random().toFixed(9).slice(2)}$`, Ut = "?" + B, ds = `<${Ut}>`, Z = document, xe = () => Z.createComment(""), ye = (t) => t === null || typeof t != "object" && typeof t != "function", Qe = Array.isArray, cs = (t) => Qe(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", He = `[ 	
+const we = globalThis, lt = (e) => e, Le = we.trustedTypes, dt = Le ? Le.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Mt = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Ut = "?" + j, ds = `<${Ut}>`, Z = document, xe = () => Z.createComment(""), ye = (e) => e === null || typeof e != "object" && typeof e != "function", Qe = Array.isArray, cs = (e) => Qe(e) || typeof (e == null ? void 0 : e[Symbol.iterator]) == "function", He = `[ 	
 \f\r]`, ve = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ct = /-->/g, ht = />/g, V = RegExp(`>|${He}(?:([^\\s"'>=/]+)(${He}*=${He}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), pt = /'/g, ut = /"/g, Ht = /^(?:script|style|textarea|title)$/i, hs = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), n = hs(1), X = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), mt = /* @__PURE__ */ new WeakMap(), J = Z.createTreeWalker(Z, 129);
-function Bt(t, e) {
-  if (!Qe(t) || !t.hasOwnProperty("raw")) throw Error("invalid template strings array");
-  return dt !== void 0 ? dt.createHTML(e) : e;
+\f\r"'\`<>=]|("|')|))|$)`, "g"), pt = /'/g, ut = /"/g, Ht = /^(?:script|style|textarea|title)$/i, hs = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), n = hs(1), X = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), mt = /* @__PURE__ */ new WeakMap(), J = Z.createTreeWalker(Z, 129);
+function Bt(e, t) {
+  if (!Qe(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
+  return dt !== void 0 ? dt.createHTML(t) : t;
 }
-const ps = (t, e) => {
-  const s = t.length - 1, a = [];
-  let r, i = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", o = ve;
+const ps = (e, t) => {
+  const s = e.length - 1, r = [];
+  let a, i = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = ve;
   for (let d = 0; d < s; d++) {
-    const h = t[d];
+    const h = e[d];
     let m, g, u = -1, p = 0;
-    for (; p < h.length && (o.lastIndex = p, g = o.exec(h), g !== null); ) p = o.lastIndex, o === ve ? g[1] === "!--" ? o = ct : g[1] !== void 0 ? o = ht : g[2] !== void 0 ? (Ht.test(g[2]) && (r = RegExp("</" + g[2], "g")), o = V) : g[3] !== void 0 && (o = V) : o === V ? g[0] === ">" ? (o = r ?? ve, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? V : g[3] === '"' ? ut : pt) : o === ut || o === pt ? o = V : o === ct || o === ht ? o = ve : (o = V, r = void 0);
-    const b = o === V && t[d + 1].startsWith("/>") ? " " : "";
-    i += o === ve ? h + ds : u >= 0 ? (a.push(m), h.slice(0, u) + Mt + h.slice(u) + B + b) : h + B + (u === -2 ? d : b);
+    for (; p < h.length && (o.lastIndex = p, g = o.exec(h), g !== null); ) p = o.lastIndex, o === ve ? g[1] === "!--" ? o = ct : g[1] !== void 0 ? o = ht : g[2] !== void 0 ? (Ht.test(g[2]) && (a = RegExp("</" + g[2], "g")), o = V) : g[3] !== void 0 && (o = V) : o === V ? g[0] === ">" ? (o = a ?? ve, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? V : g[3] === '"' ? ut : pt) : o === ut || o === pt ? o = V : o === ct || o === ht ? o = ve : (o = V, a = void 0);
+    const b = o === V && e[d + 1].startsWith("/>") ? " " : "";
+    i += o === ve ? h + ds : u >= 0 ? (r.push(m), h.slice(0, u) + Mt + h.slice(u) + j + b) : h + j + (u === -2 ? d : b);
   }
-  return [Bt(t, i + (t[s] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), a];
+  return [Bt(e, i + (e[s] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
 };
 class $e {
-  constructor({ strings: e, _$litType$: s }, a) {
-    let r;
+  constructor({ strings: t, _$litType$: s }, r) {
+    let a;
     this.parts = [];
     let i = 0, o = 0;
-    const d = e.length - 1, h = this.parts, [m, g] = ps(e, s);
-    if (this.el = $e.createElement(m, a), J.currentNode = this.el.content, s === 2 || s === 3) {
+    const d = t.length - 1, h = this.parts, [m, g] = ps(t, s);
+    if (this.el = $e.createElement(m, r), J.currentNode = this.el.content, s === 2 || s === 3) {
       const u = this.el.content.firstChild;
       u.replaceWith(...u.childNodes);
     }
-    for (; (r = J.nextNode()) !== null && h.length < d; ) {
-      if (r.nodeType === 1) {
-        if (r.hasAttributes()) for (const u of r.getAttributeNames()) if (u.endsWith(Mt)) {
-          const p = g[o++], b = r.getAttribute(u).split(B), v = /([.?@])?(.*)/.exec(p);
-          h.push({ type: 1, index: i, name: v[2], strings: b, ctor: v[1] === "." ? ms : v[1] === "?" ? gs : v[1] === "@" ? vs : Fe }), r.removeAttribute(u);
-        } else u.startsWith(B) && (h.push({ type: 6, index: i }), r.removeAttribute(u));
-        if (Ht.test(r.tagName)) {
-          const u = r.textContent.split(B), p = u.length - 1;
+    for (; (a = J.nextNode()) !== null && h.length < d; ) {
+      if (a.nodeType === 1) {
+        if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Mt)) {
+          const p = g[o++], b = a.getAttribute(u).split(j), v = /([.?@])?(.*)/.exec(p);
+          h.push({ type: 1, index: i, name: v[2], strings: b, ctor: v[1] === "." ? ms : v[1] === "?" ? gs : v[1] === "@" ? vs : Fe }), a.removeAttribute(u);
+        } else u.startsWith(j) && (h.push({ type: 6, index: i }), a.removeAttribute(u));
+        if (Ht.test(a.tagName)) {
+          const u = a.textContent.split(j), p = u.length - 1;
           if (p > 0) {
-            r.textContent = Le ? Le.emptyScript : "";
-            for (let b = 0; b < p; b++) r.append(u[b], xe()), J.nextNode(), h.push({ type: 2, index: ++i });
-            r.append(u[p], xe());
+            a.textContent = Le ? Le.emptyScript : "";
+            for (let b = 0; b < p; b++) a.append(u[b], xe()), J.nextNode(), h.push({ type: 2, index: ++i });
+            a.append(u[p], xe());
           }
         }
-      } else if (r.nodeType === 8) if (r.data === Ut) h.push({ type: 2, index: i });
+      } else if (a.nodeType === 8) if (a.data === Ut) h.push({ type: 2, index: i });
       else {
         let u = -1;
-        for (; (u = r.data.indexOf(B, u + 1)) !== -1; ) h.push({ type: 7, index: i }), u += B.length - 1;
+        for (; (u = a.data.indexOf(j, u + 1)) !== -1; ) h.push({ type: 7, index: i }), u += j.length - 1;
       }
       i++;
     }
   }
-  static createElement(e, s) {
-    const a = Z.createElement("template");
-    return a.innerHTML = e, a;
+  static createElement(t, s) {
+    const r = Z.createElement("template");
+    return r.innerHTML = t, r;
   }
 }
-function le(t, e, s = t, a) {
+function le(e, t, s = e, r) {
   var o, d;
-  if (e === X) return e;
-  let r = a !== void 0 ? (o = s._$Co) == null ? void 0 : o[a] : s._$Cl;
-  const i = ye(e) ? void 0 : e._$litDirective$;
-  return (r == null ? void 0 : r.constructor) !== i && ((d = r == null ? void 0 : r._$AO) == null || d.call(r, !1), i === void 0 ? r = void 0 : (r = new i(t), r._$AT(t, s, a)), a !== void 0 ? (s._$Co ?? (s._$Co = []))[a] = r : s._$Cl = r), r !== void 0 && (e = le(t, r._$AS(t, e.values), r, a)), e;
+  if (t === X) return t;
+  let a = r !== void 0 ? (o = s._$Co) == null ? void 0 : o[r] : s._$Cl;
+  const i = ye(t) ? void 0 : t._$litDirective$;
+  return (a == null ? void 0 : a.constructor) !== i && ((d = a == null ? void 0 : a._$AO) == null || d.call(a, !1), i === void 0 ? a = void 0 : (a = new i(e), a._$AT(e, s, r)), r !== void 0 ? (s._$Co ?? (s._$Co = []))[r] = a : s._$Cl = a), a !== void 0 && (t = le(e, a._$AS(e, t.values), a, r)), t;
 }
 class us {
-  constructor(e, s) {
-    this._$AV = [], this._$AN = void 0, this._$AD = e, this._$AM = s;
+  constructor(t, s) {
+    this._$AV = [], this._$AN = void 0, this._$AD = t, this._$AM = s;
   }
   get parentNode() {
     return this._$AM.parentNode;
@@ -357,36 +357,36 @@ class us {
   get _$AU() {
     return this._$AM._$AU;
   }
-  u(e) {
-    const { el: { content: s }, parts: a } = this._$AD, r = ((e == null ? void 0 : e.creationScope) ?? Z).importNode(s, !0);
-    J.currentNode = r;
-    let i = J.nextNode(), o = 0, d = 0, h = a[0];
+  u(t) {
+    const { el: { content: s }, parts: r } = this._$AD, a = ((t == null ? void 0 : t.creationScope) ?? Z).importNode(s, !0);
+    J.currentNode = a;
+    let i = J.nextNode(), o = 0, d = 0, h = r[0];
     for (; h !== void 0; ) {
       if (o === h.index) {
         let m;
-        h.type === 2 ? m = new ue(i, i.nextSibling, this, e) : h.type === 1 ? m = new h.ctor(i, h.name, h.strings, this, e) : h.type === 6 && (m = new fs(i, this, e)), this._$AV.push(m), h = a[++d];
+        h.type === 2 ? m = new ue(i, i.nextSibling, this, t) : h.type === 1 ? m = new h.ctor(i, h.name, h.strings, this, t) : h.type === 6 && (m = new fs(i, this, t)), this._$AV.push(m), h = r[++d];
       }
       o !== (h == null ? void 0 : h.index) && (i = J.nextNode(), o++);
     }
-    return J.currentNode = Z, r;
+    return J.currentNode = Z, a;
   }
-  p(e) {
+  p(t) {
     let s = 0;
-    for (const a of this._$AV) a !== void 0 && (a.strings !== void 0 ? (a._$AI(e, a, s), s += a.strings.length - 2) : a._$AI(e[s])), s++;
+    for (const r of this._$AV) r !== void 0 && (r.strings !== void 0 ? (r._$AI(t, r, s), s += r.strings.length - 2) : r._$AI(t[s])), s++;
   }
 }
 class ue {
   get _$AU() {
-    var e;
-    return ((e = this._$AM) == null ? void 0 : e._$AU) ?? this._$Cv;
+    var t;
+    return ((t = this._$AM) == null ? void 0 : t._$AU) ?? this._$Cv;
   }
-  constructor(e, s, a, r) {
-    this.type = 2, this._$AH = c, this._$AN = void 0, this._$AA = e, this._$AB = s, this._$AM = a, this.options = r, this._$Cv = (r == null ? void 0 : r.isConnected) ?? !0;
+  constructor(t, s, r, a) {
+    this.type = 2, this._$AH = c, this._$AN = void 0, this._$AA = t, this._$AB = s, this._$AM = r, this.options = a, this._$Cv = (a == null ? void 0 : a.isConnected) ?? !0;
   }
   get parentNode() {
-    let e = this._$AA.parentNode;
+    let t = this._$AA.parentNode;
     const s = this._$AM;
-    return s !== void 0 && (e == null ? void 0 : e.nodeType) === 11 && (e = s.parentNode), e;
+    return s !== void 0 && (t == null ? void 0 : t.nodeType) === 11 && (t = s.parentNode), t;
   }
   get startNode() {
     return this._$AA;
@@ -394,48 +394,48 @@ class ue {
   get endNode() {
     return this._$AB;
   }
-  _$AI(e, s = this) {
-    e = le(this, e, s), ye(e) ? e === c || e == null || e === "" ? (this._$AH !== c && this._$AR(), this._$AH = c) : e !== this._$AH && e !== X && this._(e) : e._$litType$ !== void 0 ? this.$(e) : e.nodeType !== void 0 ? this.T(e) : cs(e) ? this.k(e) : this._(e);
+  _$AI(t, s = this) {
+    t = le(this, t, s), ye(t) ? t === c || t == null || t === "" ? (this._$AH !== c && this._$AR(), this._$AH = c) : t !== this._$AH && t !== X && this._(t) : t._$litType$ !== void 0 ? this.$(t) : t.nodeType !== void 0 ? this.T(t) : cs(t) ? this.k(t) : this._(t);
   }
-  O(e) {
-    return this._$AA.parentNode.insertBefore(e, this._$AB);
+  O(t) {
+    return this._$AA.parentNode.insertBefore(t, this._$AB);
   }
-  T(e) {
-    this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
+  T(t) {
+    this._$AH !== t && (this._$AR(), this._$AH = this.O(t));
   }
-  _(e) {
-    this._$AH !== c && ye(this._$AH) ? this._$AA.nextSibling.data = e : this.T(Z.createTextNode(e)), this._$AH = e;
+  _(t) {
+    this._$AH !== c && ye(this._$AH) ? this._$AA.nextSibling.data = t : this.T(Z.createTextNode(t)), this._$AH = t;
   }
-  $(e) {
+  $(t) {
     var i;
-    const { values: s, _$litType$: a } = e, r = typeof a == "number" ? this._$AC(e) : (a.el === void 0 && (a.el = $e.createElement(Bt(a.h, a.h[0]), this.options)), a);
-    if (((i = this._$AH) == null ? void 0 : i._$AD) === r) this._$AH.p(s);
+    const { values: s, _$litType$: r } = t, a = typeof r == "number" ? this._$AC(t) : (r.el === void 0 && (r.el = $e.createElement(Bt(r.h, r.h[0]), this.options)), r);
+    if (((i = this._$AH) == null ? void 0 : i._$AD) === a) this._$AH.p(s);
     else {
-      const o = new us(r, this), d = o.u(this.options);
+      const o = new us(a, this), d = o.u(this.options);
       o.p(s), this.T(d), this._$AH = o;
     }
   }
-  _$AC(e) {
-    let s = mt.get(e.strings);
-    return s === void 0 && mt.set(e.strings, s = new $e(e)), s;
+  _$AC(t) {
+    let s = mt.get(t.strings);
+    return s === void 0 && mt.set(t.strings, s = new $e(t)), s;
   }
-  k(e) {
+  k(t) {
     Qe(this._$AH) || (this._$AH = [], this._$AR());
     const s = this._$AH;
-    let a, r = 0;
-    for (const i of e) r === s.length ? s.push(a = new ue(this.O(xe()), this.O(xe()), this, this.options)) : a = s[r], a._$AI(i), r++;
-    r < s.length && (this._$AR(a && a._$AB.nextSibling, r), s.length = r);
+    let r, a = 0;
+    for (const i of t) a === s.length ? s.push(r = new ue(this.O(xe()), this.O(xe()), this, this.options)) : r = s[a], r._$AI(i), a++;
+    a < s.length && (this._$AR(r && r._$AB.nextSibling, a), s.length = a);
   }
-  _$AR(e = this._$AA.nextSibling, s) {
-    var a;
-    for ((a = this._$AP) == null ? void 0 : a.call(this, !1, !0, s); e !== this._$AB; ) {
-      const r = lt(e).nextSibling;
-      lt(e).remove(), e = r;
+  _$AR(t = this._$AA.nextSibling, s) {
+    var r;
+    for ((r = this._$AP) == null ? void 0 : r.call(this, !1, !0, s); t !== this._$AB; ) {
+      const a = lt(t).nextSibling;
+      lt(t).remove(), t = a;
     }
   }
-  setConnected(e) {
+  setConnected(t) {
     var s;
-    this._$AM === void 0 && (this._$Cv = e, (s = this._$AP) == null || s.call(this, e));
+    this._$AM === void 0 && (this._$Cv = t, (s = this._$AP) == null || s.call(this, t));
   }
 }
 class Fe {
@@ -445,75 +445,75 @@ class Fe {
   get _$AU() {
     return this._$AM._$AU;
   }
-  constructor(e, s, a, r, i) {
-    this.type = 1, this._$AH = c, this._$AN = void 0, this.element = e, this.name = s, this._$AM = r, this.options = i, a.length > 2 || a[0] !== "" || a[1] !== "" ? (this._$AH = Array(a.length - 1).fill(new String()), this.strings = a) : this._$AH = c;
+  constructor(t, s, r, a, i) {
+    this.type = 1, this._$AH = c, this._$AN = void 0, this.element = t, this.name = s, this._$AM = a, this.options = i, r.length > 2 || r[0] !== "" || r[1] !== "" ? (this._$AH = Array(r.length - 1).fill(new String()), this.strings = r) : this._$AH = c;
   }
-  _$AI(e, s = this, a, r) {
+  _$AI(t, s = this, r, a) {
     const i = this.strings;
     let o = !1;
-    if (i === void 0) e = le(this, e, s, 0), o = !ye(e) || e !== this._$AH && e !== X, o && (this._$AH = e);
+    if (i === void 0) t = le(this, t, s, 0), o = !ye(t) || t !== this._$AH && t !== X, o && (this._$AH = t);
     else {
-      const d = e;
+      const d = t;
       let h, m;
-      for (e = i[0], h = 0; h < i.length - 1; h++) m = le(this, d[a + h], s, h), m === X && (m = this._$AH[h]), o || (o = !ye(m) || m !== this._$AH[h]), m === c ? e = c : e !== c && (e += (m ?? "") + i[h + 1]), this._$AH[h] = m;
+      for (t = i[0], h = 0; h < i.length - 1; h++) m = le(this, d[r + h], s, h), m === X && (m = this._$AH[h]), o || (o = !ye(m) || m !== this._$AH[h]), m === c ? t = c : t !== c && (t += (m ?? "") + i[h + 1]), this._$AH[h] = m;
     }
-    o && !r && this.j(e);
+    o && !a && this.j(t);
   }
-  j(e) {
-    e === c ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
+  j(t) {
+    t === c ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
   }
 }
 class ms extends Fe {
   constructor() {
     super(...arguments), this.type = 3;
   }
-  j(e) {
-    this.element[this.name] = e === c ? void 0 : e;
+  j(t) {
+    this.element[this.name] = t === c ? void 0 : t;
   }
 }
 class gs extends Fe {
   constructor() {
     super(...arguments), this.type = 4;
   }
-  j(e) {
-    this.element.toggleAttribute(this.name, !!e && e !== c);
+  j(t) {
+    this.element.toggleAttribute(this.name, !!t && t !== c);
   }
 }
 class vs extends Fe {
-  constructor(e, s, a, r, i) {
-    super(e, s, a, r, i), this.type = 5;
+  constructor(t, s, r, a, i) {
+    super(t, s, r, a, i), this.type = 5;
   }
-  _$AI(e, s = this) {
-    if ((e = le(this, e, s, 0) ?? c) === X) return;
-    const a = this._$AH, r = e === c && a !== c || e.capture !== a.capture || e.once !== a.once || e.passive !== a.passive, i = e !== c && (a === c || r);
-    r && this.element.removeEventListener(this.name, this, a), i && this.element.addEventListener(this.name, this, e), this._$AH = e;
+  _$AI(t, s = this) {
+    if ((t = le(this, t, s, 0) ?? c) === X) return;
+    const r = this._$AH, a = t === c && r !== c || t.capture !== r.capture || t.once !== r.once || t.passive !== r.passive, i = t !== c && (r === c || a);
+    a && this.element.removeEventListener(this.name, this, r), i && this.element.addEventListener(this.name, this, t), this._$AH = t;
   }
-  handleEvent(e) {
+  handleEvent(t) {
     var s;
-    typeof this._$AH == "function" ? this._$AH.call(((s = this.options) == null ? void 0 : s.host) ?? this.element, e) : this._$AH.handleEvent(e);
+    typeof this._$AH == "function" ? this._$AH.call(((s = this.options) == null ? void 0 : s.host) ?? this.element, t) : this._$AH.handleEvent(t);
   }
 }
 class fs {
-  constructor(e, s, a) {
-    this.element = e, this.type = 6, this._$AN = void 0, this._$AM = s, this.options = a;
+  constructor(t, s, r) {
+    this.element = t, this.type = 6, this._$AN = void 0, this._$AM = s, this.options = r;
   }
   get _$AU() {
     return this._$AM._$AU;
   }
-  _$AI(e) {
-    le(this, e);
+  _$AI(t) {
+    le(this, t);
   }
 }
 const bs = { I: ue }, Be = we.litHtmlPolyfillSupport;
 Be == null || Be($e, ue), (we.litHtmlVersions ?? (we.litHtmlVersions = [])).push("3.3.2");
-const _s = (t, e, s) => {
-  const a = (s == null ? void 0 : s.renderBefore) ?? e;
-  let r = a._$litPart$;
-  if (r === void 0) {
+const _s = (e, t, s) => {
+  const r = (s == null ? void 0 : s.renderBefore) ?? t;
+  let a = r._$litPart$;
+  if (a === void 0) {
     const i = (s == null ? void 0 : s.renderBefore) ?? null;
-    a._$litPart$ = r = new ue(e.insertBefore(xe(), i), i, void 0, s ?? {});
+    r._$litPart$ = a = new ue(t.insertBefore(xe(), i), i, void 0, s ?? {});
   }
-  return r._$AI(t), r;
+  return a._$AI(e), a;
 };
 /**
  * @license
@@ -527,20 +527,20 @@ let x = class extends oe {
   }
   createRenderRoot() {
     var s;
-    const e = super.createRenderRoot();
-    return (s = this.renderOptions).renderBefore ?? (s.renderBefore = e.firstChild), e;
+    const t = super.createRenderRoot();
+    return (s = this.renderOptions).renderBefore ?? (s.renderBefore = t.firstChild), t;
   }
-  update(e) {
+  update(t) {
     const s = this.render();
-    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = _s(s, this.renderRoot, this.renderOptions);
+    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(t), this._$Do = _s(s, this.renderRoot, this.renderOptions);
   }
   connectedCallback() {
-    var e;
-    super.connectedCallback(), (e = this._$Do) == null || e.setConnected(!0);
+    var t;
+    super.connectedCallback(), (t = this._$Do) == null || t.setConnected(!0);
   }
   disconnectedCallback() {
-    var e;
-    super.disconnectedCallback(), (e = this._$Do) == null || e.setConnected(!1);
+    var t;
+    super.disconnectedCallback(), (t = this._$Do) == null || t.setConnected(!1);
   }
   render() {
     return X;
@@ -556,237 +556,237 @@ je == null || je({ LitElement: x });
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ws = (t) => (e, s) => {
+const ws = (e) => (t, s) => {
   s !== void 0 ? s.addInitializer(() => {
-    customElements.define(t, e);
-  }) : customElements.define(t, e);
+    customElements.define(e, t);
+  }) : customElements.define(e, t);
 };
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const xs = { attribute: !0, type: String, converter: ze, reflect: !1, hasChanged: Xe }, ys = (t = xs, e, s) => {
-  const { kind: a, metadata: r } = s;
-  let i = globalThis.litPropertyMetadata.get(r);
-  if (i === void 0 && globalThis.litPropertyMetadata.set(r, i = /* @__PURE__ */ new Map()), a === "setter" && ((t = Object.create(t)).wrapped = !0), i.set(s.name, t), a === "accessor") {
+const xs = { attribute: !0, type: String, converter: ze, reflect: !1, hasChanged: Xe }, ys = (e = xs, t, s) => {
+  const { kind: r, metadata: a } = s;
+  let i = globalThis.litPropertyMetadata.get(a);
+  if (i === void 0 && globalThis.litPropertyMetadata.set(a, i = /* @__PURE__ */ new Map()), r === "setter" && ((e = Object.create(e)).wrapped = !0), i.set(s.name, e), r === "accessor") {
     const { name: o } = s;
     return { set(d) {
-      const h = e.get.call(this);
-      e.set.call(this, d), this.requestUpdate(o, h, t, !0, d);
+      const h = t.get.call(this);
+      t.set.call(this, d), this.requestUpdate(o, h, e, !0, d);
     }, init(d) {
-      return d !== void 0 && this.C(o, void 0, t, d), d;
+      return d !== void 0 && this.C(o, void 0, e, d), d;
     } };
   }
-  if (a === "setter") {
+  if (r === "setter") {
     const { name: o } = s;
     return function(d) {
       const h = this[o];
-      e.call(this, d), this.requestUpdate(o, h, t, !0, d);
+      t.call(this, d), this.requestUpdate(o, h, e, !0, d);
     };
   }
-  throw Error("Unsupported decorator location: " + a);
+  throw Error("Unsupported decorator location: " + r);
 };
-function w(t) {
-  return (e, s) => typeof s == "object" ? ys(t, e, s) : ((a, r, i) => {
-    const o = r.hasOwnProperty(i);
-    return r.constructor.createProperty(i, a), o ? Object.getOwnPropertyDescriptor(r, i) : void 0;
-  })(t, e, s);
+function w(e) {
+  return (t, s) => typeof s == "object" ? ys(e, t, s) : ((r, a, i) => {
+    const o = a.hasOwnProperty(i);
+    return a.constructor.createProperty(i, r), o ? Object.getOwnPropertyDescriptor(a, i) : void 0;
+  })(e, t, s);
 }
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-function l(t) {
-  return w({ ...t, state: !0, attribute: !1 });
+function l(e) {
+  return w({ ...e, state: !0, attribute: !1 });
 }
-function S(t) {
-  const e = ws(t);
-  return (s, a) => customElements.get(t) ? s : e(s, a);
+function S(e) {
+  const t = ws(e);
+  return (s, r) => customElements.get(e) ? s : t(s, r);
 }
 class $s {
-  constructor(e = "") {
-    this.baseUrl = e, this.auth = null;
+  constructor(t = "") {
+    this.baseUrl = t, this.auth = null;
   }
-  setAuth(e) {
-    this.auth = { token: e };
+  setAuth(t) {
+    this.auth = { token: t };
   }
   headers() {
-    const e = { "Content-Type": "application/json" };
-    return this.auth && (e.Authorization = `Bearer ${this.auth.token}`), e;
+    const t = { "Content-Type": "application/json" };
+    return this.auth && (t.Authorization = `Bearer ${this.auth.token}`), t;
   }
-  async listMessages(e = {}) {
+  async listMessages(t = {}) {
     var i;
     const s = new URLSearchParams();
-    (i = e.severity) != null && i.length && s.set("severity", e.severity.join(",")), e.source && s.set("source", e.source), e.search && s.set("search", e.search), e.from && s.set("from", e.from), e.to && s.set("to", e.to), e.limit !== void 0 && s.set("limit", String(e.limit)), e.offset !== void 0 && s.set("offset", String(e.offset)), e.order && s.set("order", e.order), e.hideKnxRead && s.set("hide_knx_read", "1");
-    const a = `${this.baseUrl}/api/messagehub/messages?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.json();
+    (i = t.severity) != null && i.length && s.set("severity", t.severity.join(",")), t.source && s.set("source", t.source), t.search && s.set("search", t.search), t.from && s.set("from", t.from), t.to && s.set("to", t.to), t.limit !== void 0 && s.set("limit", String(t.limit)), t.offset !== void 0 && s.set("offset", String(t.offset)), t.order && s.set("order", t.order), t.hideKnxRead && s.set("hide_knx_read", "1");
+    const r = `${this.baseUrl}/api/messagehub/messages?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}`);
+    return await a.json();
   }
-  async getMessage(e) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}`, {
+  async getMessage(t) {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}`, {
       headers: this.headers()
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
     return await s.json();
   }
-  async deleteMessage(e) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}`, {
+  async deleteMessage(t) {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}`, {
       method: "DELETE",
       headers: this.headers()
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
   }
-  async setMessageStatus(e, s) {
-    const a = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/status`, {
+  async setMessageStatus(t, s) {
+    const r = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}/status`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ status: s })
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
   }
-  async setMessageSeverity(e, s) {
-    const a = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/severity`, {
+  async setMessageSeverity(t, s) {
+    const r = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}/severity`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ severity: s })
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
   }
-  async getMessageTags(e) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/tags`, {
+  async getMessageTags(t) {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}/tags`, {
       headers: this.headers()
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
     return (await s.json()).tags;
   }
-  async addMessageTag(e, s) {
-    const a = await fetch(`${this.baseUrl}/api/messagehub/messages/${e}/tags`, {
+  async addMessageTag(t, s) {
+    const r = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}/tags`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ tag: s })
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}`);
-    return (await a.json()).tags;
-  }
-  async removeMessageTag(e, s) {
-    const a = `${this.baseUrl}/api/messagehub/messages/${e}/tags?tag=${encodeURIComponent(s)}`, r = await fetch(a, { method: "DELETE", headers: this.headers() });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return (await r.json()).tags;
   }
-  async getRunbookForSource(e, s) {
-    const a = s ? `?fingerprint=${encodeURIComponent(s)}` : "", r = await fetch(
-      `${this.baseUrl}/api/messagehub/runbook/${encodeURIComponent(e)}${a}`,
+  async removeMessageTag(t, s) {
+    const r = `${this.baseUrl}/api/messagehub/messages/${t}/tags?tag=${encodeURIComponent(s)}`, a = await fetch(r, { method: "DELETE", headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}`);
+    return (await a.json()).tags;
+  }
+  async getRunbookForSource(t, s) {
+    const r = s ? `?fingerprint=${encodeURIComponent(s)}` : "", a = await fetch(
+      `${this.baseUrl}/api/messagehub/runbook/${encodeURIComponent(t)}${r}`,
       { headers: this.headers() }
     );
-    if (r.status === 404) return null;
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.json();
+    if (a.status === 404) return null;
+    if (!a.ok) throw new Error(`HTTP ${a.status}`);
+    return await a.json();
   }
-  async listAudit(e = 200) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/audit?limit=${e}`, {
+  async listAudit(t = 200) {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/audit?limit=${t}`, {
       headers: this.headers()
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
     return (await s.json()).items;
   }
   async getKnxBusAnalysisState() {
-    const e = await fetch(
+    const t = await fetch(
       `${this.baseUrl}/api/messagehub/knx-stats/bus-analysis-state`,
       { headers: this.headers() }
     );
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
-    return await e.json();
+    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    return await t.json();
   }
-  async setKnxBusAnalysisState(e) {
+  async setKnxBusAnalysisState(t) {
     const s = await fetch(
       `${this.baseUrl}/api/messagehub/knx-stats/bus-analysis-state`,
       {
         method: "PUT",
         headers: this.headers(),
-        body: JSON.stringify({ enabled: e })
+        body: JSON.stringify({ enabled: t })
       }
     );
     if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
     return await s.json();
   }
   async clearAuditLog() {
-    const e = await fetch(`${this.baseUrl}/api/messagehub/audit`, {
+    const t = await fetch(`${this.baseUrl}/api/messagehub/audit`, {
       method: "DELETE",
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}: ${await e.text()}`);
-    return await e.json();
+    if (!t.ok) throw new Error(`HTTP ${t.status}: ${await t.text()}`);
+    return await t.json();
   }
   async discoverKnxFromProject() {
-    const e = await fetch(`${this.baseUrl}/api/messagehub/knx-discovery`, {
+    const t = await fetch(`${this.baseUrl}/api/messagehub/knx-discovery`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
-    return await e.json();
+    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    return await t.json();
   }
   // Iter 47 (N4): intelligenter Abgleich mit Vorschau (apply=false) +
   // Anwendung (apply=true). Aenderungen siehe Backend-Doc-String.
   // Iter 56: Bulk-Patch fuer mehrere KNX-GAs in einem Request.
-  async bulkPatchKnxAddresses(e, s) {
-    const a = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/bulk`, {
+  async bulkPatchKnxAddresses(t, s) {
+    const r = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/bulk`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify({ addresses: e, patch: s })
+      body: JSON.stringify({ addresses: t, patch: s })
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
   }
-  async syncKnxProject(e, s) {
-    const a = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/sync`, {
+  async syncKnxProject(t, s) {
+    const r = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/sync`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify({ items: e, apply: s })
+      body: JSON.stringify({ items: t, apply: s })
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
   }
   async listKnxAddresses() {
-    const e = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
+    const t = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
-    return (await e.json()).items;
+    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    return (await t.json()).items;
   }
-  async upsertKnxAddress(e) {
+  async upsertKnxAddress(t) {
     const s = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify(e)
+      body: JSON.stringify(t)
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
   }
   async listChannels() {
-    const e = await fetch(`${this.baseUrl}/api/messagehub/channels`, {
+    const t = await fetch(`${this.baseUrl}/api/messagehub/channels`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
-    return (await e.json()).items;
+    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    return (await t.json()).items;
   }
-  async createChannel(e) {
+  async createChannel(t) {
     const s = await fetch(`${this.baseUrl}/api/messagehub/channels`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify(e)
+      body: JSON.stringify(t)
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
   }
-  async updateChannel(e, s) {
-    const a = await fetch(`${this.baseUrl}/api/messagehub/channels/${e}`, {
+  async updateChannel(t, s) {
+    const r = await fetch(`${this.baseUrl}/api/messagehub/channels/${t}`, {
       method: "PUT",
       headers: this.headers(),
       body: JSON.stringify(s)
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
   }
-  async deleteChannel(e) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/channels/${e}`, {
+  async deleteChannel(t) {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/channels/${t}`, {
       method: "DELETE",
       headers: this.headers()
     });
@@ -796,341 +796,355 @@ class $s {
    * F-001: Sendet eine Test-Nachricht ueber einen konfigurierten Channel.
    * Backend ist rate-limited (3 Versuche/Min/Channel; HTTP 429 bei Burst).
    */
-  async testChannel(e) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/channels/${e}/test`, {
+  async testChannel(t) {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/channels/${t}/test`, {
       method: "POST",
       headers: this.headers()
     });
     if (!s.ok) {
-      const a = await s.text();
-      throw new Error(`HTTP ${s.status}: ${a}`);
+      const r = await s.text();
+      throw new Error(`HTTP ${s.status}: ${r}`);
     }
     return await s.json();
   }
   async listMqttTopics() {
-    const e = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics`, {
+    const t = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
-    return (await e.json()).items;
+    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    return (await t.json()).items;
   }
-  async createMqttTopic(e) {
+  async createMqttTopic(t) {
     const s = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify(e)
+      body: JSON.stringify(t)
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
   }
-  async deleteMqttTopic(e) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics/${e}`, {
+  async deleteMqttTopic(t) {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics/${t}`, {
       method: "DELETE",
       headers: this.headers()
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
   }
+  /**
+   * F-002: MQTT-Topic ID-stabil aktualisieren. Backend-Endpoint
+   * (Iter 83 / CR-4) stand seit langem bereit, Frontend-Methode
+   * fehlte. Ohne Update-Pfad mussten User Loeschen + Neu-Anlegen,
+   * was die ID veraenderte und Audit-/Findings-Bezuege brach.
+   */
+  async updateMqttTopic(t, s) {
+    const r = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics/${t}`, {
+      method: "PUT",
+      headers: this.headers(),
+      body: JSON.stringify(s)
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+  }
   async listRemediationHooks() {
-    const e = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks`, {
+    const t = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
-    return (await e.json()).items;
+    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    return (await t.json()).items;
   }
-  async createRemediationHook(e) {
+  async createRemediationHook(t) {
     const s = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify(e)
+      body: JSON.stringify(t)
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
   }
-  async deleteRemediationHook(e) {
-    const s = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks/${e}`, {
+  async deleteRemediationHook(t) {
+    const s = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks/${t}`, {
       method: "DELETE",
       headers: this.headers()
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
   }
   async listHeartbeats() {
-    const e = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
+    const t = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
-    return (await e.json()).items;
+    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    return (await t.json()).items;
   }
-  async upsertHeartbeat(e, s) {
-    const a = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
+  async upsertHeartbeat(t, s) {
+    const r = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify({ source: e, expected_interval_seconds: s })
+      body: JSON.stringify({ source: t, expected_interval_seconds: s })
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
   }
-  async getStatsExtended(e = 30) {
+  async getStatsExtended(t = 30) {
     const s = await fetch(
-      `${this.baseUrl}/api/messagehub/stats-extended?days=${e}`,
+      `${this.baseUrl}/api/messagehub/stats-extended?days=${t}`,
       { headers: this.headers() }
     );
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
     return await s.json();
   }
-  async deleteKnxAddress(e) {
-    const s = `${this.baseUrl}/api/messagehub/knx-addresses/${encodeURIComponent(e)}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}`);
+  async deleteKnxAddress(t) {
+    const s = `${this.baseUrl}/api/messagehub/knx-addresses/${encodeURIComponent(t)}`, r = await fetch(s, { method: "DELETE", headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
   }
-  async importKnxCsv(e) {
+  async importKnxCsv(t) {
     const s = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify({ csv: e })
+      body: JSON.stringify({ csv: t })
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
     return await s.json();
   }
-  exportUrl(e) {
-    var a;
+  exportUrl(t) {
+    var r;
     const s = new URLSearchParams();
-    return (a = e.severity) != null && a.length && s.set("severity", e.severity.join(",")), e.source && s.set("source", e.source), e.search && s.set("search", e.search), e.from && s.set("from", e.from), e.to && s.set("to", e.to), s.set("format", e.format ?? "jsonl"), e.limit !== void 0 && s.set("limit", String(e.limit)), `${this.baseUrl}/api/messagehub/export?${s.toString()}`;
+    return (r = t.severity) != null && r.length && s.set("severity", t.severity.join(",")), t.source && s.set("source", t.source), t.search && s.set("search", t.search), t.from && s.set("from", t.from), t.to && s.set("to", t.to), s.set("format", t.format ?? "jsonl"), t.limit !== void 0 && s.set("limit", String(t.limit)), `${this.baseUrl}/api/messagehub/export?${s.toString()}`;
   }
-  async deleteMessages(e = {}) {
+  async deleteMessages(t = {}) {
     var o;
     const s = new URLSearchParams();
-    (o = e.severity) != null && o.length && s.set("severity", e.severity.join(",")), e.source && s.set("source", e.source), e.search && s.set("search", e.search), e.from && s.set("from", e.from), e.to && s.set("to", e.to);
-    const a = `${this.baseUrl}/api/messagehub/messages?${s.toString()}`, r = await fetch(a, { method: "DELETE", headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return (await r.json()).deleted;
+    (o = t.severity) != null && o.length && s.set("severity", t.severity.join(",")), t.source && s.set("source", t.source), t.search && s.set("search", t.search), t.from && s.set("from", t.from), t.to && s.set("to", t.to);
+    const r = `${this.baseUrl}/api/messagehub/messages?${s.toString()}`, a = await fetch(r, { method: "DELETE", headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}`);
+    return (await a.json()).deleted;
   }
   async listSources() {
-    const e = await fetch(`${this.baseUrl}/api/messagehub/sources`, {
+    const t = await fetch(`${this.baseUrl}/api/messagehub/sources`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
-    return (await e.json()).sources;
+    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    return (await t.json()).sources;
   }
   async getStats() {
-    const e = await fetch(`${this.baseUrl}/api/messagehub/stats`, {
+    const t = await fetch(`${this.baseUrl}/api/messagehub/stats`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
-    return await e.json();
+    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    return await t.json();
   }
   async listWebhooks() {
-    const e = await fetch(`${this.baseUrl}/api/messagehub/webhooks`, {
+    const t = await fetch(`${this.baseUrl}/api/messagehub/webhooks`, {
       headers: this.headers()
     });
-    if (!e.ok) throw new Error(`HTTP ${e.status}`);
-    return (await e.json()).webhooks;
+    if (!t.ok) throw new Error(`HTTP ${t.status}`);
+    return (await t.json()).webhooks;
   }
-  async createWebhook(e) {
+  async createWebhook(t) {
     const s = await fetch(`${this.baseUrl}/api/messagehub/webhooks`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify(e)
+      body: JSON.stringify(t)
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
     return await s.json();
   }
-  async updateWebhook(e, s) {
-    const a = await fetch(
-      `${this.baseUrl}/api/messagehub/webhooks/${e}`,
+  async updateWebhook(t, s) {
+    const r = await fetch(
+      `${this.baseUrl}/api/messagehub/webhooks/${t}`,
       {
         method: "PUT",
         headers: this.headers(),
         body: JSON.stringify(s)
       }
     );
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
   }
-  async deleteWebhook(e) {
+  async deleteWebhook(t) {
     const s = await fetch(
-      `${this.baseUrl}/api/messagehub/webhooks/${e}`,
+      `${this.baseUrl}/api/messagehub/webhooks/${t}`,
       { method: "DELETE", headers: this.headers() }
     );
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
   }
   // --- KNX-Stats (Iter 6) ----------------------------------------------
-  _knxStatsParams(e) {
+  _knxStatsParams(t) {
     const s = new URLSearchParams();
-    return e.from && s.set("from", e.from), e.to && s.set("to", e.to), e.limit !== void 0 && s.set("limit", String(e.limit)), e.minRate !== void 0 && s.set("min_rate", String(e.minRate)), e.includeAcknowledged === !1 && s.set("include_acknowledged", "false"), s;
+    return t.from && s.set("from", t.from), t.to && s.set("to", t.to), t.limit !== void 0 && s.set("limit", String(t.limit)), t.minRate !== void 0 && s.set("min_rate", String(t.minRate)), t.includeAcknowledged === !1 && s.set("include_acknowledged", "false"), s;
   }
-  async getKnxStatsSummary(e) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/summary?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
-  }
-  async getKnxStatsTop(e) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/top?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
-  }
-  async getKnxStatsTopBySource(e) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/top-by-source?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
-  }
-  async getKnxStatsGaDetail(e, s) {
-    const a = `${this.baseUrl}/api/messagehub/knx-stats/ga/${encodeURIComponent(e)}?${this._knxStatsParams(s).toString()}`, r = await fetch(a, { headers: this.headers() });
+  async getKnxStatsSummary(t) {
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/summary?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
     return await r.json();
   }
-  async getKnxStatsSourceDetail(e, s) {
-    const a = `${this.baseUrl}/api/messagehub/knx-stats/source/${encodeURIComponent(e)}?${this._knxStatsParams(s).toString()}`, r = await fetch(a, { headers: this.headers() });
+  async getKnxStatsTop(t) {
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/top?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
     return await r.json();
   }
-  async getKnxStatsTimeline(e) {
-    const s = this._knxStatsParams(e);
-    s.set("gas", e.gas.join(",")), e.bucketMinutes !== void 0 && s.set("bucket", String(e.bucketMinutes));
-    const a = `${this.baseUrl}/api/messagehub/knx-stats/timeline?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
+  async getKnxStatsTopBySource(t) {
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/top-by-source?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
     return await r.json();
   }
-  async acknowledgeKnxGa(e, s = {}) {
-    const a = { ga: e };
-    s.note !== void 0 && (a.note = s.note), s.expiryDays !== void 0 && (a.expiry_days = s.expiryDays);
-    const r = await fetch(`${this.baseUrl}/api/messagehub/knx-stats/acknowledge`, {
+  async getKnxStatsGaDetail(t, s) {
+    const r = `${this.baseUrl}/api/messagehub/knx-stats/ga/${encodeURIComponent(t)}?${this._knxStatsParams(s).toString()}`, a = await fetch(r, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
+  }
+  async getKnxStatsSourceDetail(t, s) {
+    const r = `${this.baseUrl}/api/messagehub/knx-stats/source/${encodeURIComponent(t)}?${this._knxStatsParams(s).toString()}`, a = await fetch(r, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
+  }
+  async getKnxStatsTimeline(t) {
+    const s = this._knxStatsParams(t);
+    s.set("gas", t.gas.join(",")), t.bucketMinutes !== void 0 && s.set("bucket", String(t.bucketMinutes));
+    const r = `${this.baseUrl}/api/messagehub/knx-stats/timeline?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
+  }
+  async acknowledgeKnxGa(t, s = {}) {
+    const r = { ga: t };
+    s.note !== void 0 && (r.note = s.note), s.expiryDays !== void 0 && (r.expiry_days = s.expiryDays);
+    const a = await fetch(`${this.baseUrl}/api/messagehub/knx-stats/acknowledge`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify(a)
+      body: JSON.stringify(r)
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-  }
-  async getKnxStatsAlarms(e) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/alarms?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
     if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
+  }
+  async getKnxStatsAlarms(t) {
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/alarms?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
   }
   /** Iter 92 / K1: Saved Filters listen. */
-  async listSavedFilters(e) {
-    const s = `${this.baseUrl}/api/messagehub/saved-filters?scope=${encodeURIComponent(e)}`, a = await fetch(s, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return (await a.json()).items;
+  async listSavedFilters(t) {
+    const s = `${this.baseUrl}/api/messagehub/saved-filters?scope=${encodeURIComponent(t)}`, r = await fetch(s, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return (await r.json()).items;
   }
   /** Iter 92 / K1: Saved Filter speichern (upsert). */
-  async upsertSavedFilter(e, s, a) {
-    const r = `${this.baseUrl}/api/messagehub/saved-filters`, i = await fetch(r, {
+  async upsertSavedFilter(t, s, r) {
+    const a = `${this.baseUrl}/api/messagehub/saved-filters`, i = await fetch(a, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify({ name: e, scope: s, filters: a })
+      body: JSON.stringify({ name: t, scope: s, filters: r })
     });
     if (!i.ok) throw new Error(`HTTP ${i.status}: ${await i.text()}`);
     return await i.json();
   }
   /** Iter 92 / K1: Saved Filter loeschen. */
-  async deleteSavedFilter(e) {
-    const s = `${this.baseUrl}/api/messagehub/saved-filters/${e}`, a = await fetch(s, {
+  async deleteSavedFilter(t) {
+    const s = `${this.baseUrl}/api/messagehub/saved-filters/${t}`, r = await fetch(s, {
       method: "DELETE",
       headers: this.headers()
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
   }
   /** Iter 91 / WR-G: GA-Heatmap (Top-N GAs x Zeit-Buckets). */
-  async getKnxStatsHeatmap(e, s = 10, a = 60) {
-    const r = this._knxStatsParams(e);
-    r.set("top_n", String(s)), r.set("bucket", String(a));
-    const i = `${this.baseUrl}/api/messagehub/knx-stats/heatmap?${r.toString()}`, o = await fetch(i, { headers: this.headers() });
+  async getKnxStatsHeatmap(t, s = 10, r = 60) {
+    const a = this._knxStatsParams(t);
+    a.set("top_n", String(s)), a.set("bucket", String(r));
+    const i = `${this.baseUrl}/api/messagehub/knx-stats/heatmap?${a.toString()}`, o = await fetch(i, { headers: this.headers() });
     if (!o.ok) throw new Error(`HTTP ${o.status}: ${await o.text()}`);
     return await o.json();
   }
   /** Iter 67 / WR-I: Trend-Vergleich aktueller Periode vs. Vorperiode. */
-  async getKnxStatsTrend(e, s = 5) {
-    const a = this._knxStatsParams(e);
-    a.set("top_n", String(s));
-    const r = `${this.baseUrl}/api/messagehub/knx-stats/trend?${a.toString()}`, i = await fetch(r, { headers: this.headers() });
+  async getKnxStatsTrend(t, s = 5) {
+    const r = this._knxStatsParams(t);
+    r.set("top_n", String(s));
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/trend?${r.toString()}`, i = await fetch(a, { headers: this.headers() });
     if (!i.ok) throw new Error(`HTTP ${i.status}: ${await i.text()}`);
     return await i.json();
   }
-  async getKnxStatsOrphans(e) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/orphans?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
+  async getKnxStatsOrphans(t) {
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/orphans?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
+  }
+  async getKnxStatsSilence(t) {
+    const s = this._knxStatsParams(t);
+    t.maxSilenceMinutes !== void 0 && s.set("max_silence_min", String(t.maxSilenceMinutes));
+    const r = `${this.baseUrl}/api/messagehub/knx-stats/silence?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
     if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
     return await a.json();
   }
-  async getKnxStatsSilence(e) {
-    const s = this._knxStatsParams(e);
-    e.maxSilenceMinutes !== void 0 && s.set("max_silence_min", String(e.maxSilenceMinutes));
-    const a = `${this.baseUrl}/api/messagehub/knx-stats/silence?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
+  async getKnxStatsBusHealth(t) {
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/bus-health?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
     return await r.json();
   }
-  async getKnxStatsBusHealth(e) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/bus-health?${this._knxStatsParams(e).toString()}`, a = await fetch(s, { headers: this.headers() });
+  async getKnxStatsBusload(t, s) {
+    const r = this._knxStatsParams(t);
+    s && Number.isFinite(s) && s > 0 && r.set("bucket_seconds", String(Math.trunc(s)));
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/busload?${r.toString()}`, i = await fetch(a, { headers: this.headers() });
+    if (!i.ok) throw new Error(`HTTP ${i.status}: ${await i.text()}`);
+    return await i.json();
+  }
+  async getKnxStatsHealthScore(t) {
+    const s = this._knxStatsParams(t), r = `${this.baseUrl}/api/messagehub/knx-stats/health-score?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
     if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
     return await a.json();
   }
-  async getKnxStatsBusload(e, s) {
-    const a = this._knxStatsParams(e);
-    s && Number.isFinite(s) && s > 0 && a.set("bucket_seconds", String(Math.trunc(s)));
-    const r = `${this.baseUrl}/api/messagehub/knx-stats/busload?${a.toString()}`, i = await fetch(r, { headers: this.headers() });
+  async getKnxStatsLongTerm(t, s = "auto") {
+    const r = this._knxStatsParams(t);
+    s !== "auto" && r.set("bucket", s);
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/long-term?${r.toString()}`, i = await fetch(a, { headers: this.headers() });
     if (!i.ok) throw new Error(`HTTP ${i.status}: ${await i.text()}`);
     return await i.json();
   }
-  async getKnxStatsHealthScore(e) {
-    const s = this._knxStatsParams(e), a = `${this.baseUrl}/api/messagehub/knx-stats/health-score?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return await r.json();
-  }
-  async getKnxStatsLongTerm(e, s = "auto") {
-    const a = this._knxStatsParams(e);
-    s !== "auto" && a.set("bucket", s);
-    const r = `${this.baseUrl}/api/messagehub/knx-stats/long-term?${a.toString()}`, i = await fetch(r, { headers: this.headers() });
+  async getKnxStatsBursts(t, s = {}) {
+    const r = this._knxStatsParams(t);
+    s.windowSeconds && Number.isFinite(s.windowSeconds) && r.set("window_seconds", String(Math.trunc(s.windowSeconds))), s.thresholdPct && Number.isFinite(s.thresholdPct) && r.set("threshold_pct", String(s.thresholdPct));
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/bursts?${r.toString()}`, i = await fetch(a, { headers: this.headers() });
     if (!i.ok) throw new Error(`HTTP ${i.status}: ${await i.text()}`);
     return await i.json();
   }
-  async getKnxStatsBursts(e, s = {}) {
-    const a = this._knxStatsParams(e);
-    s.windowSeconds && Number.isFinite(s.windowSeconds) && a.set("window_seconds", String(Math.trunc(s.windowSeconds))), s.thresholdPct && Number.isFinite(s.thresholdPct) && a.set("threshold_pct", String(s.thresholdPct));
-    const r = `${this.baseUrl}/api/messagehub/knx-stats/bursts?${a.toString()}`, i = await fetch(r, { headers: this.headers() });
-    if (!i.ok) throw new Error(`HTTP ${i.status}: ${await i.text()}`);
-    return await i.json();
+  async getKnxStatsSensitiveLog(t) {
+    const s = this._knxStatsParams(t), r = `${this.baseUrl}/api/messagehub/knx-stats/sensitive-log?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
-  async getKnxStatsSensitiveLog(e) {
-    const s = this._knxStatsParams(e), a = `${this.baseUrl}/api/messagehub/knx-stats/sensitive-log?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return await r.json();
-  }
-  async setKnxStatsSensitive(e, s) {
-    const a = `${this.baseUrl}/api/messagehub/knx-stats/sensitive/${encodeURIComponent(e)}`, r = await fetch(a, {
+  async setKnxStatsSensitive(t, s) {
+    const r = `${this.baseUrl}/api/messagehub/knx-stats/sensitive/${encodeURIComponent(t)}`, a = await fetch(r, {
       method: s ? "POST" : "DELETE",
       headers: this.headers()
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-  }
-  async unacknowledgeKnxGa(e) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge/${encodeURIComponent(e)}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
     if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
-  // ----- Iter 6/7/8 (knx-findings): Findings-Endpoints --------------------
-  async listFindings(e = {}) {
-    const s = new URLSearchParams();
-    e.code && s.set("code", e.code), e.ga && s.set("ga", e.ga), e.severity && s.set("severity", e.severity), e.source && s.set("source", e.source), e.limit !== void 0 && s.set("limit", String(e.limit)), e.offset !== void 0 && s.set("offset", String(e.offset));
-    const a = `${this.baseUrl}/api/messagehub/findings?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.json();
+  async unacknowledgeKnxGa(t) {
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge/${encodeURIComponent(t)}`, r = await fetch(s, { method: "DELETE", headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
   }
-  async acknowledgeFinding(e) {
-    const s = `${this.baseUrl}/api/messagehub/findings/ack`, a = await fetch(s, {
+  // ----- Iter 6/7/8 (knx-findings): Findings-Endpoints --------------------
+  async listFindings(t = {}) {
+    const s = new URLSearchParams();
+    t.code && s.set("code", t.code), t.ga && s.set("ga", t.ga), t.severity && s.set("severity", t.severity), t.source && s.set("source", t.source), t.limit !== void 0 && s.set("limit", String(t.limit)), t.offset !== void 0 && s.set("offset", String(t.offset));
+    const r = `${this.baseUrl}/api/messagehub/findings?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}`);
+    return await a.json();
+  }
+  async acknowledgeFinding(t) {
+    const s = `${this.baseUrl}/api/messagehub/findings/ack`, r = await fetch(s, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify(e)
+      body: JSON.stringify(t)
     });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
+  }
+  async unacknowledgeFinding(t, s) {
+    const r = `${this.baseUrl}/api/messagehub/findings/ack/${encodeURIComponent(t)}/${encodeURIComponent(s)}`, a = await fetch(r, { method: "DELETE", headers: this.headers() });
     if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
     return await a.json();
   }
-  async unacknowledgeFinding(e, s) {
-    const a = `${this.baseUrl}/api/messagehub/findings/ack/${encodeURIComponent(e)}/${encodeURIComponent(s)}`, r = await fetch(a, { method: "DELETE", headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return await r.json();
-  }
   async listSeverityOverrides() {
-    const e = `${this.baseUrl}/api/messagehub/findings/severity-overrides`, s = await fetch(e, { headers: this.headers() });
+    const t = `${this.baseUrl}/api/messagehub/findings/severity-overrides`, s = await fetch(t, { headers: this.headers() });
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
     return await s.json();
   }
-  async setSeverityOverride(e, s, a) {
-    const r = `${this.baseUrl}/api/messagehub/findings/severity-overrides/${encodeURIComponent(e)}`, i = { severity: s };
-    a !== void 0 && (i.note = a);
-    const o = await fetch(r, {
+  async setSeverityOverride(t, s, r) {
+    const a = `${this.baseUrl}/api/messagehub/findings/severity-overrides/${encodeURIComponent(t)}`, i = { severity: s };
+    r !== void 0 && (i.note = r);
+    const o = await fetch(a, {
       method: "PUT",
       headers: this.headers(),
       body: JSON.stringify(i)
@@ -1138,31 +1152,31 @@ class $s {
     if (!o.ok) throw new Error(`HTTP ${o.status}: ${await o.text()}`);
     return await o.json();
   }
-  async clearSeverityOverride(e) {
-    const s = `${this.baseUrl}/api/messagehub/findings/severity-overrides/${encodeURIComponent(e)}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
-  }
-  async exportFindingsMarkdown() {
-    const e = `${this.baseUrl}/api/messagehub/findings/export.md`, s = await fetch(e, { headers: this.headers() });
-    if (!s.ok) throw new Error(`HTTP ${s.status}`);
-    return await s.text();
-  }
-  async refreshFindings(e, s = 7) {
-    const a = `${this.baseUrl}/api/messagehub/findings/refresh`, r = await fetch(a, {
-      method: "POST",
-      headers: this.headers(),
-      body: JSON.stringify({ ga: e, period_days: s })
-    });
+  async clearSeverityOverride(t) {
+    const s = `${this.baseUrl}/api/messagehub/findings/severity-overrides/${encodeURIComponent(t)}`, r = await fetch(s, { method: "DELETE", headers: this.headers() });
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
     return await r.json();
   }
-  async acknowledgeKnxBulk(e, s = {}) {
-    const a = new URLSearchParams();
-    s.from && a.set("from", s.from), s.to && a.set("to", s.to);
-    const r = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge-bulk?${a.toString()}`, i = { dev_source: e };
+  async exportFindingsMarkdown() {
+    const t = `${this.baseUrl}/api/messagehub/findings/export.md`, s = await fetch(t, { headers: this.headers() });
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
+    return await s.text();
+  }
+  async refreshFindings(t, s = 7) {
+    const r = `${this.baseUrl}/api/messagehub/findings/refresh`, a = await fetch(r, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ ga: t, period_days: s })
+    });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
+  }
+  async acknowledgeKnxBulk(t, s = {}) {
+    const r = new URLSearchParams();
+    s.from && r.set("from", s.from), s.to && r.set("to", s.to);
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge-bulk?${r.toString()}`, i = { dev_source: t };
     s.note !== void 0 && (i.note = s.note), s.expiryDays !== void 0 && (i.expiry_days = s.expiryDays);
-    const o = await fetch(r, {
+    const o = await fetch(a, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify(i)
@@ -1430,20 +1444,20 @@ const L = y`
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ks = { CHILD: 2 }, Ss = (t) => (...e) => ({ _$litDirective$: t, values: e });
+const ks = { CHILD: 2 }, Ss = (e) => (...t) => ({ _$litDirective$: e, values: t });
 let Ts = class {
-  constructor(e) {
+  constructor(t) {
   }
   get _$AU() {
     return this._$AM._$AU;
   }
-  _$AT(e, s, a) {
-    this._$Ct = e, this._$AM = s, this._$Ci = a;
+  _$AT(t, s, r) {
+    this._$Ct = t, this._$AM = s, this._$Ci = r;
   }
-  _$AS(e, s) {
-    return this.update(e, s);
+  _$AS(t, s) {
+    return this.update(t, s);
   }
-  update(e, s) {
+  update(t, s) {
     return this.render(...s);
   }
 };
@@ -1452,83 +1466,83 @@ let Ts = class {
  * Copyright 2020 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { I: As } = bs, gt = (t) => t, vt = () => document.createComment(""), fe = (t, e, s) => {
+const { I: As } = bs, gt = (e) => e, vt = () => document.createComment(""), fe = (e, t, s) => {
   var i;
-  const a = t._$AA.parentNode, r = e === void 0 ? t._$AB : e._$AA;
+  const r = e._$AA.parentNode, a = t === void 0 ? e._$AB : t._$AA;
   if (s === void 0) {
-    const o = a.insertBefore(vt(), r), d = a.insertBefore(vt(), r);
-    s = new As(o, d, t, t.options);
+    const o = r.insertBefore(vt(), a), d = r.insertBefore(vt(), a);
+    s = new As(o, d, e, e.options);
   } else {
-    const o = s._$AB.nextSibling, d = s._$AM, h = d !== t;
+    const o = s._$AB.nextSibling, d = s._$AM, h = d !== e;
     if (h) {
       let m;
-      (i = s._$AQ) == null || i.call(s, t), s._$AM = t, s._$AP !== void 0 && (m = t._$AU) !== d._$AU && s._$AP(m);
+      (i = s._$AQ) == null || i.call(s, e), s._$AM = e, s._$AP !== void 0 && (m = e._$AU) !== d._$AU && s._$AP(m);
     }
-    if (o !== r || h) {
+    if (o !== a || h) {
       let m = s._$AA;
       for (; m !== o; ) {
         const g = gt(m).nextSibling;
-        gt(a).insertBefore(m, r), m = g;
+        gt(r).insertBefore(m, a), m = g;
       }
     }
   }
   return s;
-}, q = (t, e, s = t) => (t._$AI(e, s), t), Es = {}, Ps = (t, e = Es) => t._$AH = e, Ds = (t) => t._$AH, Ge = (t) => {
-  t._$AR(), t._$AA.remove();
+}, q = (e, t, s = e) => (e._$AI(t, s), e), Es = {}, Ps = (e, t = Es) => e._$AH = t, Ds = (e) => e._$AH, Ge = (e) => {
+  e._$AR(), e._$AA.remove();
 };
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ft = (t, e, s) => {
-  const a = /* @__PURE__ */ new Map();
-  for (let r = e; r <= s; r++) a.set(t[r], r);
-  return a;
+const ft = (e, t, s) => {
+  const r = /* @__PURE__ */ new Map();
+  for (let a = t; a <= s; a++) r.set(e[a], a);
+  return r;
 }, zs = Ss(class extends Ts {
-  constructor(t) {
-    if (super(t), t.type !== ks.CHILD) throw Error("repeat() can only be used in text expressions");
+  constructor(e) {
+    if (super(e), e.type !== ks.CHILD) throw Error("repeat() can only be used in text expressions");
   }
-  dt(t, e, s) {
-    let a;
-    s === void 0 ? s = e : e !== void 0 && (a = e);
-    const r = [], i = [];
+  dt(e, t, s) {
+    let r;
+    s === void 0 ? s = t : t !== void 0 && (r = t);
+    const a = [], i = [];
     let o = 0;
-    for (const d of t) r[o] = a ? a(d, o) : o, i[o] = s(d, o), o++;
-    return { values: i, keys: r };
+    for (const d of e) a[o] = r ? r(d, o) : o, i[o] = s(d, o), o++;
+    return { values: i, keys: a };
   }
-  render(t, e, s) {
-    return this.dt(t, e, s).values;
+  render(e, t, s) {
+    return this.dt(e, t, s).values;
   }
-  update(t, [e, s, a]) {
-    const r = Ds(t), { values: i, keys: o } = this.dt(e, s, a);
-    if (!Array.isArray(r)) return this.ut = o, i;
+  update(e, [t, s, r]) {
+    const a = Ds(e), { values: i, keys: o } = this.dt(t, s, r);
+    if (!Array.isArray(a)) return this.ut = o, i;
     const d = this.ut ?? (this.ut = []), h = [];
-    let m, g, u = 0, p = r.length - 1, b = 0, v = i.length - 1;
-    for (; u <= p && b <= v; ) if (r[u] === null) u++;
-    else if (r[p] === null) p--;
-    else if (d[u] === o[b]) h[b] = q(r[u], i[b]), u++, b++;
-    else if (d[p] === o[v]) h[v] = q(r[p], i[v]), p--, v--;
-    else if (d[u] === o[v]) h[v] = q(r[u], i[v]), fe(t, h[v + 1], r[u]), u++, v--;
-    else if (d[p] === o[b]) h[b] = q(r[p], i[b]), fe(t, r[u], r[p]), p--, b++;
+    let m, g, u = 0, p = a.length - 1, b = 0, v = i.length - 1;
+    for (; u <= p && b <= v; ) if (a[u] === null) u++;
+    else if (a[p] === null) p--;
+    else if (d[u] === o[b]) h[b] = q(a[u], i[b]), u++, b++;
+    else if (d[p] === o[v]) h[v] = q(a[p], i[v]), p--, v--;
+    else if (d[u] === o[v]) h[v] = q(a[u], i[v]), fe(e, h[v + 1], a[u]), u++, v--;
+    else if (d[p] === o[b]) h[b] = q(a[p], i[b]), fe(e, a[u], a[p]), p--, b++;
     else if (m === void 0 && (m = ft(o, b, v), g = ft(d, u, p)), m.has(d[u])) if (m.has(d[p])) {
-      const k = g.get(o[b]), ge = k !== void 0 ? r[k] : null;
+      const k = g.get(o[b]), ge = k !== void 0 ? a[k] : null;
       if (ge === null) {
-        const Ee = fe(t, r[u]);
+        const Ee = fe(e, a[u]);
         q(Ee, i[b]), h[b] = Ee;
-      } else h[b] = q(ge, i[b]), fe(t, r[u], ge), r[k] = null;
+      } else h[b] = q(ge, i[b]), fe(e, a[u], ge), a[k] = null;
       b++;
-    } else Ge(r[p]), p--;
-    else Ge(r[u]), u++;
+    } else Ge(a[p]), p--;
+    else Ge(a[u]), u++;
     for (; b <= v; ) {
-      const k = fe(t, h[v + 1]);
+      const k = fe(e, h[v + 1]);
       q(k, i[b]), h[b++] = k;
     }
     for (; u <= p; ) {
-      const k = r[u++];
+      const k = a[u++];
       k !== null && Ge(k);
     }
-    return this.ut = o, Ps(t, h), X;
+    return this.ut = o, Ps(e, h), X;
   }
 }), Ls = new Intl.RelativeTimeFormat("de", { numeric: "auto" }), Os = [
   { unit: "year", seconds: 31536e3 },
@@ -1539,32 +1553,32 @@ const ft = (t, e, s) => {
   { unit: "minute", seconds: 60 },
   { unit: "second", seconds: 1 }
 ];
-function jt(t, e = /* @__PURE__ */ new Date()) {
-  const s = new Date(t);
+function jt(e, t = /* @__PURE__ */ new Date()) {
+  const s = new Date(e);
   if (Number.isNaN(s.getTime())) return "—";
-  const a = Math.round((s.getTime() - e.getTime()) / 1e3), r = Math.abs(a);
-  if (r < 5) return "gerade eben";
+  const r = Math.round((s.getTime() - t.getTime()) / 1e3), a = Math.abs(r);
+  if (a < 5) return "gerade eben";
   for (const { unit: i, seconds: o } of Os)
-    if (r >= o) {
-      const d = Math.round(a / o);
+    if (a >= o) {
+      const d = Math.round(r / o);
       return Ls.format(d, i);
     }
   return "gerade eben";
 }
-function Gt(t, e = /* @__PURE__ */ new Date()) {
-  const s = new Date(t);
-  if (Number.isNaN(s.getTime())) return t;
-  const a = s.getFullYear() === e.getFullYear() && s.getMonth() === e.getMonth() && s.getDate() === e.getDate(), r = s.toLocaleTimeString("de-DE", {
+function Gt(e, t = /* @__PURE__ */ new Date()) {
+  const s = new Date(e);
+  if (Number.isNaN(s.getTime())) return e;
+  const r = s.getFullYear() === t.getFullYear() && s.getMonth() === t.getMonth() && s.getDate() === t.getDate(), a = s.toLocaleTimeString("de-DE", {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit"
   });
-  return a ? r : `${s.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })} ${r}`;
+  return r ? a : `${s.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })} ${a}`;
 }
-var Fs = Object.defineProperty, Cs = Object.getOwnPropertyDescriptor, Te = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Cs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && Fs(e, s, r), r;
+var Fs = Object.defineProperty, Cs = Object.getOwnPropertyDescriptor, Te = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Cs(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && Fs(t, s, a), a;
 };
 const bt = {
   error: "✕",
@@ -1579,26 +1593,26 @@ const bt = {
 }, Ns = ["error", "warning", "info", "debug"];
 let Q = class extends x {
   constructor() {
-    super(...arguments), this.items = [], this._now = /* @__PURE__ */ new Date(), this._editSeverityFor = null, this._popoverPos = null, this._onClick = (t) => {
+    super(...arguments), this.items = [], this._now = /* @__PURE__ */ new Date(), this._editSeverityFor = null, this._popoverPos = null, this._onClick = (e) => {
       this.dispatchEvent(
-        new CustomEvent("select", { detail: { msg: t }, bubbles: !0, composed: !0 })
+        new CustomEvent("select", { detail: { msg: e }, bubbles: !0, composed: !0 })
       );
-    }, this._onKey = (t, e) => {
-      (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this._onClick(e));
-    }, this._onSeverityClick = (t, e) => {
-      if (t.stopPropagation(), t.preventDefault(), this._editSeverityFor === e.id) {
+    }, this._onKey = (e, t) => {
+      (e.key === "Enter" || e.key === " ") && (e.preventDefault(), this._onClick(t));
+    }, this._onSeverityClick = (e, t) => {
+      if (e.stopPropagation(), e.preventDefault(), this._editSeverityFor === t.id) {
         this._closePopover();
         return;
       }
-      const a = t.currentTarget.getBoundingClientRect(), r = 200, i = a.bottom + r < window.innerHeight;
+      const r = e.currentTarget.getBoundingClientRect(), a = 200, i = r.bottom + a < window.innerHeight;
       this._popoverPos = {
-        top: i ? a.bottom + 4 : a.top - r - 4,
-        left: a.left
-      }, this._editSeverityFor = e.id;
-    }, this._onSeverityPick = (t, e, s, a) => {
-      t.stopPropagation(), this._closePopover(), a !== s && this.dispatchEvent(
+        top: i ? r.bottom + 4 : r.top - a - 4,
+        left: r.left
+      }, this._editSeverityFor = t.id;
+    }, this._onSeverityPick = (e, t, s, r) => {
+      e.stopPropagation(), this._closePopover(), r !== s && this.dispatchEvent(
         new CustomEvent("severity-change", {
-          detail: { id: e, severity: a, previous: s },
+          detail: { id: t, severity: r, previous: s },
           bubbles: !0,
           composed: !0
         })
@@ -1617,29 +1631,29 @@ let Q = class extends x {
   _renderPopover() {
     if (this._editSeverityFor === null || this._popoverPos === null)
       return n``;
-    const t = this.items.find((a) => a.id === this._editSeverityFor);
-    if (!t) return n``;
-    const e = t.severity ?? "info", s = t.id;
+    const e = this.items.find((r) => r.id === this._editSeverityFor);
+    if (!e) return n``;
+    const t = e.severity ?? "info", s = e.id;
     return n`
       <div class="popover-backdrop" @click=${() => this._closePopover()}></div>
       <div
         class="sev-popover"
         role="menu"
         style=${`top: ${this._popoverPos.top}px; left: ${this._popoverPos.left}px`}
-        @click=${(a) => a.stopPropagation()}
+        @click=${(r) => r.stopPropagation()}
       >
         ${Ns.map(
-      (a) => n`<button
+      (r) => n`<button
             role="menuitemradio"
-            aria-checked=${a === e}
-            class=${`sev-option ${a === e ? "active" : ""}`}
-            @click=${(r) => this._onSeverityPick(r, s, e, a)}
+            aria-checked=${r === t}
+            class=${`sev-option ${r === t ? "active" : ""}`}
+            @click=${(a) => this._onSeverityPick(a, s, t, r)}
           >
-            <span class=${`mh-pill mh-pill--${a}`}>
-              <span class="sev-icon" aria-hidden="true">${bt[a]}</span>
-              ${_t[a]}
+            <span class=${`mh-pill mh-pill--${r}`}>
+              <span class="sev-icon" aria-hidden="true">${bt[r]}</span>
+              ${_t[r]}
             </span>
-            ${a === e ? n`<span class="check" aria-hidden="true">✓</span>` : c}
+            ${r === t ? n`<span class="check" aria-hidden="true">✓</span>` : c}
           </button>`
     )}
       </div>
@@ -1662,35 +1676,35 @@ let Q = class extends x {
         <div class="scroll" role="list">
           ${zs(
       this.items,
-      (t) => t.id,
-      (t) => {
-        const e = t.severity ?? "info", s = _t[e] ?? e, a = bt[e] ?? "·", r = jt(t.timestamp, this._now), i = Gt(t.timestamp, this._now);
+      (e) => e.id,
+      (e) => {
+        const t = e.severity ?? "info", s = _t[t] ?? t, r = bt[t] ?? "·", a = jt(e.timestamp, this._now), i = Gt(e.timestamp, this._now);
         return n`
                 <div
-                  class=${`row sev-${e} ${this._editSeverityFor === t.id ? "row-active" : ""}`}
+                  class=${`row sev-${t} ${this._editSeverityFor === e.id ? "row-active" : ""}`}
                   tabindex="0"
                   role="listitem button"
-                  @click=${() => this._onClick(t)}
-                  @keydown=${(o) => this._onKey(o, t)}
+                  @click=${() => this._onClick(e)}
+                  @keydown=${(o) => this._onKey(o, e)}
                 >
                   <span class="col-sev">
                     <button
-                      class=${`mh-pill mh-pill--${e} sev-trigger`}
+                      class=${`mh-pill mh-pill--${t} sev-trigger`}
                       title="Severity ändern"
                       aria-haspopup="menu"
-                      aria-expanded=${this._editSeverityFor === t.id}
-                      @click=${(o) => this._onSeverityClick(o, t)}
+                      aria-expanded=${this._editSeverityFor === e.id}
+                      @click=${(o) => this._onSeverityClick(o, e)}
                     >
-                      <span class="sev-icon" aria-hidden="true">${a}</span>
+                      <span class="sev-icon" aria-hidden="true">${r}</span>
                       ${s}
                       <span class="caret" aria-hidden="true">▾</span>
                     </button>
                   </span>
-                  <span class="col-ts ts" title=${i}>${r}</span>
+                  <span class="col-ts ts" title=${i}>${a}</span>
                   <span class="col-src">
-                    <span class="source-pill">${t.source}</span>
+                    <span class="source-pill">${e.source}</span>
                   </span>
-                  <span class="col-text text">${t.text}</span>
+                  <span class="col-text text">${e.text}</span>
                 </div>
               `;
       }
@@ -1917,21 +1931,21 @@ Te([
 Q = Te([
   S("message-table")
 ], Q);
-var Is = Object.defineProperty, Rs = Object.getOwnPropertyDescriptor, Kt = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Rs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && Is(e, s, r), r;
+var Is = Object.defineProperty, Rs = Object.getOwnPropertyDescriptor, Kt = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Rs(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && Is(t, s, a), a;
 };
 const wt = ["error", "warning", "info", "debug"];
 let Oe = class extends x {
   constructor() {
     super(...arguments), this.selected = [...wt];
   }
-  _toggle(t) {
-    const e = this.selected.includes(t) ? this.selected.filter((s) => s !== t) : [...this.selected, t];
+  _toggle(e) {
+    const t = this.selected.includes(e) ? this.selected.filter((s) => s !== e) : [...this.selected, e];
     this.dispatchEvent(
       new CustomEvent("change", {
-        detail: { severities: e },
+        detail: { severities: t },
         bubbles: !0,
         composed: !0
       })
@@ -1940,15 +1954,15 @@ let Oe = class extends x {
   render() {
     return n`
       <div class="chips" role="group" aria-label="Severity-Filter">
-        ${wt.map((t) => {
-      const e = this.selected.includes(t);
+        ${wt.map((e) => {
+      const t = this.selected.includes(e);
       return n`<button
-            class=${`chip sev-${t} ${e ? "active" : ""}`}
-            aria-pressed=${e}
-            @click=${() => this._toggle(t)}
+            class=${`chip sev-${e} ${t ? "active" : ""}`}
+            aria-pressed=${t}
+            @click=${() => this._toggle(e)}
           >
             <span class="dot" aria-hidden="true"></span>
-            ${t}
+            ${e}
           </button>`;
     })}
       </div>
@@ -2038,10 +2052,10 @@ Kt([
 Oe = Kt([
   S("severity-filter")
 ], Oe);
-var Ms = Object.defineProperty, Us = Object.getOwnPropertyDescriptor, Ne = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Us(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && Ms(e, s, r), r;
+var Ms = Object.defineProperty, Us = Object.getOwnPropertyDescriptor, Ne = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Us(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && Ms(t, s, a), a;
 };
 let de = class extends x {
   constructor() {
@@ -2055,11 +2069,11 @@ let de = class extends x {
         this._sources = [];
       }
   }
-  _onChange(t) {
-    const e = t.target.value;
+  _onChange(e) {
+    const t = e.target.value;
     this.dispatchEvent(
       new CustomEvent("change", {
-        detail: { source: e },
+        detail: { source: t },
         bubbles: !0,
         composed: !0
       })
@@ -2069,7 +2083,7 @@ let de = class extends x {
     return n`
       <select @change=${this._onChange} .value=${this.selected}>
         <option value="">Alle Quellen</option>
-        ${this._sources.map((t) => n`<option value=${t}>${t}</option>`)}
+        ${this._sources.map((e) => n`<option value=${e}>${e}</option>`)}
       </select>
     `;
   }
@@ -2095,18 +2109,18 @@ Ne([
 de = Ne([
   S("source-filter")
 ], de);
-var Hs = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, et = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Bs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && Hs(e, s, r), r;
+var Hs = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, et = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Bs(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && Hs(t, s, a), a;
 };
 let ke = class extends x {
-  _set(t) {
-    let e;
+  _set(e) {
+    let t;
     const s = /* @__PURE__ */ new Date();
-    t === "1h" ? e = new Date(s.getTime() - 36e5).toISOString() : t === "24h" ? e = new Date(s.getTime() - 864e5).toISOString() : t === "7d" ? e = new Date(s.getTime() - 7 * 864e5).toISOString() : e = void 0, this.dispatchEvent(
+    e === "1h" ? t = new Date(s.getTime() - 36e5).toISOString() : e === "24h" ? t = new Date(s.getTime() - 864e5).toISOString() : e === "7d" ? t = new Date(s.getTime() - 7 * 864e5).toISOString() : t = void 0, this.dispatchEvent(
       new CustomEvent("change", {
-        detail: { fromIso: e, toIso: void 0 },
+        detail: { fromIso: t, toIso: void 0 },
         bubbles: !0,
         composed: !0
       })
@@ -2145,17 +2159,17 @@ et([
 ke = et([
   S("time-range-filter")
 ], ke);
-var js = Object.defineProperty, Gs = Object.getOwnPropertyDescriptor, W = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Gs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && js(e, s, r), r;
+var js = Object.defineProperty, Gs = Object.getOwnPropertyDescriptor, W = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Gs(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && js(t, s, a), a;
 };
 let N = class extends x {
   constructor() {
     super(...arguments), this._status = "new", this._tags = [], this._newTag = "", this._runbook = null, this._busy = !1;
   }
-  willUpdate(t) {
-    t.has("msg") && this.msg && (this._status = this.msg.status ?? "new", this._loadTags(), this._loadRunbook());
+  willUpdate(e) {
+    e.has("msg") && this.msg && (this._status = this.msg.status ?? "new", this._loadTags(), this._loadRunbook());
   }
   async _loadTags() {
     if (!(!this.api || !this.msg))
@@ -2176,21 +2190,21 @@ let N = class extends x {
   _close() {
     this.dispatchEvent(new CustomEvent("close", { bubbles: !0, composed: !0 }));
   }
-  async _setStatus(t) {
+  async _setStatus(e) {
     if (this.api) {
       this._busy = !0;
       try {
-        await this.api.setMessageStatus(this.msg.id, t), this._status = t, this.dispatchEvent(
+        await this.api.setMessageStatus(this.msg.id, e), this._status = e, this.dispatchEvent(
           new CustomEvent("status-change", {
-            detail: { id: this.msg.id, status: t },
+            detail: { id: this.msg.id, status: e },
             bubbles: !0,
             composed: !0
           })
         );
-      } catch (e) {
+      } catch (t) {
         this.dispatchEvent(
           new CustomEvent("error", {
-            detail: { message: e.message },
+            detail: { message: t.message },
             bubbles: !0,
             composed: !0
           })
@@ -2202,16 +2216,16 @@ let N = class extends x {
   }
   async _addTag() {
     if (!this.api || !this._newTag.trim()) return;
-    const t = this._newTag.trim().toLowerCase().replaceAll(/[^a-z0-9._-]+/g, "-");
+    const e = this._newTag.trim().toLowerCase().replaceAll(/[^a-z0-9._-]+/g, "-");
     try {
-      this._tags = await this.api.addMessageTag(this.msg.id, t), this._newTag = "";
+      this._tags = await this.api.addMessageTag(this.msg.id, e), this._newTag = "";
     } catch {
     }
   }
-  async _removeTag(t) {
+  async _removeTag(e) {
     if (this.api)
       try {
-        this._tags = await this.api.removeMessageTag(this.msg.id, t);
+        this._tags = await this.api.removeMessageTag(this.msg.id, e);
       } catch {
       }
   }
@@ -2225,14 +2239,14 @@ let N = class extends x {
     );
   }
   _statusBadge() {
-    const t = {
+    const e = {
       new: "Neu",
       acknowledged: "Bestätigt",
       resolved: "Gelöst",
       expired: "Abgelaufen"
     };
     return n`<span class=${`status-badge status-${this._status}`}>
-      ${t[this._status] ?? this._status}
+      ${e[this._status] ?? this._status}
     </span>`;
   }
   render() {
@@ -2287,13 +2301,13 @@ let N = class extends x {
         <h3>Tags</h3>
         <div class="tags">
           ${this._tags.length === 0 ? n`<span class="hint">keine Tags</span>` : this._tags.map(
-      (t) => n`
+      (e) => n`
                   <span class="tag">
-                    #${t}
+                    #${e}
                     <button
                       class="tag-remove"
-                      aria-label=${`Tag ${t} entfernen`}
-                      @click=${() => this._removeTag(t)}
+                      aria-label=${`Tag ${e} entfernen`}
+                      @click=${() => this._removeTag(e)}
                     >
                       ×
                     </button>
@@ -2306,9 +2320,9 @@ let N = class extends x {
             type="text"
             placeholder="neuer Tag"
             .value=${this._newTag}
-            @input=${(t) => this._newTag = t.target.value}
-            @keydown=${(t) => {
-      t.key === "Enter" && this._addTag();
+            @input=${(e) => this._newTag = e.target.value}
+            @keydown=${(e) => {
+      e.key === "Enter" && this._addTag();
     }}
           />
           <button @click=${this._addTag} ?disabled=${!this._newTag.trim()}>+ Hinzufügen</button>
@@ -2567,10 +2581,10 @@ W([
 N = W([
   S("detail-pane")
 ], N);
-var Ks = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, I = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Ws(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && Ks(e, s, r), r;
+var Ks = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, R = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Ws(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && Ks(t, s, a), a;
 };
 const Vs = ["debug", "info", "warning", "error"], qs = JSON.stringify(
   {
@@ -2582,60 +2596,60 @@ const Vs = ["debug", "info", "warning", "error"], qs = JSON.stringify(
   null,
   2
 ), Ke = /^[a-z0-9._-]{1,64}$/;
-function Js(t) {
-  return t.toLowerCase().normalize("NFKD").replaceAll(/[äÄ]/g, "ae").replaceAll(/[öÖ]/g, "oe").replaceAll(/[üÜ]/g, "ue").replaceAll(/ß/g, "ss").replaceAll(/[\s/\\]+/g, "-").replaceAll(/[^a-z0-9._-]/g, "").slice(0, 64);
+function Js(e) {
+  return e.toLowerCase().normalize("NFKD").replaceAll(/[äÄ]/g, "ae").replaceAll(/[öÖ]/g, "oe").replaceAll(/[üÜ]/g, "ue").replaceAll(/ß/g, "ss").replaceAll(/[\s/\\]+/g, "-").replaceAll(/[^a-z0-9._-]/g, "").slice(0, 64);
 }
 let O = class extends x {
   constructor() {
     super(...arguments), this.editing = null, this._name = "", this._source = "", this._severity = "info", this._enabled = !0, this._mappingText = "", this._error = "", this._saving = !1;
   }
-  willUpdate(t) {
-    if (t.has("editing")) {
-      const e = this.editing;
-      this._name = (e == null ? void 0 : e.name) ?? "", this._source = (e == null ? void 0 : e.default_source) ?? "", this._severity = (e == null ? void 0 : e.default_severity) ?? "info", this._enabled = (e == null ? void 0 : e.enabled) ?? !0, this._mappingText = e != null && e.field_map ? JSON.stringify(e.field_map, null, 2) : "", this._error = "";
+  willUpdate(e) {
+    if (e.has("editing")) {
+      const t = this.editing;
+      this._name = (t == null ? void 0 : t.name) ?? "", this._source = (t == null ? void 0 : t.default_source) ?? "", this._severity = (t == null ? void 0 : t.default_severity) ?? "info", this._enabled = (t == null ? void 0 : t.enabled) ?? !0, this._mappingText = t != null && t.field_map ? JSON.stringify(t.field_map, null, 2) : "", this._error = "";
     }
   }
   _validateMapping() {
     if (!this._mappingText.trim()) return null;
     try {
-      const t = JSON.parse(this._mappingText);
-      if (typeof t != "object" || Array.isArray(t))
+      const e = JSON.parse(this._mappingText);
+      if (typeof e != "object" || Array.isArray(e))
         throw new Error("muss ein JSON-Objekt sein");
-      return t;
-    } catch (t) {
-      throw new Error(`Mapping-JSON ungueltig: ${t.message}`);
+      return e;
+    } catch (e) {
+      throw new Error(`Mapping-JSON ungueltig: ${e.message}`);
     }
   }
   async _save() {
     if (this.api) {
       this._error = "", this._saving = !0;
       try {
-        const t = this._validateMapping();
+        const e = this._validateMapping();
         if (!this._name.trim()) throw new Error("Name darf nicht leer sein");
         if (!Ke.test(this._source))
           throw new Error("Source ist leer oder ungueltig.");
-        let e;
-        this.editing ? e = await this.api.updateWebhook(this.editing.webhook_id, {
+        let t;
+        this.editing ? t = await this.api.updateWebhook(this.editing.webhook_id, {
           name: this._name.trim(),
           default_source: this._source,
           default_severity: this._severity,
-          field_map: t,
+          field_map: e,
           enabled: this._enabled
-        }) : e = await this.api.createWebhook({
+        }) : t = await this.api.createWebhook({
           name: this._name.trim(),
           default_source: this._source,
           default_severity: this._severity,
-          field_map: t,
+          field_map: e,
           enabled: this._enabled
         }), this.dispatchEvent(
           new CustomEvent("saved", {
-            detail: { webhook: e },
+            detail: { webhook: t },
             bubbles: !0,
             composed: !0
           })
         );
-      } catch (t) {
-        this._error = t.message;
+      } catch (e) {
+        this._error = e.message;
       } finally {
         this._saving = !1;
       }
@@ -2648,17 +2662,17 @@ let O = class extends x {
     this._mappingText = qs;
   }
   render() {
-    const t = this.editing !== null;
+    const e = this.editing !== null;
     return n`
       <div class="card">
-        <h3>${t ? "Webhook bearbeiten" : "Neuen Webhook anlegen"}</h3>
+        <h3>${e ? "Webhook bearbeiten" : "Neuen Webhook anlegen"}</h3>
 
         <label>
           <span>Name</span>
           <input
             type="text"
             .value=${this._name}
-            @input=${(e) => this._name = e.target.value}
+            @input=${(t) => this._name = t.target.value}
             placeholder="z. B. Pi-hole Alerts"
           />
         </label>
@@ -2673,8 +2687,8 @@ let O = class extends x {
               type="text"
               class=${this._source && !Ke.test(this._source) ? "invalid" : ""}
               .value=${this._source}
-              @input=${(e) => {
-      const s = e.target.value;
+              @input=${(t) => {
+      const s = t.target.value;
       this._source = Js(s);
     }}
               placeholder="z. B. pihole"
@@ -2693,10 +2707,10 @@ let O = class extends x {
             <span>Default-Severity</span>
             <select
               .value=${this._severity}
-              @change=${(e) => this._severity = e.target.value}
+              @change=${(t) => this._severity = t.target.value}
             >
               ${Vs.map(
-      (e) => n`<option value=${e} ?selected=${this._severity === e}>${e}</option>`
+      (t) => n`<option value=${t} ?selected=${this._severity === t}>${t}</option>`
     )}
             </select>
           </label>
@@ -2706,7 +2720,7 @@ let O = class extends x {
           <input
             type="checkbox"
             .checked=${this._enabled}
-            @change=${(e) => this._enabled = e.target.checked}
+            @change=${(t) => this._enabled = t.target.checked}
           />
           <span>aktiv</span>
         </label>
@@ -2720,7 +2734,7 @@ let O = class extends x {
           </div>
           <textarea
             .value=${this._mappingText}
-            @input=${(e) => this._mappingText = e.target.value}
+            @input=${(t) => this._mappingText = t.target.value}
             placeholder=${'{"severity": "$.level", "source": "$.app.name", ...}'}
             rows="6"
             spellcheck="false"
@@ -2735,7 +2749,7 @@ let O = class extends x {
 
         <div class="actions">
           <button class="primary" ?disabled=${this._saving} @click=${this._save}>
-            ${this._saving ? "speichere…" : t ? "Speichern" : "Anlegen"}
+            ${this._saving ? "speichere…" : e ? "Speichern" : "Anlegen"}
           </button>
           <button @click=${this._cancel}>Abbrechen</button>
         </div>
@@ -2884,46 +2898,46 @@ O.styles = y`
       margin-top: 4px;
     }
   `;
-I([
+R([
   w({ attribute: !1 })
 ], O.prototype, "api", 2);
-I([
+R([
   w({ attribute: !1 })
 ], O.prototype, "editing", 2);
-I([
+R([
   l()
 ], O.prototype, "_name", 2);
-I([
+R([
   l()
 ], O.prototype, "_source", 2);
-I([
+R([
   l()
 ], O.prototype, "_severity", 2);
-I([
+R([
   l()
 ], O.prototype, "_enabled", 2);
-I([
+R([
   l()
 ], O.prototype, "_mappingText", 2);
-I([
+R([
   l()
 ], O.prototype, "_error", 2);
-I([
+R([
   l()
 ], O.prototype, "_saving", 2);
-O = I([
+O = R([
   S("webhook-form")
 ], O);
-var Ys = Object.defineProperty, Zs = Object.getOwnPropertyDescriptor, T = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Zs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && Ys(e, s, r), r;
+var Ys = Object.defineProperty, Zs = Object.getOwnPropertyDescriptor, T = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Zs(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && Ys(t, s, a), a;
 };
 const Xs = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, We = ["debug", "info", "warning", "error"], xt = [...We, "auto"], Wt = "messagehub.knx-addresses.only-enabled";
 function Qs() {
   try {
-    const t = localStorage.getItem(Wt);
-    return t === null ? !0 : t === "1" || t === "true";
+    const e = localStorage.getItem(Wt);
+    return e === null ? !0 : e === "1" || e === "true";
   } catch {
     return !0;
   }
@@ -2949,26 +2963,26 @@ let $ = class extends x {
   async _loadDiscovery() {
     if (this.api)
       try {
-        const t = await this.api.discoverKnxFromProject();
-        this._discovery = t.items, this._discoveryStatus = t.status;
-      } catch (t) {
-        this._discovery = [], this._discoveryStatus = `error: ${t.message}`;
+        const e = await this.api.discoverKnxFromProject();
+        this._discovery = e.items, this._discoveryStatus = e.status;
+      } catch (e) {
+        this._discovery = [], this._discoveryStatus = `error: ${e.message}`;
       }
   }
   _renderDiscoveryStatus() {
     if (this._discoveryStatus === "ok" && this._discovery.length > 0) return null;
-    const e = {
+    const t = {
       loading: "🔄 Lade KNX-Projekt-Daten…",
       no_knx_integration: "ℹ️ Keine KNX-Integration in HA gefunden. Lege erst die KNX-Integration unter Einstellungen → Geräte & Dienste an, dann erscheinen die GAs hier automatisch.",
       no_project_loaded: "ℹ️ KNX-Integration ist da, aber kein ETS-Projekt hochgeladen. Lade dein .knxproj in der KNX-Integration unter Konfigurieren → Projekt hoch.",
       project_empty: "ℹ️ ETS-Projekt enthält keine Gruppenadressen — pruefe den Export."
     }[this._discoveryStatus] ?? `Status: ${this._discoveryStatus}`;
-    return n`<div class="discovery-status">${e}</div>`;
+    return n`<div class="discovery-status">${t}</div>`;
   }
-  _onAddressInput(t) {
-    const e = t.target.value;
-    this._newAddr = e;
-    const s = this._discovery.find((a) => a.address === e);
+  _onAddressInput(e) {
+    const t = e.target.value;
+    this._newAddr = t;
+    const s = this._discovery.find((r) => r.address === t);
     s && (this._newLabel.trim() || (this._newLabel = s.name), !this._newDpt.trim() && s.dpt && (this._newDpt = s.dpt));
   }
   // Iter 47 (N4): Smart-Sync statt Wipe-and-Replace.
@@ -2979,40 +2993,40 @@ let $ = class extends x {
   // die Zeile entfernt — das wird im Confirm-Dialog explizit erklaert.
   async _syncFromProject() {
     if (!this.api || this._discovery.length === 0) return;
-    let t;
+    let e;
     try {
-      t = await this.api.syncKnxProject(this._discovery, !1);
-    } catch (a) {
-      this._showToast(a.message);
+      e = await this.api.syncKnxProject(this._discovery, !1);
+    } catch (r) {
+      this._showToast(r.message);
       return;
     }
-    const e = t.counts;
-    if (e.add === 0 && e.update === 0 && e.delete === 0) {
+    const t = e.counts;
+    if (t.add === 0 && t.update === 0 && t.delete === 0) {
       this._showToast("Projekt ist bereits synchron — nichts zu tun");
       return;
     }
     const s = `Abgleich mit ETS-Projekt anwenden?
 
-${e.add} neue Einträge anlegen
-${e.update} Einträge aktualisieren (label/dpt geändert → Logging-Konfig wird zurückgesetzt)
-${e.delete} Einträge löschen (in ETS nicht mehr vorhanden → Lauschen wird beendet)
-${e.keep} unveränderte Einträge bleiben bestehen.`;
+${t.add} neue Einträge anlegen
+${t.update} Einträge aktualisieren (label/dpt geändert → Logging-Konfig wird zurückgesetzt)
+${t.delete} Einträge löschen (in ETS nicht mehr vorhanden → Lauschen wird beendet)
+${t.keep} unveränderte Einträge bleiben bestehen.`;
     if (window.confirm(s)) {
       try {
-        const r = (await this.api.syncKnxProject(this._discovery, !0)).counts;
+        const a = (await this.api.syncKnxProject(this._discovery, !0)).counts;
         this._showToast(
-          `Synchronisiert: +${r.added} angelegt, ${r.updated} aktualisiert, ${r.deleted} gelöscht`
+          `Synchronisiert: +${a.added} angelegt, ${a.updated} aktualisiert, ${a.deleted} gelöscht`
         );
-      } catch (a) {
-        this._showToast(`Fehler beim Anwenden: ${a.message}`);
+      } catch (r) {
+        this._showToast(`Fehler beim Anwenden: ${r.message}`);
       }
       await this._load();
     }
   }
   async _add() {
     if (this._error = "", !this.api) return;
-    const t = this._newAddr.trim();
-    if (!Xs.test(t)) {
+    const e = this._newAddr.trim();
+    if (!Xs.test(e)) {
       this._error = "Bitte Format N/N/N (z. B. 1/2/3)";
       return;
     }
@@ -3022,89 +3036,89 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
     }
     try {
       await this.api.upsertKnxAddress({
-        address: t,
+        address: e,
         label: this._newLabel.trim(),
         dpt: this._newDpt.trim() || null,
         log_enabled: !1,
         // Iter 44 (N2): Default-Severity Warning fuer neue Eintraege.
         log_severity: "warning"
-      }), this._newAddr = "", this._newLabel = "", this._newDpt = "", this._showToast(`${t} gespeichert`), await this._load();
-    } catch (e) {
-      this._error = e.message;
+      }), this._newAddr = "", this._newLabel = "", this._newDpt = "", this._showToast(`${e} gespeichert`), await this._load();
+    } catch (t) {
+      this._error = t.message;
     }
   }
-  async _toggleLog(t) {
+  async _toggleLog(e) {
     if (!this.api) return;
-    const e = !t.log_enabled;
-    let s = t.log_severity;
-    e && (s === "info" || !s) && (s = "warning");
+    const t = !e.log_enabled;
+    let s = e.log_severity;
+    t && (s === "info" || !s) && (s = "warning");
     try {
       await this.api.upsertKnxAddress({
-        ...t,
-        log_enabled: e,
+        ...e,
+        log_enabled: t,
         log_severity: s
       }), await this._load();
-      const a = this._items.find((i) => i.address === t.address), r = !!(a != null && a.log_enabled);
-      a !== void 0 && r !== e ? this._showToast(
+      const r = this._items.find((i) => i.address === e.address), a = !!(r != null && r.log_enabled);
+      r !== void 0 && a !== t ? this._showToast(
         "Backend hat log_enabled nicht gesetzt — Browser-Cache leeren (Cmd+Shift+R) und HA-Container neu starten"
       ) : this._showToast(
-        e ? `${t.address} im Protokoll aktiv` : `${t.address} aus Protokoll entfernt`
+        t ? `${e.address} im Protokoll aktiv` : `${e.address} aus Protokoll entfernt`
       );
-    } catch (a) {
-      this._showToast(a.message);
+    } catch (r) {
+      this._showToast(r.message);
     }
   }
-  async _delete(t) {
-    if (this.api && window.confirm(`KNX-Adresse ${t} löschen?`))
+  async _delete(e) {
+    if (this.api && window.confirm(`KNX-Adresse ${e} löschen?`))
       try {
-        await this.api.deleteKnxAddress(t), this._showToast(`${t} gelöscht`), await this._load();
-      } catch (e) {
-        this._showToast(e.message);
+        await this.api.deleteKnxAddress(e), this._showToast(`${e} gelöscht`), await this._load();
+      } catch (t) {
+        this._showToast(t.message);
       }
   }
   _closeSevPopover() {
     this._sevPopoverFor = null, this._sevPopoverPos = null;
   }
-  _onSeverityTrigger(t, e) {
-    if (t.stopPropagation(), t.preventDefault(), this._sevPopoverFor === e.address) {
+  _onSeverityTrigger(e, t) {
+    if (e.stopPropagation(), e.preventDefault(), this._sevPopoverFor === t.address) {
       this._closeSevPopover();
       return;
     }
-    const a = t.currentTarget.getBoundingClientRect(), r = 220, i = a.bottom + r < window.innerHeight;
+    const r = e.currentTarget.getBoundingClientRect(), a = 220, i = r.bottom + a < window.innerHeight;
     this._sevPopoverPos = {
-      top: i ? a.bottom + 4 : a.top - r - 4,
-      left: a.left
-    }, this._sevPopoverFor = e.address;
+      top: i ? r.bottom + 4 : r.top - a - 4,
+      left: r.left
+    }, this._sevPopoverFor = t.address;
   }
-  async _onSeverityPick(t, e, s) {
-    if (t.stopPropagation(), this._closeSevPopover(), s === e.log_severity || !this.api) return;
-    const a = {
-      address: e.address,
+  async _onSeverityPick(e, t, s) {
+    if (e.stopPropagation(), this._closeSevPopover(), s === t.log_severity || !this.api) return;
+    const r = {
+      address: t.address,
       log_severity: s
     };
-    s === "auto" && (a.severity_on_true = e.severity_on_true ?? "warning", a.severity_on_false = e.severity_on_false ?? "info");
-    const r = e.log_severity;
+    s === "auto" && (r.severity_on_true = t.severity_on_true ?? "warning", r.severity_on_false = t.severity_on_false ?? "info");
+    const a = t.log_severity;
     this._items = this._items.map(
-      (i) => i.address === e.address ? {
+      (i) => i.address === t.address ? {
         ...i,
         log_severity: s,
-        severity_on_true: a.severity_on_true ?? i.severity_on_true,
-        severity_on_false: a.severity_on_false ?? i.severity_on_false
+        severity_on_true: r.severity_on_true ?? i.severity_on_true,
+        severity_on_false: r.severity_on_false ?? i.severity_on_false
       } : i
     );
     try {
-      await this.api.upsertKnxAddress({ ...e, ...a }), this._showToast(`${e.address}: Severity ${r} → ${s}`);
+      await this.api.upsertKnxAddress({ ...t, ...r }), this._showToast(`${t.address}: Severity ${a} → ${s}`);
     } catch (i) {
       this._items = this._items.map(
-        (o) => o.address === e.address ? { ...o, log_severity: r } : o
+        (o) => o.address === t.address ? { ...o, log_severity: a } : o
       ), this._showToast(`Fehlgeschlagen: ${i.message}`);
     }
   }
   _renderSevPopover() {
     if (this._sevPopoverFor === null || this._sevPopoverPos === null) return c;
-    const t = this._items.find((s) => s.address === this._sevPopoverFor);
-    if (!t) return c;
-    const e = t.log_severity;
+    const e = this._items.find((s) => s.address === this._sevPopoverFor);
+    if (!e) return c;
+    const t = e.log_severity;
     return n`
       <div class="sev-backdrop" @click=${() => this._closeSevPopover()}></div>
       <div
@@ -3116,52 +3130,52 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
         ${xt.map(
       (s) => n`<button
             role="menuitemradio"
-            aria-checked=${s === e}
-            class=${`sev-option ${s === e ? "active" : ""}`}
-            @click=${(a) => void this._onSeverityPick(a, t, s)}
+            aria-checked=${s === t}
+            class=${`sev-option ${s === t ? "active" : ""}`}
+            @click=${(r) => void this._onSeverityPick(r, e, s)}
           >
             <span
               class=${`mh-pill mh-pill--${s === "auto" ? "neutral" : s}`}
             >${s}</span>
-            ${s === e ? n`<span class="sev-check" aria-hidden="true">✓</span>` : c}
+            ${s === t ? n`<span class="sev-check" aria-hidden="true">✓</span>` : c}
           </button>`
     )}
       </div>
     `;
   }
-  async _onCsvFile(t) {
-    var a;
-    const e = (a = t.target.files) == null ? void 0 : a[0];
-    if (!e || !this.api) return;
-    const s = await e.text();
+  async _onCsvFile(e) {
+    var r;
+    const t = (r = e.target.files) == null ? void 0 : r[0];
+    if (!t || !this.api) return;
+    const s = await t.text();
     try {
-      const r = await this.api.importKnxCsv(s);
+      const a = await this.api.importKnxCsv(s);
       this._showToast(
-        `Import: ${r.imported} angelegt, ${r.skipped} übersprungen, ${r.errors} Fehler`
+        `Import: ${a.imported} angelegt, ${a.skipped} übersprungen, ${a.errors} Fehler`
       ), await this._load();
-    } catch (r) {
-      this._showToast(`Import fehlgeschlagen: ${r.message}`);
+    } catch (a) {
+      this._showToast(`Import fehlgeschlagen: ${a.message}`);
     } finally {
-      t.target.value = "";
+      e.target.value = "";
     }
   }
-  _showToast(t) {
-    this._toast = t, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
+  _showToast(e) {
+    this._toast = e, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
   }
   // Iter 56b: Bulk-Toolbar erscheint, sobald >=1 GA ausgewaehlt ist.
   // Drei Aktionen: Loggen an, Loggen aus, Severity setzen. Auswahl
   // wird nach Erfolg geleert; bei Fehlern bleibt sie damit der User
   // nochmal probieren kann.
   _renderBulkToolbar() {
-    const t = this._selected.size;
+    const e = this._selected.size;
     return n`
       <div class="bulk-toolbar" role="toolbar" aria-label="Bulk-Aktionen">
-        <span class="bulk-toolbar__count">${t} ausgewaehlt</span>
+        <span class="bulk-toolbar__count">${e} ausgewaehlt</span>
         <button
           class="mh-btn mh-btn--sm"
           ?disabled=${this._bulkActionRunning}
           @click=${() => void this._bulkApply({ log_enabled: !0 })}
-          title=${`${t} GAs zum Logging aktivieren`}
+          title=${`${e} GAs zum Logging aktivieren`}
         >
           Loggen aktivieren
         </button>
@@ -3169,7 +3183,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
           class="mh-btn mh-btn--sm"
           ?disabled=${this._bulkActionRunning}
           @click=${() => void this._bulkApply({ log_enabled: !1 })}
-          title=${`${t} GAs vom Logging entfernen`}
+          title=${`${e} GAs vom Logging entfernen`}
         >
           Loggen deaktivieren
         </button>
@@ -3177,7 +3191,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
           <span>Severity:</span>
           <select
             .value=${this._bulkSeverityValue}
-            @change=${(e) => this._bulkSeverityValue = e.target.value}
+            @change=${(t) => this._bulkSeverityValue = t.target.value}
           >
             <option value="debug">debug</option>
             <option value="info">info</option>
@@ -3205,27 +3219,27 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
   // Iter 56b: Multi-Select-Helfer. Auswahl wird bewusst NICHT beim
   // Filter-Wechsel zurueckgesetzt — wer "warm" 50 GAs ausgewaehlt hat
   // und dann sucht, kann die Auswahl behalten.
-  _toggleSelect(t) {
-    const e = new Set(this._selected);
-    e.has(t) ? e.delete(t) : e.add(t), this._selected = e;
+  _toggleSelect(e) {
+    const t = new Set(this._selected);
+    t.has(e) ? t.delete(e) : t.add(e), this._selected = t;
   }
-  _toggleSelectAllVisible(t) {
-    const e = t.every((a) => this._selected.has(a)), s = new Set(this._selected);
-    if (e)
-      for (const a of t) s.delete(a);
+  _toggleSelectAllVisible(e) {
+    const t = e.every((r) => this._selected.has(r)), s = new Set(this._selected);
+    if (t)
+      for (const r of e) s.delete(r);
     else
-      for (const a of t) s.add(a);
+      for (const r of e) s.add(r);
     this._selected = s;
   }
   _clearSelection() {
     this._selected = /* @__PURE__ */ new Set();
   }
-  async _bulkApply(t) {
+  async _bulkApply(e) {
     if (!this.api || this._selected.size === 0 || this._bulkActionRunning) return;
-    const e = Array.from(this._selected);
+    const t = Array.from(this._selected);
     this._bulkActionRunning = !0;
     try {
-      const s = await this.api.bulkPatchKnxAddresses(e, t);
+      const s = await this.api.bulkPatchKnxAddresses(t, e);
       this._showToast(
         `${s.updated} von ${s.address_count} GAs aktualisiert`
       ), this._clearSelection(), await this._load();
@@ -3236,30 +3250,30 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
     }
   }
   _filtered() {
-    let t = this._items;
-    this._onlyEnabled && (t = t.filter((s) => !!s.log_enabled)), this._hidePlaceholders && (t = t.filter(
+    let e = this._items;
+    this._onlyEnabled && (e = e.filter((s) => !!s.log_enabled)), this._hidePlaceholders && (e = e.filter(
       (s) => !!s.log_enabled || !er.test(s.label || "")
     ));
-    const e = this._filter.trim().toLowerCase();
-    return e ? t.filter(
-      (s) => s.address.includes(e) || s.label.toLowerCase().includes(e) || (s.dpt ?? "").toLowerCase().includes(e)
-    ) : t;
+    const t = this._filter.trim().toLowerCase();
+    return t ? e.filter(
+      (s) => s.address.includes(t) || s.label.toLowerCase().includes(t) || (s.dpt ?? "").toLowerCase().includes(t)
+    ) : e;
   }
   _renderEditor() {
     if (!this._editing) return c;
-    const t = this._editing, e = (s) => {
-      this._editing = { ...t, ...s };
+    const e = this._editing, t = (s) => {
+      this._editing = { ...e, ...s };
     };
     return n`
       <div class="modal-backdrop" @click=${() => this._editing = null}>
         <div class="modal" @click=${(s) => s.stopPropagation()}>
-          <h3>${t.address} bearbeiten</h3>
+          <h3>${e.address} bearbeiten</h3>
           <label>
             <span>Label</span>
             <input
               type="text"
-              .value=${t.label}
-              @input=${(s) => e({ label: s.target.value })}
+              .value=${e.label}
+              @input=${(s) => t({ label: s.target.value })}
             />
           </label>
           <div class="row-2">
@@ -3267,28 +3281,28 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
               <span>DPT (z. B. 1.001, 5.001, 16.001)</span>
               <input
                 type="text"
-                .value=${t.dpt ?? ""}
-                @input=${(s) => e({ dpt: s.target.value || null })}
+                .value=${e.dpt ?? ""}
+                @input=${(s) => t({ dpt: s.target.value || null })}
               />
             </label>
             <label class="checkbox">
               <input
                 type="checkbox"
-                .checked=${t.log_enabled}
-                @change=${(s) => e({ log_enabled: s.target.checked })}
+                .checked=${e.log_enabled}
+                @change=${(s) => t({ log_enabled: s.target.checked })}
               />
               <span>Im Protokoll erfassen</span>
             </label>
           </div>
 
-          ${t.log_enabled ? n`
+          ${e.log_enabled ? n`
                 <label>
                   <span>Severity</span>
                   <select
-                    .value=${t.log_severity}
+                    .value=${e.log_severity}
                     @change=${(s) => {
-      const a = s.target.value;
-      e({ log_severity: a });
+      const r = s.target.value;
+      t({ log_severity: r });
     }}
                   >
                     ${xt.map(
@@ -3301,12 +3315,12 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                     <code>True</code> einen Fehler bedeuten.
                   </small>
                 </label>
-                ${t.log_severity === "auto" ? n`<div class="row-2">
+                ${e.log_severity === "auto" ? n`<div class="row-2">
                       <label>
                         <span>Severity bei <code>True</code></span>
                         <select
-                          .value=${t.severity_on_true ?? "warning"}
-                          @change=${(s) => e({
+                          .value=${e.severity_on_true ?? "warning"}
+                          @change=${(s) => t({
       severity_on_true: s.target.value
     })}
                         >
@@ -3318,8 +3332,8 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                       <label>
                         <span>Severity bei <code>False</code></span>
                         <select
-                          .value=${t.severity_on_false ?? "info"}
-                          @change=${(s) => e({
+                          .value=${e.severity_on_false ?? "info"}
+                          @change=${(s) => t({
       severity_on_false: s.target.value
     })}
                         >
@@ -3354,12 +3368,12 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
           severity_on_true: this._editing.severity_on_true,
           severity_on_false: this._editing.severity_on_false
         }), this._showToast("gespeichert"), this._editing = null, await this._load();
-      } catch (t) {
-        this._showToast(t.message);
+      } catch (e) {
+        this._showToast(e.message);
       }
   }
   render() {
-    const t = this._filtered(), e = t.slice(0, this._displayedCount), s = t.length > e.length, a = this._items.filter((r) => r.log_enabled).length;
+    const e = this._filtered(), t = e.slice(0, this._displayedCount), s = e.length > t.length, r = this._items.filter((a) => a.log_enabled).length;
     return n`
       <section>
         <header class="head">
@@ -3367,7 +3381,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
             <h2>KNX-Gruppenadressen</h2>
             <p class="hint">
               ${this._items.length} Adressen,
-              <strong>${a} im Protokoll aktiv</strong>. Voraussetzung
+              <strong>${r} im Protokoll aktiv</strong>. Voraussetzung
               für die Bus-Erfassung: HA-KNX-Integration mit IP-Tunneling/Routing
               ist eingerichtet — sie feuert das Event <code>knx_event</code>, das
               wir gegen diese Whitelist matchen. Nicht-aktivierte GAs werden
@@ -3397,14 +3411,14 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
             placeholder="${this._discovery.length > 0 ? `GA aus Projekt wählen (${this._discovery.length} verfügbar)` : "GA (z. B. 1/2/3)"}"
             .value=${this._newAddr}
             @input=${this._onAddressInput}
-            @keydown=${(r) => {
-      r.key === "Enter" && this._add();
+            @keydown=${(a) => {
+      a.key === "Enter" && this._add();
     }}
           />
           <datalist id="knx-discovery-list">
             ${this._discovery.map(
-      (r) => n`<option value=${r.address}>
-                  ${r.name}${r.dpt ? ` (DPT ${r.dpt})` : ""}
+      (a) => n`<option value=${a.address}>
+                  ${a.name}${a.dpt ? ` (DPT ${a.dpt})` : ""}
                 </option>`
     )}
           </datalist>
@@ -3413,9 +3427,9 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
             class="mh-input"
             placeholder="Label (z. B. Störung Heizung Pumpe)"
             .value=${this._newLabel}
-            @input=${(r) => this._newLabel = r.target.value}
-            @keydown=${(r) => {
-      r.key === "Enter" && this._add();
+            @input=${(a) => this._newLabel = a.target.value}
+            @keydown=${(a) => {
+      a.key === "Enter" && this._add();
     }}
           />
           <input
@@ -3423,9 +3437,9 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
             class="mh-input narrow"
             placeholder="DPT (z. B. 1.001)"
             .value=${this._newDpt}
-            @input=${(r) => this._newDpt = r.target.value}
-            @keydown=${(r) => {
-      r.key === "Enter" && this._add();
+            @input=${(a) => this._newDpt = a.target.value}
+            @keydown=${(a) => {
+      a.key === "Enter" && this._add();
     }}
           />
           <button class="mh-btn mh-btn--primary" @click=${this._add}>+ Hinzufügen</button>
@@ -3443,16 +3457,16 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
             class="mh-input"
             placeholder="Suche (GA / Label / DPT)…"
             .value=${this._filter}
-            @input=${(r) => {
-      this._filter = r.target.value, this._displayedCount = be;
+            @input=${(a) => {
+      this._filter = a.target.value, this._displayedCount = be;
     }}
           />
           <label class="toggle">
             <input
               type="checkbox"
               .checked=${this._onlyEnabled}
-              @change=${(r) => {
-      this._onlyEnabled = r.target.checked, this._displayedCount = be;
+              @change=${(a) => {
+      this._onlyEnabled = a.target.checked, this._displayedCount = be;
       try {
         localStorage.setItem(
           Wt,
@@ -3468,22 +3482,22 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
             <input
               type="checkbox"
               .checked=${this._hidePlaceholders}
-              @change=${(r) => {
-      this._hidePlaceholders = r.target.checked, this._displayedCount = be;
+              @change=${(a) => {
+      this._hidePlaceholders = a.target.checked, this._displayedCount = be;
     }}
             />
             <span>Platzhalter ausblenden</span>
           </label>
           <span class="muted">
-            ${e.length} sichtbar${s ? n` von ${t.length}` : c}
+            ${t.length} sichtbar${s ? n` von ${e.length}` : c}
           </span>
         </div>
 
-        ${this._loading ? n`<p class="muted">lade…</p>` : e.length === 0 ? n`<div class="empty">
+        ${this._loading ? n`<p class="muted">lade…</p>` : t.length === 0 ? n`<div class="empty">
                 ${this._items.length === 0 ? n`<p>
                       Noch keine Adressen. Lege oben den ersten Eintrag an oder
                       importiere eine ETS-CSV.
-                    </p>` : this._onlyEnabled && a === 0 ? n`<p>
+                    </p>` : this._onlyEnabled && r === 0 ? n`<p>
                           <strong>Keine Adresse ist im Protokoll aktiv.</strong>
                         </p>
                         <p>
@@ -3500,7 +3514,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                         </p>` : n`<p>
                         Keine Treffer für aktuelle Filter
                         (${this._items.length} Adressen total,
-                        ${a} davon aktiv).
+                        ${r} davon aktiv).
                       </p>`}
               </div>` : n`
                 ${this._selected.size > 0 ? this._renderBulkToolbar() : c}
@@ -3512,9 +3526,9 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                           <input
                             type="checkbox"
                             aria-label="Alle sichtbaren auswaehlen"
-                            .checked=${e.length > 0 && e.every((r) => this._selected.has(r.address))}
+                            .checked=${t.length > 0 && t.every((a) => this._selected.has(a.address))}
                             @change=${() => this._toggleSelectAllVisible(
-      e.map((r) => r.address)
+      t.map((a) => a.address)
     )}
                           />
                         </th>
@@ -3527,34 +3541,34 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                       </tr>
                     </thead>
                     <tbody>
-                      ${e.map(
-      (r) => n`
-                          <tr class=${r.log_enabled ? "enabled" : ""}>
+                      ${t.map(
+      (a) => n`
+                          <tr class=${a.log_enabled ? "enabled" : ""}>
                             <td class="col-select">
                               <input
                                 type="checkbox"
-                                aria-label=${`${r.address} auswaehlen`}
-                                .checked=${this._selected.has(r.address)}
-                                @change=${() => this._toggleSelect(r.address)}
+                                aria-label=${`${a.address} auswaehlen`}
+                                .checked=${this._selected.has(a.address)}
+                                @change=${() => this._toggleSelect(a.address)}
                               />
                             </td>
-                            <td><code class="ga">${r.address}</code></td>
-                            <td class="label-cell">${r.label}</td>
+                            <td><code class="ga">${a.address}</code></td>
+                            <td class="label-cell">${a.label}</td>
                             <td>
-                              ${r.dpt ? n`<code class="dpt">${r.dpt}</code>` : n`<span class="muted">—</span>`}
+                              ${a.dpt ? n`<code class="dpt">${a.dpt}</code>` : n`<span class="muted">—</span>`}
                             </td>
                             <td>
-                              ${r.log_enabled ? n`<button
-                                    class=${`mh-pill mh-pill--${r.log_severity === "auto" ? "neutral" : r.log_severity} sev-trigger`}
+                              ${a.log_enabled ? n`<button
+                                    class=${`mh-pill mh-pill--${a.log_severity === "auto" ? "neutral" : a.log_severity} sev-trigger`}
                                     title="Severity ändern"
                                     aria-haspopup="menu"
-                                    aria-expanded=${this._sevPopoverFor === r.address}
-                                    @click=${(i) => this._onSeverityTrigger(i, r)}
+                                    aria-expanded=${this._sevPopoverFor === a.address}
+                                    @click=${(i) => this._onSeverityTrigger(i, a)}
                                   >
                                     <span class="mh-pill__dot"></span>
-                                    ${r.log_severity}${r.log_severity === "auto" ? n` <small class="auto-detail"
-                                          >T:${r.severity_on_true ?? "warning"}
-                                          / F:${r.severity_on_false ?? "info"}</small
+                                    ${a.log_severity}${a.log_severity === "auto" ? n` <small class="auto-detail"
+                                          >T:${a.severity_on_true ?? "warning"}
+                                          / F:${a.severity_on_false ?? "info"}</small
                                         >` : c}
                                     <span class="sev-caret" aria-hidden="true">▾</span>
                                   </button>` : n`<!-- Iter 60 / U8: bei inaktiven GAs
@@ -3565,16 +3579,16 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                                   <span
                                     class="mh-pill mh-pill--neutral sev-pill--inactive"
                                     title="Severity beim Aktivieren (Loggen ist aus)"
-                                    >${r.log_severity || "warning"}</span
+                                    >${a.log_severity || "warning"}</span
                                   >`}
                             </td>
                             <td class="col-toggle">
-                              <label class="switch" title=${r.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}>
+                              <label class="switch" title=${a.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}>
                                 <input
                                   type="checkbox"
-                                  .checked=${r.log_enabled}
-                                  @change=${() => void this._toggleLog(r)}
-                                  aria-label=${r.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}
+                                  .checked=${a.log_enabled}
+                                  @change=${() => void this._toggleLog(a)}
+                                  aria-label=${a.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}
                                 />
                                 <span class="slider"></span>
                               </label>
@@ -3584,7 +3598,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                                 class="icon-btn"
                                 title="Bearbeiten"
                                 aria-label="Bearbeiten"
-                                @click=${() => this._editing = r}
+                                @click=${() => this._editing = a}
                               >
                                 <span aria-hidden="true">✎</span>
                               </button>
@@ -3592,7 +3606,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                                 class="icon-btn danger"
                                 title="Löschen"
                                 aria-label="Löschen"
-                                @click=${() => void this._delete(r.address)}
+                                @click=${() => void this._delete(a.address)}
                               >
                                 <span aria-hidden="true">🗑</span>
                               </button>
@@ -3607,16 +3621,16 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                           class="mh-btn"
                           @click=${() => this._displayedCount = Math.min(
       this._displayedCount + be,
-      t.length
+      e.length
     )}
                         >
-                          Mehr laden (${t.length - e.length} weitere)
+                          Mehr laden (${e.length - t.length} weitere)
                         </button>
                         <button
                           class="mh-btn mh-btn--ghost"
-                          @click=${() => this._displayedCount = t.length}
+                          @click=${() => this._displayedCount = e.length}
                         >
-                          Alle ${t.length} zeigen
+                          Alle ${e.length} zeigen
                         </button>
                       </div>` : c}
                 </div>
@@ -4198,13 +4212,13 @@ T([
 $ = T([
   S("knx-addresses-view")
 ], $);
-var tr = Object.defineProperty, sr = Object.getOwnPropertyDescriptor, me = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? sr(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && tr(e, s, r), r;
+var tr = Object.defineProperty, sr = Object.getOwnPropertyDescriptor, me = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? sr(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && tr(t, s, a), a;
 };
 const rr = ["telegram", "pushover", "ntfy", "signal", "notify"], ar = ["debug", "info", "warning", "error"];
-let G = class extends x {
+let K = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._editing = null, this._toast = "", this._testingIds = /* @__PURE__ */ new Set();
   }
@@ -4214,23 +4228,23 @@ let G = class extends x {
   async _load() {
     this.api && (this._items = await this.api.listChannels());
   }
-  _showToast(t) {
-    this._toast = t, window.setTimeout(() => this._toast = "", 3e3);
+  _showToast(e) {
+    this._toast = e, window.setTimeout(() => this._toast = "", 3e3);
   }
   // F-001: Test-Knopf — sendet Test-Nachricht und zeigt Resultat als Toast.
   // Backend ist rate-limited (3/Min/Channel; 429 -> spezifische Fehlermeldung).
-  async _test(t) {
-    if (!(!this.api || t.id == null) && !this._testingIds.has(t.id)) {
-      this._testingIds = /* @__PURE__ */ new Set([...this._testingIds, t.id]);
+  async _test(e) {
+    if (!(!this.api || e.id == null) && !this._testingIds.has(e.id)) {
+      this._testingIds = /* @__PURE__ */ new Set([...this._testingIds, e.id]);
       try {
-        const e = await this.api.testChannel(t.id);
-        e.delivered ? this._showToast(`Test-Nachricht zugestellt an „${e.channel}"`) : this._showToast(`Test fuer „${e.channel}" fehlgeschlagen — Provider lieferte nicht aus.`);
-      } catch (e) {
-        const s = e.message;
-        s.includes("429") ? this._showToast(`Zu viele Test-Versuche fuer „${t.name}" — bitte ~20 s warten.`) : this._showToast(`Test fehlgeschlagen: ${s}`);
+        const t = await this.api.testChannel(e.id);
+        t.delivered ? this._showToast(`Test-Nachricht zugestellt an „${t.channel}"`) : this._showToast(`Test fuer „${t.channel}" fehlgeschlagen — Provider lieferte nicht aus.`);
+      } catch (t) {
+        const s = t.message;
+        s.includes("429") ? this._showToast(`Zu viele Test-Versuche fuer „${e.name}" — bitte ~20 s warten.`) : this._showToast(`Test fehlgeschlagen: ${s}`);
       } finally {
-        const e = new Set(this._testingIds);
-        e.delete(t.id), this._testingIds = e;
+        const t = new Set(this._testingIds);
+        t.delete(e.id), this._testingIds = t;
       }
     }
   }
@@ -4248,25 +4262,25 @@ let G = class extends x {
       config: { service: "" }
     };
   }
-  _edit(t) {
-    this._editing = { ...t };
+  _edit(e) {
+    this._editing = { ...e };
   }
   async _save() {
     if (!(!this.api || !this._editing))
       try {
         this._editing.id == null ? await this.api.createChannel(this._editing) : await this.api.updateChannel(this._editing.id, this._editing), this._editing = null, await this._load(), this._showToast("gespeichert");
-      } catch (t) {
-        this._showToast(t.message);
+      } catch (e) {
+        this._showToast(e.message);
       }
   }
-  async _delete(t) {
-    !this.api || t.id == null || window.confirm(`Channel '${t.name}' löschen?`) && (await this.api.deleteChannel(t.id), await this._load());
+  async _delete(e) {
+    !this.api || e.id == null || window.confirm(`Channel '${e.name}' löschen?`) && (await this.api.deleteChannel(e.id), await this._load());
   }
-  _renderTypeFields(t, e) {
-    const s = t.config ?? {}, a = (r, i) => {
-      e({ config: { ...s, [r]: i } });
+  _renderTypeFields(e, t) {
+    const s = e.config ?? {}, r = (a, i) => {
+      t({ config: { ...s, [a]: i } });
     };
-    return t.channel_type === "telegram" ? n`
+    return e.channel_type === "telegram" ? n`
         <div class="row-2">
           <label>
             <span>Bot-Token</span>
@@ -4274,7 +4288,7 @@ let G = class extends x {
               type="password"
               placeholder="123456:ABC..."
               .value=${s.bot_token ?? ""}
-              @input=${(r) => a("bot_token", r.target.value)}
+              @input=${(a) => r("bot_token", a.target.value)}
             />
             <small>Vom @BotFather erhalten.</small>
           </label>
@@ -4283,12 +4297,12 @@ let G = class extends x {
             <input
               placeholder="-100123456789 oder 12345678"
               .value=${s.chat_id ?? ""}
-              @input=${(r) => a("chat_id", r.target.value)}
+              @input=${(a) => r("chat_id", a.target.value)}
             />
             <small>An @userinfobot eine Nachricht senden, dort steht die ID.</small>
           </label>
         </div>
-      ` : t.channel_type === "pushover" ? n`
+      ` : e.channel_type === "pushover" ? n`
         <div class="row-2">
           <label>
             <span>App-Token</span>
@@ -4296,14 +4310,14 @@ let G = class extends x {
               type="password"
               placeholder="azGDORePK8gMaC0QOYAMyEEuzJnyUi"
               .value=${s.app_token ?? ""}
-              @input=${(r) => a("app_token", r.target.value)}
+              @input=${(a) => r("app_token", a.target.value)}
             />
           </label>
           <label>
             <span>User-Key</span>
             <input
               .value=${s.user_key ?? ""}
-              @input=${(r) => a("user_key", r.target.value)}
+              @input=${(a) => r("user_key", a.target.value)}
             />
           </label>
         </div>
@@ -4312,17 +4326,17 @@ let G = class extends x {
           <input
             placeholder="iphone, oder leer = alle Geräte"
             .value=${s.device ?? ""}
-            @input=${(r) => a("device", r.target.value)}
+            @input=${(a) => r("device", a.target.value)}
           />
         </label>
-      ` : t.channel_type === "ntfy" ? n`
+      ` : e.channel_type === "ntfy" ? n`
         <div class="row-2">
           <label>
             <span>Server (Default ntfy.sh)</span>
             <input
               placeholder="https://ntfy.sh"
               .value=${s.base_url ?? ""}
-              @input=${(r) => a("base_url", r.target.value)}
+              @input=${(a) => r("base_url", a.target.value)}
             />
           </label>
           <label>
@@ -4330,7 +4344,7 @@ let G = class extends x {
             <input
               placeholder="ha_alerts_dein_topic"
               .value=${s.topic ?? ""}
-              @input=${(r) => a("topic", r.target.value)}
+              @input=${(a) => r("topic", a.target.value)}
             />
           </label>
         </div>
@@ -4339,7 +4353,7 @@ let G = class extends x {
           <input
             type="password"
             .value=${s.token ?? ""}
-            @input=${(r) => a("token", r.target.value)}
+            @input=${(a) => r("token", a.target.value)}
           />
         </label>
       ` : n`
@@ -4348,51 +4362,51 @@ let G = class extends x {
         <input
           placeholder="z. B. mobile_app_iphone, signal_messenger"
           .value=${s.service ?? ""}
-          @input=${(r) => a("service", r.target.value)}
+          @input=${(a) => r("service", a.target.value)}
         />
       </label>
     `;
   }
   _renderEditor() {
-    const t = this._editing, e = (s) => {
-      this._editing = { ...t, ...s };
+    const e = this._editing, t = (s) => {
+      this._editing = { ...e, ...s };
     };
     return n`
       <div class="modal-bg" @click=${() => this._editing = null}>
         <div class="modal" @click=${(s) => s.stopPropagation()}>
-          <h3>${t.id == null ? "Neuen Channel anlegen" : `${t.name} bearbeiten`}</h3>
+          <h3>${e.id == null ? "Neuen Channel anlegen" : `${e.name} bearbeiten`}</h3>
           <label
             ><span>Name</span
             ><input
-              .value=${t.name}
-              @input=${(s) => e({ name: s.target.value })}
+              .value=${e.name}
+              @input=${(s) => t({ name: s.target.value })}
           /></label>
           <label>
             <span>Typ</span>
             <select
-              .value=${t.channel_type}
+              .value=${e.channel_type}
               @change=${(s) => {
-      const a = s.target.value;
-      e({ channel_type: a, config: {} });
+      const r = s.target.value;
+      t({ channel_type: r, config: {} });
     }}
             >
               ${rr.map((s) => n`<option value=${s}>${s}</option>`)}
             </select>
             <small>
-              ${t.channel_type === "telegram" ? "Direkt an Telegram-Bot-API. Bot-Token + Chat-ID unten." : t.channel_type === "pushover" ? "Direkt an Pushover-API. App-Token + User-Key unten." : t.channel_type === "ntfy" ? "Direkt an ntfy-Server (ntfy.sh oder selbst-gehostet)." : t.channel_type === "signal" ? "Ueber HA-Service notify.<service>. Trag Namen unten ein." : "Ueber HA-Service notify.<service>."}
+              ${e.channel_type === "telegram" ? "Direkt an Telegram-Bot-API. Bot-Token + Chat-ID unten." : e.channel_type === "pushover" ? "Direkt an Pushover-API. App-Token + User-Key unten." : e.channel_type === "ntfy" ? "Direkt an ntfy-Server (ntfy.sh oder selbst-gehostet)." : e.channel_type === "signal" ? "Ueber HA-Service notify.<service>. Trag Namen unten ein." : "Ueber HA-Service notify.<service>."}
             </small>
           </label>
 
-          ${this._renderTypeFields(t, e)}
+          ${this._renderTypeFields(e, t)}
 
           <div class="row-2">
             <label>
               <span>Severity-Schwelle</span>
               <select
-                .value=${t.severity_threshold}
+                .value=${e.severity_threshold}
                 @change=${(s) => {
-      const a = s.target.value;
-      e({ severity_threshold: a });
+      const r = s.target.value;
+      t({ severity_threshold: r });
     }}
               >
                 ${ar.map((s) => n`<option value=${s}>${s}</option>`)}
@@ -4403,8 +4417,8 @@ let G = class extends x {
               <input
                 type="number"
                 min="0"
-                .value=${String(t.throttle_seconds)}
-                @input=${(s) => e({ throttle_seconds: +s.target.value })}
+                .value=${String(e.throttle_seconds)}
+                @input=${(s) => t({ throttle_seconds: +s.target.value })}
               />
             </label>
           </div>
@@ -4414,16 +4428,16 @@ let G = class extends x {
               <span>Quiet Hours Start (HH:MM)</span>
               <input
                 placeholder="22:00"
-                .value=${t.quiet_start ?? ""}
-                @input=${(s) => e({ quiet_start: s.target.value || null })}
+                .value=${e.quiet_start ?? ""}
+                @input=${(s) => t({ quiet_start: s.target.value || null })}
               />
             </label>
             <label>
               <span>Quiet Hours Ende (HH:MM)</span>
               <input
                 placeholder="07:00"
-                .value=${t.quiet_end ?? ""}
-                @input=${(s) => e({ quiet_end: s.target.value || null })}
+                .value=${e.quiet_end ?? ""}
+                @input=${(s) => t({ quiet_end: s.target.value || null })}
               />
             </label>
           </div>
@@ -4431,15 +4445,15 @@ let G = class extends x {
           <label class="checkbox">
             <input
               type="checkbox"
-              .checked=${t.quiet_bypass_error}
-              @change=${(s) => e({ quiet_bypass_error: s.target.checked })}
+              .checked=${e.quiet_bypass_error}
+              @change=${(s) => t({ quiet_bypass_error: s.target.checked })}
             /><span>Errors umgehen Quiet Hours</span>
           </label>
           <label class="checkbox">
             <input
               type="checkbox"
-              .checked=${t.enabled}
-              @change=${(s) => e({ enabled: s.target.checked })}
+              .checked=${e.enabled}
+              @change=${(s) => t({ enabled: s.target.checked })}
             /><span>aktiv</span>
           </label>
 
@@ -4479,30 +4493,30 @@ let G = class extends x {
               </thead>
               <tbody>
                 ${this._items.map(
-      (t) => {
-        var e, s, a, r, i;
+      (e) => {
+        var t, s, r, a, i;
         return n`<tr>
-                    <td>${t.name}</td>
+                    <td>${e.name}</td>
                     <td>
-                      <code>${t.channel_type}</code>
-                      ${t.channel_type === "telegram" ? n` → <small>${((e = t.config) == null ? void 0 : e.chat_id) ?? "?"}</small>` : t.channel_type === "pushover" ? n` → <small>${((a = (s = t.config) == null ? void 0 : s.user_key) == null ? void 0 : a.slice(0, 8)) ?? "?"}…</small>` : t.channel_type === "ntfy" ? n` → <small>${((r = t.config) == null ? void 0 : r.topic) ?? "?"}</small>` : (i = t.config) != null && i.service ? n` → <code>notify.${t.config.service}</code>` : n`<span class="muted">— unkonfiguriert</span>`}
+                      <code>${e.channel_type}</code>
+                      ${e.channel_type === "telegram" ? n` → <small>${((t = e.config) == null ? void 0 : t.chat_id) ?? "?"}</small>` : e.channel_type === "pushover" ? n` → <small>${((r = (s = e.config) == null ? void 0 : s.user_key) == null ? void 0 : r.slice(0, 8)) ?? "?"}…</small>` : e.channel_type === "ntfy" ? n` → <small>${((a = e.config) == null ? void 0 : a.topic) ?? "?"}</small>` : (i = e.config) != null && i.service ? n` → <code>notify.${e.config.service}</code>` : n`<span class="muted">— unkonfiguriert</span>`}
                     </td>
-                    <td>${t.severity_threshold}</td>
+                    <td>${e.severity_threshold}</td>
                     <td>
-                      ${t.quiet_start && t.quiet_end ? n`${t.quiet_start}–${t.quiet_end}${t.quiet_bypass_error ? n` <small>(Err bypass)</small>` : ""}` : n`<span class="muted">—</span>`}
+                      ${e.quiet_start && e.quiet_end ? n`${e.quiet_start}–${e.quiet_end}${e.quiet_bypass_error ? n` <small>(Err bypass)</small>` : ""}` : n`<span class="muted">—</span>`}
                     </td>
-                    <td>${t.throttle_seconds}s</td>
-                    <td>${t.enabled ? "✓" : "—"}</td>
+                    <td>${e.throttle_seconds}s</td>
+                    <td>${e.enabled ? "✓" : "—"}</td>
                     <td class="actions">
                       <button
-                        ?disabled=${t.id != null && this._testingIds.has(t.id)}
-                        title=${t.enabled ? "Sendet Test-Nachricht ueber diesen Channel" : "Channel ist deaktiviert — Test sendet trotzdem (ignoriert Quiet/Threshold)"}
-                        @click=${() => void this._test(t)}
+                        ?disabled=${e.id != null && this._testingIds.has(e.id)}
+                        title=${e.enabled ? "Sendet Test-Nachricht ueber diesen Channel" : "Channel ist deaktiviert — Test sendet trotzdem (ignoriert Quiet/Threshold)"}
+                        @click=${() => void this._test(e)}
                       >
-                        ${t.id != null && this._testingIds.has(t.id) ? "…" : "Test"}
+                        ${e.id != null && this._testingIds.has(e.id) ? "…" : "Test"}
                       </button>
-                      <button @click=${() => this._edit(t)}>Edit</button>
-                      <button class="danger" @click=${() => void this._delete(t)}>
+                      <button @click=${() => this._edit(e)}>Edit</button>
+                      <button class="danger" @click=${() => void this._delete(e)}>
                         Löschen
                       </button>
                     </td>
@@ -4517,7 +4531,7 @@ let G = class extends x {
     `;
   }
 };
-G.styles = y`
+K.styles = y`
     section {
       display: flex;
       flex-direction: column;
@@ -4691,26 +4705,26 @@ G.styles = y`
   `;
 me([
   w({ attribute: !1 })
-], G.prototype, "api", 2);
+], K.prototype, "api", 2);
 me([
   l()
-], G.prototype, "_items", 2);
+], K.prototype, "_items", 2);
 me([
   l()
-], G.prototype, "_editing", 2);
+], K.prototype, "_editing", 2);
 me([
   l()
-], G.prototype, "_toast", 2);
+], K.prototype, "_toast", 2);
 me([
   l()
-], G.prototype, "_testingIds", 2);
-G = me([
+], K.prototype, "_testingIds", 2);
+K = me([
   S("channels-view")
-], G);
-var ir = Object.defineProperty, nr = Object.getOwnPropertyDescriptor, E = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? nr(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && ir(e, s, r), r;
+], K);
+var ir = Object.defineProperty, nr = Object.getOwnPropertyDescriptor, A = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? nr(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && ir(t, s, a), a;
 };
 const tt = y`
   section {
@@ -4826,9 +4840,9 @@ const tt = y`
     color: var(--secondary-text-color, #666);
   }
 `;
-let K = class extends x {
+let I = class extends x {
   constructor() {
-    super(...arguments), this._items = [], this._newPattern = "", this._newSource = "", this._newSeverity = "info";
+    super(...arguments), this._items = [], this._newPattern = "", this._newSource = "", this._newSeverity = "info", this._editId = null, this._editDraft = null;
   }
   async firstUpdated() {
     await this._load();
@@ -4844,8 +4858,28 @@ let K = class extends x {
       enabled: !0
     }), this._newPattern = "", this._newSource = "", await this._load());
   }
-  async _delete(t) {
-    !this.api || t.id == null || window.confirm(`Subscription '${t.topic_pattern}' löschen?`) && (await this.api.deleteMqttTopic(t.id), await this._load());
+  async _delete(e) {
+    !this.api || e.id == null || window.confirm(`Subscription '${e.topic_pattern}' löschen?`) && (await this.api.deleteMqttTopic(e.id), await this._load());
+  }
+  // F-002: Edit-Modus aktivieren — Draft mit aktuellem Item befuellen.
+  _startEdit(e) {
+    e.id != null && (this._editId = e.id, this._editDraft = { ...e });
+  }
+  _cancelEdit() {
+    this._editId = null, this._editDraft = null;
+  }
+  async _saveEdit() {
+    if (!this.api || this._editId == null || !this._editDraft) return;
+    const e = this._editDraft;
+    !e.topic_pattern.trim() || !e.source.trim() || (await this.api.updateMqttTopic(this._editId, {
+      topic_pattern: e.topic_pattern.trim(),
+      source: e.source.trim(),
+      severity: e.severity,
+      enabled: e.enabled
+    }), this._cancelEdit(), await this._load());
+  }
+  _patchDraft(e) {
+    this._editDraft && (this._editDraft = { ...this._editDraft, ...e });
   }
   render() {
     return n`
@@ -4863,17 +4897,17 @@ let K = class extends x {
           <input
             placeholder="Topic-Pattern (z. B. zigbee2mqtt/+/availability)"
             .value=${this._newPattern}
-            @input=${(t) => this._newPattern = t.target.value}
+            @input=${(e) => this._newPattern = e.target.value}
           />
           <input
             placeholder="Source (z. B. zigbee.health)"
             .value=${this._newSource}
-            @input=${(t) => this._newSource = t.target.value}
+            @input=${(e) => this._newSource = e.target.value}
           />
           <select
             .value=${this._newSeverity}
-            @change=${(t) => {
-      this._newSeverity = t.target.value;
+            @change=${(e) => {
+      this._newSeverity = e.target.value;
     }}
           >
             <option value="debug">debug</option>
@@ -4895,44 +4929,91 @@ let K = class extends x {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map(
-      (t) => n`<tr>
-                    <td><code>${t.topic_pattern}</code></td>
-                    <td>${t.source}</td>
-                    <td>${t.severity}</td>
-                    <td>${t.enabled ? "✓" : "—"}</td>
-                    <td class="actions">
-                      <button class="danger" @click=${() => void this._delete(t)}>
-                        Löschen
-                      </button>
-                    </td>
-                  </tr>`
-    )}
+                ${this._items.map((e) => this._renderRow(e))}
               </tbody>
             </table>`}
       </section>
     `;
   }
+  _renderRow(e) {
+    if (e.id != null && e.id === this._editId && this._editDraft) {
+      const s = this._editDraft;
+      return n`<tr>
+        <td>
+          <input
+            .value=${s.topic_pattern}
+            @input=${(r) => this._patchDraft({ topic_pattern: r.target.value })}
+          />
+        </td>
+        <td>
+          <input
+            .value=${s.source}
+            @input=${(r) => this._patchDraft({ source: r.target.value })}
+          />
+        </td>
+        <td>
+          <select
+            .value=${s.severity}
+            @change=${(r) => this._patchDraft({
+        severity: r.target.value
+      })}
+          >
+            <option value="debug">debug</option>
+            <option value="info">info</option>
+            <option value="warning">warning</option>
+            <option value="error">error</option>
+          </select>
+        </td>
+        <td>
+          <input
+            type="checkbox"
+            .checked=${s.enabled}
+            @change=${(r) => this._patchDraft({ enabled: r.target.checked })}
+          />
+        </td>
+        <td class="actions">
+          <button class="primary" @click=${() => void this._saveEdit()}>Speichern</button>
+          <button @click=${() => this._cancelEdit()}>Abbrechen</button>
+        </td>
+      </tr>`;
+    }
+    return n`<tr>
+      <td><code>${e.topic_pattern}</code></td>
+      <td>${e.source}</td>
+      <td>${e.severity}</td>
+      <td>${e.enabled ? "✓" : "—"}</td>
+      <td class="actions">
+        <button @click=${() => this._startEdit(e)}>Bearbeiten</button>
+        <button class="danger" @click=${() => void this._delete(e)}>Löschen</button>
+      </td>
+    </tr>`;
+  }
 };
-K.styles = tt;
-E([
+I.styles = tt;
+A([
   w({ attribute: !1 })
-], K.prototype, "api", 2);
-E([
+], I.prototype, "api", 2);
+A([
   l()
-], K.prototype, "_items", 2);
-E([
+], I.prototype, "_items", 2);
+A([
   l()
-], K.prototype, "_newPattern", 2);
-E([
+], I.prototype, "_newPattern", 2);
+A([
   l()
-], K.prototype, "_newSource", 2);
-E([
+], I.prototype, "_newSource", 2);
+A([
   l()
-], K.prototype, "_newSeverity", 2);
-K = E([
+], I.prototype, "_newSeverity", 2);
+A([
+  l()
+], I.prototype, "_editId", 2);
+A([
+  l()
+], I.prototype, "_editDraft", 2);
+I = A([
   S("mqtt-topics-view")
-], K);
+], I);
 let ee = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._newSource = "", this._newInterval = 3600;
@@ -4962,14 +5043,14 @@ let ee = class extends x {
           <input
             placeholder="Source (z. B. raspi-keller)"
             .value=${this._newSource}
-            @input=${(t) => this._newSource = t.target.value}
+            @input=${(e) => this._newSource = e.target.value}
           />
           <input
             type="number"
             min="60"
             placeholder="Intervall (Sek)"
             .value=${String(this._newInterval)}
-            @input=${(t) => this._newInterval = +t.target.value}
+            @input=${(e) => this._newInterval = +e.target.value}
           />
           <button class="primary" @click=${this._add}>+ Hinzufügen</button>
         </div>
@@ -4984,12 +5065,12 @@ let ee = class extends x {
               </thead>
               <tbody>
                 ${this._items.map(
-      (t) => n`<tr>
-                    <td><code>${t.source}</code></td>
-                    <td>${t.expected_interval_seconds}</td>
-                    <td>${t.last_seen ?? n`<span class="muted">—</span>`}</td>
+      (e) => n`<tr>
+                    <td><code>${e.source}</code></td>
+                    <td>${e.expected_interval_seconds}</td>
+                    <td>${e.last_seen ?? n`<span class="muted">—</span>`}</td>
                     <td>
-                      ${t.silent_alert_active ? n`<span class="alert">⚠ silent</span>` : n`<span class="ok">✓ ok</span>`}
+                      ${e.silent_alert_active ? n`<span class="alert">⚠ silent</span>` : n`<span class="ok">✓ ok</span>`}
                     </td>
                   </tr>`
     )}
@@ -5000,22 +5081,22 @@ let ee = class extends x {
   }
 };
 ee.styles = tt;
-E([
+A([
   w({ attribute: !1 })
 ], ee.prototype, "api", 2);
-E([
+A([
   l()
 ], ee.prototype, "_items", 2);
-E([
+A([
   l()
 ], ee.prototype, "_newSource", 2);
-E([
+A([
   l()
 ], ee.prototype, "_newInterval", 2);
-ee = E([
+ee = A([
   S("heartbeats-view")
 ], ee);
-let R = class extends x {
+let M = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._newName = "", this._newSource = "", this._newAutomation = "", this._newAuto = !1;
   }
@@ -5034,8 +5115,8 @@ let R = class extends x {
       enabled: !0
     }), this._newName = "", this._newSource = "", this._newAutomation = "", await this._load());
   }
-  async _delete(t) {
-    !this.api || t.id == null || window.confirm(`Hook '${t.name}' löschen?`) && (await this.api.deleteRemediationHook(t.id), await this._load());
+  async _delete(e) {
+    !this.api || e.id == null || window.confirm(`Hook '${e.name}' löschen?`) && (await this.api.deleteRemediationHook(e.id), await this._load());
   }
   render() {
     return n`
@@ -5055,23 +5136,23 @@ let R = class extends x {
           <input
             placeholder="Name (z. B. AP-Restart)"
             .value=${this._newName}
-            @input=${(t) => this._newName = t.target.value}
+            @input=${(e) => this._newName = e.target.value}
           />
           <input
             placeholder="Source-Pattern (% erlaubt)"
             .value=${this._newSource}
-            @input=${(t) => this._newSource = t.target.value}
+            @input=${(e) => this._newSource = e.target.value}
           />
           <input
             placeholder="automation.foo / script.bar"
             .value=${this._newAutomation}
-            @input=${(t) => this._newAutomation = t.target.value}
+            @input=${(e) => this._newAutomation = e.target.value}
           />
           <label class="inline">
             <input
               type="checkbox"
               .checked=${this._newAuto}
-              @change=${(t) => this._newAuto = t.target.checked}
+              @change=${(e) => this._newAuto = e.target.checked}
             />
             <span>Auto</span>
           </label>
@@ -5090,16 +5171,16 @@ let R = class extends x {
               </thead>
               <tbody>
                 ${this._items.map(
-      (t) => n`<tr>
-                    <td>${t.name}</td>
-                    <td><code>${t.source_pattern}</code></td>
-                    <td><code>${t.automation_id}</code></td>
+      (e) => n`<tr>
+                    <td>${e.name}</td>
+                    <td><code>${e.source_pattern}</code></td>
+                    <td><code>${e.automation_id}</code></td>
                     <td>
-                      ${t.confirm_required ? n`<span class="muted">Vorschlag</span>` : n`<span class="alert">Auto</span>`}
+                      ${e.confirm_required ? n`<span class="muted">Vorschlag</span>` : n`<span class="alert">Auto</span>`}
                     </td>
-                    <td>${t.enabled ? "✓" : "—"}</td>
+                    <td>${e.enabled ? "✓" : "—"}</td>
                     <td class="actions">
-                      <button class="danger" @click=${() => void this._delete(t)}>
+                      <button class="danger" @click=${() => void this._delete(e)}>
                         Löschen
                       </button>
                     </td>
@@ -5111,32 +5192,32 @@ let R = class extends x {
     `;
   }
 };
-R.styles = tt;
-E([
+M.styles = tt;
+A([
   w({ attribute: !1 })
-], R.prototype, "api", 2);
-E([
+], M.prototype, "api", 2);
+A([
   l()
-], R.prototype, "_items", 2);
-E([
+], M.prototype, "_items", 2);
+A([
   l()
-], R.prototype, "_newName", 2);
-E([
+], M.prototype, "_newName", 2);
+A([
   l()
-], R.prototype, "_newSource", 2);
-E([
+], M.prototype, "_newSource", 2);
+A([
   l()
-], R.prototype, "_newAutomation", 2);
-E([
+], M.prototype, "_newAutomation", 2);
+A([
   l()
-], R.prototype, "_newAuto", 2);
-R = E([
+], M.prototype, "_newAuto", 2);
+M = A([
   S("remediation-view")
-], R);
-var or = Object.defineProperty, lr = Object.getOwnPropertyDescriptor, H = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? lr(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && or(e, s, r), r;
+], M);
+var or = Object.defineProperty, lr = Object.getOwnPropertyDescriptor, B = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? lr(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && or(t, s, a), a;
 };
 const Vt = [
   { id: "webhooks", label: "Webhooks" },
@@ -5148,8 +5229,8 @@ const Vt = [
 ], qt = "messagehub.settings.tab";
 function dr() {
   try {
-    const t = localStorage.getItem(qt);
-    if (t && Vt.some((e) => e.id === t)) return t;
+    const e = localStorage.getItem(qt);
+    if (e && Vt.some((t) => t.id === e)) return e;
   } catch {
   }
   return "webhooks";
@@ -5173,24 +5254,24 @@ let F = class extends x {
       }
     }
   }
-  async _copyUrl(t) {
-    const e = `${window.location.origin}/api/webhook/${t}`;
+  async _copyUrl(e) {
+    const t = `${window.location.origin}/api/webhook/${e}`;
     try {
-      await navigator.clipboard.writeText(e), this._showToast("URL kopiert");
+      await navigator.clipboard.writeText(t), this._showToast("URL kopiert");
     } catch {
       this._showToast("Kopieren fehlgeschlagen");
     }
   }
-  async _delete(t) {
-    this.api && window.confirm(`Webhook „${t.name}" wirklich löschen?`) && (await this.api.deleteWebhook(t.webhook_id), this._showToast(`„${t.name}" gelöscht`), await this._load());
+  async _delete(e) {
+    this.api && window.confirm(`Webhook „${e.name}" wirklich löschen?`) && (await this.api.deleteWebhook(e.webhook_id), this._showToast(`„${e.name}" gelöscht`), await this._load());
   }
-  _toggleMenu(t) {
-    this._menuOpenId = this._menuOpenId === t ? null : t;
+  _toggleMenu(e) {
+    this._menuOpenId = this._menuOpenId === e ? null : e;
   }
-  async _toggle(t) {
-    this.api && (await this.api.updateWebhook(t.webhook_id, { enabled: !t.enabled }), await this._load());
+  async _toggle(e) {
+    this.api && (await this.api.updateWebhook(e.webhook_id, { enabled: !e.enabled }), await this._load());
   }
-  _onSaved(t) {
+  _onSaved(e) {
     this._showForm = !1, this._editing = null, this._showToast("Webhook gespeichert"), this._load();
   }
   _onCancel() {
@@ -5199,16 +5280,16 @@ let F = class extends x {
   _add() {
     this._editing = null, this._showForm = !0;
   }
-  _edit(t) {
-    this._editing = t, this._showForm = !0;
+  _edit(e) {
+    this._editing = e, this._showForm = !0;
   }
-  _showToast(t) {
-    this._toast = t, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2400);
+  _showToast(e) {
+    this._toast = e, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2400);
   }
-  _selectTab(t) {
-    this._activeTab = t;
+  _selectTab(e) {
+    this._activeTab = e;
     try {
-      localStorage.setItem(qt, t);
+      localStorage.setItem(qt, e);
     } catch {
     }
   }
@@ -5226,27 +5307,27 @@ let F = class extends x {
       </div>
     `;
   }
-  _renderItem(t) {
-    const e = `${window.location.origin}/api/webhook/${t.webhook_id}`, s = this._menuOpenId === t.webhook_id;
+  _renderItem(e) {
+    const t = `${window.location.origin}/api/webhook/${e.webhook_id}`, s = this._menuOpenId === e.webhook_id;
     return n`
-      <div class=${`webhook-card ${t.enabled ? "" : "disabled"}`}>
+      <div class=${`webhook-card ${e.enabled ? "" : "disabled"}`}>
         <header class="card-header">
           <div class="title">
             <span
-              class=${`status-dot ${t.enabled ? "ok" : "off"}`}
-              title=${t.enabled ? "Aktiv" : "Deaktiviert"}
+              class=${`status-dot ${e.enabled ? "ok" : "off"}`}
+              title=${e.enabled ? "Aktiv" : "Deaktiviert"}
               aria-hidden="true"
             ></span>
-            <h4>${t.name}</h4>
-            <span class=${`status-text ${t.enabled ? "ok" : "off"}`}>
-              ${t.enabled ? "Aktiv" : "Deaktiviert"}
+            <h4>${e.name}</h4>
+            <span class=${`status-text ${e.enabled ? "ok" : "off"}`}>
+              ${e.enabled ? "Aktiv" : "Deaktiviert"}
             </span>
           </div>
-          <div class="card-actions" @click=${(a) => a.stopPropagation()}>
+          <div class="card-actions" @click=${(r) => r.stopPropagation()}>
             <button
               class="mh-btn mh-btn--sm"
               title="Webhook bearbeiten"
-              @click=${() => this._edit(t)}
+              @click=${() => this._edit(e)}
             >
               <span aria-hidden="true">✎</span> Bearbeiten
             </button>
@@ -5256,7 +5337,7 @@ let F = class extends x {
                 aria-label="Weitere Aktionen"
                 aria-haspopup="menu"
                 aria-expanded=${s}
-                @click=${() => this._toggleMenu(t.webhook_id)}
+                @click=${() => this._toggleMenu(e.webhook_id)}
               >
                 ⋮
               </button>
@@ -5265,17 +5346,17 @@ let F = class extends x {
                       role="menuitem"
                       class="overflow-item"
                       @click=${() => {
-      this._menuOpenId = null, this._toggle(t);
+      this._menuOpenId = null, this._toggle(e);
     }}
                     >
-                      ${t.enabled ? "Deaktivieren" : "Aktivieren"}
+                      ${e.enabled ? "Deaktivieren" : "Aktivieren"}
                     </button>
                     <hr />
                     <button
                       role="menuitem"
                       class="overflow-item danger"
                       @click=${() => {
-      this._menuOpenId = null, this._delete(t);
+      this._menuOpenId = null, this._delete(e);
     }}
                     >
                       Löschen
@@ -5288,28 +5369,28 @@ let F = class extends x {
         <div class="meta">
           <span class="meta-pill">
             <span class="meta-key">Source</span>
-            <code>${t.default_source}</code>
+            <code>${e.default_source}</code>
           </span>
           <span class="meta-pill">
             <span class="meta-key">Severity</span>
-            <code>${t.default_severity}</code>
+            <code>${e.default_severity}</code>
           </span>
         </div>
 
         <div class="url-row">
-          <code class="url" title=${e}>${e}</code>
+          <code class="url" title=${t}>${t}</code>
           <button
             class="mh-btn mh-btn--sm"
-            @click=${() => this._copyUrl(t.webhook_id)}
+            @click=${() => this._copyUrl(e.webhook_id)}
             title="URL in Zwischenablage kopieren"
           >
             <span aria-hidden="true">⧉</span> Kopieren
           </button>
         </div>
 
-        ${t.field_map ? n`<details class="mapping">
+        ${e.field_map ? n`<details class="mapping">
               <summary>JSONPath-Mapping anzeigen</summary>
-              <pre><code>${JSON.stringify(t.field_map, null, 2)}</code></pre>
+              <pre><code>${JSON.stringify(e.field_map, null, 2)}</code></pre>
             </details>` : null}
       </div>
     `;
@@ -5319,14 +5400,14 @@ let F = class extends x {
       <div class="root" @click=${this._closeMenu}>
         <nav class="tabs" role="tablist" aria-label="Einstellungs-Bereiche">
           ${Vt.map(
-      (t) => n`<button
+      (e) => n`<button
               role="tab"
-              aria-selected=${this._activeTab === t.id}
-              class=${`tab ${this._activeTab === t.id ? "active" : ""}`}
-              title=${t.label}
-              @click=${() => this._selectTab(t.id)}
+              aria-selected=${this._activeTab === e.id}
+              class=${`tab ${this._activeTab === e.id ? "active" : ""}`}
+              title=${e.label}
+              @click=${() => this._selectTab(e.id)}
             >
-              <span>${t.label}</span>
+              <span>${e.label}</span>
             </button>`
     )}
         </nav>
@@ -5378,7 +5459,7 @@ let F = class extends x {
               @cancel=${this._onCancel}
             ></webhook-form>` : null}
 
-        ${this._loading ? n`<p class="status">lade…</p>` : this._items.length === 0 && !this._showForm ? this._renderEmpty() : n`<div class="grid">${this._items.map((t) => this._renderItem(t))}</div>`}
+        ${this._loading ? n`<p class="status">lade…</p>` : this._items.length === 0 && !this._showForm ? this._renderEmpty() : n`<div class="grid">${this._items.map((e) => this._renderItem(e))}</div>`}
       </section>
     `;
   }
@@ -5738,37 +5819,37 @@ F.styles = [
       }
     `
 ];
-H([
+B([
   w({ attribute: !1 })
 ], F.prototype, "api", 2);
-H([
+B([
   l()
 ], F.prototype, "_items", 2);
-H([
+B([
   l()
 ], F.prototype, "_loading", 2);
-H([
+B([
   l()
 ], F.prototype, "_showForm", 2);
-H([
+B([
   l()
 ], F.prototype, "_editing", 2);
-H([
+B([
   l()
 ], F.prototype, "_toast", 2);
-H([
+B([
   l()
 ], F.prototype, "_menuOpenId", 2);
-H([
+B([
   l()
 ], F.prototype, "_activeTab", 2);
-F = H([
+F = B([
   S("settings-view")
 ], F);
-var cr = Object.defineProperty, hr = Object.getOwnPropertyDescriptor, ae = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? hr(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && cr(e, s, r), r;
+var cr = Object.defineProperty, hr = Object.getOwnPropertyDescriptor, ae = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? hr(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && cr(t, s, a), a;
 };
 const yt = {
   error: "Errors",
@@ -5781,7 +5862,7 @@ const yt = {
   info: "var(--mh-info)",
   debug: "var(--mh-debug)"
 }, kt = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], pr = [1, 2, 3, 4, 5, 6, 0];
-let M = class extends x {
+let U = class extends x {
   constructor() {
     super(...arguments), this._stats = null, this._sources = [], this._heatmap = [], this._topSources = [], this._loading = !1;
   }
@@ -5792,46 +5873,46 @@ let M = class extends x {
     if (this.api) {
       this._loading = !0;
       try {
-        const [t, e, s] = await Promise.all([
+        const [e, t, s] = await Promise.all([
           this.api.getStats(),
           this.api.listSources(),
           this.api.getStatsExtended(30)
         ]);
-        this._stats = t, this._sources = e, this._heatmap = s.heatmap, this._topSources = s.top_sources;
+        this._stats = e, this._sources = t, this._heatmap = s.heatmap, this._topSources = s.top_sources;
       } finally {
         this._loading = !1;
       }
     }
   }
   _renderHeatmap() {
-    const t = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0));
-    let e = 0;
+    const e = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0));
+    let t = 0;
     for (const s of this._heatmap)
-      s.weekday >= 0 && s.weekday < 7 && s.hour >= 0 && s.hour < 24 && (t[s.weekday][s.hour] = s.count, s.count > e && (e = s.count));
-    return e === 0 ? n`<p class="muted">Keine Daten in den letzten 30 Tagen.</p>` : n`
+      s.weekday >= 0 && s.weekday < 7 && s.hour >= 0 && s.hour < 24 && (e[s.weekday][s.hour] = s.count, s.count > t && (t = s.count));
+    return t === 0 ? n`<p class="muted">Keine Daten in den letzten 30 Tagen.</p>` : n`
       <div class="heatmap-wrap">
         <div class="heatmap">
           <div class="heatmap-header">
             <span></span>
             ${Array.from(
       { length: 24 },
-      (s, a) => n`<span class="hour-label">${a % 3 === 0 ? a : ""}</span>`
+      (s, r) => n`<span class="hour-label">${r % 3 === 0 ? r : ""}</span>`
     )}
           </div>
-          ${pr.map((s, a) => {
-      const r = t[s];
+          ${pr.map((s, r) => {
+      const a = e[s];
       return n`
               <div class="heatmap-row">
-                <span class="day-label">${kt[a]}</span>
-                ${r.map((i, o) => {
-        const d = i === 0 ? 0 : Math.max(0.15, i / e), h = i === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(
+                <span class="day-label">${kt[r]}</span>
+                ${a.map((i, o) => {
+        const d = i === 0 ? 0 : Math.max(0.15, i / t), h = i === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(
           d * 100
         )}%, transparent)`;
         return n`
                     <div
                       class=${`heatmap-cell ${i === 0 ? "empty" : ""}`}
                       style=${`background: ${h}`}
-                      title=${`${kt[a]} ${o}:00 — ${i} Nachricht${i === 1 ? "" : "en"}`}
+                      title=${`${kt[r]} ${o}:00 — ${i} Nachricht${i === 1 ? "" : "en"}`}
                     ></div>
                   `;
       })}
@@ -5846,37 +5927,37 @@ let M = class extends x {
           <span class="legend-cell" style="background: color-mix(in srgb, var(--mh-accent) 50%, transparent)"></span>
           <span class="legend-cell" style="background: color-mix(in srgb, var(--mh-accent) 75%, transparent)"></span>
           <span class="legend-cell" style="background: var(--mh-accent)"></span>
-          <span class="muted small">mehr (max ${e})</span>
+          <span class="muted small">mehr (max ${t})</span>
         </div>
       </div>
     `;
   }
   _renderSeverityStack() {
     if (!this._stats) return n``;
-    const t = this._stats.severity_24h, e = Object.values(t).reduce((a, r) => a + r, 0), s = ["error", "warning", "info", "debug"];
-    return e === 0 ? n`<p class="muted">Keine Nachrichten in den letzten 24 Stunden.</p>` : n`
+    const e = this._stats.severity_24h, t = Object.values(e).reduce((r, a) => r + a, 0), s = ["error", "warning", "info", "debug"];
+    return t === 0 ? n`<p class="muted">Keine Nachrichten in den letzten 24 Stunden.</p>` : n`
       <div class="stack-bar" role="img" aria-label="Severity-Verteilung der letzten 24 Stunden">
-        ${s.map((a) => {
-      const r = t[a] ?? 0;
-      if (r === 0) return null;
-      const i = r / e * 100;
+        ${s.map((r) => {
+      const a = e[r] ?? 0;
+      if (a === 0) return null;
+      const i = a / t * 100;
       return n`
             <div
-              class=${`stack-seg sev-${a}`}
-              style=${`width: ${i}%; background: ${$t[a]}`}
-              title=${`${yt[a]}: ${r} (${i.toFixed(0)}%)`}
+              class=${`stack-seg sev-${r}`}
+              style=${`width: ${i}%; background: ${$t[r]}`}
+              title=${`${yt[r]}: ${a} (${i.toFixed(0)}%)`}
             ></div>
           `;
     })}
       </div>
       <ul class="legend">
-        ${s.map((a) => {
-      const r = t[a] ?? 0, i = e > 0 ? r / e * 100 : 0;
+        ${s.map((r) => {
+      const a = e[r] ?? 0, i = t > 0 ? a / t * 100 : 0;
       return n`
             <li>
-              <span class="legend-dot" style=${`background: ${$t[a]}`}></span>
-              <span class="legend-label">${yt[a]}</span>
-              <span class="legend-count">${r.toLocaleString("de-DE")}</span>
+              <span class="legend-dot" style=${`background: ${$t[r]}`}></span>
+              <span class="legend-label">${yt[r]}</span>
+              <span class="legend-count">${a.toLocaleString("de-DE")}</span>
               <span class="legend-pct muted">${i.toFixed(0)}%</span>
             </li>
           `;
@@ -5889,7 +5970,7 @@ let M = class extends x {
       return n`<div class="root"><p class="status">lade…</p></div>`;
     if (!this._stats)
       return n`<div class="root"><p class="status">Keine Daten verfügbar.</p></div>`;
-    const t = this._stats, e = Object.values(t.severity_24h).reduce((i, o) => i + o, 0), s = t.severity_24h.error ?? 0, a = t.severity_24h.warning ?? 0, r = e > 0 ? s / e * 100 : 0;
+    const e = this._stats, t = Object.values(e.severity_24h).reduce((i, o) => i + o, 0), s = e.severity_24h.error ?? 0, r = e.severity_24h.warning ?? 0, a = t > 0 ? s / t * 100 : 0;
     return n`
       <div class="root">
         <section>
@@ -5902,24 +5983,24 @@ let M = class extends x {
           <div class="kpis">
             <div class="kpi">
               <span class="kpi-label">Gesamt</span>
-              <span class="kpi-value">${t.total.toLocaleString("de-DE")}</span>
+              <span class="kpi-value">${e.total.toLocaleString("de-DE")}</span>
               <span class="kpi-hint">Nachrichten in der Datenbank</span>
             </div>
             <div class="kpi accent-info">
               <span class="kpi-label">Letzte 24 h</span>
-              <span class="kpi-value">${e.toLocaleString("de-DE")}</span>
+              <span class="kpi-value">${t.toLocaleString("de-DE")}</span>
               <span class="kpi-hint">alle Severities</span>
             </div>
             <div class="kpi accent-error">
               <span class="kpi-label">Errors 24 h</span>
               <span class="kpi-value">${s}</span>
               <span class="kpi-hint">
-                ${e === 0 ? "—" : `${r.toFixed(1)} % Anteil`}
+                ${t === 0 ? "—" : `${a.toFixed(1)} % Anteil`}
               </span>
             </div>
             <div class="kpi accent-warning">
               <span class="kpi-label">Warnings 24 h</span>
-              <span class="kpi-value">${a}</span>
+              <span class="kpi-value">${r}</span>
               <span class="kpi-hint">letzte 24 Stunden</span>
             </div>
           </div>
@@ -5929,7 +6010,7 @@ let M = class extends x {
           <div class="mh-card">
             <div class="mh-card__header">
               <h3 class="mh-card__title">Severity-Verteilung (24 h)</h3>
-              <span class="muted small">${e.toLocaleString("de-DE")} Nachrichten</span>
+              <span class="muted small">${t.toLocaleString("de-DE")} Nachrichten</span>
             </div>
             ${this._renderSeverityStack()}
           </div>
@@ -5986,7 +6067,7 @@ let M = class extends x {
     `;
   }
 };
-M.styles = [
+U.styles = [
   L,
   Se,
   re,
@@ -6056,29 +6137,29 @@ M.styles = [
 ];
 ae([
   w({ attribute: !1 })
-], M.prototype, "api", 2);
+], U.prototype, "api", 2);
 ae([
   l()
-], M.prototype, "_stats", 2);
+], U.prototype, "_stats", 2);
 ae([
   l()
-], M.prototype, "_sources", 2);
+], U.prototype, "_sources", 2);
 ae([
   l()
-], M.prototype, "_heatmap", 2);
+], U.prototype, "_heatmap", 2);
 ae([
   l()
-], M.prototype, "_topSources", 2);
+], U.prototype, "_topSources", 2);
 ae([
   l()
-], M.prototype, "_loading", 2);
-M = ae([
+], U.prototype, "_loading", 2);
+U = ae([
   S("stats-live-view")
-], M);
-var ur = Object.defineProperty, mr = Object.getOwnPropertyDescriptor, Ie = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? mr(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && ur(e, s, r), r;
+], U);
+var ur = Object.defineProperty, mr = Object.getOwnPropertyDescriptor, Ie = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? mr(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && ur(t, s, a), a;
 };
 const Pe = [
   "var(--mh-error)",
@@ -6096,7 +6177,7 @@ let ce = class extends x {
       return n`<p class="muted">Keine Timeline-Daten.</p>`;
     if (this.items.reduce((g, u) => g + u.count, 0) === 0)
       return n`<p class="muted">Keine Telegramme im Zeitraum.</p>`;
-    const e = this._buildSeries(), s = this._allBuckets(), a = Math.max(1, ...this.items.map((g) => g.count)), r = { top: 8, right: 8, bottom: 18, left: 32 }, i = this.width - r.left - r.right, o = this.height - r.top - r.bottom, d = s.length === 1, h = (g) => d ? r.left + i / 2 : r.left + g / (s.length - 1) * i, m = (g) => r.top + (1 - g / a) * o;
+    const t = this._buildSeries(), s = this._allBuckets(), r = Math.max(1, ...this.items.map((g) => g.count)), a = { top: 8, right: 8, bottom: 18, left: 32 }, i = this.width - a.left - a.right, o = this.height - a.top - a.bottom, d = s.length === 1, h = (g) => d ? a.left + i / 2 : a.left + g / (s.length - 1) * i, m = (g) => a.top + (1 - g / r) * o;
     return n`
       <svg
         viewBox=${`0 0 ${this.width} ${this.height}`}
@@ -6106,28 +6187,28 @@ let ce = class extends x {
       >
         <!-- Grid: horizontale Linien bei 0, max -->
         <line
-          x1=${r.left} y1=${r.top}
-          x2=${this.width - r.right} y2=${r.top}
+          x1=${a.left} y1=${a.top}
+          x2=${this.width - a.right} y2=${a.top}
           class="grid"
         ></line>
         <line
-          x1=${r.left} y1=${this.height - r.bottom}
-          x2=${this.width - r.right} y2=${this.height - r.bottom}
+          x1=${a.left} y1=${this.height - a.bottom}
+          x2=${this.width - a.right} y2=${this.height - a.bottom}
           class="grid"
         ></line>
         <!-- Y-Achse Labels -->
-        <text x="2" y=${r.top + 4} class="axis-label">${a}</text>
-        <text x="2" y=${this.height - r.bottom + 4} class="axis-label">0</text>
+        <text x="2" y=${a.top + 4} class="axis-label">${r}</text>
+        <text x="2" y=${this.height - a.bottom + 4} class="axis-label">0</text>
 
         <!-- Series -->
-        ${e.map((g, u) => {
+        ${t.map((g, u) => {
       const p = Pe[u % Pe.length];
       if (d) {
         const v = m(g.values[0] ?? 0);
         return n`<g class="series">
               <line
-                x1=${r.left} y1=${v}
-                x2=${this.width - r.right} y2=${v}
+                x1=${a.left} y1=${v}
+                x2=${this.width - a.right} y2=${v}
                 stroke=${p}
                 stroke-width="2"
                 vector-effect="non-scaling-stroke"
@@ -6155,7 +6236,7 @@ let ce = class extends x {
     })}
       </svg>
       <div class="legend">
-        ${e.map(
+        ${t.map(
       (g, u) => n`<span class="legend-item">
             <span
               class="dot"
@@ -6168,19 +6249,19 @@ let ce = class extends x {
     `;
   }
   _allBuckets() {
-    const t = /* @__PURE__ */ new Set();
-    for (const e of this.items) t.add(e.bucket);
-    return Array.from(t).sort();
+    const e = /* @__PURE__ */ new Set();
+    for (const t of this.items) e.add(t.bucket);
+    return Array.from(e).sort();
   }
   _buildSeries() {
-    const t = this._allBuckets(), e = new Map(t.map((a, r) => [a, r])), s = /* @__PURE__ */ new Map();
-    for (const a of this.items) {
-      let r = s.get(a.ga);
-      r === void 0 && (r = new Array(t.length).fill(0), s.set(a.ga, r));
-      const i = e.get(a.bucket);
-      i !== void 0 && (r[i] = a.count);
+    const e = this._allBuckets(), t = new Map(e.map((r, a) => [r, a])), s = /* @__PURE__ */ new Map();
+    for (const r of this.items) {
+      let a = s.get(r.ga);
+      a === void 0 && (a = new Array(e.length).fill(0), s.set(r.ga, a));
+      const i = t.get(r.bucket);
+      i !== void 0 && (a[i] = r.count);
     }
-    return Array.from(s.entries()).map(([a, r]) => ({ ga: a, values: r }));
+    return Array.from(s.entries()).map(([r, a]) => ({ ga: r, values: a }));
   }
 };
 ce.styles = [
@@ -6246,19 +6327,19 @@ Ie([
 ce = Ie([
   S("knx-timeline-chart")
 ], ce);
-var gr = Object.defineProperty, vr = Object.getOwnPropertyDescriptor, Re = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? vr(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && gr(e, s, r), r;
+var gr = Object.defineProperty, vr = Object.getOwnPropertyDescriptor, Re = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? vr(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && gr(t, s, a), a;
 };
-function fr(t) {
-  if (typeof t == "number" && Number.isFinite(t)) return t;
-  if (typeof t == "boolean") return t ? 1 : 0;
-  if (typeof t == "string") {
-    const e = t.trim().toLowerCase();
-    if (e === "true" || e === "on") return 1;
-    if (e === "false" || e === "off") return 0;
-    const s = parseFloat(e);
+function fr(e) {
+  if (typeof e == "number" && Number.isFinite(e)) return e;
+  if (typeof e == "boolean") return e ? 1 : 0;
+  if (typeof e == "string") {
+    const t = e.trim().toLowerCase();
+    if (t === "true" || t === "on") return 1;
+    if (t === "false" || t === "off") return 0;
+    const s = parseFloat(t);
     if (Number.isFinite(s)) return s;
   }
   return null;
@@ -6268,13 +6349,13 @@ let he = class extends x {
     super(...arguments), this.points = [], this.width = 600, this.height = 80;
   }
   render() {
-    const t = this.points.map((v) => ({ ts: v.ts, value: fr(v.value) })).filter((v) => v.value !== null);
-    if (t.length < 2)
+    const e = this.points.map((v) => ({ ts: v.ts, value: fr(v.value) })).filter((v) => v.value !== null);
+    if (e.length < 2)
       return n`<p class="muted">
         Wertverlauf: zu wenige numerische Datenpunkte
-        (${t.length} von ${this.points.length}).
+        (${e.length} von ${this.points.length}).
       </p>`;
-    const e = t.map((v) => v.value), s = Math.min(...e), a = Math.max(...e), r = a - s || 1, i = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - i.left - i.right, d = this.height - i.top - i.bottom, h = (v) => i.left + v / Math.max(1, t.length - 1) * o, m = (v) => i.top + (1 - (v - s) / r) * d, g = t.map((v, k) => `${h(k)},${m(v.value)}`).join(" "), p = [...e.slice(1).map((v, k) => Math.abs(v - e[k]))].sort((v, k) => v - k), b = p[Math.floor(p.length / 2)];
+    const t = e.map((v) => v.value), s = Math.min(...t), r = Math.max(...t), a = r - s || 1, i = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - i.left - i.right, d = this.height - i.top - i.bottom, h = (v) => i.left + v / Math.max(1, e.length - 1) * o, m = (v) => i.top + (1 - (v - s) / a) * d, g = e.map((v, k) => `${h(k)},${m(v.value)}`).join(" "), p = [...t.slice(1).map((v, k) => Math.abs(v - t[k]))].sort((v, k) => v - k), b = p[Math.floor(p.length / 2)];
     return n`
       <div class="wrap">
         <svg
@@ -6293,14 +6374,14 @@ let he = class extends x {
             x2=${this.width - i.right} y2=${this.height - i.bottom}
             class="grid"
           ></line>
-          <text x="2" y=${i.top + 4} class="axis-label">${a.toFixed(1)}</text>
+          <text x="2" y=${i.top + 4} class="axis-label">${r.toFixed(1)}</text>
           <text x="2" y=${this.height - i.bottom + 4} class="axis-label">${s.toFixed(1)}</text>
           <polyline points=${g} class="series" fill="none"></polyline>
         </svg>
         <p class="muted small">
-          ${t.length} Punkte • Min ${s.toFixed(1)} • Max ${a.toFixed(1)} •
+          ${e.length} Punkte • Min ${s.toFixed(1)} • Max ${r.toFixed(1)} •
           Median Δ ${b.toFixed(2)}
-          ${b < 0.1 && r > 0 ? n` <span class="hint">→ enge Hysterese</span>` : br}
+          ${b < 0.1 && a > 0 ? n` <span class="hint">→ enge Hysterese</span>` : br}
         </p>
       </div>
     `;
@@ -6359,15 +6440,15 @@ he = Re([
   S("knx-value-sparkline")
 ], he);
 const br = "";
-var _r = Object.defineProperty, wr = Object.getOwnPropertyDescriptor, _ = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? wr(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && _r(e, s, r), r;
+var _r = Object.defineProperty, wr = Object.getOwnPropertyDescriptor, _ = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? wr(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && _r(t, s, a), a;
 };
 const Jt = "messagehub.knx-stats.filters", St = "messagehub.knx-stats.filters.defaults-version", Tt = "v2", xr = 1, yr = /^[\s\-_=]*$/;
-function $r(t, e) {
-  const s = (e ?? "").trim();
-  return !!(s === "" || yr.test(s) || s === t);
+function $r(e, t) {
+  const s = (t ?? "").trim();
+  return !!(s === "" || yr.test(s) || s === e);
 }
 const At = 25, Et = 100, Pt = 300, Ve = [
   { id: "1h", label: "1 Std", days: 1 / 24 },
@@ -6394,48 +6475,48 @@ const At = 25, Et = 100, Pt = 300, Ve = [
   includeAck: !0
 };
 function Tr() {
-  let t = null;
+  let e = null;
   try {
     const s = localStorage.getItem(Jt);
-    s && (t = JSON.parse(s));
+    s && (e = JSON.parse(s));
   } catch {
   }
-  const e = t ? { ...qe, ...t } : { ...qe };
-  return Ar(e, t);
+  const t = e ? { ...qe, ...e } : { ...qe };
+  return Ar(t, e);
 }
-function Ar(t, e) {
+function Ar(e, t) {
   let s = !1;
   try {
     s = localStorage.getItem(St) === Tt;
   } catch {
   }
   if (s)
-    return t;
-  let a = t;
-  e !== null && e.minRate === xr && (a = { ...t, minRate: qe.minRate }, D(a));
+    return e;
+  let r = e;
+  t !== null && t.minRate === xr && (r = { ...e, minRate: qe.minRate }, D(r));
   try {
     localStorage.setItem(St, Tt);
   } catch {
   }
-  return a;
+  return r;
 }
-function D(t) {
+function D(e) {
   try {
-    localStorage.setItem(Jt, JSON.stringify(t));
+    localStorage.setItem(Jt, JSON.stringify(e));
   } catch {
   }
 }
-function Dt(t) {
-  const e = Ve.find((r) => r.id === t) ?? Ve[2], s = /* @__PURE__ */ new Date();
-  return { from: new Date(s.getTime() - e.days * 864e5).toISOString(), to: s.toISOString() };
+function Dt(e) {
+  const t = Ve.find((a) => a.id === e) ?? Ve[2], s = /* @__PURE__ */ new Date();
+  return { from: new Date(s.getTime() - t.days * 864e5).toISOString(), to: s.toISOString() };
 }
 const Er = 48;
 function Pr() {
-  const t = /* @__PURE__ */ new Date();
-  return { from: new Date(t.getTime() - Er * 3600 * 1e3).toISOString(), to: t.toISOString() };
+  const e = /* @__PURE__ */ new Date();
+  return { from: new Date(e.getTime() - Er * 3600 * 1e3).toISOString(), to: e.toISOString() };
 }
-function zt(t) {
-  switch (t) {
+function zt(e) {
+  switch (e) {
     case "red":
       return "mh-pill--error";
     case "orange":
@@ -6452,31 +6533,31 @@ const Lt = {
   orange: 2,
   red: 3
 };
-function Dr(t, e, s) {
-  return [...t].sort((r, i) => {
+function Dr(e, t, s) {
+  return [...e].sort((a, i) => {
     let o;
-    switch (e) {
+    switch (t) {
       case "ga":
-        o = r.ga.localeCompare(i.ga);
+        o = a.ga.localeCompare(i.ga);
         break;
       case "label": {
-        const d = !r.label, h = !i.label;
+        const d = !a.label, h = !i.label;
         if (d && h) o = 0;
         else {
           if (d) return 1;
           if (h) return -1;
-          o = r.label.localeCompare(i.label);
+          o = a.label.localeCompare(i.label);
         }
         break;
       }
       case "rate_per_min":
-        o = r.rate_per_min - i.rate_per_min;
+        o = a.rate_per_min - i.rate_per_min;
         break;
       case "recommended_rate":
-        o = r.recommended_rate - i.recommended_rate;
+        o = a.recommended_rate - i.recommended_rate;
         break;
       case "severity":
-        o = Lt[r.severity] - Lt[i.severity];
+        o = Lt[a.severity] - Lt[i.severity];
         break;
     }
     return s === "desc" ? -o : o;
@@ -6484,8 +6565,8 @@ function Dr(t, e, s) {
 }
 let f = class extends x {
   constructor() {
-    super(...arguments), this._filters = Tr(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._heatmap = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansHidePlaceholders = !0, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._selectedSource = null, this._sourceDetail = null, this._sourceDetailLoading = !1, this._loading = !1, this._error = "", this._toast = "", this._onWindowKeyDown = (t) => {
-      if (t.key === "Escape") {
+    super(...arguments), this._filters = Tr(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._heatmap = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansHidePlaceholders = !0, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._selectedSource = null, this._sourceDetail = null, this._sourceDetailLoading = !1, this._loading = !1, this._error = "", this._toast = "", this._onWindowKeyDown = (e) => {
+      if (e.key === "Escape") {
         if (this._detail !== null || this._detailLoading) {
           this._closeDetail();
           return;
@@ -6514,8 +6595,8 @@ let f = class extends x {
   async _loadBusAnalysisState() {
     if (this.api)
       try {
-        const t = await this.api.getKnxBusAnalysisState();
-        this._busAnalysisEnabled = t.enabled;
+        const e = await this.api.getKnxBusAnalysisState();
+        this._busAnalysisEnabled = e.enabled;
       } catch {
       } finally {
         this._busAnalysisLoaded = !0;
@@ -6527,7 +6608,7 @@ let f = class extends x {
   // immer failen. So bleibt der User nicht im Dunkeln, kann aber kurz
   // wegklicken um die anderen Cards sauber zu sehen.
   _renderApiErrorBanner() {
-    const t = Array.from(this._apiErrors.keys()).sort(), e = {
+    const e = Array.from(this._apiErrors.keys()).sort(), t = {
       "health-score": "Bus-Health-Score",
       busload: "Buslast-KPI",
       "long-term": "Long-Term-Sicht",
@@ -6537,7 +6618,7 @@ let f = class extends x {
       alarms: "Alarme",
       trend: "Trend-Vergleich",
       heatmap: "Aktivitäts-Heatmap"
-    }, s = t.map((a) => e[a] || a).join(", ");
+    }, s = e.map((r) => t[r] || r).join(", ");
     return n`
       <div class="api-error-banner" role="alert">
         <div class="api-error-banner__head">
@@ -6561,7 +6642,7 @@ let f = class extends x {
           <p class="muted small">Original-Fehlermeldungen:</p>
           <ul class="api-error-banner__raw">
             ${Array.from(this._apiErrors.entries()).map(
-      ([a, r]) => n`<li><code>${a}</code>: ${r}</li>`
+      ([r, a]) => n`<li><code>${r}</code>: ${a}</li>`
     )}
           </ul>
         </details>
@@ -6570,24 +6651,24 @@ let f = class extends x {
   }
   async _toggleBusAnalysis() {
     if (!this.api) return;
-    const t = !this._busAnalysisEnabled;
-    if (!(!t && !window.confirm(
+    const e = !this._busAnalysisEnabled;
+    if (!(!e && !window.confirm(
       `Bus-Analyse deaktivieren?
 
 Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Counter-Tabelle. Bestehende Daten bleiben sichtbar, altern aber nach 48 h (Raw) bzw. 365 Tagen (Counter).`
     )))
       try {
-        const e = await this.api.setKnxBusAnalysisState(t);
-        this._busAnalysisEnabled = e.enabled;
-      } catch (e) {
-        window.alert(`Fehler: ${e.message}`);
+        const t = await this.api.setKnxBusAnalysisState(e);
+        this._busAnalysisEnabled = t.enabled;
+      } catch (t) {
+        window.alert(`Fehler: ${t.message}`);
       }
   }
   _apiFilters() {
-    const { from: t, to: e } = Dt(this._filters.periodId);
+    const { from: e, to: t } = Dt(this._filters.periodId);
     return {
-      from: t,
-      to: e,
+      from: e,
+      to: t,
       limit: this._filters.topN,
       minRate: this._filters.minRate,
       includeAcknowledged: this._filters.includeAck
@@ -6601,10 +6682,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   // Long-Term-Endpoint geliefert.
   _liveFiltersForRaw() {
     if (!this._isLongTermMode()) return this._apiFilters();
-    const { from: t, to: e } = Pr();
+    const { from: e, to: t } = Pr();
     return {
-      from: t,
-      to: e,
+      from: e,
+      to: t,
       limit: this._filters.topN,
       minRate: this._filters.minRate,
       includeAcknowledged: this._filters.includeAck
@@ -6613,9 +6694,9 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   async _load() {
     if (!this.api) return;
     this._loading = !0, this._error = "";
-    const t = /* @__PURE__ */ new Map(), e = (s, a) => a.catch((r) => (t.set(s, r.message), null));
+    const e = /* @__PURE__ */ new Map(), t = (s, r) => r.catch((a) => (e.set(s, a.message), null));
     try {
-      const s = this._isLongTermMode(), a = this._apiFilters(), r = this._liveFiltersForRaw(), i = { ...r, limit: this._filters.topNDevices }, [
+      const s = this._isLongTermMode(), r = this._apiFilters(), a = this._liveFiltersForRaw(), i = { ...a, limit: this._filters.topNDevices }, [
         o,
         d,
         h,
@@ -6631,40 +6712,40 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         Zt,
         Xt
       ] = await Promise.all([
-        this.api.getKnxStatsSummary(r),
-        this.api.getKnxStatsTop(r),
+        this.api.getKnxStatsSummary(a),
+        this.api.getKnxStatsTop(a),
         this.api.getKnxStatsTopBySource(i),
-        this.api.getKnxStatsBusHealth(r),
+        this.api.getKnxStatsBusHealth(a),
         this.api.getKnxStatsSilence({
-          ...r,
+          ...a,
           maxSilenceMinutes: this._suggestSilenceMinutes()
         }),
-        e("orphans", this.api.getKnxStatsOrphans(r)),
-        e("alarms", this.api.getKnxStatsAlarms(r)),
-        e(
+        t("orphans", this.api.getKnxStatsOrphans(a)),
+        t("alarms", this.api.getKnxStatsAlarms(a)),
+        t(
           "busload",
-          this.api.getKnxStatsBusload(r, this._suggestBusloadBucketSeconds())
+          this.api.getKnxStatsBusload(a, this._suggestBusloadBucketSeconds())
         ),
-        e("health-score", this.api.getKnxStatsHealthScore(r)),
-        s ? e("long-term", this.api.getKnxStatsLongTerm(a)) : Promise.resolve(null),
-        e("bursts", this.api.getKnxStatsBursts(r)),
-        e("sensitive-log", this.api.getKnxStatsSensitiveLog(r)),
+        t("health-score", this.api.getKnxStatsHealthScore(a)),
+        s ? t("long-term", this.api.getKnxStatsLongTerm(r)) : Promise.resolve(null),
+        t("bursts", this.api.getKnxStatsBursts(a)),
+        t("sensitive-log", this.api.getKnxStatsSensitiveLog(a)),
         // Iter aiohttp-error-ZU9UA / Trend-Fix B+C: bei langen Perioden
         // den vollen Zeitraum (fLongTerm) statt der 48h-Live-Slice
         // (fRaw) senden — Backend liest dann aus knx_telegram_counters.
-        e(
+        t(
           "trend",
-          this.api.getKnxStatsTrend(s ? a : r, 5)
+          this.api.getKnxStatsTrend(s ? r : a, 5)
         ),
-        e(
+        t(
           "heatmap",
-          this.api.getKnxStatsHeatmap(r, 10, this._suggestHeatmapBucketMinutes())
+          this.api.getKnxStatsHeatmap(a, 10, this._suggestHeatmapBucketMinutes())
         )
       ]);
-      this._summary = o, this._top = d.items, this._topBySource = h.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = b, this._health = v, this._longTerm = k, this._bursts = ge, this._sensitiveLog = Ee, this._trend = Zt, this._heatmap = Xt, this._apiErrors = t, this._apiErrorsDismissed = !1;
+      this._summary = o, this._top = d.items, this._topBySource = h.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = b, this._health = v, this._longTerm = k, this._bursts = ge, this._sensitiveLog = Ee, this._trend = Zt, this._heatmap = Xt, this._apiErrors = e, this._apiErrorsDismissed = !1;
       const rt = d.items.slice(0, 5).map((Qt) => Qt.ga);
       rt.length > 0 ? this._timeline = await this.api.getKnxStatsTimeline({
-        ...r,
+        ...a,
         gas: rt,
         bucketMinutes: this._suggestBucketMinutes()
       }) : this._timeline = null;
@@ -6737,14 +6818,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         return 720;
     }
   }
-  async _loadDetail(t) {
+  async _loadDetail(e) {
     if (this.api) {
       this._detailLoading = !0, this._detail = null;
       try {
-        const e = this._apiFilters();
-        this._detail = await this.api.getKnxStatsGaDetail(t, e);
-      } catch (e) {
-        this._showToast(`Detail laden fehlgeschlagen: ${e.message}`);
+        const t = this._apiFilters();
+        this._detail = await this.api.getKnxStatsGaDetail(e, t);
+      } catch (t) {
+        this._showToast(`Detail laden fehlgeschlagen: ${t.message}`);
       } finally {
         this._detailLoading = !1;
       }
@@ -6753,105 +6834,105 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   // Iter D.2 (knx-detail-panes): Source-Detail laden. Schliesst ein
   // offenes GA-Detail (Toggle zwischen den beiden Drawer-Inhalten),
   // analog _loadDetail.
-  async _loadSourceDetail(t) {
+  async _loadSourceDetail(e) {
     if (this.api) {
-      this._closeDetail(), this._selectedSource = t, this._sourceDetailLoading = !0, this._sourceDetail = null;
+      this._closeDetail(), this._selectedSource = e, this._sourceDetailLoading = !0, this._sourceDetail = null;
       try {
-        const e = this._apiFilters();
+        const t = this._apiFilters();
         this._sourceDetail = await this.api.getKnxStatsSourceDetail(
-          t,
-          e
+          e,
+          t
         );
-      } catch (e) {
+      } catch (t) {
         this._showToast(
-          `Source-Detail laden fehlgeschlagen: ${e.message}`
+          `Source-Detail laden fehlgeschlagen: ${t.message}`
         );
       } finally {
         this._sourceDetailLoading = !1;
       }
     }
   }
-  async _onSelectGa(t) {
-    if (this._selectedGa === t) {
+  async _onSelectGa(e) {
+    if (this._selectedGa === e) {
       this._closeDetail();
       return;
     }
-    this._selectedGa = t, await this._loadDetail(t);
+    this._selectedGa = e, await this._loadDetail(e);
   }
-  async _ackGa(t) {
+  async _ackGa(e) {
     if (!this.api) return;
-    const e = window.prompt(
-      `Notiz für ${t} (optional, leer = keine Notiz):`,
+    const t = window.prompt(
+      `Notiz für ${e} (optional, leer = keine Notiz):`,
       ""
     );
-    if (e !== null)
+    if (t !== null)
       try {
-        await this.api.acknowledgeKnxGa(t, { note: e || void 0 }), this._showToast(`${t} als bekannt markiert`), await this._load();
+        await this.api.acknowledgeKnxGa(e, { note: t || void 0 }), this._showToast(`${e} als bekannt markiert`), await this._load();
       } catch (s) {
         this._showToast(`Fehlgeschlagen: ${s.message}`);
       }
   }
-  async _unackGa(t) {
+  async _unackGa(e) {
     if (this.api)
       try {
-        await this.api.unacknowledgeKnxGa(t), this._showToast(`${t}: Acknowledge entfernt`), await this._load();
-      } catch (e) {
-        this._showToast(`Fehlgeschlagen: ${e.message}`);
+        await this.api.unacknowledgeKnxGa(e), this._showToast(`${e}: Acknowledge entfernt`), await this._load();
+      } catch (t) {
+        this._showToast(`Fehlgeschlagen: ${t.message}`);
       }
   }
-  _showToast(t) {
-    this._toast = t, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
+  _showToast(e) {
+    this._toast = e, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
   }
-  _onPeriod(t) {
-    this._filters = { ...this._filters, periodId: t }, D(this._filters), this._load();
+  _onPeriod(e) {
+    this._filters = { ...this._filters, periodId: e }, D(this._filters), this._load();
   }
-  _onTopN(t) {
-    this._filters = { ...this._filters, topN: t }, D(this._filters), this._load();
+  _onTopN(e) {
+    this._filters = { ...this._filters, topN: e }, D(this._filters), this._load();
   }
-  _onTopNDevices(t) {
-    this._filters = { ...this._filters, topNDevices: t }, D(this._filters), this._load();
+  _onTopNDevices(e) {
+    this._filters = { ...this._filters, topNDevices: e }, D(this._filters), this._load();
   }
   // Iter aiohttp-error-ZU9UA: Anzahl-Filter pro Card. Ein gemeinsamer
   // Setter-Helfer waere DRYer, aber jeder Filter hat einen eigenen
   // Schluessel — dafuer pro Card eine 4-Zeilen-Methode, klar lesbar.
   // Diese Setter loesen kein _load() aus, weil die Daten fuer kleinere
   // Tabellen schon im Speicher liegen — wir slicen nur anders.
-  _onTopNAudit(t) {
-    this._filters = { ...this._filters, topNAudit: t }, D(this._filters), this.requestUpdate();
+  _onTopNAudit(e) {
+    this._filters = { ...this._filters, topNAudit: e }, D(this._filters), this.requestUpdate();
   }
-  _onTopNBursts(t) {
-    this._filters = { ...this._filters, topNBursts: t }, D(this._filters), this.requestUpdate();
+  _onTopNBursts(e) {
+    this._filters = { ...this._filters, topNBursts: e }, D(this._filters), this.requestUpdate();
   }
-  _onTopNLongTerm(t) {
-    this._filters = { ...this._filters, topNLongTerm: t }, D(this._filters), this.requestUpdate();
+  _onTopNLongTerm(e) {
+    this._filters = { ...this._filters, topNLongTerm: e }, D(this._filters), this.requestUpdate();
   }
-  _onTopNTrend(t) {
-    this._filters = { ...this._filters, topNTrend: t }, D(this._filters), this.requestUpdate();
+  _onTopNTrend(e) {
+    this._filters = { ...this._filters, topNTrend: e }, D(this._filters), this.requestUpdate();
   }
-  _onTopNOrphansMissing(t) {
-    this._filters = { ...this._filters, topNOrphansMissing: t }, D(this._filters), this.requestUpdate();
+  _onTopNOrphansMissing(e) {
+    this._filters = { ...this._filters, topNOrphansMissing: e }, D(this._filters), this.requestUpdate();
   }
-  _onTopNOrphansExtra(t) {
-    this._filters = { ...this._filters, topNOrphansExtra: t }, D(this._filters), this.requestUpdate();
+  _onTopNOrphansExtra(e) {
+    this._filters = { ...this._filters, topNOrphansExtra: e }, D(this._filters), this.requestUpdate();
   }
-  _onTopNSilence(t) {
-    this._filters = { ...this._filters, topNSilence: t }, D(this._filters), this.requestUpdate();
+  _onTopNSilence(e) {
+    this._filters = { ...this._filters, topNSilence: e }, D(this._filters), this.requestUpdate();
   }
-  _onTopNBusHealth(t) {
-    this._filters = { ...this._filters, topNBusHealth: t }, D(this._filters), this.requestUpdate();
+  _onTopNBusHealth(e) {
+    this._filters = { ...this._filters, topNBusHealth: e }, D(this._filters), this.requestUpdate();
   }
-  _onTopNSiblings(t) {
-    this._filters = { ...this._filters, topNSiblings: t }, D(this._filters), this.requestUpdate();
+  _onTopNSiblings(e) {
+    this._filters = { ...this._filters, topNSiblings: e }, D(this._filters), this.requestUpdate();
   }
-  _renderInlineTopN(t, e) {
+  _renderInlineTopN(e, t) {
     return n`
       <span class="inline-topn-wrap">
         <span class="inline-topn-label">zeige</span>
         <span class="inline-topn" role="group" aria-label="Anzahl Einträge">
           ${Sr.map(
       (s) => n`<button
-              class=${`inline-topn__btn ${t === s ? "active" : ""}`}
-              @click=${() => e(s)}
+              class=${`inline-topn__btn ${e === s ? "active" : ""}`}
+              @click=${() => t(s)}
             >
               ${s}
             </button>`
@@ -6860,8 +6941,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       </span>
     `;
   }
-  _onMinRate(t) {
-    this._filters = { ...this._filters, minRate: Math.max(0, t) }, D(this._filters), this._load();
+  _onMinRate(e) {
+    this._filters = { ...this._filters, minRate: Math.max(0, e) }, D(this._filters), this._load();
   }
   _onAckToggle() {
     this._filters = { ...this._filters, includeAck: !this._filters.includeAck }, D(this._filters), this._load();
@@ -6873,11 +6954,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <span class="filter-label">Zeitraum</span>
           <div class="seg">
             ${Ve.map(
-      (t) => n`<button
-                class=${`seg-btn ${this._filters.periodId === t.id ? "active" : ""}`}
-                @click=${() => this._onPeriod(t.id)}
+      (e) => n`<button
+                class=${`seg-btn ${this._filters.periodId === e.id ? "active" : ""}`}
+                @click=${() => this._onPeriod(e.id)}
               >
-                ${t.label}
+                ${e.label}
               </button>`
     )}
           </div>
@@ -6891,7 +6972,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             step="0.5"
             class="mh-input narrow"
             .value=${String(this._filters.minRate)}
-            @change=${(t) => this._onMinRate(parseFloat(t.target.value) || 0)}
+            @change=${(e) => this._onMinRate(parseFloat(e.target.value) || 0)}
           />
         </label>
 
@@ -6927,10 +7008,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _renderKpis() {
-    const t = this._summary;
-    if (t === null)
+    const e = this._summary;
+    if (e === null)
       return n`<p class="muted">Keine Daten verfuegbar.</p>`;
-    const e = t.counts_by_severity, s = this._busload, a = s !== null ? s.summary.max_pct : t.estimated_busload_pct, r = a >= 30 ? "danger" : a >= 20 ? "warning" : a >= 10 ? "elevated" : "ok", i = (o) => o.toLocaleString("de-DE", {
+    const t = e.counts_by_severity, s = this._busload, r = s !== null ? s.summary.max_pct : e.estimated_busload_pct, a = r >= 30 ? "danger" : r >= 20 ? "warning" : r >= 10 ? "elevated" : "ok", i = (o) => o.toLocaleString("de-DE", {
       minimumFractionDigits: 1,
       maximumFractionDigits: 1
     });
@@ -6938,22 +7019,22 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <div class="kpis">
         <div class="kpi">
           <span class="kpi-label">Telegramme</span>
-          <span class="kpi-value">${t.total_telegrams.toLocaleString("de-DE")}</span>
+          <span class="kpi-value">${e.total_telegrams.toLocaleString("de-DE")}</span>
           <span class="kpi-hint">im Zeitraum</span>
         </div>
         <div class="kpi">
           <span class="kpi-label">Aktive GAs</span>
-          <span class="kpi-value">${t.active_gas.toLocaleString("de-DE")}</span>
+          <span class="kpi-value">${e.active_gas.toLocaleString("de-DE")}</span>
           <span class="kpi-hint">im Protokoll</span>
         </div>
         <div class="kpi">
           <span class="kpi-label">Aktive Geräte</span>
-          <span class="kpi-value">${t.active_devices.toLocaleString("de-DE")}</span>
+          <span class="kpi-value">${e.active_devices.toLocaleString("de-DE")}</span>
           <span class="kpi-hint">Source-Adressen</span>
         </div>
-        <div class=${`kpi busload busload--${r}`}>
+        <div class=${`kpi busload busload--${a}`}>
           <span class="kpi-label">Buslast</span>
-          ${s === null ? n`<span class="kpi-value">${i(t.estimated_busload_pct)} %</span>
+          ${s === null ? n`<span class="kpi-value">${i(e.estimated_busload_pct)} %</span>
                 <span class="kpi-hint">Ø über Zeitraum</span>` : n`<span class="kpi-value">${i(s.summary.max_pct)} %</span>
                 <span class="kpi-hint">
                   jetzt ${i(s.summary.current_pct)} % · Ø ${i(s.summary.avg_pct)} %
@@ -6967,12 +7048,12 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             role="meter"
             aria-valuemin="0"
             aria-valuemax="100"
-            aria-valuenow=${a.toFixed(1)}
-            title=${`Buslast ${i(a)} % auf Skala 0–100`}
+            aria-valuenow=${r.toFixed(1)}
+            title=${`Buslast ${i(r)} % auf Skala 0–100`}
           >
             <div
               class="busload-bar__marker"
-              style=${`left: ${Math.min(100, Math.max(0, a)).toFixed(1)}%;`}
+              style=${`left: ${Math.min(100, Math.max(0, r)).toFixed(1)}%;`}
             ></div>
           </div>
         </div>
@@ -6981,45 +7062,45 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         ${["red", "orange", "yellow", "green"].map(
       (o) => n`<span class=${`mh-pill ${zt(o)}`}>
             <span class="mh-pill__dot"></span>
-            ${this._severityLabel(o)}: ${e[o] ?? 0}
+            ${this._severityLabel(o)}: ${t[o] ?? 0}
           </span>`
     )}
       </div>
     `;
   }
   _renderHealthScore() {
-    const t = this._health;
+    const e = this._health;
     return n`
-      <section class=${`mh-card health-score health-score--${t.severity}`}>
+      <section class=${`mh-card health-score health-score--${e.severity}`}>
         <header class="card-head">
           <h3>Bus-Health-Score</h3>
           <span class="muted small">aggregiert aus 4 KPIs · letzte ${this._filters.periodId}</span>
         </header>
         <div class="health-score__body">
           <div class="health-score__big">
-            <span class="health-score__value">${t.score}</span>
+            <span class="health-score__value">${e.score}</span>
             <span class="health-score__unit">/ 100</span>
-            <span class="health-score__label">${this._healthLabel(t.severity)}</span>
+            <span class="health-score__label">${this._healthLabel(e.severity)}</span>
           </div>
           <div class="health-score__components">
             ${["repeat", "busload", "silence", "alarms"].map(
-      (e) => {
-        const s = t.components[e], a = this._componentSeverity(s);
+      (t) => {
+        const s = e.components[t], r = this._componentSeverity(s);
         return n`<div
-                  class=${`health-score__badge health-score__badge--${a}`}
-                  title=${`${this._componentLabel(e)}: ${s}/100 (${this._healthLabel(a)})`}
+                  class=${`health-score__badge health-score__badge--${r}`}
+                  title=${`${this._componentLabel(t)}: ${s}/100 (${this._healthLabel(r)})`}
                 >
-                  <span class="health-score__badge-label">${this._componentLabel(e)}</span>
+                  <span class="health-score__badge-label">${this._componentLabel(t)}</span>
                   <span class="health-score__badge-value">${s}</span>
                 </div>`;
       }
     )}
           </div>
-          ${t.findings.length > 0 ? n`<ul class="health-score__findings">
-                ${t.findings.map(
-      (e) => n`<li class=${`health-finding health-finding--${e.severity}`}>
+          ${e.findings.length > 0 ? n`<ul class="health-score__findings">
+                ${e.findings.map(
+      (t) => n`<li class=${`health-finding health-finding--${t.severity}`}>
                     <span class="health-finding__dot"></span>
-                    <span>${e.message}</span>
+                    <span>${t.message}</span>
                   </li>`
     )}
               </ul>` : n`<p class="muted small">Alle Indikatoren im gruenen Bereich.</p>`}
@@ -7027,8 +7108,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       </section>
     `;
   }
-  _healthLabel(t) {
-    switch (t) {
+  _healthLabel(e) {
+    switch (e) {
       case "green":
         return "gesund";
       case "yellow":
@@ -7039,8 +7120,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         return "kritisch";
     }
   }
-  _componentLabel(t) {
-    switch (t) {
+  _componentLabel(e) {
+    switch (e) {
       case "repeat":
         return "Wiederholungen";
       case "busload":
@@ -7062,38 +7143,38 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
    *   ≥ 40 → orange  "auffaellig"
    *   <  40 → red    "kritisch"
    */
-  _componentSeverity(t) {
-    return t >= 80 ? "green" : t >= 60 ? "yellow" : t >= 40 ? "orange" : "red";
+  _componentSeverity(e) {
+    return e >= 80 ? "green" : e >= 60 ? "yellow" : e >= 40 ? "orange" : "red";
   }
   // Iter 42: Sicherheits-Audit-Card ---------------------------------------
   _renderSensitiveLog() {
-    const t = this._sensitiveLog, e = (r) => this._formatTs(r), s = this._filters.topNAudit, a = t.telegrams.slice(0, s);
+    const e = this._sensitiveLog, t = (a) => this._formatTs(a), s = this._filters.topNAudit, r = e.telegrams.slice(0, s);
     return n`
       <section class="mh-card sensitive">
         <header class="card-head">
           <h3>Sicherheits-Audit</h3>
           <div class="card-head__meta">
-            ${this._renderInlineTopN(this._filters.topNAudit, (r) => this._onTopNAudit(r))}
+            ${this._renderInlineTopN(this._filters.topNAudit, (a) => this._onTopNAudit(a))}
             <span class="muted small">
-              ${t.addresses.length} markierte GAs · ${t.telegrams.length} Telegramme im Zeitraum
+              ${e.addresses.length} markierte GAs · ${e.telegrams.length} Telegramme im Zeitraum
             </span>
           </div>
         </header>
         <div class="sensitive__addresses">
           <h4>Sensitive GAs</h4>
           <ul class="sensitive__addr-list">
-            ${t.addresses.map(
-      (r) => n`<li>
-                <code>${r.ga}</code>
-                ${r.label ? n`<span class="muted small">${r.label}</span>` : c}
-                ${r.dpt ? n`<span class="mh-pill mh-pill--neutral">${r.dpt}</span>` : c}
+            ${e.addresses.map(
+      (a) => n`<li>
+                <code>${a.ga}</code>
+                ${a.label ? n`<span class="muted small">${a.label}</span>` : c}
+                ${a.dpt ? n`<span class="mh-pill mh-pill--neutral">${a.dpt}</span>` : c}
               </li>`
     )}
           </ul>
         </div>
         <div class="sensitive__telegrams">
           <h4>Letzte Telegramme</h4>
-          ${t.telegrams.length === 0 ? n`<p class="muted small">Keine Aktivitaet im Zeitraum.</p>` : n`<div class="table-wrap">
+          ${e.telegrams.length === 0 ? n`<p class="muted small">Keine Aktivitaet im Zeitraum.</p>` : n`<div class="table-wrap">
                 <table class="sensitive__table">
                   <thead>
                     <tr>
@@ -7104,28 +7185,28 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                     </tr>
                   </thead>
                   <tbody>
-                    ${a.map(
-      (r) => n`<tr>
-                        <td class="bursts__ts">${e(r.ts)}</td>
+                    ${r.map(
+      (a) => n`<tr>
+                        <td class="bursts__ts">${t(a.ts)}</td>
                         <td>
-                          <code>${r.ga}</code>
-                          ${r.label ? n`<span class="muted small">${r.label}</span>` : c}
+                          <code>${a.ga}</code>
+                          ${a.label ? n`<span class="muted small">${a.label}</span>` : c}
                         </td>
-                        <td><code>${r.dev_source}</code></td>
-                        <td><code>${r.value ?? "—"}</code></td>
+                        <td><code>${a.dev_source}</code></td>
+                        <td><code>${a.value ?? "—"}</code></td>
                       </tr>`
     )}
                   </tbody>
                 </table>
               </div>
-              ${t.telegrams.length > s ? n`<p class="muted small">… und ${t.telegrams.length - s} weitere</p>` : c}`}
+              ${e.telegrams.length > s ? n`<p class="muted small">… und ${e.telegrams.length - s} weitere</p>` : c}`}
         </div>
       </section>
     `;
   }
   // Iter 41: Burst-Detector-Card -----------------------------------------
   _renderBursts() {
-    const t = this._bursts, e = (i) => i.toLocaleString("de-DE"), s = (i) => i.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }), a = this._filters.topNBursts, r = t.bursts.slice(0, a);
+    const e = this._bursts, t = (i) => i.toLocaleString("de-DE"), s = (i) => i.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }), r = this._filters.topNBursts, a = e.bursts.slice(0, r);
     return n`
       <section class="mh-card bursts">
         <header class="card-head">
@@ -7133,8 +7214,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="card-head__meta">
             ${this._renderInlineTopN(this._filters.topNBursts, (i) => this._onTopNBursts(i))}
             <span class="muted small">
-              ${t.bursts.length} Spitzen über ${s(t.threshold_pct)} % Buslast
-              (${t.window_seconds}s-Fenster)
+              ${e.bursts.length} Spitzen über ${s(e.threshold_pct)} % Buslast
+              (${e.window_seconds}s-Fenster)
             </span>
           </div>
         </header>
@@ -7158,10 +7239,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
               </tr>
             </thead>
             <tbody>
-              ${r.map(
+              ${a.map(
       (i) => n`<tr>
                   <td class="bursts__ts">${this._formatTs(i.bucket)}</td>
-                  <td class="num">${e(i.telegrams)}</td>
+                  <td class="num">${t(i.telegrams)}</td>
                   <td class="num bursts__pct">${s(i.busload_pct)} %</td>
                   <td class="num">${i.ga_count}</td>
                   <td class="num">${i.source_count}</td>
@@ -7170,7 +7251,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             </tbody>
           </table>
         </div>
-        ${t.bursts.length > a ? n`<p class="muted small">… und ${t.bursts.length - a} weitere</p>` : c}
+        ${e.bursts.length > r ? n`<p class="muted small">… und ${e.bursts.length - r} weitere</p>` : c}
       </section>
     `;
   }
@@ -7191,7 +7272,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _renderLongTerm() {
-    const t = this._longTerm, e = Math.max(1, ...t.series.map((r) => r.count)), s = (r) => r.toLocaleString("de-DE"), a = this._filters.topNLongTerm;
+    const e = this._longTerm, t = Math.max(1, ...e.series.map((a) => a.count)), s = (a) => a.toLocaleString("de-DE"), r = this._filters.topNLongTerm;
     return n`
       <section class="mh-card long-term">
         <header class="card-head">
@@ -7199,33 +7280,33 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="card-head__meta">
             ${this._renderInlineTopN(
       this._filters.topNLongTerm,
-      (r) => this._onTopNLongTerm(r)
+      (a) => this._onTopNLongTerm(a)
     )}
             <span class="muted small">
-              ${s(t.total)} Telegramme · ${t.bucket === "day" ? "Tages-Buckets" : "Stunden-Buckets"}
+              ${s(e.total)} Telegramme · ${e.bucket === "day" ? "Tages-Buckets" : "Stunden-Buckets"}
             </span>
           </div>
         </header>
         <div class="long-term__body">
           <div class="long-term__chart">
-            ${t.series.length === 0 ? n`<p class="muted">Keine Daten in der Counter-Tabelle.</p>` : n`<div class="long-term__bars">
-                  ${t.series.map(
-      (r) => n`<div
+            ${e.series.length === 0 ? n`<p class="muted">Keine Daten in der Counter-Tabelle.</p>` : n`<div class="long-term__bars">
+                  ${e.series.map(
+      (a) => n`<div
                       class="long-term__bar"
-                      style=${`height: ${r.count / e * 100}%`}
-                      title="${r.bucket} — ${s(r.count)}"
+                      style=${`height: ${a.count / t * 100}%`}
+                      title="${a.bucket} — ${s(a.count)}"
                     ></div>`
     )}
                 </div>`}
           </div>
           <div class="long-term__top">
             <h4>Top-GAs in der Periode</h4>
-            ${t.top_gas.length === 0 ? n`<p class="muted small">Keine GAs aktiv.</p>` : n`<ol class="long-term__top-list">
-                  ${t.top_gas.slice(0, a).map(
-      (r) => n`<li>
-                      <code>${r.ga}</code>
-                      ${r.label ? n`<span class="muted small">${r.label}</span>` : c}
-                      <span class="long-term__top-count">${s(r.count)}</span>
+            ${e.top_gas.length === 0 ? n`<p class="muted small">Keine GAs aktiv.</p>` : n`<ol class="long-term__top-list">
+                  ${e.top_gas.slice(0, r).map(
+      (a) => n`<li>
+                      <code>${a.ga}</code>
+                      ${a.label ? n`<span class="muted small">${a.label}</span>` : c}
+                      <span class="long-term__top-count">${s(a.count)}</span>
                     </li>`
     )}
                 </ol>`}
@@ -7234,11 +7315,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       </section>
     `;
   }
-  _formatBucket(t) {
-    return t < 60 ? `${t}s` : t < 3600 ? `${Math.round(t / 60)}min` : `${Math.round(t / 3600)}h`;
+  _formatBucket(e) {
+    return e < 60 ? `${e}s` : e < 3600 ? `${Math.round(e / 60)}min` : `${Math.round(e / 3600)}h`;
   }
-  _severityLabel(t) {
-    switch (t) {
+  _severityLabel(e) {
+    switch (e) {
       case "green":
         return "OK";
       case "yellow":
@@ -7296,7 +7377,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <header class="card-head">
             <h3>Top-Sender (Gruppenadressen)</h3>
             <div class="card-head__meta">
-              ${this._renderInlineTopN(this._filters.topN, (t) => this._onTopN(t))}
+              ${this._renderInlineTopN(this._filters.topN, (e) => this._onTopN(e))}
               <span class="muted small">
                 Welche GA sendet am häufigsten? · ${this._top.length} sichtbar
               </span>
@@ -7311,7 +7392,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 <div class="card-head__meta">
                   ${this._renderInlineTopN(
       this._filters.topNDevices,
-      (t) => this._onTopNDevices(t)
+      (e) => this._onTopNDevices(e)
     )}
                   <span class="muted small">
                     Welches physische Gerät erzeugt am meisten Last?
@@ -7356,7 +7437,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       return n`<p class="muted">lade…</p>`;
     if (this._top.length === 0)
       return n`<p class="muted">Keine Telegramme in diesem Zeitraum.</p>`;
-    const t = this._topSortKey, e = this._topSortDir, s = Dr(this._top, t, e);
+    const e = this._topSortKey, t = this._topSortDir, s = Dr(this._top, e, t);
     return n`
       <div class="table-wrap">
         <table>
@@ -7368,14 +7449,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 @click=${() => this._toggleTopSort("ga")}
                 title="Nach Gruppenadresse sortieren"
               >
-                GA${this._sortArrow(t, "ga", e)}
+                GA${this._sortArrow(e, "ga", t)}
               </th>
               <th
                 class="sortable"
                 @click=${() => this._toggleTopSort("label")}
                 title="Nach Label sortieren"
               >
-                Label${this._sortArrow(t, "label", e)}
+                Label${this._sortArrow(e, "label", t)}
               </th>
               <th>DPT</th>
               <th
@@ -7383,58 +7464,58 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 @click=${() => this._toggleTopSort("rate_per_min")}
                 title="Nach Telegrammen/Min sortieren"
               >
-                Tel/Min${this._sortArrow(t, "rate_per_min", e)}
+                Tel/Min${this._sortArrow(e, "rate_per_min", t)}
               </th>
               <th
                 class="num sortable"
                 @click=${() => this._toggleTopSort("recommended_rate")}
                 title="Nach Soll-Rate sortieren"
               >
-                Soll${this._sortArrow(t, "recommended_rate", e)}
+                Soll${this._sortArrow(e, "recommended_rate", t)}
               </th>
               <th
                 class="sortable"
                 @click=${() => this._toggleTopSort("severity")}
                 title="Nach Schweregrad sortieren"
               >
-                Status${this._sortArrow(t, "severity", e)}
+                Status${this._sortArrow(e, "severity", t)}
               </th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             ${s.map(
-      (a, r) => n`<tr
-                class=${`row-${a.severity} ${a.acknowledged ? "ack" : ""} ${this._selectedGa === a.ga ? "selected" : ""}`}
-                @click=${() => void this._onSelectGa(a.ga)}
+      (r, a) => n`<tr
+                class=${`row-${r.severity} ${r.acknowledged ? "ack" : ""} ${this._selectedGa === r.ga ? "selected" : ""}`}
+                @click=${() => void this._onSelectGa(r.ga)}
               >
-                <td class="num muted">${r + 1}</td>
-                <td><code class="ga">${a.ga}</code></td>
-                <td class="label-cell" title=${a.label ?? ""}>
-                  ${a.label ?? n`<span class="muted">—</span>`}
+                <td class="num muted">${a + 1}</td>
+                <td><code class="ga">${r.ga}</code></td>
+                <td class="label-cell" title=${r.label ?? ""}>
+                  ${r.label ?? n`<span class="muted">—</span>`}
                 </td>
                 <td>
-                  ${a.dpt ? n`<code
-                        class=${`dpt ${a.dpt_inferred ? "dpt--inferred" : ""}`}
-                        title=${a.dpt_inferred ? "DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)" : ""}
-                        >${a.dpt}${a.dpt_inferred ? n`<span class="dpt__hint" aria-hidden="true">?</span>` : c}</code
+                  ${r.dpt ? n`<code
+                        class=${`dpt ${r.dpt_inferred ? "dpt--inferred" : ""}`}
+                        title=${r.dpt_inferred ? "DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)" : ""}
+                        >${r.dpt}${r.dpt_inferred ? n`<span class="dpt__hint" aria-hidden="true">?</span>` : c}</code
                       >` : n`<span class="muted">—</span>`}
                 </td>
-                <td class="num strong">${a.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
-                <td class="num muted">${a.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
-                <td>${this._renderTopRowStatus(a)}</td>
+                <td class="num strong">${r.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                <td class="num muted">${r.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                <td>${this._renderTopRowStatus(r)}</td>
                 <td class="actions">
-                  ${a.acknowledged ? n`<button
+                  ${r.acknowledged ? n`<button
                         class="mh-btn mh-btn--sm mh-btn--ghost"
                         @click=${(i) => {
-        i.stopPropagation(), this._unackGa(a.ga);
+        i.stopPropagation(), this._unackGa(r.ga);
       }}
                       >
                         ✗ Ack entfernen
                       </button>` : n`<button
                         class="mh-btn mh-btn--sm mh-btn--ghost"
                         @click=${(i) => {
-        i.stopPropagation(), this._ackGa(a.ga);
+        i.stopPropagation(), this._ackGa(r.ga);
       }}
                       >
                         ✓ Bekannt
@@ -7453,11 +7534,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   // Tabelle bleibt sichtbar — User kann zwischen Detail und Tabelle
   // springen. Schliessen via X / Backdrop-Klick / Escape.
   _renderDetailPane() {
-    const t = this._detail !== null || this._detailLoading, e = () => t ? this._closeDetail() : this._closeSourceDetail();
+    const e = this._detail !== null || this._detailLoading, t = () => e ? this._closeDetail() : this._closeSourceDetail();
     return n`
       <div
         class="detail-backdrop"
-        @click=${e}
+        @click=${t}
         aria-hidden="true"
       ></div>
       <aside
@@ -7472,7 +7553,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             class="mh-btn mh-btn--sm mh-btn--ghost detail-close"
             title="Schliessen (Escape)"
             aria-label="Detail schliessen"
-            @click=${e}
+            @click=${t}
           >
             ✕ Schliessen
           </button>
@@ -7495,24 +7576,24 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         </span>
       </div>`;
     if (this._sourceDetail !== null) {
-      const t = this._sourceDetail, e = () => {
+      const e = this._sourceDetail, t = () => {
         this._selectedSource !== null && this._loadSourceDetail(this._selectedSource);
       };
       return n`<div class="detail-head-text">
         <h3>
-          Gerät <code>${t.dev_source}</code>
+          Gerät <code>${e.dev_source}</code>
           <button
             class="mh-btn mh-btn--sm mh-btn--ghost source-detail-reload"
             title="Geraete-Detail neu laden"
             aria-label="Geraete-Detail neu laden"
-            @click=${e}
+            @click=${t}
           >
             ⟳
           </button>
         </h3>
         <span class="muted small">
-          ${t.total_count.toLocaleString("de-DE")} Telegramme ·
-          ${t.ga_count} GAs
+          ${e.total_count.toLocaleString("de-DE")} Telegramme ·
+          ${e.ga_count} GAs
         </span>
       </div>`;
     }
@@ -7521,41 +7602,41 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   _renderDetailInner() {
     return this._detail !== null ? this._renderDetailBody(this._detail) : this._detailLoading ? n`<p class="muted">lade Details…</p>` : this._sourceDetail !== null ? this._renderSourceDetailBody(this._sourceDetail) : this._sourceDetailLoading ? n`<p class="muted">lade Geräte-Details…</p>` : n``;
   }
-  _renderDetailBody(t) {
-    const e = t.recommendation;
+  _renderDetailBody(e) {
+    const t = e.recommendation;
     return n`
 
         <div class="detail-stats">
           <div class="detail-stat">
             <span class="muted small">Ist-Rate</span>
-            <strong>${t.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Tel/Min</strong>
+            <strong>${e.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Tel/Min</strong>
           </div>
           <div class="detail-stat">
             <span class="muted small">Soll-Rate</span>
-            <strong>${t.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Tel/Min</strong>
+            <strong>${e.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Tel/Min</strong>
           </div>
           <div class="detail-stat">
             <span class="muted small">Verhaeltnis</span>
-            <strong>${isFinite(e.ratio) ? e.ratio.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "x" : "∞"}</strong>
+            <strong>${isFinite(t.ratio) ? t.ratio.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "x" : "∞"}</strong>
           </div>
-          ${e.estimated_reduction_pct !== null ? n`<div class="detail-stat">
+          ${t.estimated_reduction_pct !== null ? n`<div class="detail-stat">
                 <span class="muted small">Geschaetzte Reduktion</span>
-                <strong>−${e.estimated_reduction_pct.toLocaleString(
+                <strong>−${t.estimated_reduction_pct.toLocaleString(
       "de-DE",
       { maximumFractionDigits: 0 }
     )} %</strong>
               </div>` : c}
         </div>
 
-        <div class=${`recommendation rec-${e.severity}`}>
+        <div class=${`recommendation rec-${t.severity}`}>
           <strong>Empfehlung:</strong>
-          <p>${e.text}</p>
+          <p>${t.text}</p>
         </div>
 
-        ${t.findings.length > 0 ? n`<div class="findings">
+        ${e.findings.length > 0 ? n`<div class="findings">
               <strong>Erkannte Muster:</strong>
               <ul>
-                ${t.findings.map(
+                ${e.findings.map(
       (s) => n`<li class=${`finding-${s.severity}`}>
                     <span class=${`mh-pill ${this._severityPillClass(s.severity)}`}>
                       ${s.kind}
@@ -7566,20 +7647,20 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
               </ul>
             </div>` : c}
 
-        ${t.value_history.length >= 2 ? n`<div class="value-history">
+        ${e.value_history.length >= 2 ? n`<div class="value-history">
               <strong>Wertverlauf:</strong>
               <knx-value-sparkline
-                .points=${t.value_history}
+                .points=${e.value_history}
                 .width=${800}
                 .height=${100}
               ></knx-value-sparkline>
             </div>` : c}
 
-        ${t.device || t.manufacturer_hints ? this._renderDeviceInfo(t) : c}
+        ${e.device || e.manufacturer_hints ? this._renderDeviceInfo(e) : c}
 
-        ${t.sibling_gas.length > 0 ? this._renderSiblingGas(t) : c}
+        ${e.sibling_gas.length > 0 ? this._renderSiblingGas(e) : c}
 
-        ${this._renderHaKnxLinks(t)}
+        ${this._renderHaKnxLinks(e)}
     `;
   }
   /**
@@ -7591,14 +7672,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
    * — bewusst NICHT hier verdrahtet, weil das mehr Refactor-Aufwand
    * waere als der Mehrwert. User kann den GA-Code copy-pasten.
    */
-  _renderHaKnxLinks(t) {
-    const e = `https://knx-user-forum.de/forum/search?searchword=${encodeURIComponent(
-      t.ga
-    )}`, s = this._apiFilters(), a = new URLSearchParams();
-    s.from && a.set("from", s.from), s.to && a.set("to", s.to);
-    const r = `/api/messagehub/knx-stats/ga/${encodeURIComponent(
-      t.ga
-    )}/export?${a.toString()}`, i = `${r}&format=csv`, o = `${r}&format=json`;
+  _renderHaKnxLinks(e) {
+    const t = `https://knx-user-forum.de/forum/search?searchword=${encodeURIComponent(
+      e.ga
+    )}`, s = this._apiFilters(), r = new URLSearchParams();
+    s.from && r.set("from", s.from), s.to && r.set("to", s.to);
+    const a = `/api/messagehub/knx-stats/ga/${encodeURIComponent(
+      e.ga
+    )}/export?${r.toString()}`, i = `${a}&format=csv`, o = `${a}&format=json`;
     return n`
       <div class="ha-links">
         <strong>Schnell-Aktionen:</strong>
@@ -7613,7 +7694,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </li>
           <li>
             <a
-              href=${e}
+              href=${t}
               target="_blank"
               rel="noopener noreferrer"
               title="KNX-User-Forum nach GA-Code durchsuchen"
@@ -7640,17 +7721,17 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       </div>
     `;
   }
-  _renderDeviceInfo(t) {
-    const e = t.device, s = t.manufacturer_hints;
+  _renderDeviceInfo(e) {
+    const t = e.device, s = e.manufacturer_hints;
     return n`
       <div class="device-info">
-        ${e ? n`<strong>
-              Gerät: ${e.manufacturer || "?"}
-              ${e.name ? n` — ${e.name}` : c}
-              ${e.product ? n`<span class="muted small">(${e.product})</span>` : c}
+        ${t ? n`<strong>
+              Gerät: ${t.manufacturer || "?"}
+              ${t.name ? n` — ${t.name}` : c}
+              ${t.product ? n`<span class="muted small">(${t.product})</span>` : c}
             </strong>` : n`<strong>Hersteller-Hinweise</strong>`}
         ${s && s.tips.length > 0 ? n`<ul class="hints">
-              ${s.tips.map((a) => n`<li>${a}</li>`)}
+              ${s.tips.map((r) => n`<li>${r}</li>`)}
             </ul>` : c}
         ${s != null && s.doc_url ? n`<p class="muted small">
               Hersteller-Doku:
@@ -7675,55 +7756,55 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   //
   // Zukuenftige Erweiterungen: Findings-Liste (Iter H), Trend-Compare
   // (Iter I) als zusaetzliche Sektionen.
-  _renderSourceDetailBody(t) {
+  _renderSourceDetailBody(e) {
     return n`
       <div class="source-detail-kpis">
         ${this._renderSourceDetailKpi(
       "Telegramme gesamt",
-      t.total_count.toLocaleString("de-DE")
+      e.total_count.toLocaleString("de-DE")
     )}
         ${this._renderSourceDetailKpi(
       "Aktive GAs",
-      String(t.ga_count)
+      String(e.ga_count)
     )}
         ${this._renderSourceDetailKpi(
       "Bus-Anteil",
-      `${t.share_pct.toLocaleString("de-DE", {
+      `${e.share_pct.toLocaleString("de-DE", {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1
       })} %`
     )}
         ${this._renderSourceDetailKpi(
       "Wiederhol-Quote",
-      `${t.repeat_ratio_pct.toLocaleString("de-DE", {
+      `${e.repeat_ratio_pct.toLocaleString("de-DE", {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1
       })} %`
     )}
       </div>
 
-      ${this._renderSourceDetailSilent(t)}
+      ${this._renderSourceDetailSilent(e)}
 
-      ${this._renderSourceDetailTrend(t)}
+      ${this._renderSourceDetailTrend(e)}
 
-      ${this._renderSourceDetailGas(t)}
+      ${this._renderSourceDetailGas(e)}
 
-      ${this._renderSourceDetailFindings(t)}
+      ${this._renderSourceDetailFindings(e)}
 
-      ${t.device || t.manufacturer_hints ? this._renderDeviceInfo({
-      device: t.device,
-      manufacturer_hints: t.manufacturer_hints
+      ${e.device || e.manufacturer_hints ? this._renderDeviceInfo({
+      device: e.device,
+      manufacturer_hints: e.manufacturer_hints
     }) : c}
     `;
   }
   // Iter I (knx-detail-panes): Trend-Compare-Block. Severity-Klassi-
   // fikation analog zur globalen Trend-Card (`_classifyTrendSeverity`).
   // Bei kurzen Perioden liefert der Backend trend=null — kein Render.
-  _renderSourceDetailTrend(t) {
-    const e = t.trend ?? null;
-    if (e === null)
+  _renderSourceDetailTrend(e) {
+    const t = e.trend ?? null;
+    if (t === null)
       return n``;
-    const s = this._classifySourceTrendSeverity(e.delta_pct), a = e.delta_pct === null ? "neu" : `${e.delta_pct > 0 ? "+" : ""}${e.delta_pct.toLocaleString(
+    const s = this._classifySourceTrendSeverity(t.delta_pct), r = t.delta_pct === null ? "neu" : `${t.delta_pct > 0 ? "+" : ""}${t.delta_pct.toLocaleString(
       "de-DE",
       { minimumFractionDigits: 1, maximumFractionDigits: 1 }
     )} %`;
@@ -7732,57 +7813,57 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     >
       <strong>Trend gegenüber Vorperiode:</strong>
       <span class="muted small">
-        jetzt ${e.count_now.toLocaleString("de-DE")} ·
-        zuvor ${e.count_prev.toLocaleString("de-DE")} ·
-        <strong>${a}</strong>
+        jetzt ${t.count_now.toLocaleString("de-DE")} ·
+        zuvor ${t.count_prev.toLocaleString("de-DE")} ·
+        <strong>${r}</strong>
       </span>
     </div>`;
   }
   // Iter I: Ampel-Schwellen wie globale Trend-Card. delta_pct=null
   // => yellow ("neu" bei leerer Vorperiode). 1h/6h-Sonderbehandlung
   // entfaellt — Backend liefert bei kurzen Perioden trend=null.
-  _classifySourceTrendSeverity(t) {
-    if (t === null) return "yellow";
-    const e = Math.abs(t);
-    return e < At ? "green" : e < Et ? "yellow" : e < Pt ? "orange" : "red";
+  _classifySourceTrendSeverity(e) {
+    if (e === null) return "yellow";
+    const t = Math.abs(e);
+    return t < At ? "green" : t < Et ? "yellow" : t < Pt ? "orange" : "red";
   }
   // Iter H (knx-detail-panes): Findings dieses Geraets. Klick auf
   // Code-Link setzt window.location.hash auf
   // "#findings?source=<dev_source>" — messagehub-panel.ts liest den
   // Hash beim Tab-Switch und aktiviert den Findings-Tab mit
   // vorbefuelltem Source-Filter.
-  _renderSourceDetailFindings(t) {
-    const e = t.findings ?? [];
-    return e.length === 0 ? n`` : n`<div class="source-detail-findings">
-      <strong>Findings dieses Geräts (${e.length}):</strong>
+  _renderSourceDetailFindings(e) {
+    const t = e.findings ?? [];
+    return t.length === 0 ? n`` : n`<div class="source-detail-findings">
+      <strong>Findings dieses Geräts (${t.length}):</strong>
       <ul class="source-detail-findings__list">
-        ${e.map((s) => this._renderSourceDetailFinding(s, t.dev_source))}
+        ${t.map((s) => this._renderSourceDetailFinding(s, e.dev_source))}
       </ul>
     </div>`;
   }
-  _renderSourceDetailFinding(t, e) {
-    return n`<li class=${`source-detail-finding finding-${t.severity}`}>
-      <span class=${`mh-pill ${this._findingPillClass(t.severity)}`}>
-        ${t.severity}
+  _renderSourceDetailFinding(e, t) {
+    return n`<li class=${`source-detail-finding finding-${e.severity}`}>
+      <span class=${`mh-pill ${this._findingPillClass(e.severity)}`}>
+        ${e.severity}
       </span>
       <a
-        href="#findings?source=${encodeURIComponent(e)}"
+        href="#findings?source=${encodeURIComponent(t)}"
         class="source-detail-finding__link"
-        @click=${(s) => this._onSourceDetailFindingClick(s, e)}
+        @click=${(s) => this._onSourceDetailFindingClick(s, t)}
         title="Findings-Tab oeffnen, gefiltert auf diese Source"
       >
-        <code>${t.code}</code>
+        <code>${e.code}</code>
       </a>
       <span class="source-detail-finding__title">
-        ${t.title || t.description || ""}
+        ${e.title || e.description || ""}
       </span>
       <span class="muted small source-detail-finding__count">
-        ${t.occurrence_count}×
+        ${e.occurrence_count}×
       </span>
     </li>`;
   }
-  _findingPillClass(t) {
-    switch (t) {
+  _findingPillClass(e) {
+    switch (e) {
       case "error":
         return "mh-pill--error";
       case "warning":
@@ -7799,18 +7880,18 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   // auf den hashchange. Default-Anchor-Verhalten verhindern wir
   // bewusst NICHT, weil das Setzen des Hash bereits den hashchange
   // feuert und der Browser sonst kein Routing macht.
-  _onSourceDetailFindingClick(t, e) {
-    t.preventDefault(), window.location.hash = `findings?source=${encodeURIComponent(e)}`;
+  _onSourceDetailFindingClick(e, t) {
+    e.preventDefault(), window.location.hash = `findings?source=${encodeURIComponent(t)}`;
   }
-  _renderSourceDetailKpi(t, e) {
+  _renderSourceDetailKpi(e, t) {
     return n`<div class="source-detail-kpi">
-      <span class="muted small">${t}</span>
-      <strong>${e}</strong>
+      <span class="muted small">${e}</span>
+      <strong>${t}</strong>
     </div>`;
   }
-  _renderSourceDetailSilent(t) {
-    if (t.silent_alarm) {
-      const e = t.silent_minutes ?? 0;
+  _renderSourceDetailSilent(e) {
+    if (e.silent_alarm) {
+      const t = e.silent_minutes ?? 0;
       return n`<div
         class="source-detail-silent-alarm"
         role="status"
@@ -7818,18 +7899,18 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       >
         <strong>⚠ Gerät ist stumm</strong>
         <p class="muted small">
-          Letzter Trafik vor ${this._formatSilence(e)} —
+          Letzter Trafik vor ${this._formatSilence(t)} —
           ueberschreitet die konfigurierte Stille-Schwelle.
         </p>
       </div>`;
     }
-    return t.silent_minutes !== null ? n`<p class="source-detail-silent muted small">
-        Letzter Trafik vor ${this._formatSilence(t.silent_minutes)}.
+    return e.silent_minutes !== null ? n`<p class="source-detail-silent muted small">
+        Letzter Trafik vor ${this._formatSilence(e.silent_minutes)}.
       </p>` : n``;
   }
-  _renderSourceDetailGas(t) {
-    return t.gas.length === 0 ? n`<p class="muted small">Keine GAs in diesem Zeitraum.</p>` : n`<div class="source-detail-ga-list">
-      <strong>GAs dieses Geräts (${t.ga_count}):</strong>
+  _renderSourceDetailGas(e) {
+    return e.gas.length === 0 ? n`<p class="muted small">Keine GAs in diesem Zeitraum.</p>` : n`<div class="source-detail-ga-list">
+      <strong>GAs dieses Geräts (${e.ga_count}):</strong>
       <div class="table-wrap">
         <table>
           <thead>
@@ -7843,54 +7924,54 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             </tr>
           </thead>
           <tbody>
-            ${t.gas.map((e) => this._renderSourceDetailGaRow(e))}
+            ${e.gas.map((t) => this._renderSourceDetailGaRow(t))}
           </tbody>
         </table>
       </div>
     </div>`;
   }
-  _renderSourceDetailGaRow(t) {
-    const e = t.acknowledged ? "mh-pill--neutral" : this._severityPillClass(t.severity), s = t.acknowledged ? "✓ Bekannt" : this._severityLabel(t.severity);
+  _renderSourceDetailGaRow(e) {
+    const t = e.acknowledged ? "mh-pill--neutral" : this._severityPillClass(e.severity), s = e.acknowledged ? "✓ Bekannt" : this._severityLabel(e.severity);
     return n`<tr
-      class=${`source-ga-row row-${t.severity} ${t.acknowledged ? "ack" : ""}`}
-      @click=${() => void this._onSelectGa(t.ga)}
+      class=${`source-ga-row row-${e.severity} ${e.acknowledged ? "ack" : ""}`}
+      @click=${() => void this._onSelectGa(e.ga)}
       title="GA-Detail oeffnen"
     >
-      <td><code class="ga">${t.ga}</code></td>
-      <td>${t.label ?? n`<span class="muted">—</span>`}</td>
+      <td><code class="ga">${e.ga}</code></td>
+      <td>${e.label ?? n`<span class="muted">—</span>`}</td>
       <td>
-        ${t.dpt ? n`<code class="dpt">${t.dpt}</code>` : n`<span class="muted">—</span>`}
+        ${e.dpt ? n`<code class="dpt">${e.dpt}</code>` : n`<span class="muted">—</span>`}
       </td>
       <td class="num strong">
-        ${t.rate_per_min.toLocaleString("de-DE", {
+        ${e.rate_per_min.toLocaleString("de-DE", {
       minimumFractionDigits: 1,
       maximumFractionDigits: 1
     })}
       </td>
       <td class="num muted">
-        ${t.recommended_rate.toLocaleString("de-DE", {
+        ${e.recommended_rate.toLocaleString("de-DE", {
       minimumFractionDigits: 1,
       maximumFractionDigits: 1
     })}
       </td>
       <td>
-        <span class=${`mh-pill ${e}`}>${s}</span>
+        <span class=${`mh-pill ${t}`}>${s}</span>
       </td>
     </tr>`;
   }
-  _renderSiblingGas(t) {
-    const e = this._filters.topNSiblings;
+  _renderSiblingGas(e) {
+    const t = this._filters.topNSiblings;
     return n`
       <div class="siblings">
         <div class="siblings__head">
-          <strong>Andere GAs des Geräts <code>${t.dev_source}</code>:</strong>
+          <strong>Andere GAs des Geräts <code>${e.dev_source}</code>:</strong>
           ${this._renderInlineTopN(
       this._filters.topNSiblings,
       (s) => this._onTopNSiblings(s)
     )}
         </div>
         <ul>
-          ${t.sibling_gas.slice(0, e).map(
+          ${e.sibling_gas.slice(0, t).map(
       (s) => n`<li
               class="sibling-row"
               @click=${() => void this._onSelectGa(s.ga)}
@@ -7908,8 +7989,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             </li>`
     )}
         </ul>
-        ${t.sibling_gas.length > e ? n`<p class="muted small">
-              … und ${t.sibling_gas.length - e} weitere
+        ${e.sibling_gas.length > t ? n`<p class="muted small">
+              … und ${e.sibling_gas.length - t} weitere
             </p>` : c}
       </div>
     `;
@@ -7917,22 +7998,22 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   // Iter 57: Sortier-Klick toggelt Richtung bei gleichem Key, sonst
   // wechselt auf den neuen Key mit desc als Default (haeufigste Werte
   // oben — typisch fuer "Top-N"-Tabellen).
-  _toggleDevicesSort(t) {
-    this._devicesSortKey === t ? this._devicesSortDir = this._devicesSortDir === "desc" ? "asc" : "desc" : (this._devicesSortKey = t, this._devicesSortDir = t === "dev_source" ? "asc" : "desc");
+  _toggleDevicesSort(e) {
+    this._devicesSortKey === e ? this._devicesSortDir = this._devicesSortDir === "desc" ? "asc" : "desc" : (this._devicesSortKey = e, this._devicesSortDir = e === "dev_source" ? "asc" : "desc");
   }
   // Iter 60 / U5: Sort-Toggle Top-Sender. Default-Direction asc fuer
   // String-Spalten (ga, label), desc fuer numerische und severity (red
   // top zeigt Probleme zuerst).
-  _toggleTopSort(t) {
-    this._topSortKey === t ? this._topSortDir = this._topSortDir === "desc" ? "asc" : "desc" : (this._topSortKey = t, this._topSortDir = t === "ga" || t === "label" ? "asc" : "desc");
+  _toggleTopSort(e) {
+    this._topSortKey === e ? this._topSortDir = this._topSortDir === "desc" ? "asc" : "desc" : (this._topSortKey = e, this._topSortDir = e === "ga" || e === "label" ? "asc" : "desc");
   }
-  _sortArrow(t, e, s) {
-    return t !== e ? c : n`<span class="sort-arrow" aria-hidden="true">${s === "desc" ? "▼" : "▲"}</span>`;
+  _sortArrow(e, t, s) {
+    return e !== t ? c : n`<span class="sort-arrow" aria-hidden="true">${s === "desc" ? "▼" : "▲"}</span>`;
   }
   _renderTopBySource() {
-    const t = this._filters.topNDevices, e = this._devicesSortKey, s = this._devicesSortDir, a = [...this._topBySource].sort((r, i) => {
+    const e = this._filters.topNDevices, t = this._devicesSortKey, s = this._devicesSortDir, r = [...this._topBySource].sort((a, i) => {
       let o;
-      return e === "dev_source" ? o = r.dev_source.localeCompare(i.dev_source) : o = (r[e] || 0) - (i[e] || 0), s === "desc" ? -o : o;
+      return t === "dev_source" ? o = a.dev_source.localeCompare(i.dev_source) : o = (a[t] || 0) - (i[t] || 0), s === "desc" ? -o : o;
     });
     return n`
       <div class="table-wrap">
@@ -7945,7 +8026,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 @click=${() => this._toggleDevicesSort("dev_source")}
                 title="Nach Source-Adresse sortieren"
               >
-                Gerät (Source)${this._sortArrow(e, "dev_source", s)}
+                Gerät (Source)${this._sortArrow(t, "dev_source", s)}
               </th>
               <th>Hersteller / Modell</th>
               <th
@@ -7953,30 +8034,30 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 @click=${() => this._toggleDevicesSort("ga_count")}
                 title="Nach GA-Anzahl sortieren"
               >
-                GAs${this._sortArrow(e, "ga_count", s)}
+                GAs${this._sortArrow(t, "ga_count", s)}
               </th>
               <th
                 class="num sortable"
                 @click=${() => this._toggleDevicesSort("count")}
                 title="Nach Telegramm-Anzahl sortieren"
               >
-                Telegramme${this._sortArrow(e, "count", s)}
+                Telegramme${this._sortArrow(t, "count", s)}
               </th>
               <th class="num">Anteil</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            ${a.slice(0, t).map((r, i) => {
+            ${r.slice(0, e).map((a, i) => {
       var p;
-      const o = ((p = this._summary) == null ? void 0 : p.total_telegrams) ?? 0, d = o > 0 ? r.count / o * 100 : 0, h = r.manufacturer ?? "", m = r.device_name ?? "", g = h && m ? `${h} — ${m}` : h || m, u = this._selectedSource === r.dev_source;
+      const o = ((p = this._summary) == null ? void 0 : p.total_telegrams) ?? 0, d = o > 0 ? a.count / o * 100 : 0, h = a.manufacturer ?? "", m = a.device_name ?? "", g = h && m ? `${h} — ${m}` : h || m, u = this._selectedSource === a.dev_source;
       return n`<tr
                 class=${`top-device-row ${u ? "selected" : ""}`}
-                @click=${() => void this._loadSourceDetail(r.dev_source)}
+                @click=${() => void this._loadSourceDetail(a.dev_source)}
                 title="Geraete-Detail oeffnen"
               >
                 <td class="num muted">${i + 1}</td>
-                <td><code class="ga">${r.dev_source}</code></td>
+                <td><code class="ga">${a.dev_source}</code></td>
                 <td class="device-cell">
                   ${g ? n`<span
                         class="muted small device-cell__text"
@@ -7984,8 +8065,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                         >${g}</span
                       >` : n`<span class="muted small">—</span>`}
                 </td>
-                <td class="num">${r.ga_count}</td>
-                <td class="num strong">${r.count.toLocaleString("de-DE")}</td>
+                <td class="num">${a.ga_count}</td>
+                <td class="num strong">${a.count.toLocaleString("de-DE")}</td>
                 <td class="num muted">
                   ${d.toLocaleString("de-DE", {
         minimumFractionDigits: 1,
@@ -7997,10 +8078,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                     class="mh-btn mh-btn--sm mh-btn--ghost"
                     title="Alle GAs dieses Geräts als bekannt markieren"
                     @click=${(b) => {
-        b.stopPropagation(), this._ackBulk(r.dev_source);
+        b.stopPropagation(), this._ackBulk(a.dev_source);
       }}
                   >
-                    ✓ Alle ${r.ga_count} bekannt
+                    ✓ Alle ${a.ga_count} bekannt
                   </button>
                 </td>
               </tr>`;
@@ -8010,36 +8091,36 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       </div>
     `;
   }
-  async _ackBulk(t) {
+  async _ackBulk(e) {
     if (!this.api || !window.confirm(
-      `Alle GAs des Geräts ${t} als bekannt markieren?`
+      `Alle GAs des Geräts ${e} als bekannt markieren?`
     ))
       return;
-    const e = window.prompt(
-      `Notiz für Bulk-Ack ${t} (optional):`,
+    const t = window.prompt(
+      `Notiz für Bulk-Ack ${e} (optional):`,
       "akzeptiert nach Prüfung"
     );
-    if (e !== null)
+    if (t !== null)
       try {
-        const { from: s, to: a } = Dt(this._filters.periodId), r = await this.api.acknowledgeKnxBulk(t, {
-          note: e || void 0,
+        const { from: s, to: r } = Dt(this._filters.periodId), a = await this.api.acknowledgeKnxBulk(e, {
+          note: t || void 0,
           from: s,
-          to: a
+          to: r
         });
         this._showToast(
-          `${t}: ${r.count} GAs als bekannt markiert`
+          `${e}: ${a.count} GAs als bekannt markiert`
         ), await this._load();
       } catch (s) {
         this._showToast(`Bulk-Ack fehlgeschlagen: ${s.message}`);
       }
   }
   _renderAlarmBanner() {
-    const e = this._alarms.alarms.filter((s) => s.triggered);
+    const t = this._alarms.alarms.filter((s) => s.triggered);
     return n`
       <section class="alarm-banner">
-        <strong>⚠ ${e.length} Alarm(e) aktiv</strong>
+        <strong>⚠ ${t.length} Alarm(e) aktiv</strong>
         <ul>
-          ${e.map(
+          ${t.map(
       (s) => n`<li>
               <span class="alarm-rule">${s.rule}</span>
               <span class="alarm-msg">${s.message}</span>
@@ -8050,11 +8131,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   // Iter 61 / U3: Filter-Helper case-insensitive auf address/label/dpt.
-  _matchesOrphanFilter(t, e) {
-    if (t === "") return !0;
-    const s = t.toLowerCase();
-    return e.some(
-      (a) => typeof a == "string" && a.toLowerCase().includes(s)
+  _matchesOrphanFilter(e, t) {
+    if (e === "") return !0;
+    const s = e.toLowerCase();
+    return t.some(
+      (r) => typeof r == "string" && r.toLowerCase().includes(s)
     );
   }
   /**
@@ -8063,15 +8144,15 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
    * Vorperiode hat dieselbe Laenge unmittelbar davor.
    */
   _renderTrend() {
-    const t = this._trend, e = t.total_delta_pct !== null ? `${t.total_delta_pct > 0 ? "+" : ""}${t.total_delta_pct.toLocaleString(
+    const e = this._trend, t = e.total_delta_pct !== null ? `${e.total_delta_pct > 0 ? "+" : ""}${e.total_delta_pct.toLocaleString(
       "de-DE",
       { minimumFractionDigits: 1, maximumFractionDigits: 1 }
     )} %` : "neu", s = (d) => d.delta_pct === null ? d.delta_abs > 0 ? "neu" : "verstummt" : `${d.delta_pct > 0 ? "+" : ""}${d.delta_pct.toLocaleString("de-DE", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 1
-    })} %`, a = this._classifyTrendSeverity(t.total_delta_pct), r = this._filters.topNTrend, i = this._isShortTrendPeriod(), o = this._isLongRetentionGapPeriod() && t.total_prev === 0;
+    })} %`, r = this._classifyTrendSeverity(e.total_delta_pct), a = this._filters.topNTrend, i = this._isShortTrendPeriod(), o = this._isLongRetentionGapPeriod() && e.total_prev === 0;
     return n`
-      <section class=${`mh-card trend trend--${a}`}>
+      <section class=${`mh-card trend trend--${r}`}>
         <header class="card-head">
           <h3>Trend gegenüber Vorperiode</h3>
           <div class="card-head__meta">
@@ -8080,9 +8161,9 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       (d) => this._onTopNTrend(d)
     )}
             <span class="muted small">
-              Aktuell ${t.total_now.toLocaleString("de-DE")} Telegramme ·
-              zuvor ${t.total_prev.toLocaleString("de-DE")} ·
-              <strong>${e}</strong>
+              Aktuell ${e.total_now.toLocaleString("de-DE")} Telegramme ·
+              zuvor ${e.total_prev.toLocaleString("de-DE")} ·
+              <strong>${t}</strong>
             </span>
           </div>
         </header>
@@ -8101,8 +8182,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         ${o ? c : n`<div class="trend-grid">
           <div class="trend-col">
             <strong>Größte Anstiege</strong>
-            ${t.top_increase.length === 0 ? n`<p class="muted small">Keine signifikanten Anstiege.</p>` : n`<ul class="trend-list trend-list--up">
-                  ${t.top_increase.slice(0, r).map(
+            ${e.top_increase.length === 0 ? n`<p class="muted small">Keine signifikanten Anstiege.</p>` : n`<ul class="trend-list trend-list--up">
+                  ${e.top_increase.slice(0, a).map(
       (d) => n`<li
                       class=${`trend-row ${this._selectedGa === d.ga ? "selected" : ""}`}
                       @click=${() => void this._onSelectGa(d.ga)}
@@ -8122,8 +8203,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </div>
           <div class="trend-col">
             <strong>Größte Rückgänge</strong>
-            ${t.top_decrease.length === 0 ? n`<p class="muted small">Keine signifikanten Rückgänge.</p>` : n`<ul class="trend-list trend-list--down">
-                  ${t.top_decrease.slice(0, r).map(
+            ${e.top_decrease.length === 0 ? n`<p class="muted small">Keine signifikanten Rückgänge.</p>` : n`<ul class="trend-list trend-list--down">
+                  ${e.top_decrease.slice(0, a).map(
       (d) => n`<li
                       class=${`trend-row ${this._selectedGa === d.ga ? "selected" : ""}`}
                       @click=${() => void this._onSelectGa(d.ga)}
@@ -8157,11 +8238,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
    * verschreckt den User unnoetig. Stattdessen zeigt die Trend-Card
    * einen erklaerenden Hinweis (siehe `_renderTrend`).
    */
-  _classifyTrendSeverity(t) {
+  _classifyTrendSeverity(e) {
     if (this._isShortTrendPeriod()) return "green";
-    if (t === null) return "yellow";
-    const e = Math.abs(t);
-    return e < At ? "green" : e < Et ? "yellow" : e < Pt ? "orange" : "red";
+    if (e === null) return "yellow";
+    const t = Math.abs(e);
+    return t < At ? "green" : t < Et ? "yellow" : t < Pt ? "orange" : "red";
   }
   _isShortTrendPeriod() {
     return this._filters.periodId === "1h" || this._filters.periodId === "6h";
@@ -8192,39 +8273,39 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
    * relativ zum Maximum. SVG-frei (CSS-Grid + color-mix).
    */
   _renderHeatmap() {
-    const t = this._heatmap;
-    if (t.gas.length === 0 || t.buckets.length === 0) return n``;
-    const e = t.matrix.flat().reduce((a, r) => r > a ? r : a, 1), s = (a) => a.slice(11, 16) || a;
+    const e = this._heatmap;
+    if (e.gas.length === 0 || e.buckets.length === 0) return n``;
+    const t = e.matrix.flat().reduce((r, a) => a > r ? a : r, 1), s = (r) => r.slice(11, 16) || r;
     return n`
       <section class="mh-card heatmap-card">
         <header class="card-head">
           <h3>Aktivitäts-Heatmap</h3>
           <span class="muted small">
-            Top-${t.gas.length} GAs × ${t.buckets.length} ${t.bucket_minutes}-Min-Buckets · Maximum ${e} Telegramme/Bucket
+            Top-${e.gas.length} GAs × ${e.buckets.length} ${e.bucket_minutes}-Min-Buckets · Maximum ${t} Telegramme/Bucket
           </span>
         </header>
         <div class="heatmap-grid"
-          style=${`--heatmap-cols: ${t.buckets.length};`}
+          style=${`--heatmap-cols: ${e.buckets.length};`}
         >
           <div class="heatmap-row heatmap-row--header">
             <div class="heatmap-cell heatmap-label"></div>
-            ${t.buckets.map(
-      (a) => n`<div
+            ${e.buckets.map(
+      (r) => n`<div
                 class="heatmap-cell heatmap-cell--bucket"
-                title=${a}
+                title=${r}
               >
-                ${s(a)}
+                ${s(r)}
               </div>`
     )}
           </div>
-          ${t.gas.map(
-      (a, r) => n`<div class="heatmap-row">
-              <div class="heatmap-cell heatmap-label" title=${a.label || ""}>
-                <code>${a.ga}</code>
-                <span class="muted small">${a.label ?? ""}</span>
+          ${e.gas.map(
+      (r, a) => n`<div class="heatmap-row">
+              <div class="heatmap-cell heatmap-label" title=${r.label || ""}>
+                <code>${r.ga}</code>
+                <span class="muted small">${r.label ?? ""}</span>
               </div>
-              ${t.matrix[r].map((i) => {
-        const o = i === 0 ? 0 : Math.round(i / e * 100);
+              ${e.matrix[a].map((i) => {
+        const o = i === 0 ? 0 : Math.round(i / t * 100);
         return n`<div
                   class="heatmap-cell heatmap-cell--data"
                   style=${`background: color-mix(in srgb, var(--mh-warning) ${o}%, transparent);`}
@@ -8237,18 +8318,18 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     )}
         </div>
         <p class="muted small heatmap-legend">
-          Intensität proportional zum Maximum (${e}). Klick auf
+          Intensität proportional zum Maximum (${t}). Klick auf
           GA-Code öffnet Detail-Pane.
         </p>
       </section>
     `;
   }
   _renderOrphans() {
-    const t = this._orphans, e = (p, b) => this._orphansHidePlaceholders ? p.filter((v) => !$r(v.address, b(v))) : p, s = e(t.missing_in_log, (p) => p.name), a = e(t.extra_in_log, (p) => p.label), r = s.filter(
+    const e = this._orphans, t = (p, b) => this._orphansHidePlaceholders ? p.filter((v) => !$r(v.address, b(v))) : p, s = t(e.missing_in_log, (p) => p.name), r = t(e.extra_in_log, (p) => p.label), a = s.filter(
       (p) => this._matchesOrphanFilter(this._orphansMissingFilter, [p.address, p.name, p.dpt])
-    ), i = a.filter(
+    ), i = r.filter(
       (p) => this._matchesOrphanFilter(this._orphansExtraFilter, [p.address, p.label])
-    ), o = this._filters.topNOrphansMissing, d = this._filters.topNOrphansExtra, h = r.slice(0, o), m = i.slice(0, d), g = t.missing_in_log.length - s.length, u = t.extra_in_log.length - a.length;
+    ), o = this._filters.topNOrphansMissing, d = this._filters.topNOrphansExtra, h = a.slice(0, o), m = i.slice(0, d), g = e.missing_in_log.length - s.length, u = e.extra_in_log.length - r.length;
     return n`
       <section class="mh-card">
         <header class="card-head">
@@ -8265,15 +8346,15 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
               <span>Platzhalter ausblenden${this._orphansHidePlaceholders && g + u > 0 ? n` <span class="muted small">(${g + u})</span>` : c}</span>
             </label>
             <span class="muted small">
-              Projekt: ${t.project_total} • geloggt: ${t.log_total}
+              Projekt: ${e.project_total} • geloggt: ${e.log_total}
             </span>
           </div>
         </header>
         <div class="orphans-grid">
-          ${t.missing_in_log.length > 0 ? n`<div>
+          ${e.missing_in_log.length > 0 ? n`<div>
                 <div class="orphans-col-head">
                   <strong
-                    >Im Projekt, nie gesehen (${r.length}${this._orphansMissingFilter ? ` von ${t.missing_in_log.length}` : ""})</strong
+                    >Im Projekt, nie gesehen (${a.length}${this._orphansMissingFilter ? ` von ${e.missing_in_log.length}` : ""})</strong
                   >
                   ${this._renderInlineTopN(
       this._filters.topNOrphansMissing,
@@ -8298,14 +8379,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                     </li>`
     )}
                 </ul>
-                ${r.length > o ? n`<p class="muted small">
-                      … und ${r.length - o} weitere
+                ${a.length > o ? n`<p class="muted small">
+                      … und ${a.length - o} weitere
                     </p>` : c}
               </div>` : c}
-          ${t.extra_in_log.length > 0 ? n`<div>
+          ${e.extra_in_log.length > 0 ? n`<div>
                 <div class="orphans-col-head">
                   <strong
-                    >Geloggt, nicht im Projekt (${i.length}${this._orphansExtraFilter ? ` von ${t.extra_in_log.length}` : ""})</strong
+                    >Geloggt, nicht im Projekt (${i.length}${this._orphansExtraFilter ? ` von ${e.extra_in_log.length}` : ""})</strong
                   >
                   ${this._renderInlineTopN(
       this._filters.topNOrphansExtra,
@@ -8339,61 +8420,61 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _renderSilenceAlarms() {
-    const t = this._silence, e = t.items.filter((a) => a.alarm);
-    if (e.length === 0) return n``;
+    const e = this._silence, t = e.items.filter((r) => r.alarm);
+    if (t.length === 0) return n``;
     const s = this._filters.topNSilence;
     return n`
       <section class="mh-card silence-card">
         <header class="card-head">
-          <h3>Stille-Alarme (${t.alarm_count})</h3>
+          <h3>Stille-Alarme (${e.alarm_count})</h3>
           <div class="card-head__meta">
-            ${this._renderInlineTopN(this._filters.topNSilence, (a) => this._onTopNSilence(a))}
+            ${this._renderInlineTopN(this._filters.topNSilence, (r) => this._onTopNSilence(r))}
             <span class="muted small">
-              Schwelle: &gt; ${t.max_silence_minutes} Min ohne Telegramm
+              Schwelle: &gt; ${e.max_silence_minutes} Min ohne Telegramm
             </span>
           </div>
         </header>
         <ul class="silence-list">
-          ${e.slice(0, s).map(
-      (a) => n`<li
-              class=${`silence-row ${this._selectedSource === a.dev_source ? "selected" : ""}`}
-              @click=${() => void this._loadSourceDetail(a.dev_source)}
+          ${t.slice(0, s).map(
+      (r) => n`<li
+              class=${`silence-row ${this._selectedSource === r.dev_source ? "selected" : ""}`}
+              @click=${() => void this._loadSourceDetail(r.dev_source)}
               title="Geraete-Detail oeffnen"
             >
-              <code>${a.dev_source}</code>
+              <code>${r.dev_source}</code>
               <span class="muted">
-                seit ${this._formatSilence(a.silent_minutes)} stumm
+                seit ${this._formatSilence(r.silent_minutes)} stumm
               </span>
-              <span class="muted small">last_seen ${this._formatTs(a.last_seen)}</span>
+              <span class="muted small">last_seen ${this._formatTs(r.last_seen)}</span>
             </li>`
     )}
         </ul>
-        ${e.length > s ? n`<p class="muted small">
-              … und ${e.length - s} weitere
+        ${t.length > s ? n`<p class="muted small">
+              … und ${t.length - s} weitere
             </p>` : c}
       </section>
     `;
   }
-  _formatSilence(t) {
-    return t >= 1440 ? `${Math.floor(t / 1440)} Tagen` : t >= 60 ? `${Math.floor(t / 60)} Std` : `${Math.round(t)} Min`;
+  _formatSilence(e) {
+    return e >= 1440 ? `${Math.floor(e / 1440)} Tagen` : e >= 60 ? `${Math.floor(e / 60)} Std` : `${Math.round(e)} Min`;
   }
-  _formatTs(t) {
+  _formatTs(e) {
     try {
-      return new Date(t).toLocaleString("de-DE");
+      return new Date(e).toLocaleString("de-DE");
     } catch {
-      return t;
+      return e;
     }
   }
   _renderBusHealth() {
-    const t = this._busHealth, e = t.summary.ratio_pct, s = e >= 1 ? "danger" : e >= 0.5 ? "warning" : e > 0 ? "elevated" : "ok", a = this._filters.topNBusHealth;
+    const e = this._busHealth, t = e.summary.ratio_pct, s = t >= 1 ? "danger" : t >= 0.5 ? "warning" : t > 0 ? "elevated" : "ok", r = this._filters.topNBusHealth;
     return n`
       <section class="mh-card">
         <header class="card-head">
           <h3>Bus-Gesundheit (Wiederholrate)</h3>
           <div class="card-head__meta">
-            ${t.per_ga.length > 0 ? this._renderInlineTopN(
+            ${e.per_ga.length > 0 ? this._renderInlineTopN(
       this._filters.topNBusHealth,
-      (r) => this._onTopNBusHealth(r)
+      (a) => this._onTopNBusHealth(a)
     ) : c}
             <span class="muted small">
               xknx-Repeated-Flag — hoher Wert deutet auf Verkabelung/EMV
@@ -8403,13 +8484,13 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         <div class="kpis">
           <div class=${`kpi busload busload--${s}`}>
             <span class="kpi-label">Wiederhol-Quote</span>
-            <span class="kpi-value">${e.toLocaleString("de-DE", {
+            <span class="kpi-value">${t.toLocaleString("de-DE", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })} %</span>
             <span class="kpi-hint">
-              ${t.summary.repeated.toLocaleString("de-DE")} von
-              ${t.summary.total.toLocaleString("de-DE")} Telegrammen
+              ${e.summary.repeated.toLocaleString("de-DE")} von
+              ${e.summary.total.toLocaleString("de-DE")} Telegrammen
             </span>
           </div>
           <div class="kpi">
@@ -8418,30 +8499,30 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             <span class="kpi-hint">Empfehlung KNX-Praxis</span>
           </div>
         </div>
-        ${t.per_ga.length > 0 ? n`<div class="bus-health-list">
+        ${e.per_ga.length > 0 ? n`<div class="bus-health-list">
               <strong>Top-GAs mit Wiederholungen:</strong>
               <ul>
-                ${t.per_ga.slice(0, a).map(
-      (r) => n`<li>
-                    <code>${r.ga}</code>
-                    <span class="muted">${r.label ?? "—"}</span>
-                    <span class="num">${r.repeated} / ${r.total}</span>
-                    <span class="num">${r.ratio_pct.toLocaleString("de-DE", {
+                ${e.per_ga.slice(0, r).map(
+      (a) => n`<li>
+                    <code>${a.ga}</code>
+                    <span class="muted">${a.label ?? "—"}</span>
+                    <span class="num">${a.repeated} / ${a.total}</span>
+                    <span class="num">${a.ratio_pct.toLocaleString("de-DE", {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1
       })} %</span>
                   </li>`
     )}
               </ul>
-              ${t.per_ga.length > a ? n`<p class="muted small">
-                    … und ${t.per_ga.length - a} weitere
+              ${e.per_ga.length > r ? n`<p class="muted small">
+                    … und ${e.per_ga.length - r} weitere
                   </p>` : c}
             </div>` : c}
       </section>
     `;
   }
-  _severityPillClass(t) {
-    return zt(t);
+  _severityPillClass(e) {
+    return zt(e);
   }
   /**
    * Iter aiohttp-error-ZU9UA / P2: konsolidierte Status-Spalte fuer
@@ -8454,19 +8535,19 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
    *     mit Findings-Icon
    *   - sonst Severity-Label wie gehabt
    */
-  _renderTopRowStatus(t) {
-    if (t.acknowledged)
+  _renderTopRowStatus(e) {
+    if (e.acknowledged)
       return n`<span class="mh-pill mh-pill--neutral ack-pill" title="acknowledged">
         ✓ Bekannt
       </span>`;
-    const e = t.severity, s = t.has_findings && e === "green" ? "yellow" : e, a = t.has_findings && e === "green" ? "auffällig" : this._severityLabel(s);
+    const t = e.severity, s = e.has_findings && t === "green" ? "yellow" : t, r = e.has_findings && t === "green" ? "auffällig" : this._severityLabel(s);
     return n`<span
       class=${`mh-pill ${this._severityPillClass(s)}`}
-      title=${t.has_findings ? "Anti-Pattern erkannt — Detail-Pane zeigt mehr (Konstant-Wert-Spam, Read-Burst, Heartbeat)" : ""}
+      title=${e.has_findings ? "Anti-Pattern erkannt — Detail-Pane zeigt mehr (Konstant-Wert-Spam, Read-Burst, Heartbeat)" : ""}
     >
       <span class="mh-pill__dot"></span>
-      ${t.has_findings ? n`<span aria-hidden="true">⚠</span> ` : c}
-      ${a}
+      ${e.has_findings ? n`<span aria-hidden="true">⚠</span> ` : c}
+      ${r}
     </span>`;
   }
 };
@@ -10179,31 +10260,31 @@ const st = {
   "ORPHAN_GA",
   "STALE_GA"
 ]);
-function Lr(t) {
-  return zr.has(t);
+function Lr(e) {
+  return zr.has(e);
 }
-function Yt(t) {
-  return t.startsWith("de") ? "de" : "en";
+function Yt(e) {
+  return e.startsWith("de") ? "de" : "en";
 }
-function Je(t, e) {
-  const s = st[Yt(e)][t];
+function Je(e, t) {
+  const s = st[Yt(t)][e];
   return (s == null ? void 0 : s.title) ?? "";
 }
-function Or(t) {
-  var e;
-  return ((e = st.en[t]) == null ? void 0 : e.help_url) ?? "";
+function Or(e) {
+  var t;
+  return ((t = st.en[e]) == null ? void 0 : t.help_url) ?? "";
 }
-function Fr(t, e, s) {
-  const a = st[Yt(e)][t];
-  return a === void 0 ? "" : Cr(a.description, s);
+function Fr(e, t, s) {
+  const r = st[Yt(t)][e];
+  return r === void 0 ? "" : Cr(r.description, s);
 }
-function Cr(t, e) {
-  return t.replace(/\{(\w+)\}/g, (s, a) => a in e ? String(e[a]) : s);
+function Cr(e, t) {
+  return e.replace(/\{(\w+)\}/g, (s, r) => r in t ? String(t[r]) : s);
 }
-var Nr = Object.defineProperty, Ir = Object.getOwnPropertyDescriptor, Ae = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Ir(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && Nr(e, s, r), r;
+var Nr = Object.defineProperty, Ir = Object.getOwnPropertyDescriptor, Ae = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Ir(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && Nr(t, s, a), a;
 };
 const Rr = [
   "debug",
@@ -10222,34 +10303,34 @@ let te = class extends x {
     if (this.api) {
       this._loading = !0, this._error = null;
       try {
-        const t = await this.api.listSeverityOverrides();
-        this._items = t.items;
-      } catch (t) {
-        this._error = t.message ?? "Unbekannter Fehler";
+        const e = await this.api.listSeverityOverrides();
+        this._items = e.items;
+      } catch (e) {
+        this._error = e.message ?? "Unbekannter Fehler";
       } finally {
         this._loading = !1;
       }
     }
   }
-  async _setOverride(t, e) {
+  async _setOverride(e, t) {
     if (this.api)
       try {
-        await this.api.setSeverityOverride(t, e), await this._load();
+        await this.api.setSeverityOverride(e, t), await this._load();
       } catch (s) {
         this._error = s.message ?? "Override konnte nicht gesetzt werden";
       }
   }
-  async _clearOverride(t) {
+  async _clearOverride(e) {
     if (this.api)
       try {
-        await this.api.clearSeverityOverride(t), await this._load();
-      } catch (e) {
-        this._error = e.message ?? "Override konnte nicht entfernt werden";
+        await this.api.clearSeverityOverride(e), await this._load();
+      } catch (t) {
+        this._error = t.message ?? "Override konnte nicht entfernt werden";
       }
   }
-  _onSelectChange(t, e) {
-    const a = t.target.value;
-    a === "_default" ? this._clearOverride(e) : this._setOverride(e, a);
+  _onSelectChange(e, t) {
+    const r = e.target.value;
+    r === "_default" ? this._clearOverride(t) : this._setOverride(t, r);
   }
   _lang() {
     return typeof document < "u" && document.documentElement.lang ? document.documentElement.lang : "en";
@@ -10267,33 +10348,33 @@ let te = class extends x {
           </tr>
         </thead>
         <tbody>
-          ${this._items.map((t) => this._renderRow(t))}
+          ${this._items.map((e) => this._renderRow(e))}
         </tbody>
       </table>
     `;
   }
-  _renderRow(t) {
-    const e = this._lang(), s = Je(t.code, e) || t.code, a = t.override_severity ?? "_default";
+  _renderRow(e) {
+    const t = this._lang(), s = Je(e.code, t) || e.code, r = e.override_severity ?? "_default";
     return n`
-      <tr data-test="override-row" data-code=${t.code}>
+      <tr data-test="override-row" data-code=${e.code}>
         <td class="code">
-          <span class="code-text" title=${t.code}>${s}</span>
+          <span class="code-text" title=${e.code}>${s}</span>
         </td>
         <td>
-          <span class=${`mh-pill mh-pill--${t.default_severity}`}>
-            ${t.default_severity}
+          <span class=${`mh-pill mh-pill--${e.default_severity}`}>
+            ${e.default_severity}
           </span>
         </td>
         <td>
           <select
             class="mh-select"
             data-test="override-select"
-            .value=${a}
-            @change=${(r) => this._onSelectChange(r, t.code)}
+            .value=${r}
+            @change=${(a) => this._onSelectChange(a, e.code)}
           >
             <option value="_default">— Default —</option>
             ${Rr.map(
-      (r) => n`<option value=${r}>${r}</option>`
+      (a) => n`<option value=${a}>${a}</option>`
     )}
           </select>
         </td>
@@ -10359,10 +10440,10 @@ Ae([
 te = Ae([
   S("severity-override-form")
 ], te);
-var Mr = Object.defineProperty, Ur = Object.getOwnPropertyDescriptor, C = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Ur(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && Mr(e, s, r), r;
+var Mr = Object.defineProperty, Ur = Object.getOwnPropertyDescriptor, C = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Ur(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && Mr(t, s, a), a;
 };
 const Hr = [
   { value: "", label: "Alle Severities" },
@@ -10383,101 +10464,101 @@ let z = class extends x {
   async firstUpdated() {
     await this._load();
   }
-  updated(t) {
-    t.has("sourceFilter") && t.get("sourceFilter") !== void 0 && this._load();
+  updated(e) {
+    e.has("sourceFilter") && e.get("sourceFilter") !== void 0 && this._load();
   }
   async _load() {
     if (this.api) {
       this._loading = !0, this._error = null;
       try {
-        const t = await this.api.listFindings({
+        const e = await this.api.listFindings({
           severity: this._severityFilter || void 0,
           source: this.sourceFilter || void 0
         });
-        this._items = t.items, this._total = t.total;
-      } catch (t) {
-        this._error = t.message ?? "Unbekannter Fehler";
+        this._items = e.items, this._total = e.total;
+      } catch (e) {
+        this._error = e.message ?? "Unbekannter Fehler";
       } finally {
         this._loading = !1;
       }
     }
   }
-  _onSeverityChange(t) {
-    const e = t.target;
-    this._severityFilter = e.value, this._load();
+  _onSeverityChange(e) {
+    const t = e.target;
+    this._severityFilter = t.value, this._load();
   }
-  _onProjectOnlyChange(t) {
-    const e = t.target;
-    this._projectOnly = e.checked;
+  _onProjectOnlyChange(e) {
+    const t = e.target;
+    this._projectOnly = t.checked;
   }
   _filteredItems() {
-    return this._projectOnly ? this._items.filter((t) => Lr(t.code)) : this._items;
+    return this._projectOnly ? this._items.filter((e) => Lr(e.code)) : this._items;
   }
-  _itemKey(t) {
-    return `${t.code}::${t.ga ?? ""}::${t.last_seen}`;
+  _itemKey(e) {
+    return `${e.code}::${e.ga ?? ""}::${e.last_seen}`;
   }
-  _onSelect(t) {
-    const e = this._itemKey(t);
-    this._selectedKey = this._selectedKey === e ? null : e;
+  _onSelect(e) {
+    const t = this._itemKey(e);
+    this._selectedKey = this._selectedKey === t ? null : t;
   }
   async _exportMarkdown() {
     if (this.api)
       try {
-        const t = await this.api.exportFindingsMarkdown();
+        const e = await this.api.exportFindingsMarkdown();
         if (navigator.clipboard && typeof navigator.clipboard.writeText == "function")
-          await navigator.clipboard.writeText(t);
+          await navigator.clipboard.writeText(e);
         else {
-          const e = new Blob([t], { type: "text/markdown" }), s = document.createElement("a");
-          s.href = URL.createObjectURL(e), s.download = "findings.md", s.click(), URL.revokeObjectURL(s.href);
+          const t = new Blob([e], { type: "text/markdown" }), s = document.createElement("a");
+          s.href = URL.createObjectURL(t), s.download = "findings.md", s.click(), URL.revokeObjectURL(s.href);
         }
-      } catch (t) {
-        this._error = t.message ?? "Export fehlgeschlagen";
+      } catch (e) {
+        this._error = e.message ?? "Export fehlgeschlagen";
       }
   }
   async _refreshAll() {
     if (!this.api) return;
-    const t = Array.from(
+    const e = Array.from(
       new Set(
-        this._items.map((e) => e.ga).filter((e) => typeof e == "string" && e.length > 0)
+        this._items.map((t) => t.ga).filter((t) => typeof t == "string" && t.length > 0)
       )
     );
-    if (t.length === 0) {
+    if (e.length === 0) {
       this._error = "Keine GA mit Findings im aktuellen Filter — der Per-GA-Lauf braucht eine Auswahl.";
       return;
     }
     this._loading = !0, this._error = null;
     try {
-      for (const e of t)
-        await this.api.refreshFindings(e);
+      for (const t of e)
+        await this.api.refreshFindings(t);
       await this._load();
-    } catch (e) {
-      this._error = e.message ?? "Refresh fehlgeschlagen";
+    } catch (t) {
+      this._error = t.message ?? "Refresh fehlgeschlagen";
     } finally {
       this._loading = !1;
     }
   }
   async _ackSelected() {
-    const t = this._currentSelection();
-    if (!(!t || !this.api)) {
-      if (t.ga === null) {
+    const e = this._currentSelection();
+    if (!(!e || !this.api)) {
+      if (e.ga === null) {
         this._error = "Bus-weite Findings koennen (noch) nicht akknowledged werden.";
         return;
       }
       this._loading = !0, this._error = null;
       try {
         await this.api.acknowledgeFinding({
-          ga: t.ga,
-          code: t.code
+          ga: e.ga,
+          code: e.code
         }), await this._load(), this._selectedKey = null;
-      } catch (e) {
-        this._error = e.message ?? "Ack fehlgeschlagen";
+      } catch (t) {
+        this._error = t.message ?? "Ack fehlgeschlagen";
       } finally {
         this._loading = !1;
       }
     }
   }
   _currentSelection() {
-    return this._selectedKey === null ? null : this._items.find((t) => this._itemKey(t) === this._selectedKey) ?? null;
+    return this._selectedKey === null ? null : this._items.find((e) => this._itemKey(e) === this._selectedKey) ?? null;
   }
   render() {
     return n`
@@ -10540,7 +10621,7 @@ let z = class extends x {
               @change=${this._onSeverityChange}
             >
               ${Hr.map(
-      (t) => n`<option value=${t.value}>${t.label}</option>`
+      (e) => n`<option value=${e.value}>${e.label}</option>`
     )}
             </select>
           </label>
@@ -10573,38 +10654,38 @@ let z = class extends x {
       </div>`;
     if (this._loading)
       return n`<div class="empty">Wird geladen…</div>`;
-    const t = this._filteredItems();
-    return t.length === 0 ? n`<div class="empty" data-test="findings-empty">
+    const e = this._filteredItems();
+    return e.length === 0 ? n`<div class="empty" data-test="findings-empty">
         Keine Findings im aktuellen Filter — die Konfiguration sieht
         unauffaellig aus.
       </div>` : n`<ul class="items" data-test="findings-items">
-      ${t.map((e) => this._renderItem(e))}
+      ${e.map((t) => this._renderItem(t))}
     </ul>`;
   }
-  _renderItem(t) {
-    const e = this._itemKey(t), s = this._selectedKey === e, a = Je(t.code, this._lang()) || t.code;
+  _renderItem(e) {
+    const t = this._itemKey(e), s = this._selectedKey === t, r = Je(e.code, this._lang()) || e.code;
     return n`
       <li
         class=${`item ${s ? "item--selected" : ""}`}
         data-test="findings-item"
-        @click=${() => this._onSelect(t)}
+        @click=${() => this._onSelect(e)}
       >
         <span
-          class=${Ot[t.severity]}
+          class=${Ot[e.severity]}
           data-test="item-severity"
         >
-          ${t.severity}
+          ${e.severity}
         </span>
-        <span class="code" data-test="item-code" title=${t.code}>${a}</span>
-        <span class="ga" data-test="item-ga">${t.ga ?? "(global)"}</span>
+        <span class="code" data-test="item-code" title=${e.code}>${r}</span>
+        <span class="ga" data-test="item-ga">${e.ga ?? "(global)"}</span>
         <span class="source" data-test="item-source"
-          >${t.source ?? ""}</span
+          >${e.source ?? ""}</span
         >
         <span class="last-seen" data-test="item-last-seen"
-          >${this._formatTimestamp(t.last_seen)}</span
+          >${this._formatTimestamp(e.last_seen)}</span
         >
         <span class="count" data-test="item-count" title="Occurrence count"
-          >×${t.occurrence_count}</span
+          >×${e.occurrence_count}</span
         >
       </li>
     `;
@@ -10613,20 +10694,20 @@ let z = class extends x {
     return typeof document < "u" && document.documentElement.lang ? document.documentElement.lang : typeof navigator < "u" && navigator.language ? navigator.language : "en";
   }
   _renderDetailPane() {
-    const t = this._currentSelection();
-    if (t === null) return c;
-    const e = this._lang(), s = Je(t.code, e) || t.code, a = Fr(
-      t.code,
-      e,
-      t.evidence
-    ), r = Or(t.code);
+    const e = this._currentSelection();
+    if (e === null) return c;
+    const t = this._lang(), s = Je(e.code, t) || e.code, r = Fr(
+      e.code,
+      t,
+      e.evidence
+    ), a = Or(e.code);
     return n`
       <aside class="detail mh-card" data-test="findings-detail">
         <header class="detail-header">
-          <span class=${Ot[t.severity]}>
-            ${t.severity}
+          <span class=${Ot[e.severity]}>
+            ${e.severity}
           </span>
-          <span class="detail-code" title=${t.code}>${s}</span>
+          <span class="detail-code" title=${e.code}>${s}</span>
           <button
             class="mh-btn mh-btn--ghost mh-btn--icon"
             type="button"
@@ -10636,35 +10717,35 @@ let z = class extends x {
             ✕
           </button>
         </header>
-        ${a ? n`<p class="detail-description" data-test="findings-detail-description">
-              ${a}
+        ${r ? n`<p class="detail-description" data-test="findings-detail-description">
+              ${r}
             </p>` : c}
-        ${r ? n`<a class="detail-help" href=${r} target="_blank" rel="noopener"
+        ${a ? n`<a class="detail-help" href=${a} target="_blank" rel="noopener"
               >Hilfe / Doku ↗</a
             >` : c}
         <dl class="detail-evidence">
           <dt>Code</dt>
-          <dd>${t.code}</dd>
+          <dd>${e.code}</dd>
           <dt>GA</dt>
-          <dd>${t.ga ?? "(global)"}</dd>
+          <dd>${e.ga ?? "(global)"}</dd>
           <dt>Source</dt>
-          <dd>${t.source ?? "—"}</dd>
+          <dd>${e.source ?? "—"}</dd>
           <dt>First-Seen</dt>
-          <dd>${this._formatTimestamp(t.first_seen)}</dd>
+          <dd>${this._formatTimestamp(e.first_seen)}</dd>
           <dt>Last-Seen</dt>
-          <dd>${this._formatTimestamp(t.last_seen)}</dd>
+          <dd>${this._formatTimestamp(e.last_seen)}</dd>
           <dt>Occurrences</dt>
-          <dd>${t.occurrence_count}</dd>
+          <dd>${e.occurrence_count}</dd>
           <dt>Detector</dt>
-          <dd>${t.detector_version}</dd>
-          ${this._renderEvidenceEntries(t.evidence)}
+          <dd>${e.detector_version}</dd>
+          ${this._renderEvidenceEntries(e.evidence)}
         </dl>
         <div class="detail-actions">
           <button
             class="mh-btn mh-btn--primary"
             type="button"
             data-test="findings-ack-btn"
-            ?disabled=${t.ga === null || this._loading}
+            ?disabled=${e.ga === null || this._loading}
             @click=${this._ackSelected}
           >
             Ack
@@ -10673,20 +10754,20 @@ let z = class extends x {
       </aside>
     `;
   }
-  _renderEvidenceEntries(t) {
-    return Object.entries(t).map(
-      ([e, s]) => n`
-        <dt>${e}</dt>
+  _renderEvidenceEntries(e) {
+    return Object.entries(e).map(
+      ([t, s]) => n`
+        <dt>${t}</dt>
         <dd>${typeof s == "object" ? JSON.stringify(s) : String(s)}</dd>
       `
     );
   }
-  _formatTimestamp(t) {
+  _formatTimestamp(e) {
     try {
-      const e = new Date(t);
-      return `${e.toLocaleDateString()} ${e.toLocaleTimeString()}`;
+      const t = new Date(e);
+      return `${t.toLocaleDateString()} ${t.toLocaleTimeString()}`;
     } catch {
-      return t;
+      return e;
     }
   }
 };
@@ -10909,10 +10990,10 @@ C([
 z = C([
   S("findings-view")
 ], z);
-var Br = Object.defineProperty, jr = Object.getOwnPropertyDescriptor, Me = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? jr(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && Br(e, s, r), r;
+var Br = Object.defineProperty, jr = Object.getOwnPropertyDescriptor, Me = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? jr(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && Br(t, s, a), a;
 };
 const Ft = "messagehub.stats.subtab", Gr = /* @__PURE__ */ new Set(["live", "knx", "findings"]);
 let pe = class extends x {
@@ -10923,16 +11004,16 @@ let pe = class extends x {
   }
   _loadTab() {
     try {
-      const t = localStorage.getItem(Ft);
-      if (t && Gr.has(t)) return t;
+      const e = localStorage.getItem(Ft);
+      if (e && Gr.has(e)) return e;
     } catch {
     }
     return "live";
   }
-  _setTab(t) {
-    this._tab = t;
+  _setTab(e) {
+    this._tab = e;
     try {
-      localStorage.setItem(Ft, t);
+      localStorage.setItem(Ft, e);
     } catch {
     }
   }
@@ -10946,18 +11027,18 @@ let pe = class extends x {
   //   #findings              -> Findings-Tab, kein Filter
   //   #findings?source=X.Y.Z -> Findings-Tab, Source-Filter X.Y.Z
   // Andere Hashes bleiben unbeachtet — kein Hijack der Browser-URL.
-  _handleHash(t) {
-    const e = t.startsWith("#") ? t.slice(1) : t;
-    if (!e.startsWith("findings"))
+  _handleHash(e) {
+    const t = e.startsWith("#") ? e.slice(1) : e;
+    if (!t.startsWith("findings"))
       return;
     this._setTab("findings");
-    const s = e.indexOf("?");
+    const s = t.indexOf("?");
     if (s === -1) {
       this._findingsSourceFilter = null;
       return;
     }
-    const r = new URLSearchParams(e.slice(s + 1)).get("source");
-    this._findingsSourceFilter = r && r.length > 0 ? r : null;
+    const a = new URLSearchParams(t.slice(s + 1)).get("source");
+    this._findingsSourceFilter = a && a.length > 0 ? a : null;
   }
   render() {
     return n`
@@ -10969,13 +11050,13 @@ let pe = class extends x {
       // Iter 9 (knx-findings): Konfigurations-Check als 3. Sub-Tab.
       { id: "findings", label: "Konfigurations-Check" }
     ].map(
-      (e) => n`<button
+      (t) => n`<button
               role="tab"
-              aria-selected=${this._tab === e.id}
-              class=${`subtab ${this._tab === e.id ? "active" : ""}`}
-              @click=${() => this._setTab(e.id)}
+              aria-selected=${this._tab === t.id}
+              class=${`subtab ${this._tab === t.id ? "active" : ""}`}
+              @click=${() => this._setTab(t.id)}
             >
-              ${e.label}
+              ${t.label}
             </button>`
     )}
         </nav>
@@ -11060,34 +11141,34 @@ Me([
 pe = Me([
   S("stats-view")
 ], pe);
-var Kr = Object.defineProperty, Wr = Object.getOwnPropertyDescriptor, ie = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Wr(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && Kr(e, s, r), r;
+var Kr = Object.defineProperty, Wr = Object.getOwnPropertyDescriptor, ie = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Wr(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && Kr(t, s, a), a;
 };
-function Vr(t) {
-  const e = t.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), s = new Set(e), a = (...r) => r.some((i) => s.has(i));
-  return a("delete", "remove", "removed", "deleted") ? "delete" : a("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : a("update", "updated", "edit", "edited", "set") ? "update" : a("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
+function Vr(e) {
+  const t = e.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), s = new Set(t), r = (...a) => a.some((i) => s.has(i));
+  return r("delete", "remove", "removed", "deleted") ? "delete" : r("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : r("update", "updated", "edit", "edited", "set") ? "update" : r("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
 }
 const Ct = 60;
-function qr(t) {
-  if (!t || typeof t != "object" || Array.isArray(t))
+function qr(e) {
+  if (!e || typeof e != "object" || Array.isArray(e))
     return "";
-  const e = t;
-  if (typeof e.label == "string") return e.label;
-  if (typeof e.name == "string") return e.name;
-  const s = Object.entries(e);
+  const t = e;
+  if (typeof t.label == "string") return t.label;
+  if (typeof t.name == "string") return t.name;
+  const s = Object.entries(t);
   if (s.length === 1) {
-    const [r, i] = s[0];
+    const [a, i] = s[0];
     if (typeof i == "string" || typeof i == "number" || typeof i == "boolean") {
       const o = String(i), d = o.length > Ct ? `${o.slice(0, Ct)}…` : o;
-      return `${r}: ${d}`;
+      return `${a}: ${d}`;
     }
-    return `{${r}}`;
+    return `{${a}}`;
   }
-  return `{${s.slice(0, 3).map(([r]) => r).join(", ")}${s.length > 3 ? ", …" : ""}}`;
+  return `{${s.slice(0, 3).map(([a]) => a).join(", ")}${s.length > 3 ? ", …" : ""}}`;
 }
-let U = class extends x {
+let H = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._expanded = /* @__PURE__ */ new Set(), this._now = /* @__PURE__ */ new Date();
   }
@@ -11104,8 +11185,8 @@ let U = class extends x {
     if (this.api) {
       this._loading = !0;
       try {
-        const t = await this.api.listAudit(200);
-        this._items = t;
+        const e = await this.api.listAudit(200);
+        this._items = e;
       } finally {
         this._loading = !1;
       }
@@ -11122,57 +11203,57 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     )) {
       this._loading = !0;
       try {
-        const t = await this.api.clearAuditLog();
-        await this._load(), window.alert(`${t.deleted} Einträge gelöscht.`);
-      } catch (t) {
-        window.alert(`Fehler: ${t.message}`);
+        const e = await this.api.clearAuditLog();
+        await this._load(), window.alert(`${e.deleted} Einträge gelöscht.`);
+      } catch (e) {
+        window.alert(`Fehler: ${e.message}`);
       } finally {
         this._loading = !1;
       }
     }
   }
-  _toggle(t) {
-    const e = new Set(this._expanded);
-    e.has(t) ? e.delete(t) : e.add(t), this._expanded = e;
+  _toggle(e) {
+    const t = new Set(this._expanded);
+    t.has(e) ? t.delete(e) : t.add(e), this._expanded = t;
   }
   _filtered() {
-    const t = this._filter.trim().toLowerCase();
-    return t ? this._items.filter((e) => {
-      const s = `${e.target_type ?? ""}${e.target_id ?? ""}`.toLowerCase(), a = e.details ? JSON.stringify(e.details).toLowerCase() : "";
-      return (e.actor ?? "").toLowerCase().includes(t) || (e.action ?? "").toLowerCase().includes(t) || s.includes(t) || a.includes(t);
+    const e = this._filter.trim().toLowerCase();
+    return e ? this._items.filter((t) => {
+      const s = `${t.target_type ?? ""}${t.target_id ?? ""}`.toLowerCase(), r = t.details ? JSON.stringify(t.details).toLowerCase() : "";
+      return (t.actor ?? "").toLowerCase().includes(e) || (t.action ?? "").toLowerCase().includes(e) || s.includes(e) || r.includes(e);
     }) : this._items;
   }
-  _renderActionPill(t) {
-    const e = Vr(t);
-    return n`<span class=${`action-pill action-${e}`} title=${t}>${t}</span>`;
+  _renderActionPill(e) {
+    const t = Vr(e);
+    return n`<span class=${`action-pill action-${t}`} title=${e}>${e}</span>`;
   }
-  _renderDetails(t) {
-    if (!t) return n`<span class="muted">—</span>`;
-    if (typeof t == "object") {
-      const e = Object.entries(t);
-      return e.length === 0 ? n`<span class="muted">—</span>` : n`
+  _renderDetails(e) {
+    if (!e) return n`<span class="muted">—</span>`;
+    if (typeof e == "object") {
+      const t = Object.entries(e);
+      return t.length === 0 ? n`<span class="muted">—</span>` : n`
         <dl class="kv">
-          ${e.map(
-        ([s, a]) => n`
+          ${t.map(
+        ([s, r]) => n`
               <dt>${s}</dt>
-              <dd>${typeof a == "object" ? JSON.stringify(a) : String(a)}</dd>
+              <dd>${typeof r == "object" ? JSON.stringify(r) : String(r)}</dd>
             `
       )}
         </dl>
       `;
     }
-    return n`<code>${String(t)}</code>`;
+    return n`<code>${String(e)}</code>`;
   }
-  _renderDetailsSummary(t) {
-    const e = qr(t);
-    if (e === "") return n`<span class="muted">—</span>`;
-    const s = typeof t == "object" && t !== null && (t.label !== void 0 || t.name !== void 0);
+  _renderDetailsSummary(e) {
+    const t = qr(e);
+    if (t === "") return n`<span class="muted">—</span>`;
+    const s = typeof e == "object" && e !== null && (e.label !== void 0 || e.name !== void 0);
     return n`<span class=${`summary ${s ? "" : "muted"}`}
-      >${e}</span
+      >${t}</span
     >`;
   }
   render() {
-    const t = this._filtered();
+    const e = this._filtered();
     return n`
       <div class="root">
         <header class="page-head">
@@ -11204,14 +11285,14 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
             class="mh-input"
             placeholder="Suche in Akteur, Aktion, Ziel oder Details…"
             .value=${this._filter}
-            @input=${(e) => this._filter = e.target.value}
+            @input=${(t) => this._filter = t.target.value}
           />
           <span class="muted small"
-            >${t.length} ${t.length === 1 ? "Eintrag" : "Einträge"}</span
+            >${e.length} ${e.length === 1 ? "Eintrag" : "Einträge"}</span
           >
         </div>
 
-        ${this._loading ? n`<p class="status">lade…</p>` : t.length === 0 ? n`<div class="empty">
+        ${this._loading ? n`<p class="status">lade…</p>` : e.length === 0 ? n`<div class="empty">
                 ${this._items.length === 0 ? "Noch keine Audit-Einträge." : "Keine Treffer für aktuelle Suche."}
               </div>` : n`
                 <div class="table">
@@ -11222,32 +11303,32 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
                     <span>Ziel</span>
                     <span>Details</span>
                   </div>
-                  ${t.map((e, s) => {
-      const a = this._expanded.has(s), r = String(e.timestamp);
+                  ${e.map((t, s) => {
+      const r = this._expanded.has(s), a = String(t.timestamp);
       return n`
-                      <div class=${`table-row ${a ? "expanded" : ""}`}>
+                      <div class=${`table-row ${r ? "expanded" : ""}`}>
                         <button
                           class="row-toggle"
                           @click=${() => this._toggle(s)}
-                          aria-expanded=${a}
-                          aria-label=${a ? "Details verbergen" : "Details anzeigen"}
+                          aria-expanded=${r}
+                          aria-label=${r ? "Details verbergen" : "Details anzeigen"}
                         >
-                          <span class="ts" title=${Gt(r, this._now)}>
-                            ${jt(r, this._now)}
+                          <span class="ts" title=${Gt(a, this._now)}>
+                            ${jt(a, this._now)}
                           </span>
-                          <span class="actor">${e.actor}</span>
-                          <span>${this._renderActionPill(e.action)}</span>
+                          <span class="actor">${t.actor}</span>
+                          <span>${this._renderActionPill(t.action)}</span>
                           <span class="target">
-                            <code class="target-type">${e.target_type}</code>
-                            ${e.target_id !== null && e.target_id !== void 0 ? n`<code class="target-id">#${e.target_id}</code>` : c}
+                            <code class="target-type">${t.target_type}</code>
+                            ${t.target_id !== null && t.target_id !== void 0 ? n`<code class="target-id">#${t.target_id}</code>` : c}
                           </span>
                           <span class="details-inline">
-                            ${this._renderDetailsSummary(e.details)}
-                            <span class="chevron" aria-hidden="true">${a ? "▾" : "▸"}</span>
+                            ${this._renderDetailsSummary(t.details)}
+                            <span class="chevron" aria-hidden="true">${r ? "▾" : "▸"}</span>
                           </span>
                         </button>
-                        ${a ? n`<div class="details-panel">
-                              ${this._renderDetails(e.details)}
+                        ${r ? n`<div class="details-panel">
+                              ${this._renderDetails(t.details)}
                             </div>` : c}
                       </div>
                     `;
@@ -11258,7 +11339,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     `;
   }
 };
-U.styles = [
+H.styles = [
   L,
   se,
   Ce,
@@ -11506,32 +11587,32 @@ U.styles = [
 ];
 ie([
   w({ attribute: !1 })
-], U.prototype, "api", 2);
+], H.prototype, "api", 2);
 ie([
   l()
-], U.prototype, "_items", 2);
+], H.prototype, "_items", 2);
 ie([
   l()
-], U.prototype, "_loading", 2);
+], H.prototype, "_loading", 2);
 ie([
   l()
-], U.prototype, "_filter", 2);
+], H.prototype, "_filter", 2);
 ie([
   l()
-], U.prototype, "_expanded", 2);
+], H.prototype, "_expanded", 2);
 ie([
   l()
-], U.prototype, "_now", 2);
-U = ie([
+], H.prototype, "_now", 2);
+H = ie([
   S("audit-view")
-], U);
-var Jr = Object.defineProperty, Yr = Object.getOwnPropertyDescriptor, P = (t, e, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Yr(e, s) : e, i = t.length - 1, o; i >= 0; i--)
-    (o = t[i]) && (r = (a ? o(e, s, r) : o(r)) || r);
-  return a && r && Jr(e, s, r), r;
+], H);
+var Jr = Object.defineProperty, Yr = Object.getOwnPropertyDescriptor, P = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Yr(t, s) : t, i = e.length - 1, o; i >= 0; i--)
+    (o = e[i]) && (a = (r ? o(t, s, a) : o(a)) || a);
+  return r && a && Jr(t, s, a), a;
 };
-function Zr(t) {
-  return t.source === "knx-bus" && t.text.includes("(GroupValueRead)");
+function Zr(e) {
+  return e.source === "knx-bus" && e.text.includes("(GroupValueRead)");
 }
 const Nt = "messagehub.filters", ne = {
   severity: ["error", "warning", "info"],
@@ -11539,37 +11620,37 @@ const Nt = "messagehub.filters", ne = {
   search: "",
   hideKnxRead: !1
 };
-let A = class extends x {
+let E = class extends x {
   constructor() {
-    super(...arguments), this.narrow = !1, this._tab = "messages", this._items = [], this._total = 0, this._loading = !1, this._selected = null, this._filters = this._loadFilters(), this._newCount = 0, this._testing = !1, this._toast = "", this._overflowOpen = !1, this._savedFilters = [], this._savedFiltersOpen = !1, this._api = new $s(), this._onSeverityChange = (t) => {
-      this._filters = { ...this._filters, severity: t.detail.severities }, this._persistFilters(), this._reload();
-    }, this._onSourceChange = (t) => {
-      this._filters = { ...this._filters, source: t.detail.source }, this._persistFilters(), this._reload();
-    }, this._onTimeRange = (t) => {
-      this._filters = { ...this._filters, fromIso: t.detail.fromIso, toIso: t.detail.toIso }, this._persistFilters(), this._reload();
-    }, this._onSelect = (t) => {
-      this._selected = t.detail.msg;
-    }, this._onSeverityChangeMessage = async (t) => {
-      var r, i;
-      const { id: e, severity: s, previous: a } = t.detail;
+    super(...arguments), this.narrow = !1, this._tab = "messages", this._items = [], this._total = 0, this._loading = !1, this._selected = null, this._filters = this._loadFilters(), this._newCount = 0, this._testing = !1, this._toast = "", this._overflowOpen = !1, this._savedFilters = [], this._savedFiltersOpen = !1, this._api = new $s(), this._onSeverityChange = (e) => {
+      this._filters = { ...this._filters, severity: e.detail.severities }, this._persistFilters(), this._reload();
+    }, this._onSourceChange = (e) => {
+      this._filters = { ...this._filters, source: e.detail.source }, this._persistFilters(), this._reload();
+    }, this._onTimeRange = (e) => {
+      this._filters = { ...this._filters, fromIso: e.detail.fromIso, toIso: e.detail.toIso }, this._persistFilters(), this._reload();
+    }, this._onSelect = (e) => {
+      this._selected = e.detail.msg;
+    }, this._onSeverityChangeMessage = async (e) => {
+      var a, i;
+      const { id: t, severity: s, previous: r } = e.detail;
       this._items = this._items.map(
-        (o) => o.id === e ? { ...o, severity: s } : o
-      ), ((r = this._selected) == null ? void 0 : r.id) === e && (this._selected = { ...this._selected, severity: s });
+        (o) => o.id === t ? { ...o, severity: s } : o
+      ), ((a = this._selected) == null ? void 0 : a.id) === t && (this._selected = { ...this._selected, severity: s });
       try {
-        await this._api.setMessageSeverity(e, s), this._showToast(`Severity geändert: ${a} → ${s}`);
+        await this._api.setMessageSeverity(t, s), this._showToast(`Severity geändert: ${r} → ${s}`);
       } catch (o) {
         this._items = this._items.map(
-          (d) => d.id === e ? { ...d, severity: a } : d
-        ), ((i = this._selected) == null ? void 0 : i.id) === e && (this._selected = {
+          (d) => d.id === t ? { ...d, severity: r } : d
+        ), ((i = this._selected) == null ? void 0 : i.id) === t && (this._selected = {
           ...this._selected,
-          severity: a
+          severity: r
         }), this._showToast(`Änderung fehlgeschlagen: ${o.message}`);
       }
-    }, this._onDelete = async (t) => {
+    }, this._onDelete = async (e) => {
       try {
-        await this._api.deleteMessage(t.detail.id), this._items = this._items.filter((e) => e.id !== t.detail.id), this._total = Math.max(0, this._total - 1), this._selected = null, this._showToast("Nachricht gelöscht");
-      } catch (e) {
-        this._showToast(`Löschen fehlgeschlagen: ${e.message}`);
+        await this._api.deleteMessage(e.detail.id), this._items = this._items.filter((t) => t.id !== e.detail.id), this._total = Math.max(0, this._total - 1), this._selected = null, this._showToast("Nachricht gelöscht");
+      } catch (t) {
+        this._showToast(`Löschen fehlgeschlagen: ${t.message}`);
       }
     }, this._toggleOverflow = () => {
       this._overflowOpen = !this._overflowOpen;
@@ -11578,27 +11659,27 @@ let A = class extends x {
     };
   }
   firstUpdated() {
-    var t;
-    (t = this.hass) != null && t.auth && this._api.setAuth(this.hass.auth.data.access_token), this._reload(), this._subscribeLive(), this._loadSavedFilters();
+    var e;
+    (e = this.hass) != null && e.auth && this._api.setAuth(this.hass.auth.data.access_token), this._reload(), this._subscribeLive(), this._loadSavedFilters();
   }
   disconnectedCallback() {
-    var t;
-    super.disconnectedCallback(), (t = this._unsubLive) == null || t.call(this);
+    var e;
+    super.disconnectedCallback(), (e = this._unsubLive) == null || e.call(this);
   }
   async _subscribeLive() {
-    var t, e;
-    (e = (t = this.hass) == null ? void 0 : t.connection) != null && e.subscribeEvents && (this._unsubLive = await this.hass.connection.subscribeEvents((s) => {
-      const a = s.data;
-      this._matchesFilters(a) && (this._items = [a, ...this._items].slice(0, 200), this._total += 1, this._newCount += 1, window.setTimeout(() => this._newCount = Math.max(0, this._newCount - 1), 4e3));
+    var e, t;
+    (t = (e = this.hass) == null ? void 0 : e.connection) != null && t.subscribeEvents && (this._unsubLive = await this.hass.connection.subscribeEvents((s) => {
+      const r = s.data;
+      this._matchesFilters(r) && (this._items = [r, ...this._items].slice(0, 200), this._total += 1, this._newCount += 1, window.setTimeout(() => this._newCount = Math.max(0, this._newCount - 1), 4e3));
     }, "messagehub_message_added"));
   }
-  _matchesFilters(t) {
-    return !(this._filters.severity.length && !this._filters.severity.includes(t.severity) || this._filters.source && t.source !== this._filters.source || this._filters.search && !t.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && Zr(t));
+  _matchesFilters(e) {
+    return !(this._filters.severity.length && !this._filters.severity.includes(e.severity) || this._filters.source && e.source !== this._filters.source || this._filters.search && !e.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && Zr(e));
   }
   _loadFilters() {
     try {
-      const t = localStorage.getItem(Nt);
-      if (t) return { ...ne, ...JSON.parse(t) };
+      const e = localStorage.getItem(Nt);
+      if (e) return { ...ne, ...JSON.parse(e) };
     } catch {
     }
     return { ...ne };
@@ -11615,7 +11696,7 @@ let A = class extends x {
   async _reload() {
     this._loading = !0;
     try {
-      const t = await this._api.listMessages({
+      const e = await this._api.listMessages({
         severity: this._filters.severity,
         source: this._filters.source || void 0,
         search: this._filters.search || void 0,
@@ -11624,93 +11705,93 @@ let A = class extends x {
         hideKnxRead: this._filters.hideKnxRead,
         limit: 100
       });
-      this._items = t.items, this._total = t.total;
-    } catch (t) {
-      this._showToast(`Laden fehlgeschlagen: ${t.message}`);
+      this._items = e.items, this._total = e.total;
+    } catch (e) {
+      this._showToast(`Laden fehlgeschlagen: ${e.message}`);
     } finally {
       this._loading = !1;
     }
   }
-  async _bulkDelete(t) {
+  async _bulkDelete(e) {
     if (this._total === 0) return;
-    const e = this._total, s = t === "all" ? `ALLE ${e} Nachrichten dauerhaft löschen?` : `Bis zu ${e} gefilterte Nachrichten dauerhaft löschen?`;
+    const t = this._total, s = e === "all" ? `ALLE ${t} Nachrichten dauerhaft löschen?` : `Bis zu ${t} gefilterte Nachrichten dauerhaft löschen?`;
     if (window.confirm(s))
       try {
-        const a = t === "all" ? {} : {
+        const r = e === "all" ? {} : {
           severity: this._filters.severity,
           source: this._filters.source || void 0,
           search: this._filters.search || void 0,
           from: this._filters.fromIso,
           to: this._filters.toIso
-        }, r = await this._api.deleteMessages(a);
-        this._showToast(`${r} Nachrichten gelöscht`), this._selected = null, await this._reload();
-      } catch (a) {
-        this._showToast(`Löschen fehlgeschlagen: ${a.message}`);
+        }, a = await this._api.deleteMessages(r);
+        this._showToast(`${a} Nachrichten gelöscht`), this._selected = null, await this._reload();
+      } catch (r) {
+        this._showToast(`Löschen fehlgeschlagen: ${r.message}`);
       }
   }
   async _sendTestMessage() {
-    var t;
-    if (!((t = this.hass) != null && t.callService)) {
+    var e;
+    if (!((e = this.hass) != null && e.callService)) {
       this._showToast("Test nicht verfügbar — hass.callService fehlt");
       return;
     }
     this._testing = !0;
     try {
-      const e = ["info", "warning", "error", "info", "info"], s = ["pihole", "knx-bus", "backup-job", "test-script"], a = [
+      const t = ["info", "warning", "error", "info", "info"], s = ["pihole", "knx-bus", "backup-job", "test-script"], r = [
         "Demo-Nachricht aus dem Panel",
         "Test: DNS-Query erfolgreich",
         "Backup abgeschlossen, Dauer 12 min",
         "KNX 1/2/3 — Wohnzimmer Deckenlicht ein"
-      ], r = (i) => Math.floor(Math.random() * i);
+      ], a = (i) => Math.floor(Math.random() * i);
       await this.hass.callService("messagehub", "add_message", {
-        severity: e[r(e.length)],
-        source: s[r(s.length)],
-        text: a[r(a.length)],
+        severity: t[a(t.length)],
+        source: s[a(s.length)],
+        text: r[a(r.length)],
         metadata: { source_panel: !0, ts: (/* @__PURE__ */ new Date()).toISOString() }
       }), this._showToast("Test-Nachricht gesendet"), window.setTimeout(() => void this._reload(), 300);
-    } catch (e) {
-      this._showToast(`Service-Call fehlgeschlagen: ${e.message}`);
+    } catch (t) {
+      this._showToast(`Service-Call fehlgeschlagen: ${t.message}`);
     } finally {
       this._testing = !1;
     }
   }
-  _showToast(t) {
-    this._toast = t, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
+  _showToast(e) {
+    this._toast = e, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
   }
-  _debounceSearch(t) {
+  _debounceSearch(e) {
     this._debounceTimer && window.clearTimeout(this._debounceTimer), this._debounceTimer = window.setTimeout(() => {
-      this._filters = { ...this._filters, search: t }, this._persistFilters(), this._reload();
+      this._filters = { ...this._filters, search: e }, this._persistFilters(), this._reload();
     }, 300);
   }
   // Iter 93 / K1: Saved Filters laden (vom Server, scope=messages).
   async _loadSavedFilters() {
     try {
       this._savedFilters = await this._api.listSavedFilters("messages");
-    } catch (t) {
-      this._showToast(`Saved Filters konnten nicht geladen werden: ${t.message}`);
+    } catch (e) {
+      this._showToast(`Saved Filters konnten nicht geladen werden: ${e.message}`);
     }
   }
   async _saveCurrentFilter() {
-    const t = window.prompt("Filter speichern als:");
-    if (!(t === null || t.trim() === ""))
+    const e = window.prompt("Filter speichern als:");
+    if (!(e === null || e.trim() === ""))
       try {
         await this._api.upsertSavedFilter(
-          t.trim(),
+          e.trim(),
           "messages",
           this._filters
-        ), this._showToast(`Filter „${t.trim()}" gespeichert`), await this._loadSavedFilters();
-      } catch (e) {
-        this._showToast(`Speichern fehlgeschlagen: ${e.message}`);
+        ), this._showToast(`Filter „${e.trim()}" gespeichert`), await this._loadSavedFilters();
+      } catch (t) {
+        this._showToast(`Speichern fehlgeschlagen: ${t.message}`);
       }
   }
-  _applySavedFilter(t) {
-    const e = t.filters;
-    this._filters = { ...ne, ...e }, this._persistFilters(), this._savedFiltersOpen = !1, this._reload(), this._showToast(`Filter „${t.name}" geladen`);
+  _applySavedFilter(e) {
+    const t = e.filters;
+    this._filters = { ...ne, ...t }, this._persistFilters(), this._savedFiltersOpen = !1, this._reload(), this._showToast(`Filter „${e.name}" geladen`);
   }
-  async _deleteSavedFilter(t, e) {
-    if (e.stopPropagation(), !!window.confirm(`Filter „${t.name}" wirklich löschen?`))
+  async _deleteSavedFilter(e, t) {
+    if (t.stopPropagation(), !!window.confirm(`Filter „${e.name}" wirklich löschen?`))
       try {
-        await this._api.deleteSavedFilter(t.id), await this._loadSavedFilters(), this._showToast("Filter gelöscht");
+        await this._api.deleteSavedFilter(e.id), await this._loadSavedFilters(), this._showToast("Filter gelöscht");
       } catch (s) {
         this._showToast(`Löschen fehlgeschlagen: ${s.message}`);
       }
@@ -11730,14 +11811,14 @@ let A = class extends x {
         ${this._savedFiltersOpen ? n`<div class="saved-filters-dropdown">
               ${this._savedFilters.length === 0 ? n`<p class="muted small">Keine gespeicherten Filter.</p>` : n`<ul>
                     ${this._savedFilters.map(
-      (t) => n`<li
-                        @click=${() => this._applySavedFilter(t)}
+      (e) => n`<li
+                        @click=${() => this._applySavedFilter(e)}
                         title="Klick: laden"
                       >
-                        <span>${t.name}</span>
+                        <span>${e.name}</span>
                         <button
                           class="filter-reset"
-                          @click=${(e) => void this._deleteSavedFilter(t, e)}
+                          @click=${(t) => void this._deleteSavedFilter(e, t)}
                           title="Filter löschen"
                         >
                           ✕
@@ -11760,7 +11841,7 @@ let A = class extends x {
   _hasActiveFilters() {
     return this._filters.severity.length !== ne.severity.length || this._filters.source !== "" || this._filters.search !== "" || this._filters.fromIso !== void 0 || this._filters.hideKnxRead !== ne.hideKnxRead;
   }
-  _exportUrl(t) {
+  _exportUrl(e) {
     return this._api.exportUrl({
       severity: this._filters.severity,
       source: this._filters.source || void 0,
@@ -11768,7 +11849,7 @@ let A = class extends x {
       from: this._filters.fromIso,
       to: this._filters.toIso,
       limit: 1e4,
-      format: t
+      format: e
     });
   }
   _renderEmptyMessages() {
@@ -11811,9 +11892,9 @@ let A = class extends x {
           placeholder="Volltextsuche…"
           aria-label="Volltextsuche"
           .value=${this._filters.search}
-          @input=${(t) => {
-      const e = t.target.value;
-      this._debounceSearch(e);
+          @input=${(e) => {
+      const t = e.target.value;
+      this._debounceSearch(t);
     }}
         />
         <time-range-filter
@@ -11828,10 +11909,10 @@ let A = class extends x {
           <input
             type="checkbox"
             .checked=${this._filters.hideKnxRead}
-            @change=${(t) => {
+            @change=${(e) => {
       this._filters = {
         ...this._filters,
-        hideKnxRead: t.target.checked
+        hideKnxRead: e.target.checked
       }, this._persistFilters(), this._reload();
     }}
           />
@@ -11877,7 +11958,7 @@ let A = class extends x {
           >
             ${this._testing ? "sende…" : "+ Testnachricht"}
           </button>
-          <div class="overflow" @click=${(t) => t.stopPropagation()}>
+          <div class="overflow" @click=${(e) => e.stopPropagation()}>
             <button
               class="mh-btn mh-btn--sm mh-btn--icon mh-btn--ghost"
               aria-label="Weitere Aktionen"
@@ -11915,12 +11996,12 @@ let A = class extends x {
             @close=${() => this._selected = null}
             @delete=${this._onDelete}
             @status-change=${() => void this._reload()}
-            @error=${(t) => this._showToast(t.detail.message)}
+            @error=${(e) => this._showToast(e.detail.message)}
           ></detail-pane>` : null}
     `;
   }
   render() {
-    const t = [
+    const e = [
       { id: "messages", label: "Nachrichten" },
       { id: "stats", label: "Statistik" },
       { id: "settings", label: "Einstellungen" },
@@ -11943,14 +12024,14 @@ let A = class extends x {
             <h1>Message Hub</h1>
           </div>
           <nav role="tablist" class="tabs">
-            ${t.map(
-      (e) => n`<button
+            ${e.map(
+      (t) => n`<button
                 role="tab"
-                aria-selected=${this._tab === e.id}
-                class=${`tab ${this._tab === e.id ? "active" : ""}`}
-                @click=${() => this._tab = e.id}
+                aria-selected=${this._tab === t.id}
+                class=${`tab ${this._tab === t.id ? "active" : ""}`}
+                @click=${() => this._tab = t.id}
               >
-                ${e.label}
+                ${t.label}
               </button>`
     )}
           </nav>
@@ -11978,7 +12059,7 @@ let A = class extends x {
     `;
   }
 };
-A.styles = [
+E.styles = [
   L,
   se,
   y`
@@ -12363,53 +12444,53 @@ A.styles = [
 ];
 P([
   w({ attribute: !1 })
-], A.prototype, "hass", 2);
+], E.prototype, "hass", 2);
 P([
   w({ type: Boolean })
-], A.prototype, "narrow", 2);
+], E.prototype, "narrow", 2);
 P([
   w({ attribute: !1 })
-], A.prototype, "panel", 2);
+], E.prototype, "panel", 2);
 P([
   l()
-], A.prototype, "_tab", 2);
+], E.prototype, "_tab", 2);
 P([
   l()
-], A.prototype, "_items", 2);
+], E.prototype, "_items", 2);
 P([
   l()
-], A.prototype, "_total", 2);
+], E.prototype, "_total", 2);
 P([
   l()
-], A.prototype, "_loading", 2);
+], E.prototype, "_loading", 2);
 P([
   l()
-], A.prototype, "_selected", 2);
+], E.prototype, "_selected", 2);
 P([
   l()
-], A.prototype, "_filters", 2);
+], E.prototype, "_filters", 2);
 P([
   l()
-], A.prototype, "_newCount", 2);
+], E.prototype, "_newCount", 2);
 P([
   l()
-], A.prototype, "_testing", 2);
+], E.prototype, "_testing", 2);
 P([
   l()
-], A.prototype, "_toast", 2);
+], E.prototype, "_toast", 2);
 P([
   l()
-], A.prototype, "_overflowOpen", 2);
+], E.prototype, "_overflowOpen", 2);
 P([
   l()
-], A.prototype, "_savedFilters", 2);
+], E.prototype, "_savedFilters", 2);
 P([
   l()
-], A.prototype, "_savedFiltersOpen", 2);
-A = P([
+], E.prototype, "_savedFiltersOpen", 2);
+E = P([
   S("messagehub-panel")
-], A);
+], E);
 export {
-  A as MessageHubPanel,
+  E as MessageHubPanel,
   Zr as isKnxReadMessage
 };

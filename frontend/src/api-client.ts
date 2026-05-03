@@ -857,6 +857,21 @@ export class ApiClient {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }
 
+  /**
+   * F-002: MQTT-Topic ID-stabil aktualisieren. Backend-Endpoint
+   * (Iter 83 / CR-4) stand seit langem bereit, Frontend-Methode
+   * fehlte. Ohne Update-Pfad mussten User Loeschen + Neu-Anlegen,
+   * was die ID veraenderte und Audit-/Findings-Bezuege brach.
+   */
+  async updateMqttTopic(id: number, payload: Partial<MqttTopicDto>): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics/${id}`, {
+      method: "PUT",
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
   async listRemediationHooks(): Promise<RemediationHookDto[]> {
     const res = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks`, {
       headers: this.headers(),

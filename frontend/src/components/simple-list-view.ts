@@ -133,6 +133,9 @@ export class MqttTopicsView extends LitElement {
   @state() private _newPattern = "";
   @state() private _newSource = "";
   @state() private _newSeverity: "debug" | "info" | "warning" | "error" = "info";
+  // F-002: Edit-State pro Zeile.
+  @state() private _editId: number | null = null;
+  @state() private _editDraft: MqttTopicDto | null = null;
 
   override async firstUpdated(): Promise<void> {
     await this._load();
@@ -161,6 +164,37 @@ export class MqttTopicsView extends LitElement {
     if (!window.confirm(`Subscription '${it.topic_pattern}' löschen?`)) return;
     await this.api.deleteMqttTopic(it.id);
     await this._load();
+  }
+
+  // F-002: Edit-Modus aktivieren — Draft mit aktuellem Item befuellen.
+  private _startEdit(it: MqttTopicDto): void {
+    if (it.id == null) return;
+    this._editId = it.id;
+    this._editDraft = { ...it };
+  }
+
+  private _cancelEdit(): void {
+    this._editId = null;
+    this._editDraft = null;
+  }
+
+  private async _saveEdit(): Promise<void> {
+    if (!this.api || this._editId == null || !this._editDraft) return;
+    const d = this._editDraft;
+    if (!d.topic_pattern.trim() || !d.source.trim()) return;
+    await this.api.updateMqttTopic(this._editId, {
+      topic_pattern: d.topic_pattern.trim(),
+      source: d.source.trim(),
+      severity: d.severity,
+      enabled: d.enabled,
+    });
+    this._cancelEdit();
+    await this._load();
+  }
+
+  private _patchDraft(patch: Partial<MqttTopicDto>): void {
+    if (!this._editDraft) return;
+    this._editDraft = { ...this._editDraft, ...patch };
   }
 
   override render(): TemplateResult {
@@ -219,23 +253,74 @@ export class MqttTopicsView extends LitElement {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map(
-                  (it) => html`<tr>
-                    <td><code>${it.topic_pattern}</code></td>
-                    <td>${it.source}</td>
-                    <td>${it.severity}</td>
-                    <td>${it.enabled ? "✓" : "—"}</td>
-                    <td class="actions">
-                      <button class="danger" @click=${() => void this._delete(it)}>
-                        Löschen
-                      </button>
-                    </td>
-                  </tr>`
-                )}
+                ${this._items.map((it) => this._renderRow(it))}
               </tbody>
             </table>`}
       </section>
     `;
+  }
+
+  private _renderRow(it: MqttTopicDto): TemplateResult {
+    const isEditing = it.id != null && it.id === this._editId && this._editDraft;
+    if (isEditing) {
+      const d = this._editDraft!;
+      return html`<tr>
+        <td>
+          <input
+            .value=${d.topic_pattern}
+            @input=${(e: InputEvent) =>
+              this._patchDraft({ topic_pattern: (e.target as HTMLInputElement).value })}
+          />
+        </td>
+        <td>
+          <input
+            .value=${d.source}
+            @input=${(e: InputEvent) =>
+              this._patchDraft({ source: (e.target as HTMLInputElement).value })}
+          />
+        </td>
+        <td>
+          <select
+            .value=${d.severity}
+            @change=${(e: Event) =>
+              this._patchDraft({
+                severity: (e.target as HTMLSelectElement).value as
+                  | "debug"
+                  | "info"
+                  | "warning"
+                  | "error",
+              })}
+          >
+            <option value="debug">debug</option>
+            <option value="info">info</option>
+            <option value="warning">warning</option>
+            <option value="error">error</option>
+          </select>
+        </td>
+        <td>
+          <input
+            type="checkbox"
+            .checked=${d.enabled}
+            @change=${(e: Event) =>
+              this._patchDraft({ enabled: (e.target as HTMLInputElement).checked })}
+          />
+        </td>
+        <td class="actions">
+          <button class="primary" @click=${() => void this._saveEdit()}>Speichern</button>
+          <button @click=${() => this._cancelEdit()}>Abbrechen</button>
+        </td>
+      </tr>`;
+    }
+    return html`<tr>
+      <td><code>${it.topic_pattern}</code></td>
+      <td>${it.source}</td>
+      <td>${it.severity}</td>
+      <td>${it.enabled ? "✓" : "—"}</td>
+      <td class="actions">
+        <button @click=${() => this._startEdit(it)}>Bearbeiten</button>
+        <button class="danger" @click=${() => void this._delete(it)}>Löschen</button>
+      </td>
+    </tr>`;
   }
   static override styles = sharedStyles;
 }

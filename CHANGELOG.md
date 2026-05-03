@@ -7,6 +7,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Anbindungs-Audit Sprint 1)
+- **Iter +2 / F-002 — MQTT-Topic-Edit.** MQTT-Topic-Zeilen im
+  Settings-Tab haben einen „Bearbeiten"-Knopf. Klick wechselt die
+  Zeile in Inline-Edit-Modus (Pattern, Source, Severity, Aktiv-
+  Checkbox), „Speichern" ruft `PUT /api/messagehub/mqtt-topics/{id}`
+  und behaelt die ID. Vorher mussten User „Loeschen + Neu anlegen",
+  was die ID veraenderte und Audit-/Findings-Bezuege verlor.
+  Backend-Endpoint stand seit Iter 83 / CR-4 bereit. Audit-Eintrag
+  `mqtt_topic_update` pro Aufruf. Behebt Audit-Finding F-002.
 - **Iter +1 / F-001 — Channel-Test-Knopf.** Notification-Channels
   (Telegram / Pushover / ntfy / Signal / notify) haben jetzt im
   Settings-Tab pro Zeile einen „Test"-Button. Klick sendet eine

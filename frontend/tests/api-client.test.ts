@@ -74,4 +74,53 @@ describe("ApiClient", () => {
     const client = new ApiClient();
     await expect(client.testChannel(42)).rejects.toThrow(/429/);
   });
+
+  // F-002: MQTT-Topic-Edit
+  it("updateMqttTopic ruft PUT /mqtt-topics/{id} mit Payload", async () => {
+    const fetchMock = vi.fn(async () =>
+      ({
+        ok: true,
+        async json() {
+          return {
+            id: 7,
+            topic_pattern: "z2m/+/state",
+            source: "z2m",
+            severity: "warning",
+            enabled: true,
+          };
+        },
+      } as Response)
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const client = new ApiClient();
+    await client.updateMqttTopic(7, {
+      topic_pattern: "z2m/+/state",
+      source: "z2m",
+      severity: "warning",
+      enabled: true,
+    });
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("/api/messagehub/mqtt-topics/7");
+    expect(init.method).toBe("PUT");
+    expect(JSON.parse(String(init.body))).toEqual({
+      topic_pattern: "z2m/+/state",
+      source: "z2m",
+      severity: "warning",
+      enabled: true,
+    });
+  });
+
+  it("updateMqttTopic wirft bei HTTP-Fehler", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: false, status: 400, async text() { return "invalid"; } } as Response))
+    );
+    const client = new ApiClient();
+    await expect(
+      client.updateMqttTopic(7, { topic_pattern: "x", source: "y", severity: "info", enabled: true })
+    ).rejects.toThrow("HTTP 400");
+  });
 });

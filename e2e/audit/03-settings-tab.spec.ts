@@ -64,15 +64,25 @@ test.describe("Settings-Tab", () => {
     await reqPromise;
   });
 
-  // F-002 — MQTT-Topic-Edit fehlt im UI (Backend-PUT-Endpoint existiert).
-  test.fixme("F-002: MQTT-Topic-Zeilen haben einen 'Edit'-Knopf, der PUT /mqtt-topics/{id} ausloest", async ({ page }) => {
+  // F-002 — MQTT-Topic-Edit in Iter +2 hinzugefuegt.
+  test("F-002: MQTT-Topic-Zeilen haben einen 'Bearbeiten'-Knopf, der PUT /mqtt-topics/{id} ausloest", async ({ page }) => {
     const settings = page.locator("messagehub-panel >> settings-view");
     await settings.locator("button.tab", { hasText: "MQTT" }).click();
     const view = settings.locator("mqtt-topics-view");
     const firstRow = view.locator("tbody tr").first();
     if ((await firstRow.count()) === 0) test.skip(true, "Keine MQTT-Topics — Edit-Test ueberspringen");
-    const editButton = firstRow.locator('button:has-text("Edit"), button:has-text("Bearbeiten")');
+    const editButton = firstRow.locator('button:has-text("Bearbeiten")');
     await expect(editButton).toBeVisible({ timeout: 3000 });
+    await editButton.click();
+    // Edit-Modus: Pattern-Input + Save-Button vorhanden
+    await expect(firstRow.locator('input[type="text"], input:not([type])').first()).toBeVisible();
+    const saveButton = firstRow.locator('button:has-text("Speichern")');
+    await expect(saveButton).toBeVisible();
+    const reqPromise = page.waitForRequest(
+      (r) => r.method() === "PUT" && r.url().includes("/api/messagehub/mqtt-topics/")
+    );
+    await saveButton.click();
+    await reqPromise;
   });
 
   test("Heartbeats: heartbeats-view rendert + listHeartbeats() wird aufgerufen", async ({ page }) => {
