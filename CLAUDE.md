@@ -1,9 +1,9 @@
 # Repo-Kontext fuer Claude Code
 
 ## Projekt
-Home Assistant Custom Integration `messagehub`. Spec siehe
-`docs/messagehub_konzept.md` und `docs/messagehub_erweiterungen.md`.
-User-Doku: `README.md` + `docs/configuration.md`.
+Home Assistant Custom Integration `messagehub`. Architektur-Spec:
+`docs/messagehub_konzept.md`. User-Doku: `README.md` +
+`docs/configuration.md`. Release-Historie: `CHANGELOG.md`.
 
 ## Wichtigste Regeln
 - **TDD verbindlich** — fuer jede Verhaltensaenderung erst Test, dann Code.

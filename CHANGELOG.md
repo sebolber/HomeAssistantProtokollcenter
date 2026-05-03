@@ -6,15 +6,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
-## [0.16.0] – 2026-05-03
+## [0.18.0] – 2026-05-03
 
-UX + Stability Release. Fokus: drei kritische Production-Bugs aus
-Screenshot-Reviews behoben, Diagnose-UX gehaertet (Integration ist
-endlich im HA-Log-Filter sichtbar), zwei Iterationen UX-Verbesserungen
-am KNX-Bus-Analyse-Tab (P0–P2 aus systematischem UX-Review).
+UX + Stability Release. 23 Commits seit 0.14.0 — drei kritische
+Production-Bugs aus Screenshot-Reviews behoben, Diagnose-UX gehaertet
+(Integration ist im HA-Log-Filter sichtbar), drei Iterationen
+UX-Verbesserungen am KNX-Bus-Analyse-Tab (P0/P1/P2/P3 aus
+systematischem UX-Review), Trend-Card aus Counter-Tabelle, plus
+Tech-Debt-Cleanup (Cache-Flakiness, Ruff in Tests).
 
-Tests: 706 Backend (+0, alle gruen), 124 → 138 Vitest (+14).
-Bundle: 348 → 360 KB (+12 KB).
+Tests: 706 → 717 Backend (+11), 124 → 141 Vitest (+17).
+Bundle: 348 → 363 KB (+15 KB).
 
 ### Behoben (Production-Bugs)
 - **`KnxStatsGaDetailView.get() got an unexpected keyword argument 'ga'`**
@@ -36,6 +38,14 @@ Bundle: 348 → 360 KB (+12 KB).
   `discover_knx_devices` faengt jede Exception und faellt auf den
   Storage-Reader zurueck. 5 neue Resilience-Tests gegen RuntimeError-
   Properties + raisende `__bool__`-Container.
+- **`Vorperiode immer 0` im Trend-Tab bei langen Perioden** —
+  `compute_trend` las immer aus `knx_raw_telegrams` (48h Retention).
+  Bei Perioden ≥ 48h liegt die Vorperiode komplett ausserhalb der
+  Retention → total_prev = 0, Vergleich nutzlos. Fix: ab 24h
+  Periodenlaenge wird die `knx_telegram_counters`-Tabelle (365d
+  Retention, Per-GA-Aggregate) als Quelle benutzt.
+  Plus Frontend-Fallback-Hinweis "Vergleich nicht verfuegbar" wenn
+  Counter noch leer ist (frische Installation).
 
 ### Behoben (HACS-Diagnose)
 - **`manifest.json:loggers`-Feld ergaenzt** — vorher tauchte
@@ -45,14 +55,24 @@ Bundle: 348 → 360 KB (+12 KB).
   und Discovery-Probleme im Produktivbetrieb unauffindbar. Loggers:
   `custom_components.messagehub`, `aiosqlite`, `jsonpath_ng`.
 
-### Hinzugefuegt (UX P0)
+### Behoben (Tech-Debt)
+- **`KnxWhitelistCache`-Flakiness** — `_loaded_at` war initial 0.0,
+  `monotonic() - 0.0 > TTL` ist nur bei System-Uptime > 300s wahr. In
+  Containern mit kurzer Uptime wurde der erste Refresh stillschweigend
+  uebersprungen, der Cache blieb leer, Tests flackerten. Fix:
+  `-math.inf`-Sentinel — `monotonic() - (-inf) = inf > TTL` ist
+  immer wahr, der erste Refresh laeuft IMMER. 2 Regression-Tests gegen
+  kurze Uptime.
+
+### Hinzugefuegt (UX P0 — Reihenfolge + Sichtbarkeit)
 - **Inline-TopN-Filter pro Card** im KNX-Bus-Analyse-Tab — bisher nur
   bei Top-Sender + Top-Geraete vorhanden, jetzt zusaetzlich an
   Sicherheits-Audit, Telegrammfluten (Bursts), Long-Term-Sicht, Trend,
-  Verwaiste GAs (pro Spalte einen), Stille-Alarme,
-  Bus-Gesundheit. Optionen: 10 / 25 / 50 / 100 / 200, Default 25.
+  Verwaiste GAs (pro Spalte einen), Stille-Alarme, Bus-Gesundheit,
+  und im Detail-Drawer "Andere GAs des Geraets". Optionen:
+  10 / 25 / 50 / 100 / 200, Default 25.
 - **Reihenfolge der Cards** an mentales User-Modell angepasst:
-  Übersicht-KPIs ganz oben, Health-Score, dann Top-Sender + Top-
+  Uebersicht-KPIs ganz oben, Health-Score, dann Top-Sender + Top-
   Geraete + Detail-Pane, danach Tagesverlauf/Heatmap/Trend, dann
   Anomalie-Cards (Bursts, Stille, Bus-Health), Audit + Verwaiste GAs
   ans Ende. Vorher war Verwaiste GAs (3000+ Eintraege) im Mittelteil,
@@ -63,21 +83,22 @@ Bundle: 348 → 360 KB (+12 KB).
   erkennt `^[\s\-_=]*$` und Label==Address). Reduziert die Liste bei
   3000+ Projekt-GAs um ~80 % typischen Noise-Anteil.
 
-### Hinzugefuegt (UX P1)
+### Hinzugefuegt (UX P1 — Hauptinteraktion)
 - **Detail-Pane als Side-Drawer** statt inline am Tabellen-Ende.
   `<aside role="dialog" aria-modal="true">` mit Backdrop, Slide-In-
   Animation 200 ms (`prefers-reduced-motion` respektiert). Schliessen
   via X / Backdrop-Klick / Escape. Mobile (< 720 px): full-width.
 - **Heatmap-Bucket-Groesse adaptiv** je Periode: 1 h → 5 min, 6 h →
   15 min, 24 h+ → 60 min. Vorher immer 60 min, was bei kurzen
-  Perioden in 1–2 Spalten resultierte.
+  Perioden in 1-2 Spalten resultierte.
 - **Trend-Card bei kurzen Perioden entschaerft** — 1h-vs-1h-Vergleich
   produziert regelmaessig 4-stellige %-Spruenge (Tag/Nacht-Wechsel,
   Automation). Severity wird bei 1h/6h auf "green" gedeckelt + ein
   erklaerender Hinweistext erscheint. 24h+-Perioden behalten die alte
-  Ampel-Logik.
+  Ampel-Logik. Bei langen Perioden ohne Counter-Daten erscheint statt
+  leerer Listen ein Hinweistext.
 
-### Hinzugefuegt (UX P2)
+### Hinzugefuegt (UX P2 — Visuelle Klarheit)
 - **Top-Sender-Status-Spalte konsolidiert**: vorher bis zu 3 Pills
   uebereinander (Severity, Findings, Bekannt), jetzt genau 1 Pill.
   `green + has_findings` escaliert auf `yellow` mit ⚠-Glyph statt
@@ -90,11 +111,46 @@ Bundle: 348 → 360 KB (+12 KB).
   Semibold-Font, box-shadow + hover-lift. Bei Loading-State rotiert
   der ↻-Glyph.
 
+### Hinzugefuegt (UX P3 — Polish)
+- **Filter-Bar Mobile-Responsive** (< 640 px column-layout, Periode-
+  Pills duerfen wrappen, Aktualisieren-Button full-width).
+- **Card-Header konsistent** ueber alle Cards (`card-head__meta`-
+  Wrapper rechts, mit TopN + Subtitle in einer Zeile).
+
+### Geaendert (Trend-Datenquelle)
+- `compute_trend` switcht ab 24h Periodenlaenge auf
+  `knx_telegram_counters` (vorher 48h-Schwelle, dann 24h-Boundary
+  hinzugekommen, weil Vorperiode dort am Rand der Raw-Retention
+  steht). Counter hat hourly-Granularitaet — bei 24h+-Aggregaten
+  verlustfrei. Trend-Endpoint `max_days` jetzt 365 (vorher 90).
+- Frontend sendet im Long-Term-Modus (7d/30d/365d) den vollen
+  Zeitraum statt der 48h-Live-Slice an den Trend-Endpoint.
+
+### Geaendert (Doku-Cleanup)
+- 4 veraltete Doku-Dateien entfernt:
+  `messagehub_knx_statistik_review.md` (Status: abgeschlossen),
+  `messagehub_knx_statistik.md` (Implementations-Spec, Features
+  released), `messagehub_erweiterungen.md` (alle Erweiterungen
+  released), `messagehub_backlog.md` (effektiv leer nach 0.14.0).
+- `messagehub_konzept.md` aktualisiert — §13 Phasen-Plan + §14
+  Optionale-Erweiterungen-Status, §16 Manifest-Skizze auf aktuellen
+  Stand verweist.
+- `CLAUDE.md` Cross-References aktualisiert.
+- README + info.md ergaenzen Hinweis zur KNX-Bus-Analyse-Card und
+  Debug-Logging via UI.
+
+### Tech-Debt-Cleanup
+- **Ruff in Tests**: 37 → 0 Errors via per-file-ignores fuer Test-
+  spezifische Stylings (PT011, PT006, PT018, PLC0415, E501) plus
+  Auto-Fix fuer 11 I001 + 4 PLR1711 + 2 RUF100. Production-Code-
+  Regeln unangetastet.
+
 ### Migration
 Keine Datenbank-Migrationen.
 Alle UI-Aenderungen nutzen `localStorage`-Filter; vorhandene Filter-
 Presets bleiben erhalten und werden mit den neuen Default-Feldern
-gemerged.
+gemerged. `manifest.json:loggers` ist additiv, kein Eingriff in
+Bestandskonfig.
 
 ## [0.14.0] – 2026-05-02
 

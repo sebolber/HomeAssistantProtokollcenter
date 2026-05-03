@@ -299,9 +299,7 @@ UI-getrieben über `config_flow.py`:
 ## 13. Phasen-Plan für die Implementierung
 
 **Status:** Alle 12 Phasen abgeschlossen — siehe `CHANGELOG.md`
-für die released Iterationen. Spätere Erweiterungen sind in
-`messagehub_erweiterungen.md` und `messagehub_knx_statistik.md`
-dokumentiert.
+für die released Iterationen.
 
 Sequenziell, jede Phase abgeschlossen testbar:
 
@@ -322,21 +320,24 @@ Sequenziell, jede Phase abgeschlossen testbar:
 
 ---
 
-## 14. Optionale Erweiterungen (später)
+## 14. Optionale Erweiterungen — Status
 
-Bereits umgesetzt (siehe `messagehub_erweiterungen.md` und `CHANGELOG.md`):
+Alle ehemals als "Erweiterung" geplanten Features sind released.
+Konkrete Iterationen + Versionen siehe `CHANGELOG.md`. Highlights:
 
-- **Acknowledge-Flag** → Status-Lifecycle `new → acknowledged → resolved` (v0.2)
-- **Severity-Eskalation** → `processing/escalation.py` (v0.2)
-- **Telegram/Pushover-Forwarder** → `notifications/` mit Channels-UI (v0.2)
-- **Korrelations-IDs** → `trace_id`-Spalte + Auto-Gruppierung (v0.3)
-- **Volltextsuche via FTS5** → Migration `0006_fts5.sql` (v0.3)
-- **MQTT-Eingang** → `listeners/mqtt.py` + Topic-Mapping (v0.3)
-
-Noch offen:
-
-- **Saved Filters serverseitig:** aktuell nur LocalStorage pro Browser.
-- **Prometheus-Endpoint `/metrics`:** Counts pro Severity als Scrape-Target.
+- **Acknowledge-Lifecycle** `new → acknowledged → resolved` (v0.2)
+- **Severity-Eskalation** (`processing/escalation.py`, v0.2)
+- **Notifications-Channels** (Telegram/Pushover/ntfy/Slack) mit
+  Channel-CRUD-UI und Test-Knopf (v0.2 - v0.14)
+- **Korrelations-IDs** (`trace_id`-Spalte + Auto-Gruppierung, v0.3)
+- **Volltextsuche** via SQLite FTS5 (v0.3)
+- **MQTT-Eingang** (`listeners/mqtt.py` + Topic-Mapping, v0.3)
+- **KNX-Bus-Analyse** Tab mit Anti-Pattern-Detection,
+  Anomaly-Score, Bursts, Stille-Alarme, Trend, Heatmap,
+  GA-Werteverlauf-Export (v0.11 - v0.14)
+- **Saved Filters** serverseitig (Iter 92 / v0.14)
+- **Prometheus** `/metrics`-Endpoint (Iter 69 / v0.14)
+- **Auto-Remediation-Hooks** (v0.7+)
 
 ---
 
@@ -363,23 +364,19 @@ curl -X POST "$HA_URL/api/webhook/$HOOK_ID" \
 
 ---
 
-## 16. `manifest.json` (Skizze)
+## 16. `manifest.json`
 
-```json
-{
-  "domain": "messagehub",
-  "name": "Message Hub",
-  "version": "0.1.0",
-  "documentation": "https://github.com/sebolber/ha-messagehub",
-  "issue_tracker": "https://github.com/sebolber/ha-messagehub/issues",
-  "codeowners": ["@sebolber"],
-  "requirements": ["aiosqlite>=0.19.0", "jsonpath-ng>=1.6.0"],
-  "dependencies": ["http", "webhook", "frontend", "websocket_api"],
-  "config_flow": true,
-  "iot_class": "local_push",
-  "integration_type": "service"
-}
-```
+Aktueller Stand siehe `custom_components/messagehub/manifest.json`.
+Wichtige Felder:
+- `version`: bei jedem Release in `manifest.json` und Git-Tag
+  synchron halten (Workflow `release.yml` validiert das).
+- `loggers`: deklariert `custom_components.messagehub`,
+  `aiosqlite`, `jsonpath_ng` — sonst taucht die Integration im HA-
+  Log-Filter (Einstellungen → System → Protokolle) nicht auf.
+- `dependencies`: `http`, `webhook`, `frontend`, `websocket_api` —
+  benoetigt fuer das Custom-Panel + Webhook-Eingang.
+- `config_flow: true`, `iot_class: local_push`,
+  `integration_type: service`.
 
 ---
 

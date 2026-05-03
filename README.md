@@ -188,9 +188,6 @@ geloggten Bus-Verkehrs mit konkreten Empfehlungen zur Buslast-Reduktion.
 - **Timeline-Sparkline:** Top-5 GAs als Linien-Chart, Bucket-Größe
   passt sich der Periode an (1h→1min, 24h→10min, 7d/30d→60min).
 
-Konzept und Wissensbasis siehe
-[`docs/messagehub_knx_statistik.md`](docs/messagehub_knx_statistik.md).
-
 ### MQTT-Topics
 
 **Wozu:** auf MQTT-Pattern abonnieren, eingehende Payloads werden zu Messages.
@@ -529,6 +526,11 @@ Bulk-Delete) sind unveränderlich protokolliert. Suche und expandierbare Details
 | Datenbank wächst zu schnell | Retention-Defaults zu hoch oder kein Hard-Cap | Optionen anpassen (siehe oben) |
 | MQTT-Pattern matcht nicht | HA-MQTT nicht konfiguriert oder Topic-String falsch | HA-MQTT-Integration prüfen, Pattern mit `mosquitto_sub` testen |
 | Heatmap leer obwohl Daten da | Zeitzone-Problem? | DB-Timestamps sind UTC, Heatmap ist Local-Time. Prüfe HA-Zeitzone |
+| KNX-Telegramme empfangen, aber nichts im Panel | xknx-Hook noch nicht registriert | Settings → System → Logs → Filter „messagehub" → erste Zeile prüfen: `via xknx-Telegram-Hook aktiv` (gut) oder `kein xknx-Hook möglich` (Repair-Issue erscheint zusätzlich) |
+
+**Debug-Logging aktivieren**:
+Settings → Geräte & Dienste → Message Hub → drei Punkte → **„Debug-Logging aktivieren"**.
+Logs erscheinen im **Filter „Message Hub"** in Settings → System → Logs.
 
 Wenn das nicht hilft: Issue eröffnen mit Output von **Settings → System → Logs**
 gefiltert auf `messagehub`.

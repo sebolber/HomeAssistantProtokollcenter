@@ -84,7 +84,7 @@ export interface StatsDto {
   severity_24h: Record<string, number>;
 }
 
-// KNX-Stats — siehe docs/messagehub_knx_statistik.md
+// KNX-Stats DTOs — gespiegelt zum Backend `api/knx_stats.py`.
 export interface KnxStatsSummaryDto {
   from: string;
   to: string;

@@ -17,6 +17,10 @@ Sidebar-Panel.
 - **Auswertung**: Health-Score pro Source (0–100), Heatmap Stunde×Wochentag,
   Top-10-Sources, Severity-Time-Series, MTTR pro Source,
   EWMA-Anomalie-Erkennung (3σ-Burst), Pattern-Mining
+- **KNX-Bus-Analyse-Tab**: Top-Sender + Top-Geraete, Anti-Pattern-Detection
+  (Konstant-Wert-Spam, Read-Burst, Heartbeat), Anomaly-Score, Bursts,
+  Stille-Alarme, Trend, Aktivitaets-Heatmap, GA-Werteverlauf-Export
+  (CSV/JSON), Per-GA-Detail-Drawer mit Empfehlungen aus ETS-Manuals
 - **Notifications**: Telegram, Pushover, ntfy, E-Mail, Signal — mit
   Quiet-Hours, Throttling, Severity-Eskalation, Test-Channel
 - **Operations**: Audit-Log (unveränderlich), Export JSONL/CSV/Forensik-ZIP,

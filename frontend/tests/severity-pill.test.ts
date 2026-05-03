@@ -1,6 +1,6 @@
 // Iter 59 / B2: severityPillClass mappte green->neutral (grau) und
-// yellow->info (blau). Konzept §3.1 verlangt 4-stufige Ampel
-// gruen/gelb/orange/rot — siehe docs/messagehub_knx_statistik.md.
+// yellow->info (blau). Erwartet ist 4-stufige Ampel
+// gruen/gelb/orange/rot — siehe stats-knx-view.ts.
 
 import { describe, it, expect } from "vitest";
 import { severityPillClass } from "../src/components/stats-knx-view.js";

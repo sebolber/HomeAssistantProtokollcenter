@@ -150,10 +150,10 @@ function rawLiveWindow(): { from: string; to: string } {
   return { from: from.toISOString(), to: to.toISOString() };
 }
 
-// Iter 59 / B2: 4-stufige Ampel-Klassifizierung aus dem Konzept
-// (docs/messagehub_knx_statistik.md §3.1) auf mh-pill-Varianten mappen.
-// Vorher griff green->neutral (grau) und yellow->info (blau) — entwertete
-// die Ampel-Optik. Pure helper, modul-level export fuer Tests.
+// Iter 59 / B2: 4-stufige Ampel-Klassifizierung (gruen/gelb/orange/rot)
+// auf mh-pill-Varianten mappen. Vorher griff green->neutral (grau) und
+// yellow->info (blau) — entwertete die Ampel-Optik. Pure helper,
+// modul-level export fuer Tests.
 export function severityPillClass(
   sev: "green" | "yellow" | "orange" | "red"
 ): string {

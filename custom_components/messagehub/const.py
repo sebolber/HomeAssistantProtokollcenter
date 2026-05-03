@@ -80,7 +80,7 @@ DEFAULT_HARD_CAP_TOTAL: Final = 100_000
 DEFAULT_LOG_LEVEL: Final = "INFO"
 DEFAULT_AGGREGATION_WINDOW_MINUTES: Final = 10
 
-# KNX-Statistik (siehe docs/messagehub_knx_statistik.md)
+# KNX-Statistik
 # Empfohlene Ober-Rate fuer typische Geraeteklassen (Telegramme/Minute).
 # Werte konsolidiert aus KNX-Foren + ETS-Manuals (ABB, Theben, Gira,
 # Zennio, B.E.G., Elsner, Busch-Jaeger). Aktualisierung beim Bump.
@@ -114,8 +114,8 @@ DEFAULT_KNX_ACK_EXPIRY_DAYS: Final[int] = 90
 # Default-Auswertezeitraum fuer KNX-Stats-Tab (Tage)
 DEFAULT_KNX_STATS_PERIOD_DAYS: Final[int] = 7
 
-# QS-(l) Default-Alarm-Schwellen — siehe docs/messagehub_knx_statistik.md
-# Werden in Phase 2 ueber Config-Flow-Options konfigurierbar.
+# QS-(l) Default-Alarm-Schwellen.
+# Konfigurierbar via Config-Flow-Options (siehe README "KNX-Bus-Analyse").
 KNX_ALARM_BUSLOAD_PCT_DEFAULT: Final[float] = 25.0  # > X% Buslast
 KNX_ALARM_REPEAT_RATE_PCT_DEFAULT: Final[float] = 0.5  # > X% Wiederholungen
 KNX_ALARM_SILENCE_COUNT_DEFAULT: Final[int] = 1  # >= X stumme Geraete
