@@ -8199,7 +8199,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         </header>
         <ul class="silence-list">
           ${e.slice(0, s).map(
-      (r) => n`<li>
+      (r) => n`<li
+              class=${`silence-row ${this._selectedSource === r.dev_source ? "selected" : ""}`}
+              @click=${() => void this._loadSourceDetail(r.dev_source)}
+              title="Geraete-Detail oeffnen"
+            >
               <code>${r.dev_source}</code>
               <span class="muted">
                 seit ${this._formatSilence(r.silent_minutes)} stumm
@@ -9586,6 +9590,17 @@ f.styles = [
         font-family: var(--ha-font-family-code, ui-monospace, monospace);
         font-size: var(--mh-text-xs);
         font-weight: var(--mh-weight-semibold);
+      }
+      /* Iter F (knx-detail-panes): klickbare Stille-Alarm-Zeile.
+         Hover etwas verstaerkt, Selection-Highlight wie .top-device-row. */
+      .silence-list .silence-row {
+        cursor: pointer;
+      }
+      .silence-list .silence-row:hover {
+        filter: brightness(1.05);
+      }
+      .silence-list .silence-row.selected {
+        box-shadow: inset 3px 0 0 var(--mh-primary);
       }
 
       /* Bus-Health-Liste */

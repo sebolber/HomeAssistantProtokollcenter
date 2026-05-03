@@ -2612,7 +2612,13 @@ export class StatsKnxView extends LitElement {
         </header>
         <ul class="silence-list">
           ${alarms.slice(0, limit).map(
-            (a) => html`<li>
+            (a) => html`<li
+              class=${`silence-row ${
+                this._selectedSource === a.dev_source ? "selected" : ""
+              }`}
+              @click=${() => void this._loadSourceDetail(a.dev_source)}
+              title="Geraete-Detail oeffnen"
+            >
               <code>${a.dev_source}</code>
               <span class="muted">
                 seit ${this._formatSilence(a.silent_minutes)} stumm
@@ -4033,6 +4039,17 @@ export class StatsKnxView extends LitElement {
         font-family: var(--ha-font-family-code, ui-monospace, monospace);
         font-size: var(--mh-text-xs);
         font-weight: var(--mh-weight-semibold);
+      }
+      /* Iter F (knx-detail-panes): klickbare Stille-Alarm-Zeile.
+         Hover etwas verstaerkt, Selection-Highlight wie .top-device-row. */
+      .silence-list .silence-row {
+        cursor: pointer;
+      }
+      .silence-list .silence-row:hover {
+        filter: brightness(1.05);
+      }
+      .silence-list .silence-row.selected {
+        box-shadow: inset 3px 0 0 var(--mh-primary);
       }
 
       /* Bus-Health-Liste */
