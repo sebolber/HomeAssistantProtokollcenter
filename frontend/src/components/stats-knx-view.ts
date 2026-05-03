@@ -2085,7 +2085,7 @@ export class StatsKnxView extends LitElement {
     });
     return html`
       <div class="table-wrap">
-        <table>
+        <table data-test="top-devices-table">
           <thead>
             <tr>
               <th>#</th>
@@ -2124,7 +2124,15 @@ export class StatsKnxView extends LitElement {
               const fullDeviceText = manufacturer && deviceName
                 ? `${manufacturer} — ${deviceName}`
                 : manufacturer || deviceName;
-              return html`<tr>
+              // Iter E (knx-detail-panes): TR-Klick oeffnet Source-
+              // Detail-Pane. Selection-Highlight via _selectedSource.
+              // Bulk-Ack-Button stoppt die Propagation (siehe unten).
+              const isSelected = this._selectedSource === row.dev_source;
+              return html`<tr
+                class=${`top-device-row ${isSelected ? "selected" : ""}`}
+                @click=${() => void this._loadSourceDetail(row.dev_source)}
+                title="Geraete-Detail oeffnen"
+              >
                 <td class="num muted">${idx + 1}</td>
                 <td><code class="ga">${row.dev_source}</code></td>
                 <td class="device-cell">
@@ -4098,6 +4106,21 @@ export class StatsKnxView extends LitElement {
       }
       .source-ga-row:hover {
         background: var(--mh-bg-hover, rgba(0, 0, 0, 0.04));
+      }
+
+      /* Iter E (knx-detail-panes): klickbare Top-Geraete-Zeile.
+         Selection-Highlight nutzt selben Stil wie die GA-Top-Sender-
+         Tabelle (.row-... .selected) — Konsistenz beim Source-Detail-
+         Wechsel zwischen den beiden Drawer-Inhalten. */
+      .top-device-row {
+        cursor: pointer;
+      }
+      .top-device-row:hover {
+        background: var(--mh-bg-hover, rgba(0, 0, 0, 0.04));
+      }
+      .top-device-row.selected {
+        background: color-mix(in srgb, var(--mh-primary) 12%, transparent);
+        box-shadow: inset 3px 0 0 var(--mh-primary);
       }
 
       /* Toast */

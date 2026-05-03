@@ -45,7 +45,7 @@ const Jt = (t) => new Ot(typeof t == "string" ? t : t + "", void 0, Je), y = (t,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: Xt, defineProperty: Zt, getOwnPropertyDescriptor: Qt, getOwnPropertyNames: es, getOwnPropertySymbols: ts, getPrototypeOf: ss } = Object, j = globalThis, it = j.trustedTypes, as = it ? it.emptyScript : "", Me = j.reactiveElementPolyfillSupport, fe = (t, e) => t, ze = { toAttribute(t, e) {
+const { is: Zt, defineProperty: Xt, getOwnPropertyDescriptor: Qt, getOwnPropertyNames: es, getOwnPropertySymbols: ts, getPrototypeOf: ss } = Object, j = globalThis, it = j.trustedTypes, as = it ? it.emptyScript : "", Me = j.reactiveElementPolyfillSupport, fe = (t, e) => t, ze = { toAttribute(t, e) {
   switch (e) {
     case Boolean:
       t = t ? as : null;
@@ -73,7 +73,7 @@ const { is: Xt, defineProperty: Zt, getOwnPropertyDescriptor: Qt, getOwnProperty
       }
   }
   return s;
-} }, Ye = (t, e) => !Xt(t, e), nt = { attribute: !0, type: String, converter: ze, reflect: !1, useDefault: !1, hasChanged: Ye };
+} }, Ye = (t, e) => !Zt(t, e), nt = { attribute: !0, type: String, converter: ze, reflect: !1, useDefault: !1, hasChanged: Ye };
 Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), j.litPropertyMetadata ?? (j.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
 let oe = class extends HTMLElement {
   static addInitializer(e) {
@@ -85,7 +85,7 @@ let oe = class extends HTMLElement {
   static createProperty(e, s = nt) {
     if (s.state && (s.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((s = Object.create(s)).wrapped = !0), this.elementProperties.set(e, s), !s.noAccessor) {
       const r = Symbol(), a = this.getPropertyDescriptor(e, r, s);
-      a !== void 0 && Zt(this.prototype, e, a);
+      a !== void 0 && Xt(this.prototype, e, a);
     }
   }
   static getPropertyDescriptor(e, s, r) {
@@ -192,9 +192,9 @@ let oe = class extends HTMLElement {
     var i, o;
     const r = this.constructor, a = r._$Eh.get(e);
     if (a !== void 0 && this._$Em !== a) {
-      const d = r.getPropertyOptions(a), c = typeof d.converter == "function" ? { fromAttribute: d.converter } : ((i = d.converter) == null ? void 0 : i.fromAttribute) !== void 0 ? d.converter : ze;
+      const d = r.getPropertyOptions(a), h = typeof d.converter == "function" ? { fromAttribute: d.converter } : ((i = d.converter) == null ? void 0 : i.fromAttribute) !== void 0 ? d.converter : ze;
       this._$Em = a;
-      const m = c.fromAttribute(s, d.type);
+      const m = h.fromAttribute(s, d.type);
       this[a] = m ?? ((o = this._$Ej) == null ? void 0 : o.get(a)) ?? m, this._$Em = null;
     }
   }
@@ -233,8 +233,8 @@ let oe = class extends HTMLElement {
       }
       const a = this.constructor.elementProperties;
       if (a.size > 0) for (const [i, o] of a) {
-        const { wrapped: d } = o, c = this[i];
-        d !== !0 || this._$AL.has(i) || c === void 0 || this.C(i, void 0, o, c);
+        const { wrapped: d } = o, h = this[i];
+        d !== !0 || this._$AL.has(i) || h === void 0 || this.C(i, void 0, o, h);
       }
     }
     let e = !1;
@@ -284,22 +284,22 @@ oe.elementStyles = [], oe.shadowRootOptions = { mode: "open" }, oe[fe("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const be = globalThis, ot = (t) => t, Le = be.trustedTypes, lt = Le ? Le.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Nt = "$lit$", B = `lit$${Math.random().toFixed(9).slice(2)}$`, Ft = "?" + B, rs = `<${Ft}>`, Y = document, _e = () => Y.createComment(""), we = (t) => t === null || typeof t != "object" && typeof t != "function", Xe = Array.isArray, is = (t) => Xe(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Ue = `[ 	
-\f\r]`, me = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, dt = /-->/g, ht = />/g, W = RegExp(`>|${Ue}(?:([^\\s"'>=/]+)(${Ue}*=${Ue}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), ct = /'/g, pt = /"/g, Ct = /^(?:script|style|textarea|title)$/i, ns = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), n = ns(1), X = Symbol.for("lit-noChange"), h = Symbol.for("lit-nothing"), ut = /* @__PURE__ */ new WeakMap(), q = Y.createTreeWalker(Y, 129);
+const be = globalThis, ot = (t) => t, Le = be.trustedTypes, lt = Le ? Le.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Nt = "$lit$", B = `lit$${Math.random().toFixed(9).slice(2)}$`, Ft = "?" + B, rs = `<${Ft}>`, Y = document, _e = () => Y.createComment(""), we = (t) => t === null || typeof t != "object" && typeof t != "function", Ze = Array.isArray, is = (t) => Ze(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Ue = `[ 	
+\f\r]`, me = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, dt = /-->/g, ct = />/g, W = RegExp(`>|${Ue}(?:([^\\s"'>=/]+)(${Ue}*=${Ue}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`, "g"), ht = /'/g, pt = /"/g, Ct = /^(?:script|style|textarea|title)$/i, ns = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), n = ns(1), Z = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), ut = /* @__PURE__ */ new WeakMap(), q = Y.createTreeWalker(Y, 129);
 function It(t, e) {
-  if (!Xe(t) || !t.hasOwnProperty("raw")) throw Error("invalid template strings array");
+  if (!Ze(t) || !t.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return lt !== void 0 ? lt.createHTML(e) : e;
 }
 const os = (t, e) => {
   const s = t.length - 1, r = [];
   let a, i = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", o = me;
   for (let d = 0; d < s; d++) {
-    const c = t[d];
+    const h = t[d];
     let m, g, u = -1, p = 0;
-    for (; p < c.length && (o.lastIndex = p, g = o.exec(c), g !== null); ) p = o.lastIndex, o === me ? g[1] === "!--" ? o = dt : g[1] !== void 0 ? o = ht : g[2] !== void 0 ? (Ct.test(g[2]) && (a = RegExp("</" + g[2], "g")), o = W) : g[3] !== void 0 && (o = W) : o === W ? g[0] === ">" ? (o = a ?? me, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? W : g[3] === '"' ? pt : ct) : o === pt || o === ct ? o = W : o === dt || o === ht ? o = me : (o = W, a = void 0);
-    const _ = o === W && t[d + 1].startsWith("/>") ? " " : "";
-    i += o === me ? c + rs : u >= 0 ? (r.push(m), c.slice(0, u) + Nt + c.slice(u) + B + _) : c + B + (u === -2 ? d : _);
+    for (; p < h.length && (o.lastIndex = p, g = o.exec(h), g !== null); ) p = o.lastIndex, o === me ? g[1] === "!--" ? o = dt : g[1] !== void 0 ? o = ct : g[2] !== void 0 ? (Ct.test(g[2]) && (a = RegExp("</" + g[2], "g")), o = W) : g[3] !== void 0 && (o = W) : o === W ? g[0] === ">" ? (o = a ?? me, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? W : g[3] === '"' ? pt : ht) : o === pt || o === ht ? o = W : o === dt || o === ct ? o = me : (o = W, a = void 0);
+    const b = o === W && t[d + 1].startsWith("/>") ? " " : "";
+    i += o === me ? h + rs : u >= 0 ? (r.push(m), h.slice(0, u) + Nt + h.slice(u) + B + b) : h + B + (u === -2 ? d : b);
   }
   return [It(t, i + (t[s] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), r];
 };
@@ -308,29 +308,29 @@ class xe {
     let a;
     this.parts = [];
     let i = 0, o = 0;
-    const d = e.length - 1, c = this.parts, [m, g] = os(e, s);
+    const d = e.length - 1, h = this.parts, [m, g] = os(e, s);
     if (this.el = xe.createElement(m, r), q.currentNode = this.el.content, s === 2 || s === 3) {
       const u = this.el.content.firstChild;
       u.replaceWith(...u.childNodes);
     }
-    for (; (a = q.nextNode()) !== null && c.length < d; ) {
+    for (; (a = q.nextNode()) !== null && h.length < d; ) {
       if (a.nodeType === 1) {
         if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Nt)) {
-          const p = g[o++], _ = a.getAttribute(u).split(B), v = /([.?@])?(.*)/.exec(p);
-          c.push({ type: 1, index: i, name: v[2], strings: _, ctor: v[1] === "." ? ds : v[1] === "?" ? hs : v[1] === "@" ? cs : Ne }), a.removeAttribute(u);
-        } else u.startsWith(B) && (c.push({ type: 6, index: i }), a.removeAttribute(u));
+          const p = g[o++], b = a.getAttribute(u).split(B), v = /([.?@])?(.*)/.exec(p);
+          h.push({ type: 1, index: i, name: v[2], strings: b, ctor: v[1] === "." ? ds : v[1] === "?" ? cs : v[1] === "@" ? hs : Ne }), a.removeAttribute(u);
+        } else u.startsWith(B) && (h.push({ type: 6, index: i }), a.removeAttribute(u));
         if (Ct.test(a.tagName)) {
           const u = a.textContent.split(B), p = u.length - 1;
           if (p > 0) {
             a.textContent = Le ? Le.emptyScript : "";
-            for (let _ = 0; _ < p; _++) a.append(u[_], _e()), q.nextNode(), c.push({ type: 2, index: ++i });
+            for (let b = 0; b < p; b++) a.append(u[b], _e()), q.nextNode(), h.push({ type: 2, index: ++i });
             a.append(u[p], _e());
           }
         }
-      } else if (a.nodeType === 8) if (a.data === Ft) c.push({ type: 2, index: i });
+      } else if (a.nodeType === 8) if (a.data === Ft) h.push({ type: 2, index: i });
       else {
         let u = -1;
-        for (; (u = a.data.indexOf(B, u + 1)) !== -1; ) c.push({ type: 7, index: i }), u += B.length - 1;
+        for (; (u = a.data.indexOf(B, u + 1)) !== -1; ) h.push({ type: 7, index: i }), u += B.length - 1;
       }
       i++;
     }
@@ -342,7 +342,7 @@ class xe {
 }
 function le(t, e, s = t, r) {
   var o, d;
-  if (e === X) return e;
+  if (e === Z) return e;
   let a = r !== void 0 ? (o = s._$Co) == null ? void 0 : o[r] : s._$Cl;
   const i = we(e) ? void 0 : e._$litDirective$;
   return (a == null ? void 0 : a.constructor) !== i && ((d = a == null ? void 0 : a._$AO) == null || d.call(a, !1), i === void 0 ? a = void 0 : (a = new i(t), a._$AT(t, s, r)), r !== void 0 ? (s._$Co ?? (s._$Co = []))[r] = a : s._$Cl = a), a !== void 0 && (e = le(t, a._$AS(t, e.values), a, r)), e;
@@ -360,13 +360,13 @@ class ls {
   u(e) {
     const { el: { content: s }, parts: r } = this._$AD, a = ((e == null ? void 0 : e.creationScope) ?? Y).importNode(s, !0);
     q.currentNode = a;
-    let i = q.nextNode(), o = 0, d = 0, c = r[0];
-    for (; c !== void 0; ) {
-      if (o === c.index) {
+    let i = q.nextNode(), o = 0, d = 0, h = r[0];
+    for (; h !== void 0; ) {
+      if (o === h.index) {
         let m;
-        c.type === 2 ? m = new pe(i, i.nextSibling, this, e) : c.type === 1 ? m = new c.ctor(i, c.name, c.strings, this, e) : c.type === 6 && (m = new ps(i, this, e)), this._$AV.push(m), c = r[++d];
+        h.type === 2 ? m = new pe(i, i.nextSibling, this, e) : h.type === 1 ? m = new h.ctor(i, h.name, h.strings, this, e) : h.type === 6 && (m = new ps(i, this, e)), this._$AV.push(m), h = r[++d];
       }
-      o !== (c == null ? void 0 : c.index) && (i = q.nextNode(), o++);
+      o !== (h == null ? void 0 : h.index) && (i = q.nextNode(), o++);
     }
     return q.currentNode = Y, a;
   }
@@ -381,7 +381,7 @@ class pe {
     return ((e = this._$AM) == null ? void 0 : e._$AU) ?? this._$Cv;
   }
   constructor(e, s, r, a) {
-    this.type = 2, this._$AH = h, this._$AN = void 0, this._$AA = e, this._$AB = s, this._$AM = r, this.options = a, this._$Cv = (a == null ? void 0 : a.isConnected) ?? !0;
+    this.type = 2, this._$AH = c, this._$AN = void 0, this._$AA = e, this._$AB = s, this._$AM = r, this.options = a, this._$Cv = (a == null ? void 0 : a.isConnected) ?? !0;
   }
   get parentNode() {
     let e = this._$AA.parentNode;
@@ -395,7 +395,7 @@ class pe {
     return this._$AB;
   }
   _$AI(e, s = this) {
-    e = le(this, e, s), we(e) ? e === h || e == null || e === "" ? (this._$AH !== h && this._$AR(), this._$AH = h) : e !== this._$AH && e !== X && this._(e) : e._$litType$ !== void 0 ? this.$(e) : e.nodeType !== void 0 ? this.T(e) : is(e) ? this.k(e) : this._(e);
+    e = le(this, e, s), we(e) ? e === c || e == null || e === "" ? (this._$AH !== c && this._$AR(), this._$AH = c) : e !== this._$AH && e !== Z && this._(e) : e._$litType$ !== void 0 ? this.$(e) : e.nodeType !== void 0 ? this.T(e) : is(e) ? this.k(e) : this._(e);
   }
   O(e) {
     return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -404,7 +404,7 @@ class pe {
     this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
   }
   _(e) {
-    this._$AH !== h && we(this._$AH) ? this._$AA.nextSibling.data = e : this.T(Y.createTextNode(e)), this._$AH = e;
+    this._$AH !== c && we(this._$AH) ? this._$AA.nextSibling.data = e : this.T(Y.createTextNode(e)), this._$AH = e;
   }
   $(e) {
     var i;
@@ -420,7 +420,7 @@ class pe {
     return s === void 0 && ut.set(e.strings, s = new xe(e)), s;
   }
   k(e) {
-    Xe(this._$AH) || (this._$AH = [], this._$AR());
+    Ze(this._$AH) || (this._$AH = [], this._$AR());
     const s = this._$AH;
     let r, a = 0;
     for (const i of e) a === s.length ? s.push(r = new pe(this.O(_e()), this.O(_e()), this, this.options)) : r = s[a], r._$AI(i), a++;
@@ -446,21 +446,21 @@ class Ne {
     return this._$AM._$AU;
   }
   constructor(e, s, r, a, i) {
-    this.type = 1, this._$AH = h, this._$AN = void 0, this.element = e, this.name = s, this._$AM = a, this.options = i, r.length > 2 || r[0] !== "" || r[1] !== "" ? (this._$AH = Array(r.length - 1).fill(new String()), this.strings = r) : this._$AH = h;
+    this.type = 1, this._$AH = c, this._$AN = void 0, this.element = e, this.name = s, this._$AM = a, this.options = i, r.length > 2 || r[0] !== "" || r[1] !== "" ? (this._$AH = Array(r.length - 1).fill(new String()), this.strings = r) : this._$AH = c;
   }
   _$AI(e, s = this, r, a) {
     const i = this.strings;
     let o = !1;
-    if (i === void 0) e = le(this, e, s, 0), o = !we(e) || e !== this._$AH && e !== X, o && (this._$AH = e);
+    if (i === void 0) e = le(this, e, s, 0), o = !we(e) || e !== this._$AH && e !== Z, o && (this._$AH = e);
     else {
       const d = e;
-      let c, m;
-      for (e = i[0], c = 0; c < i.length - 1; c++) m = le(this, d[r + c], s, c), m === X && (m = this._$AH[c]), o || (o = !we(m) || m !== this._$AH[c]), m === h ? e = h : e !== h && (e += (m ?? "") + i[c + 1]), this._$AH[c] = m;
+      let h, m;
+      for (e = i[0], h = 0; h < i.length - 1; h++) m = le(this, d[r + h], s, h), m === Z && (m = this._$AH[h]), o || (o = !we(m) || m !== this._$AH[h]), m === c ? e = c : e !== c && (e += (m ?? "") + i[h + 1]), this._$AH[h] = m;
     }
     o && !a && this.j(e);
   }
   j(e) {
-    e === h ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
+    e === c ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
   }
 }
 class ds extends Ne {
@@ -468,24 +468,24 @@ class ds extends Ne {
     super(...arguments), this.type = 3;
   }
   j(e) {
-    this.element[this.name] = e === h ? void 0 : e;
+    this.element[this.name] = e === c ? void 0 : e;
   }
 }
-class hs extends Ne {
+class cs extends Ne {
   constructor() {
     super(...arguments), this.type = 4;
   }
   j(e) {
-    this.element.toggleAttribute(this.name, !!e && e !== h);
+    this.element.toggleAttribute(this.name, !!e && e !== c);
   }
 }
-class cs extends Ne {
+class hs extends Ne {
   constructor(e, s, r, a, i) {
     super(e, s, r, a, i), this.type = 5;
   }
   _$AI(e, s = this) {
-    if ((e = le(this, e, s, 0) ?? h) === X) return;
-    const r = this._$AH, a = e === h && r !== h || e.capture !== r.capture || e.once !== r.once || e.passive !== r.passive, i = e !== h && (r === h || a);
+    if ((e = le(this, e, s, 0) ?? c) === Z) return;
+    const r = this._$AH, a = e === c && r !== c || e.capture !== r.capture || e.once !== r.once || e.passive !== r.passive, i = e !== c && (r === c || a);
     a && this.element.removeEventListener(this.name, this, r), i && this.element.addEventListener(this.name, this, e), this._$AH = e;
   }
   handleEvent(e) {
@@ -543,7 +543,7 @@ let x = class extends oe {
     super.disconnectedCallback(), (e = this._$Do) == null || e.setConnected(!1);
   }
   render() {
-    return X;
+    return Z;
   }
 };
 var Lt;
@@ -572,8 +572,8 @@ const vs = { attribute: !0, type: String, converter: ze, reflect: !1, hasChanged
   if (i === void 0 && globalThis.litPropertyMetadata.set(a, i = /* @__PURE__ */ new Map()), r === "setter" && ((t = Object.create(t)).wrapped = !0), i.set(s.name, t), r === "accessor") {
     const { name: o } = s;
     return { set(d) {
-      const c = e.get.call(this);
-      e.set.call(this, d), this.requestUpdate(o, c, t, !0, d);
+      const h = e.get.call(this);
+      e.set.call(this, d), this.requestUpdate(o, h, t, !0, d);
     }, init(d) {
       return d !== void 0 && this.C(o, void 0, t, d), d;
     } };
@@ -581,8 +581,8 @@ const vs = { attribute: !0, type: String, converter: ze, reflect: !1, hasChanged
   if (r === "setter") {
     const { name: o } = s;
     return function(d) {
-      const c = this[o];
-      e.call(this, d), this.requestUpdate(o, c, t, !0, d);
+      const h = this[o];
+      e.call(this, d), this.requestUpdate(o, h, t, !0, d);
     };
   }
   throw Error("Unsupported decorator location: " + r);
@@ -1444,12 +1444,12 @@ const { I: ys } = us, mt = (t) => t, gt = () => document.createComment(""), ge =
     const o = r.insertBefore(gt(), a), d = r.insertBefore(gt(), a);
     s = new ys(o, d, t, t.options);
   } else {
-    const o = s._$AB.nextSibling, d = s._$AM, c = d !== t;
-    if (c) {
+    const o = s._$AB.nextSibling, d = s._$AM, h = d !== t;
+    if (h) {
       let m;
       (i = s._$AQ) == null || i.call(s, t), s._$AM = t, s._$AP !== void 0 && (m = t._$AU) !== d._$AU && s._$AP(m);
     }
-    if (o !== a || c) {
+    if (o !== a || h) {
       let m = s._$AA;
       for (; m !== o; ) {
         const g = mt(m).nextSibling;
@@ -1488,32 +1488,32 @@ const vt = (t, e, s) => {
   update(t, [e, s, r]) {
     const a = Ss(t), { values: i, keys: o } = this.dt(e, s, r);
     if (!Array.isArray(a)) return this.ut = o, i;
-    const d = this.ut ?? (this.ut = []), c = [];
-    let m, g, u = 0, p = a.length - 1, _ = 0, v = i.length - 1;
-    for (; u <= p && _ <= v; ) if (a[u] === null) u++;
+    const d = this.ut ?? (this.ut = []), h = [];
+    let m, g, u = 0, p = a.length - 1, b = 0, v = i.length - 1;
+    for (; u <= p && b <= v; ) if (a[u] === null) u++;
     else if (a[p] === null) p--;
-    else if (d[u] === o[_]) c[_] = V(a[u], i[_]), u++, _++;
-    else if (d[p] === o[v]) c[v] = V(a[p], i[v]), p--, v--;
-    else if (d[u] === o[v]) c[v] = V(a[u], i[v]), ge(t, c[v + 1], a[u]), u++, v--;
-    else if (d[p] === o[_]) c[_] = V(a[p], i[_]), ge(t, a[u], a[p]), p--, _++;
-    else if (m === void 0 && (m = vt(o, _, v), g = vt(d, u, p)), m.has(d[u])) if (m.has(d[p])) {
-      const k = g.get(o[_]), ue = k !== void 0 ? a[k] : null;
+    else if (d[u] === o[b]) h[b] = V(a[u], i[b]), u++, b++;
+    else if (d[p] === o[v]) h[v] = V(a[p], i[v]), p--, v--;
+    else if (d[u] === o[v]) h[v] = V(a[u], i[v]), ge(t, h[v + 1], a[u]), u++, v--;
+    else if (d[p] === o[b]) h[b] = V(a[p], i[b]), ge(t, a[u], a[p]), p--, b++;
+    else if (m === void 0 && (m = vt(o, b, v), g = vt(d, u, p)), m.has(d[u])) if (m.has(d[p])) {
+      const k = g.get(o[b]), ue = k !== void 0 ? a[k] : null;
       if (ue === null) {
         const Ee = ge(t, a[u]);
-        V(Ee, i[_]), c[_] = Ee;
-      } else c[_] = V(ue, i[_]), ge(t, a[u], ue), a[k] = null;
-      _++;
+        V(Ee, i[b]), h[b] = Ee;
+      } else h[b] = V(ue, i[b]), ge(t, a[u], ue), a[k] = null;
+      b++;
     } else je(a[p]), p--;
     else je(a[u]), u++;
-    for (; _ <= v; ) {
-      const k = ge(t, c[v + 1]);
-      V(k, i[_]), c[_++] = k;
+    for (; b <= v; ) {
+      const k = ge(t, h[v + 1]);
+      V(k, i[b]), h[b++] = k;
     }
     for (; u <= p; ) {
       const k = a[u++];
       k !== null && je(k);
     }
-    return this.ut = o, ks(t, c), X;
+    return this.ut = o, ks(t, h), Z;
   }
 }), As = new Intl.RelativeTimeFormat("de", { numeric: "auto" }), Es = [
   { unit: "year", seconds: 31536e3 },
@@ -1562,7 +1562,7 @@ const ft = {
   info: "Info",
   debug: "Debug"
 }, zs = ["error", "warning", "info", "debug"];
-let Z = class extends x {
+let X = class extends x {
   constructor() {
     super(...arguments), this.items = [], this._now = /* @__PURE__ */ new Date(), this._editSeverityFor = null, this._popoverPos = null, this._onClick = (t) => {
       this.dispatchEvent(
@@ -1624,7 +1624,7 @@ let Z = class extends x {
               <span class="sev-icon" aria-hidden="true">${ft[r]}</span>
               ${bt[r]}
             </span>
-            ${r === e ? n`<span class="check" aria-hidden="true">✓</span>` : h}
+            ${r === e ? n`<span class="check" aria-hidden="true">✓</span>` : c}
           </button>`
     )}
       </div>
@@ -1691,7 +1691,7 @@ let Z = class extends x {
       `;
   }
 };
-Z.styles = [
+X.styles = [
   z,
   ae,
   y`
@@ -1889,19 +1889,19 @@ Z.styles = [
 ];
 Se([
   w({ attribute: !1 })
-], Z.prototype, "items", 2);
+], X.prototype, "items", 2);
 Se([
   l()
-], Z.prototype, "_now", 2);
+], X.prototype, "_now", 2);
 Se([
   l()
-], Z.prototype, "_editSeverityFor", 2);
+], X.prototype, "_editSeverityFor", 2);
 Se([
   l()
-], Z.prototype, "_popoverPos", 2);
-Z = Se([
+], X.prototype, "_popoverPos", 2);
+X = Se([
   S("message-table")
-], Z);
+], X);
 var Ls = Object.defineProperty, Os = Object.getOwnPropertyDescriptor, Ut = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? Os(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
@@ -2080,7 +2080,7 @@ Ce([
 de = Ce([
   S("source-filter")
 ], de);
-var Cs = Object.defineProperty, Is = Object.getOwnPropertyDescriptor, Ze = (t, e, s, r) => {
+var Cs = Object.defineProperty, Is = Object.getOwnPropertyDescriptor, Xe = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? Is(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && Cs(e, s, a), a;
@@ -2121,16 +2121,16 @@ ye.styles = y`
       cursor: pointer;
     }
   `;
-Ze([
+Xe([
   w({ attribute: !1 })
 ], ye.prototype, "fromIso", 2);
-Ze([
+Xe([
   w({ attribute: !1 })
 ], ye.prototype, "toIso", 2);
-ye = Ze([
+ye = Xe([
   S("time-range-filter")
 ], ye);
-var Rs = Object.defineProperty, Ms = Object.getOwnPropertyDescriptor, G = (t, e, s, r) => {
+var Rs = Object.defineProperty, Ms = Object.getOwnPropertyDescriptor, K = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? Ms(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && Rs(e, s, a), a;
@@ -2267,7 +2267,7 @@ let F = class extends x {
         <pre class="text">${this.msg.text}</pre>
 
         ${this.msg.metadata ? n`<h3>Metadata</h3>
-              <pre class="meta">${JSON.stringify(this.msg.metadata, null, 2)}</pre>` : h}
+              <pre class="meta">${JSON.stringify(this.msg.metadata, null, 2)}</pre>` : c}
 
         <h3>Tags</h3>
         <div class="tags">
@@ -2300,7 +2300,7 @@ let F = class extends x {
         </div>
 
         ${this._runbook ? n`<h3>Runbook: ${this._runbook.title}</h3>
-              <pre class="runbook">${this._runbook.markdown}</pre>` : h}
+              <pre class="runbook">${this._runbook.markdown}</pre>` : c}
 
         <footer>
           <button class="del" @click=${this._delete}>Löschen</button>
@@ -2528,28 +2528,28 @@ F.styles = y`
       cursor: pointer;
     }
   `;
-G([
+K([
   w({ attribute: !1 })
 ], F.prototype, "msg", 2);
-G([
+K([
   w({ attribute: !1 })
 ], F.prototype, "api", 2);
-G([
+K([
   l()
 ], F.prototype, "_status", 2);
-G([
+K([
   l()
 ], F.prototype, "_tags", 2);
-G([
+K([
   l()
 ], F.prototype, "_newTag", 2);
-G([
+K([
   l()
 ], F.prototype, "_runbook", 2);
-G([
+K([
   l()
 ], F.prototype, "_busy", 2);
-F = G([
+F = K([
   S("detail-pane")
 ], F);
 var Us = Object.defineProperty, Hs = Object.getOwnPropertyDescriptor, C = (t, e, s, r) => {
@@ -2566,8 +2566,8 @@ const Bs = ["debug", "info", "warning", "error"], js = JSON.stringify(
   },
   null,
   2
-), Ke = /^[a-z0-9._-]{1,64}$/;
-function Ks(t) {
+), Ge = /^[a-z0-9._-]{1,64}$/;
+function Gs(t) {
   return t.toLowerCase().normalize("NFKD").replaceAll(/[äÄ]/g, "ae").replaceAll(/[öÖ]/g, "oe").replaceAll(/[üÜ]/g, "ue").replaceAll(/ß/g, "ss").replaceAll(/[\s/\\]+/g, "-").replaceAll(/[^a-z0-9._-]/g, "").slice(0, 64);
 }
 let L = class extends x {
@@ -2597,7 +2597,7 @@ let L = class extends x {
       try {
         const t = this._validateMapping();
         if (!this._name.trim()) throw new Error("Name darf nicht leer sein");
-        if (!Ke.test(this._source))
+        if (!Ge.test(this._source))
           throw new Error("Source ist leer oder ungueltig.");
         let e;
         this.editing ? e = await this.api.updateWebhook(this.editing.webhook_id, {
@@ -2652,15 +2652,15 @@ let L = class extends x {
           <label>
             <span>
               Default-Source
-              ${this._source && Ke.test(this._source) ? n`<span class="ok-badge" title="ok">✓</span>` : null}
+              ${this._source && Ge.test(this._source) ? n`<span class="ok-badge" title="ok">✓</span>` : null}
             </span>
             <input
               type="text"
-              class=${this._source && !Ke.test(this._source) ? "invalid" : ""}
+              class=${this._source && !Ge.test(this._source) ? "invalid" : ""}
               .value=${this._source}
               @input=${(e) => {
       const s = e.target.value;
-      this._source = Ks(s);
+      this._source = Gs(s);
     }}
               placeholder="z. B. pihole"
               autocomplete="off"
@@ -2899,12 +2899,12 @@ C([
 L = C([
   S("webhook-form")
 ], L);
-var Gs = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, T = (t, e, s, r) => {
+var Ks = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, T = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? Ws(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && Gs(e, s, a), a;
+  return r && a && Ks(e, s, a), a;
 };
-const Vs = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, Ge = ["debug", "info", "warning", "error"], wt = [...Ge, "auto"], Ht = "messagehub.knx-addresses.only-enabled";
+const Vs = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, Ke = ["debug", "info", "warning", "error"], wt = [...Ke, "auto"], Ht = "messagehub.knx-addresses.only-enabled";
 function qs() {
   try {
     const t = localStorage.getItem(Ht);
@@ -3086,9 +3086,9 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
     }
   }
   _renderSevPopover() {
-    if (this._sevPopoverFor === null || this._sevPopoverPos === null) return h;
+    if (this._sevPopoverFor === null || this._sevPopoverPos === null) return c;
     const t = this._items.find((s) => s.address === this._sevPopoverFor);
-    if (!t) return h;
+    if (!t) return c;
     const e = t.log_severity;
     return n`
       <div class="sev-backdrop" @click=${() => this._closeSevPopover()}></div>
@@ -3108,7 +3108,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
             <span
               class=${`mh-pill mh-pill--${s === "auto" ? "neutral" : s}`}
             >${s}</span>
-            ${s === e ? n`<span class="sev-check" aria-hidden="true">✓</span>` : h}
+            ${s === e ? n`<span class="sev-check" aria-hidden="true">✓</span>` : c}
           </button>`
     )}
       </div>
@@ -3231,7 +3231,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
     ) : t;
   }
   _renderEditor() {
-    if (!this._editing) return h;
+    if (!this._editing) return c;
     const t = this._editing, e = (s) => {
       this._editing = { ...t, ...s };
     };
@@ -3295,7 +3295,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
       severity_on_true: s.target.value
     })}
                         >
-                          ${Ge.map(
+                          ${Ke.map(
       (s) => n`<option value=${s}>${s}</option>`
     )}
                         </select>
@@ -3308,13 +3308,13 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
       severity_on_false: s.target.value
     })}
                         >
-                          ${Ge.map(
+                          ${Ke.map(
       (s) => n`<option value=${s}>${s}</option>`
     )}
                         </select>
                       </label>
-                    </div>` : h}
-              ` : h}
+                    </div>` : c}
+              ` : c}
 
           <div class="modal-actions">
             <button class="mh-btn" @click=${() => this._editing = null}>Abbrechen</button>
@@ -3420,7 +3420,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
               ETS-Projekt — Label und DPT werden dann automatisch vorbefüllt.
             </p>` : null}
         ${this._renderDiscoveryStatus()}
-        ${this._error ? n`<div class="error">${this._error}</div>` : h}
+        ${this._error ? n`<div class="error">${this._error}</div>` : c}
 
         <div class="filter-bar">
           <input
@@ -3460,7 +3460,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
             <span>Platzhalter ausblenden</span>
           </label>
           <span class="muted">
-            ${e.length} sichtbar${s ? n` von ${t.length}` : h}
+            ${e.length} sichtbar${s ? n` von ${t.length}` : c}
           </span>
         </div>
 
@@ -3488,7 +3488,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                         ${r} davon aktiv).
                       </p>`}
               </div>` : n`
-                ${this._selected.size > 0 ? this._renderBulkToolbar() : h}
+                ${this._selected.size > 0 ? this._renderBulkToolbar() : c}
                 <div class="table-wrap">
                   <table>
                     <thead>
@@ -3540,7 +3540,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                                     ${a.log_severity}${a.log_severity === "auto" ? n` <small class="auto-detail"
                                           >T:${a.severity_on_true ?? "warning"}
                                           / F:${a.severity_on_false ?? "info"}</small
-                                        >` : h}
+                                        >` : c}
                                     <span class="sev-caret" aria-hidden="true">▾</span>
                                   </button>` : n`<!-- Iter 60 / U8: bei inaktiven GAs
                                        Default-Severity in muted Pille
@@ -3603,13 +3603,13 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
                         >
                           Alle ${t.length} zeigen
                         </button>
-                      </div>` : h}
+                      </div>` : c}
                 </div>
               `}
 
         ${this._renderEditor()}
         ${this._renderSevPopover()}
-        ${this._toast ? n`<div class="toast">${this._toast}</div>` : h}
+        ${this._toast ? n`<div class="toast">${this._toast}</div>` : c}
       </section>
     `;
   }
@@ -4183,12 +4183,12 @@ T([
 $ = T([
   S("knx-addresses-view")
 ], $);
-var Ys = Object.defineProperty, Xs = Object.getOwnPropertyDescriptor, Te = (t, e, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Xs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+var Ys = Object.defineProperty, Zs = Object.getOwnPropertyDescriptor, Te = (t, e, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Zs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && Ys(e, s, a), a;
 };
-const Zs = ["telegram", "pushover", "ntfy", "signal", "notify"], Qs = ["debug", "info", "warning", "error"];
+const Xs = ["telegram", "pushover", "ntfy", "signal", "notify"], Qs = ["debug", "info", "warning", "error"];
 let Q = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._editing = null, this._toast = "";
@@ -4343,7 +4343,7 @@ let Q = class extends x {
       e({ channel_type: r, config: {} });
     }}
             >
-              ${Zs.map((s) => n`<option value=${s}>${s}</option>`)}
+              ${Xs.map((s) => n`<option value=${s}>${s}</option>`)}
             </select>
             <small>
               ${t.channel_type === "telegram" ? "Direkt an Telegram-Bot-API. Bot-Token + Chat-ID unten." : t.channel_type === "pushover" ? "Direkt an Pushover-API. App-Token + User-Key unten." : t.channel_type === "ntfy" ? "Direkt an ntfy-Server (ntfy.sh oder selbst-gehostet)." : t.channel_type === "signal" ? "Ueber HA-Service notify.<service>. Trag Namen unten ein." : "Ueber HA-Service notify.<service>."}
@@ -4783,7 +4783,7 @@ const Qe = y`
     color: var(--secondary-text-color, #666);
   }
 `;
-let K = class extends x {
+let G = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._newPattern = "", this._newSource = "", this._newSeverity = "info";
   }
@@ -4871,25 +4871,25 @@ let K = class extends x {
     `;
   }
 };
-K.styles = Qe;
+G.styles = Qe;
 E([
   w({ attribute: !1 })
-], K.prototype, "api", 2);
+], G.prototype, "api", 2);
 E([
   l()
-], K.prototype, "_items", 2);
+], G.prototype, "_items", 2);
 E([
   l()
-], K.prototype, "_newPattern", 2);
+], G.prototype, "_newPattern", 2);
 E([
   l()
-], K.prototype, "_newSource", 2);
+], G.prototype, "_newSource", 2);
 E([
   l()
-], K.prototype, "_newSeverity", 2);
-K = E([
+], G.prototype, "_newSeverity", 2);
+G = E([
   S("mqtt-topics-view")
-], K);
+], G);
 let ee = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._newSource = "", this._newInterval = 3600;
@@ -5781,13 +5781,13 @@ let M = class extends x {
               <div class="heatmap-row">
                 <span class="day-label">${$t[r]}</span>
                 ${a.map((i, o) => {
-        const d = i === 0 ? 0 : Math.max(0.15, i / e), c = i === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(
+        const d = i === 0 ? 0 : Math.max(0.15, i / e), h = i === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(
           d * 100
         )}%, transparent)`;
         return n`
                     <div
                       class=${`heatmap-cell ${i === 0 ? "empty" : ""}`}
-                      style=${`background: ${c}`}
+                      style=${`background: ${h}`}
                       title=${`${$t[r]} ${o}:00 — ${i} Nachricht${i === 1 ? "" : "en"}`}
                     ></div>
                   `;
@@ -5926,12 +5926,12 @@ let M = class extends x {
             ${this._topSources.length === 0 ? n`<p class="muted">Keine Daten.</p>` : n`<ul class="top-sources">
                   ${this._topSources.map((i, o) => {
       var m;
-      const d = ((m = this._topSources[0]) == null ? void 0 : m.count) ?? 1, c = i.count / d * 100;
+      const d = ((m = this._topSources[0]) == null ? void 0 : m.count) ?? 1, h = i.count / d * 100;
       return n`<li>
                       <span class="rank">${o + 1}</span>
                       <code class="source-name">${i.source}</code>
                       <span class="bar-track">
-                        <span class="bar-fill" style=${`width: ${c}%`}></span>
+                        <span class="bar-fill" style=${`width: ${h}%`}></span>
                       </span>
                       <span class="bar-count">${i.count.toLocaleString("de-DE")}</span>
                     </li>`;
@@ -6044,7 +6044,7 @@ const Pe = [
   "var(--mh-accent)",
   "var(--mh-success)"
 ];
-let he = class extends x {
+let ce = class extends x {
   constructor() {
     super(...arguments), this.items = [], this.width = 600, this.height = 120;
   }
@@ -6053,7 +6053,7 @@ let he = class extends x {
       return n`<p class="muted">Keine Timeline-Daten.</p>`;
     if (this.items.reduce((g, u) => g + u.count, 0) === 0)
       return n`<p class="muted">Keine Telegramme im Zeitraum.</p>`;
-    const e = this._buildSeries(), s = this._allBuckets(), r = Math.max(1, ...this.items.map((g) => g.count)), a = { top: 8, right: 8, bottom: 18, left: 32 }, i = this.width - a.left - a.right, o = this.height - a.top - a.bottom, d = s.length === 1, c = (g) => d ? a.left + i / 2 : a.left + g / (s.length - 1) * i, m = (g) => a.top + (1 - g / r) * o;
+    const e = this._buildSeries(), s = this._allBuckets(), r = Math.max(1, ...this.items.map((g) => g.count)), a = { top: 8, right: 8, bottom: 18, left: 32 }, i = this.width - a.left - a.right, o = this.height - a.top - a.bottom, d = s.length === 1, h = (g) => d ? a.left + i / 2 : a.left + g / (s.length - 1) * i, m = (g) => a.top + (1 - g / r) * o;
     return n`
       <svg
         viewBox=${`0 0 ${this.width} ${this.height}`}
@@ -6089,22 +6089,22 @@ let he = class extends x {
                 stroke-width="2"
                 vector-effect="non-scaling-stroke"
               ></line>
-              <circle cx=${c(0)} cy=${v} r="2.5" fill=${p}>
+              <circle cx=${h(0)} cy=${v} r="2.5" fill=${p}>
                 <title>${g.ga}: ${g.values[0]}</title>
               </circle>
             </g>`;
       }
-      const _ = g.values.map((v, k) => `${c(k)},${m(v)}`).join(" ");
+      const b = g.values.map((v, k) => `${h(k)},${m(v)}`).join(" ");
       return n`<g class="series">
             <polyline
-              points=${_}
+              points=${b}
               fill="none"
               stroke=${p}
               stroke-width="2"
               vector-effect="non-scaling-stroke"
             ><title>${g.ga}</title></polyline>
             ${g.values.map(
-        (v, k) => n`<circle cx=${c(k)} cy=${m(v)} r="2" fill=${p}>
+        (v, k) => n`<circle cx=${h(k)} cy=${m(v)} r="2" fill=${p}>
                 <title>${g.ga}: ${v}</title>
               </circle>`
       )}
@@ -6140,7 +6140,7 @@ let he = class extends x {
     return Array.from(s.entries()).map(([r, a]) => ({ ga: r, values: a }));
   }
 };
-he.styles = [
+ce.styles = [
   z,
   y`
       :host {
@@ -6193,20 +6193,20 @@ he.styles = [
 ];
 Ie([
   w({ attribute: !1 })
-], he.prototype, "items", 2);
+], ce.prototype, "items", 2);
 Ie([
   w({ type: Number })
-], he.prototype, "width", 2);
+], ce.prototype, "width", 2);
 Ie([
   w({ type: Number })
-], he.prototype, "height", 2);
-he = Ie([
+], ce.prototype, "height", 2);
+ce = Ie([
   S("knx-timeline-chart")
-], he);
-var ha = Object.defineProperty, ca = Object.getOwnPropertyDescriptor, Re = (t, e, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? ca(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+], ce);
+var ca = Object.defineProperty, ha = Object.getOwnPropertyDescriptor, Re = (t, e, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? ha(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && ha(e, s, a), a;
+  return r && a && ca(e, s, a), a;
 };
 function pa(t) {
   if (typeof t == "number" && Number.isFinite(t)) return t;
@@ -6220,7 +6220,7 @@ function pa(t) {
   }
   return null;
 }
-let ce = class extends x {
+let he = class extends x {
   constructor() {
     super(...arguments), this.points = [], this.width = 600, this.height = 80;
   }
@@ -6231,7 +6231,7 @@ let ce = class extends x {
         Wertverlauf: zu wenige numerische Datenpunkte
         (${t.length} von ${this.points.length}).
       </p>`;
-    const e = t.map((v) => v.value), s = Math.min(...e), r = Math.max(...e), a = r - s || 1, i = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - i.left - i.right, d = this.height - i.top - i.bottom, c = (v) => i.left + v / Math.max(1, t.length - 1) * o, m = (v) => i.top + (1 - (v - s) / a) * d, g = t.map((v, k) => `${c(k)},${m(v.value)}`).join(" "), p = [...e.slice(1).map((v, k) => Math.abs(v - e[k]))].sort((v, k) => v - k), _ = p[Math.floor(p.length / 2)];
+    const e = t.map((v) => v.value), s = Math.min(...e), r = Math.max(...e), a = r - s || 1, i = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - i.left - i.right, d = this.height - i.top - i.bottom, h = (v) => i.left + v / Math.max(1, t.length - 1) * o, m = (v) => i.top + (1 - (v - s) / a) * d, g = t.map((v, k) => `${h(k)},${m(v.value)}`).join(" "), p = [...e.slice(1).map((v, k) => Math.abs(v - e[k]))].sort((v, k) => v - k), b = p[Math.floor(p.length / 2)];
     return n`
       <div class="wrap">
         <svg
@@ -6256,14 +6256,14 @@ let ce = class extends x {
         </svg>
         <p class="muted small">
           ${t.length} Punkte • Min ${s.toFixed(1)} • Max ${r.toFixed(1)} •
-          Median Δ ${_.toFixed(2)}
-          ${_ < 0.1 && a > 0 ? n` <span class="hint">→ enge Hysterese</span>` : ua}
+          Median Δ ${b.toFixed(2)}
+          ${b < 0.1 && a > 0 ? n` <span class="hint">→ enge Hysterese</span>` : ua}
         </p>
       </div>
     `;
   }
 };
-ce.styles = [
+he.styles = [
   z,
   y`
       :host {
@@ -6305,23 +6305,23 @@ ce.styles = [
 ];
 Re([
   w({ attribute: !1 })
-], ce.prototype, "points", 2);
+], he.prototype, "points", 2);
 Re([
   w({ type: Number })
-], ce.prototype, "width", 2);
+], he.prototype, "width", 2);
 Re([
   w({ type: Number })
-], ce.prototype, "height", 2);
-ce = Re([
+], he.prototype, "height", 2);
+he = Re([
   S("knx-value-sparkline")
-], ce);
+], he);
 const ua = "";
-var ma = Object.defineProperty, ga = Object.getOwnPropertyDescriptor, b = (t, e, s, r) => {
+var ma = Object.defineProperty, ga = Object.getOwnPropertyDescriptor, _ = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? ga(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && ma(e, s, a), a;
 };
-const Kt = "messagehub.knx-stats.filters", va = /^[\s\-_=]*$/;
+const Gt = "messagehub.knx-stats.filters", va = /^[\s\-_=]*$/;
 function fa(t, e) {
   const s = (e ?? "").trim();
   return !!(s === "" || va.test(s) || s === t);
@@ -6352,7 +6352,7 @@ const ba = 25, _a = 100, wa = 300, We = [
 };
 function $a() {
   try {
-    const t = localStorage.getItem(Kt);
+    const t = localStorage.getItem(Gt);
     if (t) {
       const e = JSON.parse(t);
       return { ...kt, ...e };
@@ -6363,7 +6363,7 @@ function $a() {
 }
 function D(t) {
   try {
-    localStorage.setItem(Kt, JSON.stringify(t));
+    localStorage.setItem(Gt, JSON.stringify(t));
   } catch {
   }
 }
@@ -6402,11 +6402,11 @@ function Ta(t, e, s) {
         o = a.ga.localeCompare(i.ga);
         break;
       case "label": {
-        const d = !a.label, c = !i.label;
-        if (d && c) o = 0;
+        const d = !a.label, h = !i.label;
+        if (d && h) o = 0;
         else {
           if (d) return 1;
-          if (c) return -1;
+          if (h) return -1;
           o = a.label.localeCompare(i.label);
         }
         break;
@@ -6560,12 +6560,12 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       const s = this._isLongTermMode(), r = this._apiFilters(), a = this._liveFiltersForRaw(), i = { ...a, limit: this._filters.topNDevices }, [
         o,
         d,
-        c,
+        h,
         m,
         g,
         u,
         p,
-        _,
+        b,
         v,
         k,
         ue,
@@ -6603,7 +6603,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           this.api.getKnxStatsHeatmap(a, 10, this._suggestHeatmapBucketMinutes())
         )
       ]);
-      this._summary = o, this._top = d.items, this._topBySource = c.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = _, this._health = v, this._longTerm = k, this._bursts = ue, this._sensitiveLog = Ee, this._trend = Wt, this._heatmap = Vt, this._apiErrors = t, this._apiErrorsDismissed = !1;
+      this._summary = o, this._top = d.items, this._topBySource = h.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = b, this._health = v, this._longTerm = k, this._bursts = ue, this._sensitiveLog = Ee, this._trend = Wt, this._heatmap = Vt, this._apiErrors = t, this._apiErrorsDismissed = !1;
       const st = d.items.slice(0, 5).map((qt) => qt.ga);
       st.length > 0 ? this._timeline = await this.api.getKnxStatsTimeline({
         ...a,
@@ -7027,8 +7027,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             ${t.addresses.map(
       (a) => n`<li>
                 <code>${a.ga}</code>
-                ${a.label ? n`<span class="muted small">${a.label}</span>` : h}
-                ${a.dpt ? n`<span class="mh-pill mh-pill--neutral">${a.dpt}</span>` : h}
+                ${a.label ? n`<span class="muted small">${a.label}</span>` : c}
+                ${a.dpt ? n`<span class="mh-pill mh-pill--neutral">${a.dpt}</span>` : c}
               </li>`
     )}
           </ul>
@@ -7051,7 +7051,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                         <td class="bursts__ts">${e(a.ts)}</td>
                         <td>
                           <code>${a.ga}</code>
-                          ${a.label ? n`<span class="muted small">${a.label}</span>` : h}
+                          ${a.label ? n`<span class="muted small">${a.label}</span>` : c}
                         </td>
                         <td><code>${a.dev_source}</code></td>
                         <td><code>${a.value ?? "—"}</code></td>
@@ -7060,7 +7060,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   </tbody>
                 </table>
               </div>
-              ${t.telegrams.length > s ? n`<p class="muted small">… und ${t.telegrams.length - s} weitere</p>` : h}`}
+              ${t.telegrams.length > s ? n`<p class="muted small">… und ${t.telegrams.length - s} weitere</p>` : c}`}
         </div>
       </section>
     `;
@@ -7112,7 +7112,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             </tbody>
           </table>
         </div>
-        ${t.bursts.length > r ? n`<p class="muted small">… und ${t.bursts.length - r} weitere</p>` : h}
+        ${t.bursts.length > r ? n`<p class="muted small">… und ${t.bursts.length - r} weitere</p>` : c}
       </section>
     `;
   }
@@ -7166,7 +7166,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   ${t.top_gas.slice(0, r).map(
       (a) => n`<li>
                       <code>${a.ga}</code>
-                      ${a.label ? n`<span class="muted small">${a.label}</span>` : h}
+                      ${a.label ? n`<span class="muted small">${a.label}</span>` : c}
                       <span class="long-term__top-count">${s(a.count)}</span>
                     </li>`
     )}
@@ -7202,17 +7202,17 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           landen zusaetzlich im Logbuch (Tab „Nachrichten").
         </div>
         ${this._renderFilterBar()}
-        ${this._apiErrors.size > 0 && !this._apiErrorsDismissed ? this._renderApiErrorBanner() : h}
+        ${this._apiErrors.size > 0 && !this._apiErrorsDismissed ? this._renderApiErrorBanner() : c}
         ${this._busAnalysisLoaded && !this._busAnalysisEnabled ? n`<div class="bus-analysis-banner">
               <strong>Bus-Analyse ist aus.</strong>
               Es werden keine neuen Telegramme erfasst — bestehende Daten bleiben
               sichtbar, altern aber raus (Raw 48 h, Counter 365 Tage). Toggle in
               der Filter-Leiste oben rechts schaltet sie wieder ein.
-            </div>` : h}
-        ${this._error ? n`<div class="error">${this._error}</div>` : h}
-        ${this._alarms !== null && this._alarms.triggered_count > 0 ? this._renderAlarmBanner() : h}
+            </div>` : c}
+        ${this._error ? n`<div class="error">${this._error}</div>` : c}
+        ${this._alarms !== null && this._alarms.triggered_count > 0 ? this._renderAlarmBanner() : c}
 
-        ${this._isLongTermMode() ? this._renderLongTermBanner() : h}
+        ${this._isLongTermMode() ? this._renderLongTermBanner() : c}
 
         <!--
           Iter aiohttp-error-ZU9UA: Reihenfolge nach mentalem User-Modell:
@@ -7232,7 +7232,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           ${this._loading && this._summary === null ? n`<p class="muted">lade…</p>` : this._renderKpis()}
         </section>
 
-        ${this._health !== null ? this._renderHealthScore() : h}
+        ${this._health !== null ? this._renderHealthScore() : c}
 
         <section class="mh-card">
           <header class="card-head">
@@ -7261,9 +7261,9 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 </div>
               </header>
               ${this._renderTopBySource()}
-            </section>` : h}
+            </section>` : c}
 
-        ${this._detail !== null || this._detailLoading || this._sourceDetail !== null || this._sourceDetailLoading ? this._renderDetailPane() : h}
+        ${this._detail !== null || this._detailLoading || this._sourceDetail !== null || this._sourceDetailLoading ? this._renderDetailPane() : c}
 
         ${this._timeline !== null && this._timeline.items.length > 0 ? n`<section class="mh-card">
               <header class="card-head">
@@ -7274,22 +7274,22 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 .width=${800}
                 .height=${140}
               ></knx-timeline-chart>
-            </section>` : h}
+            </section>` : c}
 
-        ${this._heatmap !== null && this._heatmap.gas.length > 0 ? this._renderHeatmap() : h}
+        ${this._heatmap !== null && this._heatmap.gas.length > 0 ? this._renderHeatmap() : c}
 
-        ${this._trend !== null && (this._trend.total_now > 0 || this._trend.total_prev > 0) ? this._renderTrend() : h}
+        ${this._trend !== null && (this._trend.total_now > 0 || this._trend.total_prev > 0) ? this._renderTrend() : c}
 
-        ${this._bursts !== null && this._bursts.bursts.length > 0 ? this._renderBursts() : h}
-        ${this._silence !== null && this._silence.alarm_count > 0 ? this._renderSilenceAlarms() : h}
-        ${this._busHealth !== null && this._busHealth.summary.total > 0 ? this._renderBusHealth() : h}
+        ${this._bursts !== null && this._bursts.bursts.length > 0 ? this._renderBursts() : c}
+        ${this._silence !== null && this._silence.alarm_count > 0 ? this._renderSilenceAlarms() : c}
+        ${this._busHealth !== null && this._busHealth.summary.total > 0 ? this._renderBusHealth() : c}
 
-        ${this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0 ? this._renderSensitiveLog() : h}
-        ${this._orphans !== null && (this._orphans.missing_in_log.length > 0 || this._orphans.extra_in_log.length > 0) ? this._renderOrphans() : h}
+        ${this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0 ? this._renderSensitiveLog() : c}
+        ${this._orphans !== null && (this._orphans.missing_in_log.length > 0 || this._orphans.extra_in_log.length > 0) ? this._renderOrphans() : c}
 
-        ${this._longTerm !== null ? this._renderLongTerm() : h}
+        ${this._longTerm !== null ? this._renderLongTerm() : c}
 
-        ${this._toast ? n`<div class="toast">${this._toast}</div>` : h}
+        ${this._toast ? n`<div class="toast">${this._toast}</div>` : c}
       </div>
     `;
   }
@@ -7359,7 +7359,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   ${r.dpt ? n`<code
                         class=${`dpt ${r.dpt_inferred ? "dpt--inferred" : ""}`}
                         title=${r.dpt_inferred ? "DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)" : ""}
-                        >${r.dpt}${r.dpt_inferred ? n`<span class="dpt__hint" aria-hidden="true">?</span>` : h}</code
+                        >${r.dpt}${r.dpt_inferred ? n`<span class="dpt__hint" aria-hidden="true">?</span>` : c}</code
                       >` : n`<span class="muted">—</span>`}
                 </td>
                 <td class="num strong">${r.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
@@ -7433,7 +7433,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         <span class="muted small">
           Gerät:
           <code>${this._detail.dev_source || "?"}</code>
-          ${this._detail.dpt ? n` • DPT <code>${this._detail.dpt}</code>` : h}
+          ${this._detail.dpt ? n` • DPT <code>${this._detail.dpt}</code>` : c}
         </span>
       </div>`;
     if (this._sourceDetail !== null) {
@@ -7486,7 +7486,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       "de-DE",
       { maximumFractionDigits: 0 }
     )} %</strong>
-              </div>` : h}
+              </div>` : c}
         </div>
 
         <div class=${`recommendation rec-${e.severity}`}>
@@ -7506,7 +7506,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   </li>`
     )}
               </ul>
-            </div>` : h}
+            </div>` : c}
 
         ${t.value_history.length >= 2 ? n`<div class="value-history">
               <strong>Wertverlauf:</strong>
@@ -7515,11 +7515,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 .width=${800}
                 .height=${100}
               ></knx-value-sparkline>
-            </div>` : h}
+            </div>` : c}
 
-        ${t.device || t.manufacturer_hints ? this._renderDeviceInfo(t) : h}
+        ${t.device || t.manufacturer_hints ? this._renderDeviceInfo(t) : c}
 
-        ${t.sibling_gas.length > 0 ? this._renderSiblingGas(t) : h}
+        ${t.sibling_gas.length > 0 ? this._renderSiblingGas(t) : c}
 
         ${this._renderHaKnxLinks(t)}
     `;
@@ -7588,18 +7588,18 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <div class="device-info">
         ${e ? n`<strong>
               Gerät: ${e.manufacturer || "?"}
-              ${e.name ? n` — ${e.name}` : h}
-              ${e.product ? n`<span class="muted small">(${e.product})</span>` : h}
+              ${e.name ? n` — ${e.name}` : c}
+              ${e.product ? n`<span class="muted small">(${e.product})</span>` : c}
             </strong>` : n`<strong>Hersteller-Hinweise</strong>`}
         ${s && s.tips.length > 0 ? n`<ul class="hints">
               ${s.tips.map((r) => n`<li>${r}</li>`)}
-            </ul>` : h}
+            </ul>` : c}
         ${s != null && s.doc_url ? n`<p class="muted small">
               Hersteller-Doku:
               <a href=${s.doc_url} target="_blank" rel="noopener noreferrer">
                 ${s.doc_url}
               </a>
-            </p>` : h}
+            </p>` : c}
       </div>
     `;
   }
@@ -7651,7 +7651,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       ${t.device || t.manufacturer_hints ? this._renderDeviceInfo({
       device: t.device,
       manufacturer_hints: t.manufacturer_hints
-    }) : h}
+    }) : c}
     `;
   }
   _renderSourceDetailKpi(t, e) {
@@ -7762,7 +7762,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         </ul>
         ${t.sibling_gas.length > e ? n`<p class="muted small">
               … und ${t.sibling_gas.length - e} weitere
-            </p>` : h}
+            </p>` : c}
       </div>
     `;
   }
@@ -7779,7 +7779,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     this._topSortKey === t ? this._topSortDir = this._topSortDir === "desc" ? "asc" : "desc" : (this._topSortKey = t, this._topSortDir = t === "ga" || t === "label" ? "asc" : "desc");
   }
   _sortArrow(t, e, s) {
-    return t !== e ? h : n`<span class="sort-arrow" aria-hidden="true">${s === "desc" ? "▼" : "▲"}</span>`;
+    return t !== e ? c : n`<span class="sort-arrow" aria-hidden="true">${s === "desc" ? "▼" : "▲"}</span>`;
   }
   _renderTopBySource() {
     const t = this._filters.topNDevices, e = this._devicesSortKey, s = this._devicesSortDir, r = [...this._topBySource].sort((a, i) => {
@@ -7788,7 +7788,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     });
     return n`
       <div class="table-wrap">
-        <table>
+        <table data-test="top-devices-table">
           <thead>
             <tr>
               <th>#</th>
@@ -7820,9 +7820,13 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </thead>
           <tbody>
             ${r.slice(0, t).map((a, i) => {
-      var u;
-      const o = ((u = this._summary) == null ? void 0 : u.total_telegrams) ?? 0, d = o > 0 ? a.count / o * 100 : 0, c = a.manufacturer ?? "", m = a.device_name ?? "", g = c && m ? `${c} — ${m}` : c || m;
-      return n`<tr>
+      var p;
+      const o = ((p = this._summary) == null ? void 0 : p.total_telegrams) ?? 0, d = o > 0 ? a.count / o * 100 : 0, h = a.manufacturer ?? "", m = a.device_name ?? "", g = h && m ? `${h} — ${m}` : h || m, u = this._selectedSource === a.dev_source;
+      return n`<tr
+                class=${`top-device-row ${u ? "selected" : ""}`}
+                @click=${() => void this._loadSourceDetail(a.dev_source)}
+                title="Geraete-Detail oeffnen"
+              >
                 <td class="num muted">${i + 1}</td>
                 <td><code class="ga">${a.dev_source}</code></td>
                 <td class="device-cell">
@@ -7844,8 +7848,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   <button
                     class="mh-btn mh-btn--sm mh-btn--ghost"
                     title="Alle GAs dieses Geräts als bekannt markieren"
-                    @click=${(p) => {
-        p.stopPropagation(), this._ackBulk(a.dev_source);
+                    @click=${(b) => {
+        b.stopPropagation(), this._ackBulk(a.dev_source);
       }}
                   >
                     ✓ Alle ${a.ga_count} bekannt
@@ -7923,7 +7927,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         <header class="card-head">
           <h3>Trend gegenüber Vorperiode</h3>
           <div class="card-head__meta">
-            ${o ? h : this._renderInlineTopN(
+            ${o ? c : this._renderInlineTopN(
       this._filters.topNTrend,
       (d) => this._onTopNTrend(d)
     )}
@@ -7945,8 +7949,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 03–04 Uhr — Tag/Nacht-Übergaenge und Automation-Trigger lassen
                 die %-Werte oft 4-stellig wirken. Fuer aussagekraeftige Trends
                 mind. 24 Std waehlen.
-              </p>` : h}
-        ${o ? h : n`<div class="trend-grid">
+              </p>` : c}
+        ${o ? c : n`<div class="trend-grid">
           <div class="trend-col">
             <strong>Größte Anstiege</strong>
             ${t.top_increase.length === 0 ? n`<p class="muted small">Keine signifikanten Anstiege.</p>` : n`<ul class="trend-list trend-list--up">
@@ -8084,11 +8088,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _renderOrphans() {
-    const t = this._orphans, e = (p, _) => this._orphansHidePlaceholders ? p.filter((v) => !fa(v.address, _(v))) : p, s = e(t.missing_in_log, (p) => p.name), r = e(t.extra_in_log, (p) => p.label), a = s.filter(
+    const t = this._orphans, e = (p, b) => this._orphansHidePlaceholders ? p.filter((v) => !fa(v.address, b(v))) : p, s = e(t.missing_in_log, (p) => p.name), r = e(t.extra_in_log, (p) => p.label), a = s.filter(
       (p) => this._matchesOrphanFilter(this._orphansMissingFilter, [p.address, p.name, p.dpt])
     ), i = r.filter(
       (p) => this._matchesOrphanFilter(this._orphansExtraFilter, [p.address, p.label])
-    ), o = this._filters.topNOrphansMissing, d = this._filters.topNOrphansExtra, c = a.slice(0, o), m = i.slice(0, d), g = t.missing_in_log.length - s.length, u = t.extra_in_log.length - r.length;
+    ), o = this._filters.topNOrphansMissing, d = this._filters.topNOrphansExtra, h = a.slice(0, o), m = i.slice(0, d), g = t.missing_in_log.length - s.length, u = t.extra_in_log.length - r.length;
     return n`
       <section class="mh-card">
         <header class="card-head">
@@ -8102,7 +8106,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       this._orphansHidePlaceholders = p.target.checked;
     }}
               />
-              <span>Platzhalter ausblenden${this._orphansHidePlaceholders && g + u > 0 ? n` <span class="muted small">(${g + u})</span>` : h}</span>
+              <span>Platzhalter ausblenden${this._orphansHidePlaceholders && g + u > 0 ? n` <span class="muted small">(${g + u})</span>` : c}</span>
             </label>
             <span class="muted small">
               Projekt: ${t.project_total} • geloggt: ${t.log_total}
@@ -8130,18 +8134,18 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     }}
                 />
                 <ul class="orphans-list muted-list">
-                  ${c.map(
+                  ${h.map(
       (p) => n`<li>
                       <code>${p.address}</code>
                       <span>${p.name || "—"}</span>
-                      ${p.dpt ? n`<code class="dpt">${p.dpt}</code>` : h}
+                      ${p.dpt ? n`<code class="dpt">${p.dpt}</code>` : c}
                     </li>`
     )}
                 </ul>
                 ${a.length > o ? n`<p class="muted small">
                       … und ${a.length - o} weitere
-                    </p>` : h}
-              </div>` : h}
+                    </p>` : c}
+              </div>` : c}
           ${t.extra_in_log.length > 0 ? n`<div>
                 <div class="orphans-col-head">
                   <strong
@@ -8172,8 +8176,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 </ul>
                 ${i.length > d ? n`<p class="muted small">
                       … und ${i.length - d} weitere
-                    </p>` : h}
-              </div>` : h}
+                    </p>` : c}
+              </div>` : c}
         </div>
       </section>
     `;
@@ -8206,7 +8210,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         </ul>
         ${e.length > s ? n`<p class="muted small">
               … und ${e.length - s} weitere
-            </p>` : h}
+            </p>` : c}
       </section>
     `;
   }
@@ -8230,7 +8234,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             ${t.per_ga.length > 0 ? this._renderInlineTopN(
       this._filters.topNBusHealth,
       (a) => this._onTopNBusHealth(a)
-    ) : h}
+    ) : c}
             <span class="muted small">
               xknx-Repeated-Flag — hoher Wert deutet auf Verkabelung/EMV
             </span>
@@ -8271,8 +8275,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
               </ul>
               ${t.per_ga.length > r ? n`<p class="muted small">
                     … und ${t.per_ga.length - r} weitere
-                  </p>` : h}
-            </div>` : h}
+                  </p>` : c}
+            </div>` : c}
       </section>
     `;
   }
@@ -8301,7 +8305,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       title=${t.has_findings ? "Anti-Pattern erkannt — Detail-Pane zeigt mehr (Konstant-Wert-Spam, Read-Burst, Heartbeat)" : ""}
     >
       <span class="mh-pill__dot"></span>
-      ${t.has_findings ? n`<span aria-hidden="true">⚠</span> ` : h}
+      ${t.has_findings ? n`<span aria-hidden="true">⚠</span> ` : c}
       ${r}
     </span>`;
   }
@@ -9657,6 +9661,21 @@ f.styles = [
         background: var(--mh-bg-hover, rgba(0, 0, 0, 0.04));
       }
 
+      /* Iter E (knx-detail-panes): klickbare Top-Geraete-Zeile.
+         Selection-Highlight nutzt selben Stil wie die GA-Top-Sender-
+         Tabelle (.row-... .selected) — Konsistenz beim Source-Detail-
+         Wechsel zwischen den beiden Drawer-Inhalten. */
+      .top-device-row {
+        cursor: pointer;
+      }
+      .top-device-row:hover {
+        background: var(--mh-bg-hover, rgba(0, 0, 0, 0.04));
+      }
+      .top-device-row.selected {
+        background: color-mix(in srgb, var(--mh-primary) 12%, transparent);
+        box-shadow: inset 3px 0 0 var(--mh-primary);
+      }
+
       /* Toast */
       .toast {
         position: fixed;
@@ -9672,118 +9691,118 @@ f.styles = [
       }
     `
 ];
-b([
+_([
   w({ attribute: !1 })
 ], f.prototype, "api", 2);
-b([
+_([
   l()
 ], f.prototype, "_filters", 2);
-b([
+_([
   l()
 ], f.prototype, "_summary", 2);
-b([
+_([
   l()
 ], f.prototype, "_busHealth", 2);
-b([
+_([
   l()
 ], f.prototype, "_busload", 2);
-b([
+_([
   l()
 ], f.prototype, "_health", 2);
-b([
+_([
   l()
 ], f.prototype, "_longTerm", 2);
-b([
+_([
   l()
 ], f.prototype, "_bursts", 2);
-b([
+_([
   l()
 ], f.prototype, "_sensitiveLog", 2);
-b([
+_([
   l()
 ], f.prototype, "_trend", 2);
-b([
+_([
   l()
 ], f.prototype, "_heatmap", 2);
-b([
+_([
   l()
 ], f.prototype, "_busAnalysisEnabled", 2);
-b([
+_([
   l()
 ], f.prototype, "_busAnalysisLoaded", 2);
-b([
+_([
   l()
 ], f.prototype, "_devicesSortKey", 2);
-b([
+_([
   l()
 ], f.prototype, "_devicesSortDir", 2);
-b([
+_([
   l()
 ], f.prototype, "_topSortKey", 2);
-b([
+_([
   l()
 ], f.prototype, "_topSortDir", 2);
-b([
+_([
   l()
 ], f.prototype, "_orphansMissingFilter", 2);
-b([
+_([
   l()
 ], f.prototype, "_orphansExtraFilter", 2);
-b([
+_([
   l()
 ], f.prototype, "_orphansHidePlaceholders", 2);
-b([
+_([
   l()
 ], f.prototype, "_apiErrors", 2);
-b([
+_([
   l()
 ], f.prototype, "_apiErrorsDismissed", 2);
-b([
+_([
   l()
 ], f.prototype, "_silence", 2);
-b([
+_([
   l()
 ], f.prototype, "_orphans", 2);
-b([
+_([
   l()
 ], f.prototype, "_alarms", 2);
-b([
+_([
   l()
 ], f.prototype, "_top", 2);
-b([
+_([
   l()
 ], f.prototype, "_topBySource", 2);
-b([
+_([
   l()
 ], f.prototype, "_timeline", 2);
-b([
+_([
   l()
 ], f.prototype, "_selectedGa", 2);
-b([
+_([
   l()
 ], f.prototype, "_detail", 2);
-b([
+_([
   l()
 ], f.prototype, "_detailLoading", 2);
-b([
+_([
   l()
 ], f.prototype, "_selectedSource", 2);
-b([
+_([
   l()
 ], f.prototype, "_sourceDetail", 2);
-b([
+_([
   l()
 ], f.prototype, "_sourceDetailLoading", 2);
-b([
+_([
   l()
 ], f.prototype, "_loading", 2);
-b([
+_([
   l()
 ], f.prototype, "_error", 2);
-b([
+_([
   l()
 ], f.prototype, "_toast", 2);
-f = b([
+f = _([
   S("stats-knx-view")
 ], f);
 const et = {
@@ -9919,11 +9938,11 @@ const et = {
 function Ea(t) {
   return Aa.has(t);
 }
-function Gt(t) {
+function Kt(t) {
   return t.startsWith("de") ? "de" : "en";
 }
 function Ve(t, e) {
-  const s = et[Gt(e)][t];
+  const s = et[Kt(e)][t];
   return (s == null ? void 0 : s.title) ?? "";
 }
 function Pa(t) {
@@ -9931,7 +9950,7 @@ function Pa(t) {
   return ((e = et.en[t]) == null ? void 0 : e.help_url) ?? "";
 }
 function Da(t, e, s) {
-  const r = et[Gt(e)][t];
+  const r = et[Kt(e)][t];
   return r === void 0 ? "" : za(r.description, s);
 }
 function za(t, e) {
@@ -10261,7 +10280,7 @@ let O = class extends x {
                 Default greift wieder, sobald du auf "— Default —" wechselst.
               </p>
               <severity-override-form .api=${this.api}></severity-override-form>
-            </section>` : h}
+            </section>` : c}
 
         <div class="filters mh-card mh-card--flat" data-test="findings-filters">
           <label class="filter-label">
@@ -10347,7 +10366,7 @@ let O = class extends x {
   }
   _renderDetailPane() {
     const t = this._currentSelection();
-    if (t === null) return h;
+    if (t === null) return c;
     const e = this._lang(), s = Ve(t.code, e) || t.code, r = Da(
       t.code,
       e,
@@ -10371,10 +10390,10 @@ let O = class extends x {
         </header>
         ${r ? n`<p class="detail-description" data-test="findings-detail-description">
               ${r}
-            </p>` : h}
+            </p>` : c}
         ${a ? n`<a class="detail-help" href=${a} target="_blank" rel="noopener"
               >Hilfe / Doku ↗</a
-            >` : h}
+            >` : c}
         <dl class="detail-evidence">
           <dt>Code</dt>
           <dd>${t.code}</dd>
@@ -10685,9 +10704,9 @@ let $e = class extends x {
     )}
         </nav>
         <div class="body">
-          ${this._tab === "live" ? n`<stats-live-view .api=${this.api}></stats-live-view>` : h}
-          ${this._tab === "knx" ? n`<stats-knx-view .api=${this.api}></stats-knx-view>` : h}
-          ${this._tab === "findings" ? n`<findings-view .api=${this.api}></findings-view>` : h}
+          ${this._tab === "live" ? n`<stats-live-view .api=${this.api}></stats-live-view>` : c}
+          ${this._tab === "knx" ? n`<stats-knx-view .api=${this.api}></stats-knx-view>` : c}
+          ${this._tab === "findings" ? n`<findings-view .api=${this.api}></findings-view>` : c}
         </div>
       </div>
     `;
@@ -10769,7 +10788,7 @@ function ja(t) {
   return r("delete", "remove", "removed", "deleted") ? "delete" : r("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : r("update", "updated", "edit", "edited", "set") ? "update" : r("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
 }
 const Dt = 60;
-function Ka(t) {
+function Ga(t) {
   if (!t || typeof t != "object" || Array.isArray(t))
     return "";
   const e = t;
@@ -10863,7 +10882,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     return n`<code>${String(t)}</code>`;
   }
   _renderDetailsSummary(t) {
-    const e = Ka(t);
+    const e = Ga(t);
     if (e === "") return n`<span class="muted">—</span>`;
     const s = typeof t == "object" && t !== null && (t.label !== void 0 || t.name !== void 0);
     return n`<span class=${`summary ${s ? "" : "muted"}`}
@@ -10938,7 +10957,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
                           <span>${this._renderActionPill(e.action)}</span>
                           <span class="target">
                             <code class="target-type">${e.target_type}</code>
-                            ${e.target_id !== null && e.target_id !== void 0 ? n`<code class="target-id">#${e.target_id}</code>` : h}
+                            ${e.target_id !== null && e.target_id !== void 0 ? n`<code class="target-id">#${e.target_id}</code>` : c}
                           </span>
                           <span class="details-inline">
                             ${this._renderDetailsSummary(e.details)}
@@ -10947,7 +10966,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
                         </button>
                         ${r ? n`<div class="details-panel">
                               ${this._renderDetails(e.details)}
-                            </div>` : h}
+                            </div>` : c}
                       </div>
                     `;
     })}
@@ -11224,10 +11243,10 @@ ie([
 U = ie([
   S("audit-view")
 ], U);
-var Ga = Object.defineProperty, Wa = Object.getOwnPropertyDescriptor, P = (t, e, s, r) => {
+var Ka = Object.defineProperty, Wa = Object.getOwnPropertyDescriptor, P = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? Wa(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && Ga(e, s, a), a;
+  return r && a && Ka(e, s, a), a;
 };
 function Va(t) {
   return t.source === "knx-bus" && t.text.includes("(GroupValueRead)");
