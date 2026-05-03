@@ -199,6 +199,18 @@ export class MessageHubPanel extends LitElement {
     this._selected = e.detail.msg;
   };
 
+  // F-008: Detail-Pane meldet ein gezielt re-fetchedes MessageDto.
+  // Wir patchen nur das eine Item in der Liste — vorher hat der
+  // status-change-Listener die ganze Liste re-fetched, was bei 1000+
+  // Eintraegen sichtbar laggte und den Scroll-Position verlor.
+  private _onMessageUpdated = (e: CustomEvent<{ msg: MessageDto }>): void => {
+    const fresh = e.detail.msg;
+    this._items = this._items.map((m) => (m.id === fresh.id ? fresh : m));
+    if (this._selected?.id === fresh.id) {
+      this._selected = fresh;
+    }
+  };
+
   private _onSeverityChangeMessage = async (
     e: CustomEvent<{ id: number; severity: string; previous: string }>
   ): Promise<void> => {
@@ -613,7 +625,7 @@ export class MessageHubPanel extends LitElement {
             .api=${this._api}
             @close=${() => (this._selected = null)}
             @delete=${this._onDelete}
-            @status-change=${() => void this._reload()}
+            @message-updated=${this._onMessageUpdated}
             @error=${(e: CustomEvent<{ message: string }>) =>
               this._showToast(e.detail.message)}
           ></detail-pane>`

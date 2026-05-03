@@ -2236,7 +2236,26 @@ let N = class extends x {
     if (this.api) {
       this._busy = !0;
       try {
-        await this.api.setMessageStatus(this.msg.id, e), this._status = e, this.dispatchEvent(
+        await this.api.setMessageStatus(this.msg.id, e), this._status = e;
+        try {
+          const t = await this.api.getMessage(this.msg.id);
+          this.msg = t, this.dispatchEvent(
+            new CustomEvent("message-updated", {
+              detail: { msg: t },
+              bubbles: !0,
+              composed: !0
+            })
+          );
+        } catch (t) {
+          this.dispatchEvent(
+            new CustomEvent("error", {
+              detail: { message: t.message },
+              bubbles: !0,
+              composed: !0
+            })
+          );
+        }
+        this.dispatchEvent(
           new CustomEvent("status-change", {
             detail: { id: this.msg.id, status: e },
             bubbles: !0,
@@ -11817,6 +11836,10 @@ let E = class extends x {
       this._filters = { ...this._filters, fromIso: e.detail.fromIso, toIso: e.detail.toIso }, this._persistFilters(), this._reload();
     }, this._onSelect = (e) => {
       this._selected = e.detail.msg;
+    }, this._onMessageUpdated = (e) => {
+      var s;
+      const t = e.detail.msg;
+      this._items = this._items.map((a) => a.id === t.id ? t : a), ((s = this._selected) == null ? void 0 : s.id) === t.id && (this._selected = t);
     }, this._onSeverityChangeMessage = async (e) => {
       var r, n;
       const { id: t, severity: s, previous: a } = e.detail;
@@ -12182,7 +12205,7 @@ let E = class extends x {
             .api=${this._api}
             @close=${() => this._selected = null}
             @delete=${this._onDelete}
-            @status-change=${() => void this._reload()}
+            @message-updated=${this._onMessageUpdated}
             @error=${(e) => this._showToast(e.detail.message)}
           ></detail-pane>` : null}
     `;
