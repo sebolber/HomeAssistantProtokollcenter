@@ -6920,10 +6920,12 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <section class="mh-card sensitive">
         <header class="card-head">
           <h3>Sicherheits-Audit</h3>
-          <span class="muted small">
-            ${t.addresses.length} markierte GAs · ${t.telegrams.length} Telegramme im Zeitraum
-          </span>
-          ${this._renderInlineTopN(this._filters.topNAudit, (a) => this._onTopNAudit(a))}
+          <div class="card-head__meta">
+            ${this._renderInlineTopN(this._filters.topNAudit, (a) => this._onTopNAudit(a))}
+            <span class="muted small">
+              ${t.addresses.length} markierte GAs · ${t.telegrams.length} Telegramme im Zeitraum
+            </span>
+          </div>
         </header>
         <div class="sensitive__addresses">
           <h4>Sensitive GAs</h4>
@@ -6976,11 +6978,13 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <section class="mh-card bursts">
         <header class="card-head">
           <h3>Telegrammfluten (Bursts)</h3>
-          <span class="muted small">
-            ${t.bursts.length} Spitzen über ${s(t.threshold_pct)} % Buslast
-            (${t.window_seconds}s-Fenster)
-          </span>
-          ${this._renderInlineTopN(this._filters.topNBursts, (i) => this._onTopNBursts(i))}
+          <div class="card-head__meta">
+            ${this._renderInlineTopN(this._filters.topNBursts, (i) => this._onTopNBursts(i))}
+            <span class="muted small">
+              ${t.bursts.length} Spitzen über ${s(t.threshold_pct)} % Buslast
+              (${t.window_seconds}s-Fenster)
+            </span>
+          </div>
         </header>
         <div class="bursts__intro">
           <p class="muted small">
@@ -7040,13 +7044,15 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <section class="mh-card long-term">
         <header class="card-head">
           <h3>Long-Term-Sicht</h3>
-          <span class="muted small">
-            ${s(t.total)} Telegramme · ${t.bucket === "day" ? "Tages-Buckets" : "Stunden-Buckets"}
-          </span>
-          ${this._renderInlineTopN(
+          <div class="card-head__meta">
+            ${this._renderInlineTopN(
       this._filters.topNLongTerm,
       (a) => this._onTopNLongTerm(a)
     )}
+            <span class="muted small">
+              ${s(t.total)} Telegramme · ${t.bucket === "day" ? "Tages-Buckets" : "Stunden-Buckets"}
+            </span>
+          </div>
         </header>
         <div class="long-term__body">
           <div class="long-term__chart">
@@ -7662,15 +7668,17 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <section class=${`mh-card trend trend--${r}`}>
         <header class="card-head">
           <h3>Trend gegenüber Vorperiode</h3>
-          <span class="muted small">
-            Aktuell ${t.total_now.toLocaleString("de-DE")} Telegramme ·
-            zuvor ${t.total_prev.toLocaleString("de-DE")} ·
-            <strong>${e}</strong>
-          </span>
-          ${o ? h : this._renderInlineTopN(
+          <div class="card-head__meta">
+            ${o ? h : this._renderInlineTopN(
       this._filters.topNTrend,
       (d) => this._onTopNTrend(d)
     )}
+            <span class="muted small">
+              Aktuell ${t.total_now.toLocaleString("de-DE")} Telegramme ·
+              zuvor ${t.total_prev.toLocaleString("de-DE")} ·
+              <strong>${e}</strong>
+            </span>
+          </div>
         </header>
         ${o ? n`<p class="trend-retention-hint muted small">
               Vergleich nicht verfuegbar fuer diese Periode — Raw-Telegramme
@@ -7918,10 +7926,12 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <section class="mh-card silence-card">
         <header class="card-head">
           <h3>Stille-Alarme (${t.alarm_count})</h3>
-          <span class="muted small">
-            Schwelle: &gt; ${t.max_silence_minutes} Min ohne Telegramm
-          </span>
-          ${this._renderInlineTopN(this._filters.topNSilence, (r) => this._onTopNSilence(r))}
+          <div class="card-head__meta">
+            ${this._renderInlineTopN(this._filters.topNSilence, (r) => this._onTopNSilence(r))}
+            <span class="muted small">
+              Schwelle: &gt; ${t.max_silence_minutes} Min ohne Telegramm
+            </span>
+          </div>
         </header>
         <ul class="silence-list">
           ${e.slice(0, s).map(
@@ -7956,13 +7966,15 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <section class="mh-card">
         <header class="card-head">
           <h3>Bus-Gesundheit (Wiederholrate)</h3>
-          <span class="muted small">
-            xknx-Repeated-Flag — hoher Wert deutet auf Verkabelung/EMV
-          </span>
-          ${t.per_ga.length > 0 ? this._renderInlineTopN(
+          <div class="card-head__meta">
+            ${t.per_ga.length > 0 ? this._renderInlineTopN(
       this._filters.topNBusHealth,
       (a) => this._onTopNBusHealth(a)
     ) : h}
+            <span class="muted small">
+              xknx-Repeated-Flag — hoher Wert deutet auf Verkabelung/EMV
+            </span>
+          </div>
         </header>
         <div class="kpis">
           <div class=${`kpi busload busload--${s}`}>

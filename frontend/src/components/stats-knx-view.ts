@@ -1036,10 +1036,12 @@ export class StatsKnxView extends LitElement {
       <section class="mh-card sensitive">
         <header class="card-head">
           <h3>Sicherheits-Audit</h3>
-          <span class="muted small">
-            ${log.addresses.length} markierte GAs · ${log.telegrams.length} Telegramme im Zeitraum
-          </span>
-          ${this._renderInlineTopN(this._filters.topNAudit, (n) => this._onTopNAudit(n))}
+          <div class="card-head__meta">
+            ${this._renderInlineTopN(this._filters.topNAudit, (n) => this._onTopNAudit(n))}
+            <span class="muted small">
+              ${log.addresses.length} markierte GAs · ${log.telegrams.length} Telegramme im Zeitraum
+            </span>
+          </div>
         </header>
         <div class="sensitive__addresses">
           <h4>Sensitive GAs</h4>
@@ -1103,11 +1105,13 @@ export class StatsKnxView extends LitElement {
       <section class="mh-card bursts">
         <header class="card-head">
           <h3>Telegrammfluten (Bursts)</h3>
-          <span class="muted small">
-            ${b.bursts.length} Spitzen über ${fmtPct(b.threshold_pct)} % Buslast
-            (${b.window_seconds}s-Fenster)
-          </span>
-          ${this._renderInlineTopN(this._filters.topNBursts, (n) => this._onTopNBursts(n))}
+          <div class="card-head__meta">
+            ${this._renderInlineTopN(this._filters.topNBursts, (n) => this._onTopNBursts(n))}
+            <span class="muted small">
+              ${b.bursts.length} Spitzen über ${fmtPct(b.threshold_pct)} % Buslast
+              (${b.window_seconds}s-Fenster)
+            </span>
+          </div>
         </header>
         <div class="bursts__intro">
           <p class="muted small">
@@ -1175,12 +1179,14 @@ export class StatsKnxView extends LitElement {
       <section class="mh-card long-term">
         <header class="card-head">
           <h3>Long-Term-Sicht</h3>
-          <span class="muted small">
-            ${fmtNum(lt.total)} Telegramme · ${lt.bucket === "day" ? "Tages-Buckets" : "Stunden-Buckets"}
-          </span>
-          ${this._renderInlineTopN(this._filters.topNLongTerm, (n) =>
-            this._onTopNLongTerm(n)
-          )}
+          <div class="card-head__meta">
+            ${this._renderInlineTopN(this._filters.topNLongTerm, (n) =>
+              this._onTopNLongTerm(n)
+            )}
+            <span class="muted small">
+              ${fmtNum(lt.total)} Telegramme · ${lt.bucket === "day" ? "Tages-Buckets" : "Stunden-Buckets"}
+            </span>
+          </div>
         </header>
         <div class="long-term__body">
           <div class="long-term__chart">
@@ -1983,16 +1989,18 @@ export class StatsKnxView extends LitElement {
       <section class=${`mh-card trend trend--${totalSeverity}`}>
         <header class="card-head">
           <h3>Trend gegenüber Vorperiode</h3>
-          <span class="muted small">
-            Aktuell ${t.total_now.toLocaleString("de-DE")} Telegramme ·
-            zuvor ${t.total_prev.toLocaleString("de-DE")} ·
-            <strong>${totalDelta}</strong>
-          </span>
-          ${isLongRetentionGap
-            ? nothing
-            : this._renderInlineTopN(this._filters.topNTrend, (n) =>
-                this._onTopNTrend(n)
-              )}
+          <div class="card-head__meta">
+            ${isLongRetentionGap
+              ? nothing
+              : this._renderInlineTopN(this._filters.topNTrend, (n) =>
+                  this._onTopNTrend(n)
+                )}
+            <span class="muted small">
+              Aktuell ${t.total_now.toLocaleString("de-DE")} Telegramme ·
+              zuvor ${t.total_prev.toLocaleString("de-DE")} ·
+              <strong>${totalDelta}</strong>
+            </span>
+          </div>
         </header>
         ${isLongRetentionGap
           ? html`<p class="trend-retention-hint muted small">
@@ -2307,10 +2315,12 @@ export class StatsKnxView extends LitElement {
       <section class="mh-card silence-card">
         <header class="card-head">
           <h3>Stille-Alarme (${s.alarm_count})</h3>
-          <span class="muted small">
-            Schwelle: &gt; ${s.max_silence_minutes} Min ohne Telegramm
-          </span>
-          ${this._renderInlineTopN(this._filters.topNSilence, (n) => this._onTopNSilence(n))}
+          <div class="card-head__meta">
+            ${this._renderInlineTopN(this._filters.topNSilence, (n) => this._onTopNSilence(n))}
+            <span class="muted small">
+              Schwelle: &gt; ${s.max_silence_minutes} Min ohne Telegramm
+            </span>
+          </div>
         </header>
         <ul class="silence-list">
           ${alarms.slice(0, limit).map(
@@ -2362,15 +2372,17 @@ export class StatsKnxView extends LitElement {
       <section class="mh-card">
         <header class="card-head">
           <h3>Bus-Gesundheit (Wiederholrate)</h3>
-          <span class="muted small">
-            xknx-Repeated-Flag — hoher Wert deutet auf Verkabelung/EMV
-          </span>
-          ${h.per_ga.length > 0
-            ? this._renderInlineTopN(
-                this._filters.topNBusHealth,
-                (n) => this._onTopNBusHealth(n)
-              )
-            : nothing}
+          <div class="card-head__meta">
+            ${h.per_ga.length > 0
+              ? this._renderInlineTopN(
+                  this._filters.topNBusHealth,
+                  (n) => this._onTopNBusHealth(n)
+                )
+              : nothing}
+            <span class="muted small">
+              xknx-Repeated-Flag — hoher Wert deutet auf Verkabelung/EMV
+            </span>
+          </div>
         </header>
         <div class="kpis">
           <div class=${`kpi busload busload--${cls}`}>
