@@ -7,6 +7,11 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 3)
+- **Iter 18 — Detector `MULTI_TIME_MASTER`.**
+  Erkennt: >=2 unterschiedliche `knx_source` schreiben auf eine
+  Zeit-/Datums-GA (DPT 10.001 Time-of-day, 11.001 Date, 19.001
+  DateTime). Severity `error` (Doppel-Zeitquellen erzeugen Drift,
+  siehe §9.3). Evidence `{sources, clock_dpt}`.
 - **Iter 17 — Detector `TOGGLE_LOOP`.**
   Erkennt DPT-1.001-Schaltschleifen: alternierende Werte 0/1 mit Δt
   < 2 s ueber mindestens 4 Wertwechsel. Severity `error` (Schleifen
