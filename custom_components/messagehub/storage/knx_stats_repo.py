@@ -985,6 +985,47 @@ class KnxStatsRepository:
     # > 48 h: keine Source-Adresse, keine Werte, nur Counts pro GA und
     # Stunden-/Tages-Bucket.
 
+    async def samples_for_ga_classification(
+        self,
+        ga: str,
+        from_iso: str,
+        to_iso: str,
+        *,
+        limit: int = 10_000,
+    ) -> list[dict[str, Any]]:
+        """Iter L1.1 (Sprint Recommendations): Telegramm-Stichprobe fuer
+        die Sende-Modus-Klassifikation.
+
+        Liefert (timestamp, value) chronologisch fuer eine GA im
+        Zeitraum, hard-capped auf ``limit`` Telegramme (DoS-Schutz).
+        Index-gestuetzt via ``idx_knx_raw_destination_ts``, also
+        O(log n) auch bei mehreren Mio Rows.
+
+        Cap-Begruendung: 10 000 Telegramme reichen statistisch fuer eine
+        belastbare σ/Median-Heuristik bei jedem realistischen
+        Sende-Profil. Bei extrem hoher Frequenz (Konstant-Wert-Spam)
+        werden die ersten 10 000 ausgewertet — die spaeteren wuerden
+        die Klassifikation ohnehin nicht aendern.
+        """
+        if not ga:
+            return []
+        capped = max(1, min(limit, 50_000))
+        rows = await self._db.fetch_all(
+            "SELECT timestamp, value FROM knx_raw_telegrams "
+            "WHERE destination = ? "
+            "  AND timestamp >= ? AND timestamp < ? "
+            "ORDER BY timestamp ASC "
+            "LIMIT ?",
+            (ga, from_iso, to_iso, capped),
+        )
+        return [
+            {
+                "timestamp": str(row["timestamp"]),
+                "value": row["value"],  # raw JSON-encoded, may be NULL
+            }
+            for row in rows
+        ]
+
     async def counter_total(self, from_iso: str, to_iso: str) -> int:
         """Period-Total ueber alle GAs aus der Counter-Tabelle."""
         row = await self._db.fetch_one(

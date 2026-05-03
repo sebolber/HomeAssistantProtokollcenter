@@ -7,6 +7,18 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L1.1 / Sprint Recommendations — Sende-Modus-Klassifikation.**
+  Repo-Methode `samples_for_ga_classification(ga, from, to)` liefert
+  chronologische Telegramm-Stichprobe (Hard-Cap 50 000) per
+  `idx_knx_raw_destination_ts`. Service `processing/knx_recommend_service.py`
+  klassifiziert die Stichprobe via σ/Median-Heuristik in
+  `cyclic` / `on_change` / `hybrid` / `silent` / `insufficient` mit
+  expliziter Konfidenz (`high` / `medium` / `low`). Schwellwerte als
+  benannte Module-Konstanten gepinnt (CYCLIC_REGULARITY_MAX_RATIO=0.3,
+  ON_CHANGE_GAP_RATIO=10, ON_CHANGE_VALUE_CHANGE_THRESHOLD=0.7,
+  HIGH_CONFIDENCE_THRESHOLD=30, INSUFFICIENT_THRESHOLD=10). Helper
+  `intervals_from_timestamps`, `count_value_changes` (JSON-decoded
+  vergleich, NULL-Toleranz), `_percentile`. 28 Pytests.
 - **Iter L1.0 / Sprint Recommendations — DPT-Recommendation-Tabelle.**
   Neues Modul `processing/knx_dpt_recommendations.py` mit struktrierter
   Empfehlung pro KNX-Datapoint-Type (Sende-Modus, Zyklus-Korridor,
