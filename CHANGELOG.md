@@ -6,6 +6,8 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-05-03
+
 ### Hinzugefuegt (Recommendation-Engine)
 - **Iter L5.0 / Sprint Recommendations — User-Doku.**
   Neue Doku `docs/messagehub_knx_recommendations.md` (~250 Zeilen)
