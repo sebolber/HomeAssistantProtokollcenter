@@ -7,6 +7,13 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 4)
+- **Iter 22 — Detector `REPEAT_APPROXIMATION`.**
+  Approximiert das Repeat-Bit, das wir ohne xknx-Layer-2-Zugriff nicht
+  sehen koennen: identisches Telegramm mit Δt < 100 ms auf gleicher GA
+  ist mit hoher Wahrscheinlichkeit eine Wiederholung. Schwellwert: >=5
+  Repeats pro Tag (normalisiert auf `period_days`). Severity `warning`
+  (Approximation, nicht Wahrheit). Evidence
+  `{repeats_per_day, total_repeats, period_days}`.
 - **Iter 21 — Detector `SEND_CYCLE_DRIFT`.**
   Trend-Detektor: Median(Δt) der letzten 24 h <= 50% des 7-Tage-
   Medians -> Finding (severity info). Reine Funktion; nutzt die in
