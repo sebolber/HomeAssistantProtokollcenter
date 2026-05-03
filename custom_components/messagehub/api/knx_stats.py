@@ -39,6 +39,7 @@ from ..processing.knx_recommend_service import (
     device_recommendation_to_dict,
 )
 from ..processing.recommendation_cache import RecommendationCache
+from ..storage.knx_devices_repo import KnxDeviceRepository
 from ..processing.knx_stats_service import (
     KnxStatsService,
     ga_detail_to_dict,
@@ -1156,8 +1157,10 @@ class KnxStatsSourceRecommendationView(RequireAdminView):
         if cached is not None:
             return self.json(cached)
         repo = KnxStatsRepository(db)
+        devices_repo = KnxDeviceRepository(db)
         reco = await compute_device_recommendation(
             repo, dev_source, from_iso, to_iso,
+            devices_repo=devices_repo,
         )
         if reco is None:
             return self.json_message(ERR_NOT_FOUND, status_code=404)

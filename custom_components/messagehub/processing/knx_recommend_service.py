@@ -17,6 +17,11 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Final, Literal
 
+from .knx_device_model_recommendations import (
+    ModelRecommendation,
+    find_model_recommendation,
+    reasoning_source as model_reasoning_source,
+)
 from .knx_dpt_recommendations import (
     DptRecommendation,
     recommend_for_dpt,
@@ -24,6 +29,7 @@ from .knx_dpt_recommendations import (
 )
 
 if TYPE_CHECKING:
+    from ..storage.knx_devices_repo import KnxDeviceRepository
     from ..storage.knx_stats_repo import KnxStatsRepository
 
 # Klassifikations-Schwellwerte. Bewusst als Module-Konstanten — Tests
@@ -370,9 +376,21 @@ def _ga_recommendation(
     label: str | None,
     dpt: str | None,
     observation: SendModeObservation,
+    model_override: ModelRecommendation | None = None,
 ) -> GaRecommendation:
-    """Verheiratet Klassifikation + DPT-Empfehlung pro GA."""
+    """Verheiratet Klassifikation + DPT-Empfehlung pro GA.
+
+    Iter L2.2: optionaler ``model_override`` ueberschreibt die Layer-1-
+    Empfehlung pro DPT, wenn die Modell-Tabelle einen Eintrag fuer
+    diese GA's DPT bereithaelt. Ansonsten greift weiter Layer 1.
+    """
     dpt_reco: DptRecommendation | None = recommend_for_dpt(dpt)
+    if (
+        model_override is not None
+        and dpt is not None
+        and dpt in model_override.dpt_overrides
+    ):
+        dpt_reco = model_override.dpt_overrides[dpt]
     severity = _severity_for(
         dpt_reco.mode if dpt_reco is not None else None,
         observation.mode,
@@ -497,11 +515,19 @@ async def compute_device_recommendation(
     dev_source: str,
     from_iso: str,
     to_iso: str,
+    *,
+    devices_repo: "KnxDeviceRepository | None" = None,
 ) -> DeviceRecommendation | None:
     """Aggregiert die Geraete-Empfehlung aus den GA-Klassifikationen.
 
     Liefert ``None``, wenn das Geraet im Periode keine GAs gemeldet hat
     — analog zu ``compute_source_detail``.
+
+    Iter L2.2: optionales ``devices_repo`` aktiviert Layer-2-Modell-
+    Overrides — wenn das Geraete-Profil (`knx_devices`-Eintrag) ein
+    bekanntes Manufacturer/Model-Paar liefert, ueberschreibt die
+    Modell-Tabelle einzelne DPT-Empfehlungen. Caller kann ``None``
+    uebergeben (z. B. in Tests), dann greift weiter Layer 1.
     """
     if not dev_source:
         return None
@@ -510,6 +536,19 @@ async def compute_device_recommendation(
     )
     if not ga_rows:
         return None
+
+    # Layer-2-Lookup: Geraete-Profil → optionales Modell-Override.
+    device_profile: dict[str, object] | None = None
+    model_override: ModelRecommendation | None = None
+    if devices_repo is not None:
+        device_profile = await devices_repo.get(dev_source)
+        if device_profile is not None:
+            mfr = device_profile.get("manufacturer")
+            mdl = device_profile.get("model")
+            model_override = find_model_recommendation(
+                str(mfr) if mfr is not None else None,
+                str(mdl) if mdl is not None else None,
+            )
 
     ga_recos: list[GaRecommendation] = []
     for row in ga_rows:
@@ -532,6 +571,7 @@ async def compute_device_recommendation(
                 label=row.get("label"),
                 dpt=row.get("dpt"),
                 observation=observation,
+                model_override=model_override,
             )
         )
 
@@ -543,6 +583,27 @@ async def compute_device_recommendation(
         reasoning.append(
             f"Layer 1 ({reasoning_source()}) — DPT-Standard-Empfehlung "
             f"je GA aus knx_dpt_recommendations."
+        )
+    if model_override is not None:
+        # Layer-2-Marker mit Hersteller-/Modell-Begruendung + Doc-URL.
+        reasoning.append(
+            f"Layer 2 ({model_reasoning_source()}) — "
+            f"{model_override.manufacturer}/{model_override.model_glob}: "
+            f"{model_override.rationale}"
+            + (
+                f" ({model_override.doc_url})"
+                if model_override.doc_url
+                else ""
+            )
+        )
+    elif device_profile is not None and (
+        device_profile.get("manufacturer") or device_profile.get("model")
+    ):
+        # Geraete-Profil gepflegt aber kein Tabellen-Match: Hint.
+        reasoning.append(
+            "Layer 2 (device_model) — Hersteller/Modell-Profil ist "
+            "gepflegt, fuer dieses Modell gibt es noch keinen "
+            "kuratierten Override."
         )
     silent_count = sum(1 for r in ga_recos if r.observed.mode == "silent")
     if silent_count:

@@ -7,6 +7,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L2.2 / Sprint Recommendations — Layer-2-Pipeline.**
+  Service `compute_device_recommendation` akzeptiert ein optionales
+  `devices_repo`. Ist es gegeben, wird das Geraete-Profil (`knx_devices`-
+  Eintrag) gelesen und gegen die Modell-Recommendation-Tabelle (L2.1)
+  abgeglichen. Treffer ueberschreibt die Layer-1-Empfehlung pro DPT
+  selektiv (nur die im Override gelisteten DPTs aendern sich).
+  Reasoning-Liste enthaelt jetzt Layer-1- und Layer-2-Marker in fester
+  Reihenfolge; bei gepflegtem Profil ohne Tabellen-Match gibt's einen
+  expliziten Hinweis "kein kuratierter Override". 6 neue Pytests.
 - **Iter L2.1 / Sprint Recommendations — Modell-Recommendation-Tabelle.**
   Neues Modul `processing/knx_device_model_recommendations.py` mit
   ~10 kuratierten Modellen (Hoermann Garage, MDT-DALI/Dimm, Hager-
