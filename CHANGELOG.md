@@ -6,6 +6,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 3)
+- **Iter 15 — Detector `MULTI_RESPONDER`.**
+  Erkennt >=2 unterschiedliche `knx_source` antworten innerhalb 1 s
+  auf dieselbe GA. Severity `warning` (kann beabsichtigt sein bei
+  parallelen Aktoren). Sliding-Window-Algorithmus O(n) ueber die
+  Response-Liste. Evidence
+  `{responding_sources: [...], count, window_ms}`.
+
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 2)
 - **Iter 14 — i18n fuer Phase-2-Findings (DPT_MISMATCH, VALUE_OUT_OF_RANGE).**
   Title, Description (mit Evidence-Platzhaltern wie
