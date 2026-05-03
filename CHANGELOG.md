@@ -7,6 +7,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L1.2 / Sprint Recommendations — DeviceRecommendationService.**
+  Neuer Service `compute_device_recommendation(repo, dev_source,
+  from, to)`, der pro GA klassifiziert (L1.1) + DPT-Empfehlung (L1.0)
+  einholt + zu einem Geraets-DTO aggregiert. DTO `DeviceRecommendation`
+  mit Headline-Modus, menschen-lesbarem Empfehlungs-Satz, GA-Detail-
+  Liste, Konfidenz (Pessimist ueber alle GAs), Reasoning-Liste,
+  generated_at-Timestamp. Severity-Tabelle pro (recommended, observed)-
+  Paar -> ok/info/warn/deviation. JSON-Serialisierung
+  `device_recommendation_to_dict` als Schema-Vertrag mit Frontend.
+  10 Pytests (Wetterstation-Multi-GA, Schalt-on_change, Cyclic-Temp,
+  unbekannter DPT, Konfidenz-Pessimist, JSON-Roundtrip).
 - **Iter L1.1 / Sprint Recommendations — Sende-Modus-Klassifikation.**
   Repo-Methode `samples_for_ga_classification(ga, from, to)` liefert
   chronologische Telegramm-Stichprobe (Hard-Cap 50 000) per
