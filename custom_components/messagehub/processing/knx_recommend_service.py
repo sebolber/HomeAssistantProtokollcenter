@@ -30,9 +30,11 @@ from .knx_dpt_recommendations import (
 
 if TYPE_CHECKING:
     from .findings import Finding
+    from .recommendation_provider import RecommendationProvider
     from ..storage.findings_repo import FindingsRepository
     from ..storage.knx_devices_repo import KnxDeviceRepository
     from ..storage.knx_stats_repo import KnxStatsRepository
+    from ..storage.recommendation_cache_repo import RecommendationCacheRepository
 
 # Klassifikations-Schwellwerte. Bewusst als Module-Konstanten — Tests
 # brauchen sie als Pinning, und User koennen sie per Import an einer
@@ -613,6 +615,132 @@ async def _fetch_active_findings_for_source(
     ]
 
 
+async def _apply_llm_fallback(
+    ga_recos: list[GaRecommendation],
+    *,
+    provider: "RecommendationProvider",
+    cache_repo: "RecommendationCacheRepository | None",
+    provider_name: str,
+    model_name: str,
+    device_profile: dict[str, Any] | None,
+) -> tuple[list[GaRecommendation], int]:
+    """Layer-4-Fallback fuer GAs ohne ``recommended_mode``.
+
+    Reihenfolge pro betroffener GA:
+    1. Cache-Hit pruefen (sha256 ueber alle relevanten Inputs).
+    2. Bei Miss: Provider.fetch() (kann None liefern bei
+       Disabled/Fehler — dann bleibt die GA ohne Empfehlung).
+    3. Bei Treffer: ``DptRecommendation`` einsetzen + persistenter
+       Cache schreiben.
+
+    Returns: (modifizierte Liste, Anzahl der GAs mit LLM-Befuellung).
+    """
+    from .recommendation_cache_repo import (  # noqa: PLC0415
+        make_cache_key,
+    )
+
+    manufacturer = (
+        str(device_profile.get("manufacturer") or "")
+        if device_profile is not None
+        else ""
+    )
+    device_model = (
+        str(device_profile.get("model") or "")
+        if device_profile is not None
+        else ""
+    )
+
+    new_recos: list[GaRecommendation] = []
+    filled = 0
+    for ga in ga_recos:
+        if ga.recommended_mode is not None:
+            new_recos.append(ga)
+            continue
+        # Layer 1+2 hatten kein Match — Fallback auf LLM
+        cache_key = make_cache_key(
+            provider=provider_name,
+            model=model_name,
+            dpt=ga.dpt,
+            manufacturer=manufacturer or None,
+            device_model=device_model or None,
+        )
+        dpt_reco: DptRecommendation | None = None
+        if cache_repo is not None:
+            cached = await cache_repo.get(cache_key)
+            if cached is not None:
+                cached_response = cached["response"]
+                if isinstance(cached_response, dict):
+                    dpt_reco = _dpt_recommendation_from_dict(
+                        cached_response
+                    )
+        if dpt_reco is None:
+            dpt_reco = await provider.fetch(
+                dpt=ga.dpt,
+                manufacturer=manufacturer or None,
+                model=device_model or None,
+                context={
+                    "observed_mode": ga.observed.mode,
+                    "median_interval_minutes": (
+                        ga.observed.median_interval_minutes or 0.0
+                    ),
+                    "sample_count": ga.observed.sample_count,
+                },
+            )
+            if dpt_reco is not None and cache_repo is not None:
+                await cache_repo.set(
+                    cache_key=cache_key,
+                    response=_dpt_recommendation_to_dict(dpt_reco),
+                    provider=provider_name,
+                    model=model_name,
+                )
+        if dpt_reco is None:
+            new_recos.append(ga)
+            continue
+        cycle: tuple[int, int] | None = None
+        if dpt_reco.cycle_minutes_min is not None:
+            assert dpt_reco.cycle_minutes_max is not None
+            cycle = (dpt_reco.cycle_minutes_min, dpt_reco.cycle_minutes_max)
+        new_recos.append(
+            replace(
+                ga,
+                recommended_mode=dpt_reco.mode,
+                recommended_cycle_minutes=cycle,
+                recommended_hysteresis=dpt_reco.hysteresis,
+                rationale=f"[KI] {dpt_reco.rationale}",
+                severity=_severity_for(dpt_reco.mode, ga.observed.mode),
+            )
+        )
+        filled += 1
+    return new_recos, filled
+
+
+def _dpt_recommendation_to_dict(reco: DptRecommendation) -> dict[str, Any]:
+    return {
+        "mode": reco.mode,
+        "cycle_minutes_min": reco.cycle_minutes_min,
+        "cycle_minutes_max": reco.cycle_minutes_max,
+        "hysteresis": reco.hysteresis,
+        "max_rate_per_min": reco.max_rate_per_min,
+        "rationale": reco.rationale,
+    }
+
+
+def _dpt_recommendation_from_dict(
+    payload: dict[str, Any],
+) -> DptRecommendation | None:
+    mode = payload.get("mode")
+    if mode not in {"on_change", "cyclic", "hybrid"}:
+        return None
+    return DptRecommendation(
+        mode=mode,  # type: ignore[arg-type]
+        cycle_minutes_min=payload.get("cycle_minutes_min"),
+        cycle_minutes_max=payload.get("cycle_minutes_max"),
+        hysteresis=payload.get("hysteresis"),
+        max_rate_per_min=float(payload.get("max_rate_per_min") or 1.0),
+        rationale=str(payload.get("rationale") or ""),
+    )
+
+
 async def _avg_busload_pct(
     repo: "KnxStatsRepository", from_iso: str, to_iso: str,
 ) -> float:
@@ -636,6 +764,10 @@ async def compute_device_recommendation(
     *,
     devices_repo: "KnxDeviceRepository | None" = None,
     findings_repo: "FindingsRepository | None" = None,
+    llm_provider: "RecommendationProvider | None" = None,
+    llm_cache_repo: "RecommendationCacheRepository | None" = None,
+    llm_provider_name: str = "openai_chat",
+    llm_model: str = "",
 ) -> DeviceRecommendation | None:
     """Aggregiert die Geraete-Empfehlung aus den GA-Klassifikationen.
 
@@ -694,6 +826,21 @@ async def compute_device_recommendation(
             )
         )
 
+    # Iter L4.x: Layer 4 — LLM-Fallback fuer GAs ohne L1/L2-Treffer.
+    # KEIN Override fuer GAs mit existierender Empfehlung; Layer 4 ist
+    # ausschliesslich Fallback. Provider-Aufrufe sind teuer + Rate-
+    # limited; Cache-Lookup zuerst.
+    llm_filled_count = 0
+    if llm_provider is not None:
+        ga_recos, llm_filled_count = await _apply_llm_fallback(
+            ga_recos,
+            provider=llm_provider,
+            cache_repo=llm_cache_repo,
+            provider_name=llm_provider_name,
+            model_name=llm_model,
+            device_profile=device_profile,
+        )
+
     # Iter L3.0: Layer-3-Override — bei hoher Buslast die Cycle-
     # Korridore nach oben strecken. Modifiziert nicht den Modus.
     avg_busload = await _avg_busload_pct(repo, from_iso, to_iso)
@@ -740,6 +887,11 @@ async def compute_device_recommendation(
             "Layer 2 (device_model) — Hersteller/Modell-Profil ist "
             "gepflegt, fuer dieses Modell gibt es noch keinen "
             "kuratierten Override."
+        )
+    if llm_filled_count:
+        reasoning.append(
+            f"Layer 4 (llm) — {llm_filled_count} GA(s) ohne DPT-/Modell-"
+            "Treffer durch LLM-Vorschlag ergaenzt. Bitte manuell pruefen."
         )
     if busload_overridden:
         reasoning.append(

@@ -1163,10 +1163,32 @@ class KnxStatsSourceRecommendationView(RequireAdminView):
         # mitliefern.
         from ..storage.findings_repo import FindingsRepository  # noqa: PLC0415
         findings_repo = FindingsRepository(db)
+        # Iter L4.2: optionalen LLM-Provider laden (default Stub).
+        from ..processing.openai_chat_provider import OpenAIChatProvider  # noqa: PLC0415
+        from ..processing.recommendation_settings import (  # noqa: PLC0415
+            load_provider_config,
+            stub_provider,
+        )
+        from ..storage.recommendation_cache_repo import (  # noqa: PLC0415
+            RecommendationCacheRepository,
+        )
+        from ..storage.settings_repo import SettingsRepository  # noqa: PLC0415
+
+        config = await load_provider_config(SettingsRepository(db))
+        if config.enabled:
+            llm_provider = OpenAIChatProvider(config)
+            llm_cache_repo = RecommendationCacheRepository(db)
+        else:
+            llm_provider = stub_provider()
+            llm_cache_repo = None
         reco = await compute_device_recommendation(
             repo, dev_source, from_iso, to_iso,
             devices_repo=devices_repo,
             findings_repo=findings_repo,
+            llm_provider=llm_provider,
+            llm_cache_repo=llm_cache_repo,
+            llm_provider_name=getattr(llm_provider, "name", "stub"),
+            llm_model=config.model,
         )
         if reco is None:
             return self.json_message(ERR_NOT_FOUND, status_code=404)

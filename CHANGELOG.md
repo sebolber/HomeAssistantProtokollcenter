@@ -7,6 +7,27 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L4.2 / Sprint Recommendations — OpenAI-kompatibler LLM-Provider.**
+  Neues Modul `processing/openai_chat_provider.py` mit Provider, der
+  das OpenAI-Chat-Completions-Schema spricht — kompatibel mit OpenAI,
+  Azure-OpenAI, Ollama, vLLM, LiteLLM, Groq, Together und allen
+  weiteren Anbietern, die das gleiche Format unterstuetzen.
+  Sicherheits-Pyramide:
+  * Whitelist-Sanitizer `_safe_str` filtert User-Inputs gegen
+    Prompt-Injection (Newlines, Backticks, Sonderzeichen)
+  * API-Key wird nur im Authorization-Header gesendet, nie geloggt
+  * Rate-Limit (`TokenBucketLimiter`, default 5/min global) gegen
+    LLM-Cost-Runaway
+  * Strukturierter JSON-Output via `response_format`
+    (OpenAI Structured Outputs)
+  * Robustes Response-Parsing (Markdown-Codefences, partial cycle-
+    pairs, ungueltige modes -> None statt Crash)
+  Service-Pipeline (`compute_device_recommendation`) ruft den Provider
+  als reinen Fallback fuer GAs ohne L1/L2-Treffer; persistenter Cache
+  pro (provider, model, dpt, manufacturer, device_model)-Hash. UI-Marker
+  `[KI]` im rationale-Feld macht LLM-Vorschlaege kenntlich.
+  Endpoint laedt Provider+Config lazy (kein Import-Overhead bei
+  disabled-Default). 24 neue Pytests, alle ohne echten HTTP-Verkehr.
 - **Iter L4.1 / Sprint Recommendations — LLM-Settings-Schema + Stub.**
   Provider-Konfiguration im `messagehub_settings`-Store unter
   Praefix `knx_recommend_llm.`. Default `enabled=False` — Layer 4
