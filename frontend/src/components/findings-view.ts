@@ -1,17 +1,22 @@
-// Iter 9 (knx-findings): leerer Konfigurations-Check-Tab.
+// Iter 9 + 10 (knx-findings): Konfigurations-Check-Tab.
 //
 // Vertrag aus docs/messagehub_knx_konfigurationsfehler_recherche.md §9.1:
-// drittes Sub-Tab neben Live-Status + KNX-Bus-Analyse. Iter 9 rendert nur
-// den leeren Container — Iter 10 verdrahtet Items, Severity-Pills, Ack-
-// Action und Detail-Pane.
+// drittes Sub-Tab neben Live-Status + KNX-Bus-Analyse. Iter 9 lieferte das
+// leere Geruest (Header, Filter, Empty-State); Iter 10 verdrahtet das
+// Item-Rendering mit Severity-Pill, Detail-Pane und Ack-Action.
 
 import { LitElement, css, html, nothing, type TemplateResult } from "lit";
 import { property, state } from "lit/decorators.js";
-import type { ApiClient, FindingDto, FindingsListResponse } from "../api-client.js";
+import type {
+  ApiClient,
+  FindingDto,
+  FindingSeverity,
+  FindingsListResponse,
+} from "../api-client.js";
 import { buttons, cards, forms, pills, tokens } from "../styles/tokens.js";
 import { customElement } from "../utils/custom-element.js";
 
-type SeverityFilter = "" | "debug" | "info" | "warning" | "error";
+type SeverityFilter = "" | FindingSeverity;
 
 const SEVERITY_OPTIONS: ReadonlyArray<{ value: SeverityFilter; label: string }> =
   [
@@ -22,6 +27,14 @@ const SEVERITY_OPTIONS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
     { value: "debug", label: "Debug" },
   ];
 
+// Severity -> CSS-Klasse fuer mh-pill (siehe styles/tokens.ts pills).
+const PILL_CLASS_FOR_SEVERITY: Readonly<Record<FindingSeverity, string>> = {
+  error: "mh-pill mh-pill--error",
+  warning: "mh-pill mh-pill--warning",
+  info: "mh-pill mh-pill--info",
+  debug: "mh-pill mh-pill--debug",
+};
+
 @customElement("findings-view")
 export class FindingsView extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
@@ -31,6 +44,7 @@ export class FindingsView extends LitElement {
   @state() private _loading = false;
   @state() private _error: string | null = null;
   @state() private _severityFilter: SeverityFilter = "";
+  @state() private _selectedKey: string | null = null;
 
   override async firstUpdated(): Promise<void> {
     await this._load();
@@ -57,6 +71,43 @@ export class FindingsView extends LitElement {
     const target = ev.target as HTMLSelectElement;
     this._severityFilter = target.value as SeverityFilter;
     void this._load();
+  }
+
+  private _itemKey(it: FindingDto): string {
+    return `${it.code}::${it.ga ?? ""}::${it.last_seen}`;
+  }
+
+  private _onSelect(it: FindingDto): void {
+    const key = this._itemKey(it);
+    this._selectedKey = this._selectedKey === key ? null : key;
+  }
+
+  private async _ackSelected(): Promise<void> {
+    const selected = this._currentSelection();
+    if (!selected || !this.api) return;
+    if (selected.ga === null) {
+      this._error = "Bus-weite Findings koennen (noch) nicht akknowledged werden.";
+      return;
+    }
+    this._loading = true;
+    this._error = null;
+    try {
+      await this.api.acknowledgeFinding({
+        ga: selected.ga,
+        code: selected.code,
+      });
+      await this._load();
+      this._selectedKey = null;
+    } catch (err) {
+      this._error = (err as Error).message ?? "Ack fehlgeschlagen";
+    } finally {
+      this._loading = false;
+    }
+  }
+
+  private _currentSelection(): FindingDto | null {
+    if (this._selectedKey === null) return null;
+    return this._items.find((it) => this._itemKey(it) === this._selectedKey) ?? null;
   }
 
   override render(): TemplateResult {
@@ -91,6 +142,8 @@ export class FindingsView extends LitElement {
         <div class="body" data-test="findings-table">
           ${this._renderBody()}
         </div>
+
+        ${this._renderDetailPane()}
       </section>
     `;
   }
@@ -98,7 +151,7 @@ export class FindingsView extends LitElement {
   private _renderBody(): TemplateResult | typeof nothing {
     if (this._error) {
       return html`<div class="empty error" data-test="findings-error">
-        Fehler beim Laden: ${this._error}
+        Fehler: ${this._error}
       </div>`;
     }
     if (this._loading) {
@@ -110,15 +163,110 @@ export class FindingsView extends LitElement {
         unauffaellig aus.
       </div>`;
     }
-    // Iter 10 verdrahtet die Detail-Anzeige; bis dahin Platzhalter mit Code.
     return html`<ul class="items" data-test="findings-items">
-      ${this._items.map(
-        (it) => html`<li class="item">
-          <span class="code">${it.code}</span>
-          <span class="ga">${it.ga ?? ""}</span>
-        </li>`
-      )}
+      ${this._items.map((it) => this._renderItem(it))}
     </ul>`;
+  }
+
+  private _renderItem(it: FindingDto): TemplateResult {
+    const key = this._itemKey(it);
+    const selected = this._selectedKey === key;
+    return html`
+      <li
+        class=${`item ${selected ? "item--selected" : ""}`}
+        data-test="findings-item"
+        @click=${() => this._onSelect(it)}
+      >
+        <span
+          class=${PILL_CLASS_FOR_SEVERITY[it.severity]}
+          data-test="item-severity"
+        >
+          ${it.severity}
+        </span>
+        <span class="code" data-test="item-code">${it.code}</span>
+        <span class="ga" data-test="item-ga">${it.ga ?? "(global)"}</span>
+        <span class="source" data-test="item-source"
+          >${it.source ?? ""}</span
+        >
+        <span class="last-seen" data-test="item-last-seen"
+          >${this._formatTimestamp(it.last_seen)}</span
+        >
+        <span class="count" data-test="item-count" title="Occurrence count"
+          >×${it.occurrence_count}</span
+        >
+      </li>
+    `;
+  }
+
+  private _renderDetailPane(): TemplateResult | typeof nothing {
+    const selected = this._currentSelection();
+    if (selected === null) return nothing;
+    return html`
+      <aside class="detail mh-card" data-test="findings-detail">
+        <header class="detail-header">
+          <span class=${PILL_CLASS_FOR_SEVERITY[selected.severity]}>
+            ${selected.severity}
+          </span>
+          <span class="detail-code">${selected.code}</span>
+          <button
+            class="mh-btn mh-btn--ghost mh-btn--icon"
+            type="button"
+            aria-label="Schliessen"
+            @click=${() => (this._selectedKey = null)}
+          >
+            ✕
+          </button>
+        </header>
+        <dl class="detail-evidence">
+          <dt>GA</dt>
+          <dd>${selected.ga ?? "(global)"}</dd>
+          <dt>Source</dt>
+          <dd>${selected.source ?? "—"}</dd>
+          <dt>First-Seen</dt>
+          <dd>${this._formatTimestamp(selected.first_seen)}</dd>
+          <dt>Last-Seen</dt>
+          <dd>${this._formatTimestamp(selected.last_seen)}</dd>
+          <dt>Occurrences</dt>
+          <dd>${selected.occurrence_count}</dd>
+          <dt>Detector</dt>
+          <dd>${selected.detector_version}</dd>
+          ${this._renderEvidenceEntries(selected.evidence)}
+        </dl>
+        <div class="detail-actions">
+          <button
+            class="mh-btn mh-btn--primary"
+            type="button"
+            data-test="findings-ack-btn"
+            ?disabled=${selected.ga === null || this._loading}
+            @click=${this._ackSelected}
+          >
+            Ack
+          </button>
+        </div>
+      </aside>
+    `;
+  }
+
+  private _renderEvidenceEntries(
+    evidence: Record<string, unknown>
+  ): TemplateResult[] {
+    return Object.entries(evidence).map(
+      ([k, v]) => html`
+        <dt>${k}</dt>
+        <dd>${typeof v === "object" ? JSON.stringify(v) : String(v)}</dd>
+      `
+    );
+  }
+
+  private _formatTimestamp(iso: string): string {
+    // Iter 10: kompakte Datum/Uhrzeit-Anzeige; ausfuehrlichere Formate
+    // (Relative Zeit, Tooltip) kommen mit dem grossen UI-Polish in Phase 6.
+    try {
+      const d = new Date(iso);
+      return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+    } catch {
+      return iso;
+    }
   }
 
   static override styles = [
@@ -195,23 +343,81 @@ export class FindingsView extends LitElement {
         gap: var(--mh-space-2);
       }
       .item {
-        display: flex;
+        display: grid;
+        grid-template-columns: auto auto 1fr auto auto auto;
         align-items: center;
-        justify-content: space-between;
+        gap: var(--mh-space-3);
         padding: var(--mh-space-3);
         background: var(--mh-surface);
         border: 1px solid var(--mh-divider);
         border-radius: var(--mh-radius-sm);
+        cursor: pointer;
+        transition:
+          background var(--mh-transition-fast),
+          border-color var(--mh-transition-fast);
+      }
+      .item:hover {
+        background: var(--mh-surface-2);
+      }
+      .item--selected {
+        border-color: var(--mh-accent);
+        background: var(--mh-accent-soft);
       }
       .code {
         font-family: var(--code-font-family, monospace);
         font-size: var(--mh-text-sm);
         font-weight: var(--mh-weight-semibold);
       }
-      .ga {
+      .ga,
+      .source {
         font-family: var(--code-font-family, monospace);
         font-size: var(--mh-text-sm);
         color: var(--mh-fg-muted);
+      }
+      .last-seen {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+        white-space: nowrap;
+      }
+      .count {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-fg-muted);
+      }
+      .detail {
+        margin-top: var(--mh-space-3);
+        background: var(--mh-surface);
+      }
+      .detail-header {
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-3);
+        margin-bottom: var(--mh-space-3);
+      }
+      .detail-code {
+        font-family: var(--code-font-family, monospace);
+        font-weight: var(--mh-weight-semibold);
+        flex: 1;
+      }
+      .detail-evidence {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: var(--mh-space-2) var(--mh-space-3);
+        margin: 0 0 var(--mh-space-3);
+        font-size: var(--mh-text-sm);
+      }
+      .detail-evidence dt {
+        color: var(--mh-fg-muted);
+        font-weight: var(--mh-weight-medium);
+      }
+      .detail-evidence dd {
+        margin: 0;
+        font-family: var(--code-font-family, monospace);
+        word-break: break-word;
+      }
+      .detail-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--mh-space-2);
       }
     `,
   ];

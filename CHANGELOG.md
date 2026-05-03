@@ -24,6 +24,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   `list_findings(code, ga, severity, source, limit)` mit
   `last_seen DESC`-Sortierung. title/description sind nicht
   persistiert (UI rendert via translations/).
+- **Iter 10 — Frontend findings-view End-to-End mit Items + Ack-Flow.**
+  Item-Rendering pro Finding (Severity-Pill, Code, GA, Source,
+  Last-Seen, Occurrence-Count). Klick auf Item oeffnet Detail-Pane
+  mit komplettem Evidence-Dict als KV-Liste. Ack-Button im Detail-
+  Pane ruft `acknowledgeFinding` auf, laedt die Liste neu und
+  schliesst den Pane. Bus-weite Findings (`ga = null`) sind
+  read-only, weil das Repo (Iter 3) nur `(ga, code)`-Acks kennt —
+  Ack-Button ist disabled. Bundle: 371,51 KB → 376,94 KB.
 - **Iter 9 — Frontend `findings-view` als 3. Sub-Tab.**
   Neuer Konfigurations-Check-Tab im Statistik-Bereich (neben Live-
   Status + KNX-Bus-Analyse). Iter 9 rendert nur den leeren Container
