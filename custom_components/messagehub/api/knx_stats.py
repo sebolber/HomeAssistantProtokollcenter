@@ -1333,6 +1333,135 @@ class KnxDeviceDetailView(RequireAdminView):
         return self.json({"ok": True, "dev_source": dev_source})
 
 
+# =============================================================================
+# Iter L4.1 — LLM-Provider-Settings-API
+# =============================================================================
+
+
+class KnxRecommendationLlmSettingsView(RequireAdminView):
+    """GET/PUT der LLM-Provider-Konfiguration.
+
+    GET liefert die aktuellen Settings OHNE den API-Key (nur ein
+    `api_key_set`-Boolean). PUT akzeptiert
+    `{enabled, base_url, model, api_key?, timeout_s?, max_tokens?,
+    system_prompt_override?}`. ``api_key`` ist optional — wenn nicht
+    mitgegeben, bleibt der bestehende Schluessel im Store.
+
+    Sicherheits-Pyramide:
+    - RequireAdminView, _check_admin
+    - URL-Schema-Whitelist (http/https) via load/save-Helpers
+    - validate_note auf alle string-Felder (max-Length-Schutz)
+    - Audit-Log knx_recommend_llm_settings_set
+    - API-Key wird im Audit-Log NICHT mitgeloggt (details enthaelt
+      nur ``api_key_set: bool``)
+    - PUT flusht den persistenten LLM-Cache, weil Provider-Wechsel
+      alle Cache-Eintraege invalidiert.
+    """
+
+    url = "/api/messagehub/knx-recommend/llm-settings"
+    name = "api:messagehub:knx-recommend:llm-settings"
+
+    async def get(self, request: web.Request) -> web.Response:
+        from ..processing.recommendation_settings import (  # noqa: PLC0415
+            load_provider_config,
+            redact_for_response,
+        )
+        from ..storage.settings_repo import SettingsRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        config = await load_provider_config(SettingsRepository(db))
+        return self.json(redact_for_response(config))
+
+    async def put(self, request: web.Request) -> web.Response:
+        from ..processing.recommendation_settings import (  # noqa: PLC0415
+            DEFAULT_LLM_MAX_TOKENS,
+            DEFAULT_LLM_TIMEOUT_S,
+            load_provider_config,
+            redact_for_response,
+            save_provider_config,
+        )
+        from ..storage.recommendation_cache_repo import (  # noqa: PLC0415
+            RecommendationCacheRepository,
+        )
+        from ..storage.settings_repo import SettingsRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        try:
+            data = await request.json()
+        except (ValueError, TypeError):
+            return self.json_message(ERR_INVALID_JSON, status_code=400)
+        if not isinstance(data, dict):
+            return self.json_message(ERR_INVALID_JSON, status_code=400)
+        enabled = bool(data.get("enabled", False))
+        base_url = validate_note(data.get("base_url"), max_length=500) or ""
+        model = validate_note(data.get("model"), max_length=200) or ""
+        # API-Key-Sonderfall: nicht mitgegeben → bestehender Wert bleibt
+        # erhalten. Leerstring → leeres Setting (User loescht den Key).
+        api_key_raw = data.get("api_key")
+        if api_key_raw is None:
+            api_key_value: str | None = None
+        else:
+            api_key_value = (
+                validate_note(api_key_raw, max_length=2000) or ""
+            )
+        timeout_raw = data.get("timeout_s")
+        timeout_s = (
+            float(timeout_raw)
+            if isinstance(timeout_raw, (int, float))
+            else DEFAULT_LLM_TIMEOUT_S
+        )
+        max_tokens_raw = data.get("max_tokens")
+        max_tokens = (
+            int(max_tokens_raw)
+            if isinstance(max_tokens_raw, int)
+            else DEFAULT_LLM_MAX_TOKENS
+        )
+        system_prompt = (
+            validate_note(data.get("system_prompt_override"), max_length=4000)
+            or ""
+        )
+        try:
+            await save_provider_config(
+                SettingsRepository(db),
+                enabled=enabled,
+                base_url=base_url,
+                model=model,
+                api_key=api_key_value,
+                timeout_s=timeout_s,
+                max_tokens=max_tokens,
+                system_prompt_override=system_prompt,
+            )
+        except ValueError as err:
+            return self.json_message(str(err), status_code=400)
+        # Persistenten LLM-Cache flushen — Provider-Wechsel invalidiert.
+        await RecommendationCacheRepository(db).clear()
+        # In-Memory-Recommendation-Cache komplett flushen
+        # (alle Eintraege, weil Layer-4-Antworten an den Provider
+        # gebunden sind).
+        _recommendation_cache.clear()
+        config = await load_provider_config(SettingsRepository(db))
+        await audit(
+            request.app["hass"],
+            request,
+            action="knx_recommend_llm_settings_set",
+            target_type="knx_recommend_llm",
+            target_id="settings",
+            details={
+                "enabled": config.enabled,
+                "base_url": config.base_url,
+                "model": config.model,
+                "api_key_set": bool(config.api_key),
+            },
+        )
+        return self.json(redact_for_response(config))
+
+
 def _flush_recommendation_cache_for(dev_source: str) -> None:
     """Loescht alle Cache-Eintraege, die zu einem dev_source gehoeren.
 
@@ -1372,3 +1501,4 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsSourceRecommendationView())
     hass.http.register_view(KnxDeviceListView())
     hass.http.register_view(KnxDeviceDetailView())
+    hass.http.register_view(KnxRecommendationLlmSettingsView())

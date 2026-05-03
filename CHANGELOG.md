@@ -7,6 +7,18 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L4.1 / Sprint Recommendations — LLM-Settings-Schema + Stub.**
+  Provider-Konfiguration im `messagehub_settings`-Store unter
+  Praefix `knx_recommend_llm.`. Default `enabled=False` — Layer 4
+  bleibt deaktiviert, solange der User nicht explizit aktiviert.
+  Self-Disable bei unvollstaendiger Konfig (api_key/base_url/model leer).
+  Neuer Endpoint `GET/PUT /api/messagehub/knx-recommend/llm-settings`
+  mit URL-Schema-Whitelist (http/https), Audit-Log
+  `knx_recommend_llm_settings_set` (mit `api_key_set`-Boolean,
+  NIEMALS Klartext-Key), persistenter + In-Memory-Cache-Flush bei
+  Provider-Wechsel. `redact_for_response` strippt den API-Key aus
+  GET-Antworten (nur `api_key_set: bool`). `StubRecommendationProvider`
+  als Default-Implementation, liefert immer `None`. 18 neue Pytests.
 - **Iter L4.0 / Sprint Recommendations — Cache + Provider-Schnittstelle.**
   Vorbereitung fuer Layer 4 (LLM-Empfehlungen). Migration
   `0030_knx_recommendation_cache.sql` legt Cache-Tabelle an mit
