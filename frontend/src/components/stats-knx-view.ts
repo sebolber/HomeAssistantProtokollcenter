@@ -938,16 +938,17 @@ export class StatsKnxView extends LitElement {
           </div>
           <div class="health-score__components">
             ${(["repeat", "busload", "silence", "alarms"] as const).map(
-              (key) => html`<div class="health-score__component">
-                <span class="health-score__component-label">${this._componentLabel(key)}</span>
-                <div class="health-score__bar">
-                  <div
-                    class="health-score__bar-fill"
-                    style=${`width: ${h.components[key]}%`}
-                  ></div>
-                </div>
-                <span class="health-score__component-value">${h.components[key]}</span>
-              </div>`
+              (key) => {
+                const value = h.components[key];
+                const sev = this._componentSeverity(value);
+                return html`<div
+                  class=${`health-score__badge health-score__badge--${sev}`}
+                  title=${`${this._componentLabel(key)}: ${value}/100 (${this._healthLabel(sev)})`}
+                >
+                  <span class="health-score__badge-label">${this._componentLabel(key)}</span>
+                  <span class="health-score__badge-value">${value}</span>
+                </div>`;
+              }
             )}
           </div>
           ${h.findings.length > 0
@@ -989,6 +990,24 @@ export class StatsKnxView extends LitElement {
       case "alarms":
         return "offene Alarme";
     }
+  }
+
+  /**
+   * Iter aiohttp-error-ZU9UA / P2: Component-Score → Ampel-Severity.
+   * Vorher zeigten alle 4 Komponenten gruene Balken, auch wenn der
+   * Wert nur 21 war — das hat den Health-Score-Wert (76 / "leicht
+   * erhoeht") inkonsistent wirken lassen. Jetzt eigene Severity pro
+   * Komponente.
+   *   ≥ 80 → green   "gesund"
+   *   ≥ 60 → yellow  "leicht erhoeht"
+   *   ≥ 40 → orange  "auffaellig"
+   *   <  40 → red    "kritisch"
+   */
+  private _componentSeverity(score: number): "green" | "yellow" | "orange" | "red" {
+    if (score >= 80) return "green";
+    if (score >= 60) return "yellow";
+    if (score >= 40) return "orange";
+    return "red";
   }
 
   // Iter 42: Sicherheits-Audit-Card ---------------------------------------
@@ -2665,36 +2684,51 @@ export class StatsKnxView extends LitElement {
       .health-score--red .health-score__label {
         color: var(--mh-error);
       }
+      /* Iter aiohttp-error-ZU9UA / P2: Component-Badges statt Balken.
+         Vorher: 4 Reihen mit Label + Bar + Wert, alle Balken immer
+         gruen (irrefuehrend bei niedrigen Werten). Jetzt Chips mit
+         eigener Severity-Faerbung. */
       .health-score__components {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
         gap: var(--mh-space-2);
       }
-      .health-score__component {
-        display: grid;
-        grid-template-columns: 130px 1fr 30px;
-        align-items: center;
-        gap: var(--mh-space-2);
+      .health-score__badge {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: var(--mh-space-2) var(--mh-space-3);
+        border-radius: var(--mh-radius-md);
+        border: 1px solid var(--mh-divider);
+        background: var(--mh-surface);
+        min-width: 110px;
         font-size: var(--mh-text-sm);
       }
-      .health-score__component-label {
+      .health-score__badge-label {
+        font-size: var(--mh-text-xs);
         color: var(--mh-fg-muted);
       }
-      .health-score__bar {
-        height: 6px;
-        background: var(--mh-divider);
-        border-radius: 3px;
-        overflow: hidden;
-      }
-      .health-score__bar-fill {
-        height: 100%;
-        background: var(--mh-success);
-        transition: width 0.2s ease;
-      }
-      .health-score__component-value {
-        text-align: right;
+      .health-score__badge-value {
         font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        font-size: var(--mh-text-md);
         color: var(--mh-fg);
+      }
+      .health-score__badge--green {
+        border-color: color-mix(in srgb, var(--mh-success) 40%, transparent);
+        background: color-mix(in srgb, var(--mh-success) 10%, var(--mh-surface));
+      }
+      .health-score__badge--yellow {
+        border-color: color-mix(in srgb, var(--mh-caution, var(--mh-warning)) 40%, transparent);
+        background: color-mix(in srgb, var(--mh-caution, var(--mh-warning)) 10%, var(--mh-surface));
+      }
+      .health-score__badge--orange {
+        border-color: color-mix(in srgb, var(--mh-warning) 40%, transparent);
+        background: color-mix(in srgb, var(--mh-warning) 12%, var(--mh-surface));
+      }
+      .health-score__badge--red {
+        border-color: color-mix(in srgb, var(--mh-error) 50%, transparent);
+        background: color-mix(in srgb, var(--mh-error) 12%, var(--mh-surface));
       }
       .health-score__findings {
         grid-column: 1 / -1;

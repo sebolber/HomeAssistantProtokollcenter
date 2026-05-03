@@ -487,9 +487,13 @@ describe("stats-knx-view filter bar", () => {
     expect(card!.classList.contains("health-score--yellow")).toBe(true);
     const value = card!.querySelector(".health-score__value");
     expect(value!.textContent?.trim()).toBe("87");
-    // Komponenten-Bars sind alle 4 sichtbar
-    const components = card!.querySelectorAll(".health-score__component");
+    // Iter aiohttp-error-ZU9UA / P2: Komponenten als Badges (4 Stueck).
+    const components = card!.querySelectorAll(".health-score__badge");
     expect(components.length).toBe(4);
+    // Severity ist pro Badge eigen — Mock liefert repeat=80 (green),
+    // busload=75 (yellow), silence=100 (green), alarms=100 (green).
+    expect(card!.querySelectorAll(".health-score__badge--green").length).toBe(3);
+    expect(card!.querySelectorAll(".health-score__badge--yellow").length).toBe(1);
     // Finding mit Wiederhol-Quote ist enthalten
     const findings = card!.querySelectorAll(".health-finding");
     expect(findings.length).toBe(1);
