@@ -6,6 +6,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 6)
+- **Iter 27 — Severity-Override-UI.**
+  Neue Lit-Komponente `severity-override-form.ts` rendert die Tabelle
+  Code | Default | Override fuer alle bekannten Codes mit Inline-
+  `<select>`. Wechsel auf einen Severity-Wert ruft
+  `setSeverityOverride` auf, Wechsel auf "— Default —" ruft
+  `clearSeverityOverride`. Eingebettet als ausklappbarer Bereich im
+  Konfigurations-Check-Tab via "Severity-Defaults"-Button.
+
 ## [0.21.0] – 2026-05-03
 
 KNX-Konfigurations-Findings — Phase 4 + 5 (Iter 20-26) aus

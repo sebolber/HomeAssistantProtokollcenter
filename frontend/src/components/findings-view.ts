@@ -21,6 +21,7 @@ import {
   getFindingTitle,
   isProjectRelated,
 } from "../utils/findings-i18n.js";
+import "./severity-override-form.js";
 
 type SeverityFilter = "" | FindingSeverity;
 
@@ -52,6 +53,7 @@ export class FindingsView extends LitElement {
   @state() private _severityFilter: SeverityFilter = "";
   @state() private _projectOnly = false;
   @state() private _selectedKey: string | null = null;
+  @state() private _showOverrides = false;
 
   override async firstUpdated(): Promise<void> {
     await this._load();
@@ -134,11 +136,33 @@ export class FindingsView extends LitElement {
     return html`
       <section class="root">
         <header class="header" data-test="findings-header">
-          <h2 class="mh-card__title">Konfigurations-Check</h2>
+          <div class="header-row">
+            <h2 class="mh-card__title">Konfigurations-Check</h2>
+            <button
+              type="button"
+              class="mh-btn mh-btn--ghost mh-btn--sm"
+              data-test="findings-show-overrides"
+              @click=${() => (this._showOverrides = !this._showOverrides)}
+            >
+              ${this._showOverrides ? "Severity-Defaults schliessen" : "Severity-Defaults"}
+            </button>
+          </div>
           <p class="subtitle">
             Erkannte KNX-Konfigurations-Anomalien aus dem Telegrammverkehr.
           </p>
         </header>
+
+        ${this._showOverrides
+          ? html`<section class="overrides-pane mh-card" data-test="findings-overrides-pane">
+              <h3 class="mh-card__title">Severity-Defaults pro Code</h3>
+              <p class="overrides-help">
+                Default-Severity ist Eigenschaft der Finding-Definition.
+                Hier kannst du sie fuer deine Anlage ueberschreiben — der
+                Default greift wieder, sobald du auf "— Default —" wechselst.
+              </p>
+              <severity-override-form .api=${this.api}></severity-override-form>
+            </section>`
+          : nothing}
 
         <div class="filters mh-card mh-card--flat" data-test="findings-filters">
           <label class="filter-label">
@@ -357,6 +381,20 @@ export class FindingsView extends LitElement {
         display: flex;
         flex-direction: column;
         gap: var(--mh-space-1);
+      }
+      .header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--mh-space-3);
+      }
+      .overrides-pane {
+        margin-bottom: var(--mh-space-3);
+      }
+      .overrides-help {
+        margin: 0 0 var(--mh-space-3);
+        color: var(--mh-fg-muted);
+        font-size: var(--mh-text-sm);
       }
       .subtitle {
         margin: 0;
