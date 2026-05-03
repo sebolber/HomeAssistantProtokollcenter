@@ -232,3 +232,33 @@ KNX_MANUFACTURER_HINTS: Final[dict[str, dict[str, list[str] | str]]] = {
         ],
     },
 }
+
+
+# =============================================================================
+# KNX-Konfigurations-Findings (siehe docs/messagehub_knx_konfigurationsfehler_recherche.md §9.3)
+# =============================================================================
+#
+# Default-Severity pro Finding-Code. Beruht auf zwei Achsen:
+# - diagnostische Sicherheit (wie eindeutig ist der Befund?)
+# - funktionaler Impact (wie schwer ist der Effekt?)
+# User koennen pro Code via knx_finding_severity_overrides ueberschreiben.
+
+KNX_FINDING_DEFAULT_SEVERITIES: Final[dict[str, str]] = {
+    # Phase 2 — DPT-Validierung
+    "DPT_MISMATCH": "error",
+    "VALUE_OUT_OF_RANGE": "error",
+    # Phase 3 — Konfigurations-Klassiker
+    "MULTI_RESPONDER": "warning",
+    "READ_NO_RESPONSE": "warning",
+    "TOGGLE_LOOP": "error",
+    "MULTI_TIME_MASTER": "error",
+    # Phase 4 — Verhalten ueber Zeit
+    "RECONNECT_STORM": "warning",
+    "SEND_CYCLE_DRIFT": "info",
+    "REPEAT_APPROXIMATION": "warning",
+    # Phase 5 — Projekt-Integration
+    "ORPHAN_GA": "info",
+    "STALE_GA": "info",
+    # Phase 7 — komplex/letzter
+    "SEND_TO_NOWHERE": "info",
+}

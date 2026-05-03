@@ -24,6 +24,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   `list_findings(code, ga, severity, source, limit)` mit
   `last_seen DESC`-Sortierung. title/description sind nicht
   persistiert (UI rendert via translations/).
+- **Iter 4 — `knx_finding_severity_overrides` + Resolver.**
+  Default-Severity pro Code in `const.py`
+  (`KNX_FINDING_DEFAULT_SEVERITIES`, 12 Codes aus §9.3). User-Override
+  pro Code in eigener Tabelle (Migration
+  `0026_knx_finding_severity_overrides.sql`). Resolver
+  `resolve_severity(code)`: Override -> Default, mit `KeyError` bei
+  unbekanntem Code (Tippfehler-Schutz). Audit-Log-Eintrag bei jedem
+  Set/Clear (`target_type='knx_finding_severity_override'`).
 - **Iter 3 — `knx_finding_acknowledgements` + Auto-Expire.**
   Whitelist-Granularitaet `(GA, finding_code)`: ein Multi-Responder-
   Ack auf 1/2/3 schliesst DPT-Mismatch auf derselben GA NICHT mit

@@ -17,7 +17,10 @@ import json
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from ..const import DEFAULT_KNX_ACK_EXPIRY_DAYS
+from ..const import (
+    DEFAULT_KNX_ACK_EXPIRY_DAYS,
+    KNX_FINDING_DEFAULT_SEVERITIES,
+)
 from ..processing.findings import (
     FINDING_SEVERITIES,
     Finding,
@@ -226,6 +229,132 @@ class FindingsRepository:
             }
             for r in rows
         ]
+
+    # ------------------------------------------------------------------
+    # Iter 4: Severity-Overrides + Resolver (siehe §9.3)
+    # ------------------------------------------------------------------
+
+    async def set_severity_override(
+        self,
+        *,
+        code: str,
+        severity: FindingSeverity,
+        actor: str,
+        note: str | None = None,
+    ) -> None:
+        """Setzt einen User-Override fuer den Default-Severity-Wert.
+
+        Validiert die Severity gegen `FINDING_SEVERITIES` (debug/info/
+        warning/error). Ueberschreibt einen bestehenden Row idempotent.
+        Schreibt einen `audit_log`-Eintrag mit
+        `target_type='knx_finding_severity_override'`.
+        """
+        if severity not in FINDING_SEVERITIES:
+            raise ValueError(
+                f"Invalid severity {severity!r}; "
+                f"expected one of {FINDING_SEVERITIES}"
+            )
+        now = datetime.now(UTC).isoformat(timespec="seconds")
+        await self._db.execute(
+            """
+            INSERT INTO knx_finding_severity_overrides
+                (finding_code, severity, note, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT (finding_code) DO UPDATE SET
+                severity = excluded.severity,
+                note = excluded.note,
+                updated_at = excluded.updated_at
+            """,
+            (code, severity, note, now, now),
+        )
+        await self._write_severity_audit(
+            actor=actor, action="set-severity-override",
+            code=code, severity=severity, note=note,
+        )
+
+    async def clear_severity_override(self, *, code: str, actor: str) -> None:
+        """Entfernt einen Override; der Code faellt auf den Default zurueck."""
+        await self._db.execute(
+            "DELETE FROM knx_finding_severity_overrides WHERE finding_code = ?",
+            (code,),
+        )
+        await self._write_severity_audit(
+            actor=actor, action="clear-severity-override",
+            code=code, severity=None, note=None,
+        )
+
+    async def get_severity_override(self, code: str) -> FindingSeverity | None:
+        """Liefert den Override fuer einen Code oder None."""
+        row = await self._db.fetch_one(
+            "SELECT severity FROM knx_finding_severity_overrides "
+            "WHERE finding_code = ?",
+            (code,),
+        )
+        if row is None:
+            return None
+        sev = str(row["severity"])
+        if sev not in FINDING_SEVERITIES:
+            return None
+        return sev  # type: ignore[return-value]
+
+    async def list_severity_overrides(self) -> list[dict[str, Any]]:
+        rows = await self._db.fetch_all(
+            "SELECT finding_code, severity, note, created_at, updated_at "
+            "FROM knx_finding_severity_overrides "
+            "ORDER BY finding_code"
+        )
+        return [
+            {
+                "finding_code": str(r["finding_code"]),
+                "severity": str(r["severity"]),
+                "note": r["note"],
+                "created_at": str(r["created_at"]),
+                "updated_at": str(r["updated_at"]),
+            }
+            for r in rows
+        ]
+
+    async def resolve_severity(self, code: str) -> FindingSeverity:
+        """Resolver: Default aus const.py -> Override aus DB.
+
+        Reihenfolge:
+        1. User-Override aus `knx_finding_severity_overrides` (falls vorhanden).
+        2. Default aus `KNX_FINDING_DEFAULT_SEVERITIES`.
+
+        Wirft KeyError, wenn der Code weder einen Default noch einen
+        Override hat (Tippfehler im Detector ist dann sofort sichtbar).
+        """
+        override = await self.get_severity_override(code)
+        if override is not None:
+            return override
+        default = KNX_FINDING_DEFAULT_SEVERITIES.get(code)
+        if default is None:
+            raise KeyError(f"No default severity registered for code {code!r}")
+        return default  # type: ignore[return-value]
+
+    async def _write_severity_audit(
+        self,
+        *,
+        actor: str,
+        action: str,
+        code: str,
+        severity: FindingSeverity | None,
+        note: str | None,
+    ) -> None:
+        details = {"code": code, "severity": severity, "note": note}
+        await self._db.execute(
+            "INSERT INTO audit_log "
+            "(timestamp, actor, action, target_type, target_id, details) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                datetime.now(UTC).isoformat(timespec="seconds"),
+                actor,
+                action,
+                "knx_finding_severity_override",
+                code,
+                json.dumps(details),
+            ),
+        )
 
     async def _write_ack_audit(
         self,
