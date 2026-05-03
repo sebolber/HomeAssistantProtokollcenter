@@ -36,7 +36,6 @@ async def test_caches_by_hass_identity(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def _spy_find_knx_state(_hass):  # type: ignore[no-untyped-def]
         call_count["n"] += 1
-        return None
 
     monkeypatch.setattr(knx_discovery, "find_knx_state", _spy_find_knx_state)
     hass = _FakeHass()
@@ -52,7 +51,6 @@ async def test_invalidate_resets_cache(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def _spy_find_knx_state(_hass):  # type: ignore[no-untyped-def]
         call_count["n"] += 1
-        return None
 
     monkeypatch.setattr(knx_discovery, "find_knx_state", _spy_find_knx_state)
     hass = _FakeHass()
@@ -68,7 +66,6 @@ async def test_ttl_expires_and_refreshes(monkeypatch: pytest.MonkeyPatch) -> Non
 
     def _spy_find_knx_state(_hass):  # type: ignore[no-untyped-def]
         call_count["n"] += 1
-        return None
 
     monkeypatch.setattr(knx_discovery, "find_knx_state", _spy_find_knx_state)
 
@@ -96,7 +93,6 @@ async def test_different_hass_instances_have_separate_caches(
 
     def _spy_find_knx_state(_hass):  # type: ignore[no-untyped-def]
         call_count["n"] += 1
-        return None
 
     monkeypatch.setattr(knx_discovery, "find_knx_state", _spy_find_knx_state)
     hass_a = _FakeHass()

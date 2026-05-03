@@ -9,7 +9,6 @@ from custom_components.messagehub.api._channel_validation import (
     validate_channel_config,
 )
 
-
 # ----------------------------------------------------------------------
 # webhook
 

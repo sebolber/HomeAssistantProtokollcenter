@@ -6,7 +6,7 @@ Heartbeat-Spam und Status-Schleife auf einer Zeitreihe von Telegrammen.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from custom_components.messagehub.processing.knx_stats import (
     Finding,
@@ -16,7 +16,7 @@ from custom_components.messagehub.processing.knx_stats import (
 
 
 def _ts(seconds: float) -> datetime:
-    return datetime(2026, 5, 2, 16, 0, 0, tzinfo=timezone.utc) + timedelta(seconds=seconds)
+    return datetime(2026, 5, 2, 16, 0, 0, tzinfo=UTC) + timedelta(seconds=seconds)
 
 
 class TestConstantValueDetector:

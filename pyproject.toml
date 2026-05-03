@@ -49,7 +49,27 @@ ignore = [
 # N802: Test-Funktionen referenzieren teils Pascal-Cased Klassen-Namen
 # (z. B. test_..._GroupValueWrite) — das ist absichtlich, damit man im
 # pytest-Output sofort sieht, welche xknx-Klasse getestet wird.
-"tests/**/*.py" = ["PLR2004", "S101", "PLR0915", "N802"]
+#
+# Iter aiohttp-error-ZU9UA / Tech-Debt 2: Sammel-Cleanup. Ignorierungen
+# fuer Tests, weil dort andere Prioritaeten gelten:
+# - PT011: pytest.raises ohne `match=` ist akzeptabel, wenn die
+#   geworfene Exception eindeutig aus dem zu testenden Code kommt.
+# - PT006: parametrize mit String-Form ist lesbarer als Tuple.
+# - PT018: kombinierte Assertions sind manchmal kompakter als zwei
+#   einzelne (z. B. `len(x) == 1 and x[0].name == "foo"`).
+# - PLC0415: lokale Imports innerhalb Test-Funktionen sind oft Absicht
+#   (Lazy-Import um zirkulaere Imports zu vermeiden, Fixture-Scope).
+"tests/**/*.py" = [
+    "PLR2004",
+    "S101",
+    "PLR0915",
+    "N802",
+    "PT011",
+    "PT006",
+    "PT018",
+    "PLC0415",
+    "E501",
+]
 
 [tool.ruff.format]
 quote-style = "double"

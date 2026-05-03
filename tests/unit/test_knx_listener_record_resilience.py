@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 
-from custom_components.messagehub.const import HASS_KEY_KNX_BUS_ANALYSIS, DOMAIN
+from custom_components.messagehub.const import DOMAIN, HASS_KEY_KNX_BUS_ANALYSIS
 from custom_components.messagehub.listeners.knx import (
     KnxTelegramData,
     _record_bus_activity,

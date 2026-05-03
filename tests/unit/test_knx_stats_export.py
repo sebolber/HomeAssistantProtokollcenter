@@ -19,7 +19,6 @@ from custom_components.messagehub.processing.knx_stats_export import (
     safe_export_filename,
 )
 
-
 # ----------------------------------------------------------------------
 # cap_samples
 

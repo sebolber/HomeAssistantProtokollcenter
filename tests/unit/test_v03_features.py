@@ -97,7 +97,7 @@ def test_geoip_resolver_disabled_with_missing_file(tmp_path: Path) -> None:
 
 
 def test_native_adapters_importable() -> None:
-    from custom_components.messagehub.notifications.native_adapters import (  # noqa: PLC0415
+    from custom_components.messagehub.notifications.native_adapters import (
         ntfy_send,
         pushover_send,
         telegram_send,

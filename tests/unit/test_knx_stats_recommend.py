@@ -60,7 +60,7 @@ class TestBuildRecommendation:
         rec = build_recommendation(dpt="9.001", rate=1.0, recommended=2.0)
         try:
             rec.severity = "red"  # type: ignore[misc]
-        except Exception:  # noqa: BLE001 — wir wollen jede Mutation blocken
+        except Exception:
             return
         raise AssertionError("Recommendation should be frozen")
 

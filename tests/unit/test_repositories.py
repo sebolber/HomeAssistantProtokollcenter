@@ -198,7 +198,7 @@ async def test_per_fingerprint_locks_parallelisieren_unterschiedliche_sources(
     # Fingerprint-Lock sehen (Source + Severity + normalisierter-Text).
     inserts = [_msg(source=src, text="hallo welt") for src in sources]
 
-    import asyncio  # noqa: PLC0415
+    import asyncio
 
     await asyncio.gather(*[repo.insert_or_aggregate(m, window_minutes=10) for m in inserts])
 
