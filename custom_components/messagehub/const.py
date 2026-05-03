@@ -261,4 +261,17 @@ KNX_FINDING_DEFAULT_SEVERITIES: Final[dict[str, str]] = {
     "STALE_GA": "info",
     # Phase 7 — komplex/letzter
     "SEND_TO_NOWHERE": "info",
+    # Iter 5: Bestand auf neuen Vertrag gehoben (HEALTH_* + PATTERN_*).
+    # Default-Severity entspricht der bestehenden HealthFinding-/Anti-
+    # Pattern-Logik (warn -> warning, critical -> error). Severity wird
+    # zur Laufzeit aus den Inputs ermittelt; der Default greift nur,
+    # wenn der Detector den Code emittiert, ohne Severity zu setzen.
+    "HEALTH_BUSLOAD": "warning",
+    "HEALTH_REPEAT_RATE": "warning",
+    "HEALTH_SILENCE": "warning",
+    "HEALTH_ALARMS": "warning",
+    "PATTERN_CONSTANT_VALUE": "warning",
+    "PATTERN_READ_BURST": "warning",
+    "PATTERN_MULTIPLE_RESPONSE": "warning",
+    "PATTERN_HEARTBEAT_SPAM": "info",
 }

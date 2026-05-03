@@ -24,7 +24,15 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Final, Literal
+from typing import TYPE_CHECKING, Any, Final, Literal
+
+if TYPE_CHECKING:  # nur fuer Type-Hints, vermeidet Zirkular-Imports.
+    from .knx_stats import (
+        Finding as LegacyPatternFinding,
+    )
+    from .knx_stats import (
+        HealthScoreInput,
+    )
 
 FindingSeverity = Literal["debug", "info", "warning", "error"]
 
@@ -142,3 +150,180 @@ def _parse_datetime(value: Any) -> datetime:
     raise TypeError(
         f"first_seen/last_seen must be datetime or ISO string, got {type(value)!r}"
     )
+
+
+# =============================================================================
+# Iter 5: Bestand auf neuen Vertrag heben
+# =============================================================================
+#
+# `processing/knx_stats.py` haelt die historischen Detektoren
+# (Bus-Health-Score + Anti-Pattern-Detector) mit eigenen Dataclasses.
+# Statt sie disruptiv umzubauen, liefern die folgenden Lift-Funktionen
+# einen 1:1-Mapping ihrer Outputs auf den neuen Finding-Vertrag.
+# Damit landen Bestandsdetektoren ab Iter 6/9 im Konfigurations-Check-
+# Tab, ohne dass die existierenden Tests / API-Antworten brechen.
+
+# Severity-Schwellen aus knx_stats.py — hier dupliziert, weil der Lift
+# nicht von den dort liegenden Internals abhaengen soll. Werte stimmen
+# absichtlich mit den `_*_CRITICAL`-Konstanten dort ueberein.
+_HEALTH_REPEAT_PCT_CRITICAL: Final[float] = 5.0
+_HEALTH_BUSLOAD_PCT_CRITICAL: Final[float] = 40.0
+_HEALTH_ALARMS_CRITICAL: Final[int] = 5
+
+_HEALTH_REPEAT_PCT_FINDING: Final[float] = 0.5
+_HEALTH_BUSLOAD_PCT_FINDING: Final[float] = 20.0
+_HEALTH_SILENCE_FINDING: Final[int] = 1
+_HEALTH_ALARMS_FINDING: Final[int] = 1
+
+
+def lift_health_findings(
+    input_: HealthScoreInput,
+    *,
+    now: datetime,
+) -> list[Finding]:
+    """Mappt einen `HealthScoreInput` auf neue Finding-Liste.
+
+    Pro KPI ein Finding mit `code = "HEALTH_*"`. severity ist `warning`
+    unter der Critical-Schwelle, `error` darueber.
+    """
+    out: list[Finding] = []
+    if input_.repeat_ratio_pct > _HEALTH_REPEAT_PCT_FINDING:
+        out.append(
+            _build_health_finding(
+                code="HEALTH_REPEAT_RATE",
+                severity=_severity_for(
+                    input_.repeat_ratio_pct,
+                    critical=_HEALTH_REPEAT_PCT_CRITICAL,
+                ),
+                evidence={
+                    "repeat_ratio_pct": input_.repeat_ratio_pct,
+                    "threshold": _HEALTH_REPEAT_PCT_FINDING,
+                },
+                now=now,
+            )
+        )
+    if input_.busload_max_pct > _HEALTH_BUSLOAD_PCT_FINDING:
+        out.append(
+            _build_health_finding(
+                code="HEALTH_BUSLOAD",
+                severity=_severity_for(
+                    input_.busload_max_pct,
+                    critical=_HEALTH_BUSLOAD_PCT_CRITICAL,
+                ),
+                evidence={
+                    "busload_max_pct": input_.busload_max_pct,
+                    "threshold": _HEALTH_BUSLOAD_PCT_FINDING,
+                },
+                now=now,
+            )
+        )
+    if input_.silent_devices >= _HEALTH_SILENCE_FINDING:
+        out.append(
+            _build_health_finding(
+                code="HEALTH_SILENCE",
+                severity="warning",
+                evidence={"silent_devices": input_.silent_devices},
+                now=now,
+            )
+        )
+    if input_.open_alarms >= _HEALTH_ALARMS_FINDING:
+        out.append(
+            _build_health_finding(
+                code="HEALTH_ALARMS",
+                severity=_severity_for(
+                    float(input_.open_alarms),
+                    critical=float(_HEALTH_ALARMS_CRITICAL),
+                ),
+                evidence={"open_alarms": input_.open_alarms},
+                now=now,
+            )
+        )
+    return out
+
+
+def lift_pattern_findings(
+    legacy: list[LegacyPatternFinding],
+    *,
+    ga: str,
+    source: str | None,
+    now: datetime,
+) -> list[Finding]:
+    """Mappt Anti-Pattern-Findings (Legacy) auf neue Finding-Liste.
+
+    `kind` -> `code` via `_KIND_TO_CODE`, `severity` (KnxSeverity) ->
+    `FindingSeverity` via `_KNX_TO_FINDING_SEVERITY`. Der Legacy-Text
+    wird in `evidence['legacy_text']` mitgenommen, damit die UI ihn
+    rendern kann, bis die Translations stehen.
+    """
+    out: list[Finding] = []
+    for legacy_finding in legacy:
+        code = _KIND_TO_CODE.get(legacy_finding.kind)
+        if code is None:
+            continue
+        severity = _KNX_TO_FINDING_SEVERITY.get(legacy_finding.severity, "info")
+        out.append(
+            Finding(
+                code=code,
+                schema_version=1,
+                severity=severity,
+                ga=ga,
+                source=source,
+                title="",
+                description="",
+                evidence={
+                    "kind": legacy_finding.kind,
+                    "legacy_text": legacy_finding.text,
+                    "legacy_severity": legacy_finding.severity,
+                },
+                first_seen=now,
+                last_seen=now,
+                occurrence_count=1,
+                detector_version=f"{code}/v1",
+            )
+        )
+    return out
+
+
+def _build_health_finding(
+    *,
+    code: str,
+    severity: FindingSeverity,
+    evidence: dict[str, Any],
+    now: datetime,
+) -> Finding:
+    return Finding(
+        code=code,
+        schema_version=1,
+        severity=severity,
+        ga=None,  # bus-weite Findings haben keine GA
+        source=None,
+        title="",
+        description="",
+        evidence=evidence,
+        first_seen=now,
+        last_seen=now,
+        occurrence_count=1,
+        detector_version=f"{code}/v1",
+    )
+
+
+def _severity_for(value: float, *, critical: float) -> FindingSeverity:
+    """`error` ab `critical`, sonst `warning`. info/debug bei Bedarf
+    spaeter — die Health-Inputs haben kein "ist OK"-Signal hier, weil
+    `lift_health_findings` schon ueber der Schwelle filtert."""
+    return "error" if value >= critical else "warning"
+
+
+_KIND_TO_CODE: Final[dict[str, str]] = {
+    "constant_value": "PATTERN_CONSTANT_VALUE",
+    "read_burst": "PATTERN_READ_BURST",
+    "multiple_response": "PATTERN_MULTIPLE_RESPONSE",
+    "heartbeat_spam": "PATTERN_HEARTBEAT_SPAM",
+}
+
+_KNX_TO_FINDING_SEVERITY: Final[dict[str, FindingSeverity]] = {
+    "green": "info",
+    "yellow": "info",
+    "orange": "warning",
+    "red": "error",
+}

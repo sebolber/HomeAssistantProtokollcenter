@@ -24,6 +24,16 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   `list_findings(code, ga, severity, source, limit)` mit
   `last_seen DESC`-Sortierung. title/description sind nicht
   persistiert (UI rendert via translations/).
+- **Iter 5 — Bestand auf neuen Vertrag gehoben.**
+  Health-Findings (Bus-Health-Score) und Anti-Pattern-Findings (4
+  Detektoren aus knx_stats.py) bekommen Lift-Funktionen
+  (`lift_health_findings`, `lift_pattern_findings`) in
+  `processing/findings.py`. Die existierenden Detektoren bleiben
+  unveraendert (additiv, kein Refactor) — der Lift mappt `kind` auf
+  `code = "PATTERN_*"` bzw. erzeugt `code = "HEALTH_*"` aus dem
+  HealthScoreInput. KnxSeverity-Mapping orange -> warning, red ->
+  error. 8 neue Codes in `KNX_FINDING_DEFAULT_SEVERITIES`. Vorbereitung
+  fuer Iter 9/10 (UI-Tab + Wiring).
 - **Iter 4 — `knx_finding_severity_overrides` + Resolver.**
   Default-Severity pro Code in `const.py`
   (`KNX_FINDING_DEFAULT_SEVERITIES`, 12 Codes aus §9.3). User-Override
