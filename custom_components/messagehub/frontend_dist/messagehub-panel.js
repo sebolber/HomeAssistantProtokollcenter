@@ -6658,7 +6658,7 @@ const Et = 25, Pt = 100, Dt = 300, qe = [
   { id: "7d", label: "7 Tage", days: 7 },
   { id: "30d", label: "30 Tage", days: 30 },
   { id: "365d", label: "365 Tage", days: 365 }
-], ka = /* @__PURE__ */ new Set(["7d", "30d", "365d"]), Sa = [10, 25, 50, 100, 200], Je = {
+], ka = /* @__PURE__ */ new Set(["7d", "30d", "365d"]), Sa = [10, 25, 50, 100, 200], Ta = [10, 15, 20, 25, 30], Je = {
   periodId: "24h",
   topN: 25,
   topNDevices: 25,
@@ -6670,11 +6670,12 @@ const Et = 25, Pt = 100, Dt = 300, qe = [
   topNOrphansExtra: 25,
   topNSilence: 25,
   topNBusHealth: 25,
+  topNHeatmap: 10,
   topNSiblings: 25,
   minRate: 0,
   includeAck: !0
 };
-function Ta() {
+function Aa() {
   let e = null;
   try {
     const s = localStorage.getItem(Jt);
@@ -6682,9 +6683,9 @@ function Ta() {
   } catch {
   }
   const t = e ? { ...Je, ...e } : { ...Je };
-  return Aa(t, e);
+  return Ea(t, e);
 }
-function Aa(e, t) {
+function Ea(e, t) {
   let s = !1;
   try {
     s = localStorage.getItem(Tt) === At;
@@ -6693,14 +6694,14 @@ function Aa(e, t) {
   if (s)
     return e;
   let a = e;
-  t !== null && t.minRate === xa && (a = { ...e, minRate: Je.minRate }, D(a));
+  t !== null && t.minRate === xa && (a = { ...e, minRate: Je.minRate }, P(a));
   try {
     localStorage.setItem(Tt, At);
   } catch {
   }
   return a;
 }
-function D(e) {
+function P(e) {
   try {
     localStorage.setItem(Jt, JSON.stringify(e));
   } catch {
@@ -6710,10 +6711,10 @@ function zt(e) {
   const t = qe.find((r) => r.id === e) ?? qe[2], s = /* @__PURE__ */ new Date();
   return { from: new Date(s.getTime() - t.days * 864e5).toISOString(), to: s.toISOString() };
 }
-const Ea = 48;
-function Pa() {
+const Pa = 48;
+function Da() {
   const e = /* @__PURE__ */ new Date();
-  return { from: new Date(e.getTime() - Ea * 3600 * 1e3).toISOString(), to: e.toISOString() };
+  return { from: new Date(e.getTime() - Pa * 3600 * 1e3).toISOString(), to: e.toISOString() };
 }
 function Lt(e) {
   switch (e) {
@@ -6733,7 +6734,7 @@ const Ot = {
   orange: 2,
   red: 3
 };
-function Da(e, t, s) {
+function za(e, t, s) {
   return [...e].sort((r, n) => {
     let o;
     switch (t) {
@@ -6765,7 +6766,7 @@ function Da(e, t, s) {
 }
 let v = class extends x {
   constructor() {
-    super(...arguments), this._filters = Ta(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._heatmap = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansHidePlaceholders = !0, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._selectedSource = null, this._sourceDetail = null, this._sourceDetailLoading = !1, this._loading = !1, this._error = "", this._toast = "", this._onWindowKeyDown = (e) => {
+    super(...arguments), this._filters = Aa(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._heatmap = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansHidePlaceholders = !0, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._selectedSource = null, this._sourceDetail = null, this._sourceDetailLoading = !1, this._loading = !1, this._error = "", this._toast = "", this._onWindowKeyDown = (e) => {
       if (e.key === "Escape") {
         if (this._detail !== null || this._detailLoading) {
           this._closeDetail();
@@ -6882,7 +6883,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   // Long-Term-Endpoint geliefert.
   _liveFiltersForRaw() {
     if (!this._isLongTermMode()) return this._apiFilters();
-    const { from: e, to: t } = Pa();
+    const { from: e, to: t } = Da();
     return {
       from: e,
       to: t,
@@ -6969,9 +6970,16 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             this._filters.topNTrend
           )
         ),
+        // Iter topn-4: Heatmap nutzt jetzt einen eigenen UI-Selektor
+        // (default 10, max 30 wegen CSS-Grid-Lesbarkeit). Vorher
+        // hardcoded 10.
         t(
           "heatmap",
-          this.api.getKnxStatsHeatmap(r, 10, this._suggestHeatmapBucketMinutes())
+          this.api.getKnxStatsHeatmap(
+            r,
+            this._filters.topNHeatmap,
+            this._suggestHeatmapBucketMinutes()
+          )
         )
       ]);
       this._summary = o, this._top = d.items, this._topBySource = h.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = b, this._health = f, this._longTerm = S, this._bursts = ge, this._sensitiveLog = Ee, this._trend = Zt, this._heatmap = Xt, this._apiErrors = e, this._apiErrorsDismissed = !1;
@@ -7116,13 +7124,13 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     this._toast = e, this._toastTimer && window.clearTimeout(this._toastTimer), this._toastTimer = window.setTimeout(() => this._toast = "", 2800);
   }
   _onPeriod(e) {
-    this._filters = { ...this._filters, periodId: e }, D(this._filters), this._load();
+    this._filters = { ...this._filters, periodId: e }, P(this._filters), this._load();
   }
   _onTopN(e) {
-    this._filters = { ...this._filters, topN: e }, D(this._filters), this._load();
+    this._filters = { ...this._filters, topN: e }, P(this._filters), this._load();
   }
   _onTopNDevices(e) {
-    this._filters = { ...this._filters, topNDevices: e }, D(this._filters), this._load();
+    this._filters = { ...this._filters, topNDevices: e }, P(this._filters), this._load();
   }
   // Iter aiohttp-error-ZU9UA: Anzahl-Filter pro Card. Ein gemeinsamer
   // Setter-Helfer waere DRYer, aber jeder Filter hat einen eigenen
@@ -7130,43 +7138,50 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   // Diese Setter loesen kein _load() aus, weil die Daten fuer kleinere
   // Tabellen schon im Speicher liegen — wir slicen nur anders.
   _onTopNAudit(e) {
-    this._filters = { ...this._filters, topNAudit: e }, D(this._filters), this.requestUpdate();
+    this._filters = { ...this._filters, topNAudit: e }, P(this._filters), this.requestUpdate();
   }
   _onTopNBursts(e) {
-    this._filters = { ...this._filters, topNBursts: e }, D(this._filters), this.requestUpdate();
+    this._filters = { ...this._filters, topNBursts: e }, P(this._filters), this.requestUpdate();
   }
   _onTopNLongTerm(e) {
-    this._filters = { ...this._filters, topNLongTerm: e }, D(this._filters), this.requestUpdate();
+    this._filters = { ...this._filters, topNLongTerm: e }, P(this._filters), this.requestUpdate();
   }
   _onTopNTrend(e) {
-    this._filters = { ...this._filters, topNTrend: e }, D(this._filters), this.requestUpdate();
+    this._filters = { ...this._filters, topNTrend: e }, P(this._filters), this.requestUpdate();
   }
   _onTopNOrphansMissing(e) {
-    this._filters = { ...this._filters, topNOrphansMissing: e }, D(this._filters), this.requestUpdate();
+    this._filters = { ...this._filters, topNOrphansMissing: e }, P(this._filters), this.requestUpdate();
   }
   _onTopNOrphansExtra(e) {
-    this._filters = { ...this._filters, topNOrphansExtra: e }, D(this._filters), this.requestUpdate();
+    this._filters = { ...this._filters, topNOrphansExtra: e }, P(this._filters), this.requestUpdate();
   }
   _onTopNSilence(e) {
-    this._filters = { ...this._filters, topNSilence: e }, D(this._filters), this.requestUpdate();
+    this._filters = { ...this._filters, topNSilence: e }, P(this._filters), this.requestUpdate();
   }
   _onTopNBusHealth(e) {
-    this._filters = { ...this._filters, topNBusHealth: e }, D(this._filters), this.requestUpdate();
+    this._filters = { ...this._filters, topNBusHealth: e }, P(this._filters), this.requestUpdate();
+  }
+  // Iter topn-4: Heatmap-Selektor muss `_load()` ausloesen, weil das
+  // Backend die Top-N-GAs serverseitig auswaehlt (gas[], matrix[][]
+  // im Response sind direkt CSS-Grid-Material, kein clientseitiges
+  // Slicing moeglich).
+  _onTopNHeatmap(e) {
+    this._filters = { ...this._filters, topNHeatmap: e }, P(this._filters), this._load();
   }
   _onTopNSiblings(e) {
-    this._filters = { ...this._filters, topNSiblings: e }, D(this._filters), this.requestUpdate();
+    this._filters = { ...this._filters, topNSiblings: e }, P(this._filters), this.requestUpdate();
   }
-  _renderInlineTopN(e, t) {
+  _renderInlineTopN(e, t, s = Sa) {
     return i`
       <span class="inline-topn-wrap">
         <span class="inline-topn-label">zeige</span>
         <span class="inline-topn" role="group" aria-label="Anzahl Einträge">
-          ${Sa.map(
-      (s) => i`<button
-              class=${`inline-topn__btn ${e === s ? "active" : ""}`}
-              @click=${() => t(s)}
+          ${s.map(
+      (a) => i`<button
+              class=${`inline-topn__btn ${e === a ? "active" : ""}`}
+              @click=${() => t(a)}
             >
-              ${s}
+              ${a}
             </button>`
     )}
         </span>
@@ -7174,10 +7189,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _onMinRate(e) {
-    this._filters = { ...this._filters, minRate: Math.max(0, e) }, D(this._filters), this._load();
+    this._filters = { ...this._filters, minRate: Math.max(0, e) }, P(this._filters), this._load();
   }
   _onAckToggle() {
-    this._filters = { ...this._filters, includeAck: !this._filters.includeAck }, D(this._filters), this._load();
+    this._filters = { ...this._filters, includeAck: !this._filters.includeAck }, P(this._filters), this._load();
   }
   _renderFilterBar() {
     return i`
@@ -7669,7 +7684,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       return i`<p class="muted">lade…</p>`;
     if (this._top.length === 0)
       return i`<p class="muted">Keine Telegramme in diesem Zeitraum.</p>`;
-    const e = this._topSortKey, t = this._topSortDir, s = Da(this._top, e, t);
+    const e = this._topSortKey, t = this._topSortDir, s = za(this._top, e, t);
     return i`
       <div class="table-wrap">
         <table>
@@ -8509,9 +8524,16 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <section class="mh-card heatmap-card">
         <header class="card-head">
           <h3>Aktivitäts-Heatmap</h3>
-          <span class="muted small">
-            Top-${e.gas.length} GAs × ${e.buckets.length} ${e.bucket_minutes}-Min-Buckets · Maximum ${t} Telegramme/Bucket
-          </span>
+          <div class="card-head__meta">
+            ${this._renderInlineTopN(
+      this._filters.topNHeatmap,
+      (a) => this._onTopNHeatmap(a),
+      Ta
+    )}
+            <span class="muted small">
+              Top-${e.gas.length} GAs × ${e.buckets.length} ${e.bucket_minutes}-Min-Buckets · Maximum ${t} Telegramme/Bucket
+            </span>
+          </div>
         </header>
         <div class="heatmap-grid"
           style=${`--heatmap-cols: ${e.buckets.length};`}
@@ -10484,13 +10506,13 @@ const at = {
       help_url: "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
     }
   }
-}, za = /* @__PURE__ */ new Set([
+}, La = /* @__PURE__ */ new Set([
   "DPT_MISMATCH",
   "ORPHAN_GA",
   "STALE_GA"
 ]);
-function La(e) {
-  return za.has(e);
+function Oa(e) {
+  return La.has(e);
 }
 function Yt(e) {
   return e.startsWith("de") ? "de" : "en";
@@ -10499,23 +10521,23 @@ function Ye(e, t) {
   const s = at[Yt(t)][e];
   return (s == null ? void 0 : s.title) ?? "";
 }
-function Oa(e) {
+function Ca(e) {
   var t;
   return ((t = at.en[e]) == null ? void 0 : t.help_url) ?? "";
 }
-function Ca(e, t, s) {
+function Fa(e, t, s) {
   const a = at[Yt(t)][e];
-  return a === void 0 ? "" : Fa(a.description, s);
+  return a === void 0 ? "" : Na(a.description, s);
 }
-function Fa(e, t) {
+function Na(e, t) {
   return e.replace(/\{(\w+)\}/g, (s, a) => a in t ? String(t[a]) : s);
 }
-var Na = Object.defineProperty, Ia = Object.getOwnPropertyDescriptor, Ae = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Ia(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Ia = Object.defineProperty, Ra = Object.getOwnPropertyDescriptor, Ae = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ra(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Na(t, s, r), r;
+  return a && r && Ia(t, s, r), r;
 };
-const Ra = [
+const Ha = [
   "debug",
   "info",
   "warning",
@@ -10602,7 +10624,7 @@ let te = class extends x {
             @change=${(r) => this._onSelectChange(r, e.code)}
           >
             <option value="_default">— Default —</option>
-            ${Ra.map(
+            ${Ha.map(
       (r) => i`<option value=${r}>${r}</option>`
     )}
           </select>
@@ -10669,12 +10691,12 @@ Ae([
 te = Ae([
   T("severity-override-form")
 ], te);
-var Ha = Object.defineProperty, Ua = Object.getOwnPropertyDescriptor, N = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Ua(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Ua = Object.defineProperty, Ma = Object.getOwnPropertyDescriptor, N = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ma(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Ha(t, s, r), r;
+  return a && r && Ua(t, s, r), r;
 };
-const Ma = [
+const Ba = [
   { value: "", label: "Alle Severities" },
   { value: "error", label: "Error" },
   { value: "warning", label: "Warning" },
@@ -10721,7 +10743,7 @@ let z = class extends x {
     this._projectOnly = t.checked;
   }
   _filteredItems() {
-    return this._projectOnly ? this._items.filter((e) => La(e.code)) : this._items;
+    return this._projectOnly ? this._items.filter((e) => Oa(e.code)) : this._items;
   }
   _itemKey(e) {
     return `${e.code}::${e.ga ?? ""}::${e.last_seen}`;
@@ -10865,7 +10887,7 @@ let z = class extends x {
               .value=${this._severityFilter}
               @change=${this._onSeverityChange}
             >
-              ${Ma.map(
+              ${Ba.map(
       (e) => i`<option value=${e.value}>${e.label}</option>`
     )}
             </select>
@@ -10947,11 +10969,11 @@ let z = class extends x {
   _renderDetailPane() {
     const e = this._currentSelection();
     if (e === null) return c;
-    const t = this._lang(), s = Ye(e.code, t) || e.code, a = Ca(
+    const t = this._lang(), s = Ye(e.code, t) || e.code, a = Fa(
       e.code,
       t,
       e.evidence
-    ), r = Oa(e.code);
+    ), r = Ca(e.code);
     return i`
       <aside class="detail mh-card" data-test="findings-detail">
         <header class="detail-header">
@@ -11259,12 +11281,12 @@ N([
 z = N([
   T("findings-view")
 ], z);
-var Ba = Object.defineProperty, ja = Object.getOwnPropertyDescriptor, Ue = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? ja(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var ja = Object.defineProperty, Ga = Object.getOwnPropertyDescriptor, Ue = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ga(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Ba(t, s, r), r;
+  return a && r && ja(t, s, r), r;
 };
-const Ft = "messagehub.stats.subtab", Ga = /* @__PURE__ */ new Set(["live", "knx", "findings"]);
+const Ft = "messagehub.stats.subtab", Ka = /* @__PURE__ */ new Set(["live", "knx", "findings"]);
 let pe = class extends x {
   constructor() {
     super(...arguments), this._tab = this._loadTab(), this._findingsSourceFilter = null, this._onHashChange = () => {
@@ -11274,7 +11296,7 @@ let pe = class extends x {
   _loadTab() {
     try {
       const e = localStorage.getItem(Ft);
-      if (e && Ga.has(e)) return e;
+      if (e && Ka.has(e)) return e;
     } catch {
     }
     return "live";
@@ -11419,17 +11441,17 @@ Ue([
 pe = Ue([
   T("stats-view")
 ], pe);
-var Ka = Object.defineProperty, Wa = Object.getOwnPropertyDescriptor, ie = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Wa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Wa = Object.defineProperty, Va = Object.getOwnPropertyDescriptor, ie = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Va(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Ka(t, s, r), r;
+  return a && r && Wa(t, s, r), r;
 };
-function Va(e) {
+function qa(e) {
   const t = e.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), s = new Set(t), a = (...r) => r.some((n) => s.has(n));
   return a("delete", "remove", "removed", "deleted") ? "delete" : a("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : a("update", "updated", "edit", "edited", "set") ? "update" : a("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
 }
 const Nt = 60;
-function qa(e) {
+function Ja(e) {
   if (!e || typeof e != "object" || Array.isArray(e))
     return "";
   const t = e;
@@ -11502,7 +11524,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     }) : this._items;
   }
   _renderActionPill(e) {
-    const t = Va(e);
+    const t = qa(e);
     return i`<span class=${`action-pill action-${t}`} title=${e}>${e}</span>`;
   }
   _renderDetails(e) {
@@ -11523,7 +11545,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     return i`<code>${String(e)}</code>`;
   }
   _renderDetailsSummary(e) {
-    const t = qa(e);
+    const t = Ja(e);
     if (t === "") return i`<span class="muted">—</span>`;
     const s = typeof e == "object" && e !== null && (e.label !== void 0 || e.name !== void 0);
     return i`<span class=${`summary ${s ? "" : "muted"}`}
@@ -11884,12 +11906,12 @@ ie([
 M = ie([
   T("audit-view")
 ], M);
-var Ja = Object.defineProperty, Ya = Object.getOwnPropertyDescriptor, P = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Ya(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Ya = Object.defineProperty, Za = Object.getOwnPropertyDescriptor, D = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Za(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Ja(t, s, r), r;
+  return a && r && Ya(t, s, r), r;
 };
-function Za(e) {
+function Xa(e) {
   return e.source === "knx-bus" && e.text.includes("(GroupValueRead)");
 }
 const It = "messagehub.filters", ne = {
@@ -11980,7 +12002,7 @@ let E = class extends x {
     }, "messagehub_message_added"));
   }
   _matchesFilters(e) {
-    return !(this._filters.severity.length && !this._filters.severity.includes(e.severity) || this._filters.source && e.source !== this._filters.source || this._filters.search && !e.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && Za(e));
+    return !(this._filters.severity.length && !this._filters.severity.includes(e.severity) || this._filters.source && e.source !== this._filters.source || this._filters.search && !e.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && Xa(e));
   }
   _loadFilters() {
     try {
@@ -12748,55 +12770,55 @@ E.styles = [
       }
     `
 ];
-P([
+D([
   w({ attribute: !1 })
 ], E.prototype, "hass", 2);
-P([
+D([
   w({ type: Boolean })
 ], E.prototype, "narrow", 2);
-P([
+D([
   w({ attribute: !1 })
 ], E.prototype, "panel", 2);
-P([
+D([
   l()
 ], E.prototype, "_tab", 2);
-P([
+D([
   l()
 ], E.prototype, "_items", 2);
-P([
+D([
   l()
 ], E.prototype, "_total", 2);
-P([
+D([
   l()
 ], E.prototype, "_loading", 2);
-P([
+D([
   l()
 ], E.prototype, "_selected", 2);
-P([
+D([
   l()
 ], E.prototype, "_filters", 2);
-P([
+D([
   l()
 ], E.prototype, "_newCount", 2);
-P([
+D([
   l()
 ], E.prototype, "_testing", 2);
-P([
+D([
   l()
 ], E.prototype, "_toast", 2);
-P([
+D([
   l()
 ], E.prototype, "_overflowOpen", 2);
-P([
+D([
   l()
 ], E.prototype, "_savedFilters", 2);
-P([
+D([
   l()
 ], E.prototype, "_savedFiltersOpen", 2);
-E = P([
+E = D([
   T("messagehub-panel")
 ], E);
 export {
   E as MessageHubPanel,
-  Za as isKnxReadMessage
+  Xa as isKnxReadMessage
 };

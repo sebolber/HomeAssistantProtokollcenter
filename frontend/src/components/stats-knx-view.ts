@@ -84,6 +84,11 @@ const PERIOD_PRESETS: ReadonlyArray<{ id: string; label: string; days: number }>
 const LONG_TERM_PERIOD_IDS: ReadonlySet<string> = new Set(["7d", "30d", "365d"]);
 
 const TOP_N_OPTIONS = [10, 25, 50, 100, 200] as const;
+// Iter topn-4: Heatmap nutzt eine eigene, kuerzere Optionsliste.
+// CSS-Grid-Lesbarkeit limitiert die Anzahl Zeilen — 30 ist
+// praktisches Maximum auf normalen Desktops, daheim gibt's selten
+// > 30 dauer-aktive GAs gleichzeitig.
+const HEATMAP_TOP_N_OPTIONS = [10, 15, 20, 25, 30] as const;
 // Iter 45 (N6) / Iter aiohttp-error-ZU9UA: pro Tabelle ein Top-N
 // im localStorage. Default 25 fuer alle — passt auf einen Bildschirm
 // und vermeidet den scroll-heavy 50/100-Default. User kann pro Card
@@ -101,6 +106,7 @@ interface UiFilters {
   topNOrphansExtra: number; // "Verwaiste GAs" — geloggt, nicht im Projekt
   topNSilence: number; // "Stille-Alarme"
   topNBusHealth: number; // "Bus-Gesundheit (Wiederholrate)"
+  topNHeatmap: number; // "Aktivitaets-Heatmap" (max 30, CSS-Grid)
   topNSiblings: number; // Detail-Pane "Andere GAs des Geraets"
   minRate: number;
   includeAck: boolean;
@@ -118,6 +124,7 @@ const DEFAULT_FILTERS: UiFilters = {
   topNOrphansExtra: 25,
   topNSilence: 25,
   topNBusHealth: 25,
+  topNHeatmap: 10,
   topNSiblings: 25,
   minRate: 0.0,
   includeAck: true,
@@ -602,9 +609,16 @@ export class StatsKnxView extends LitElement {
             this._filters.topNTrend,
           ),
         ),
+        // Iter topn-4: Heatmap nutzt jetzt einen eigenen UI-Selektor
+        // (default 10, max 30 wegen CSS-Grid-Lesbarkeit). Vorher
+        // hardcoded 10.
         captureError(
           "heatmap",
-          this.api.getKnxStatsHeatmap(fRaw, 10, this._suggestHeatmapBucketMinutes()),
+          this.api.getKnxStatsHeatmap(
+            fRaw,
+            this._filters.topNHeatmap,
+            this._suggestHeatmapBucketMinutes(),
+          ),
         ),
       ]);
       this._summary = summary;
@@ -884,6 +898,16 @@ export class StatsKnxView extends LitElement {
     this.requestUpdate();
   }
 
+  // Iter topn-4: Heatmap-Selektor muss `_load()` ausloesen, weil das
+  // Backend die Top-N-GAs serverseitig auswaehlt (gas[], matrix[][]
+  // im Response sind direkt CSS-Grid-Material, kein clientseitiges
+  // Slicing moeglich).
+  private _onTopNHeatmap(topNHeatmap: number): void {
+    this._filters = { ...this._filters, topNHeatmap };
+    saveFilters(this._filters);
+    void this._load();
+  }
+
   private _onTopNSiblings(topNSiblings: number): void {
     this._filters = { ...this._filters, topNSiblings };
     saveFilters(this._filters);
@@ -892,15 +916,18 @@ export class StatsKnxView extends LitElement {
 
   private _renderInlineTopN(
     current: number,
-    onChange: (n: number) => void
+    onChange: (n: number) => void,
+    options: ReadonlyArray<number> = TOP_N_OPTIONS,
   ): TemplateResult {
     // Iter 60 / U6: Label "zeige" davor, mehr Padding pro Button.
     // Macht den Selektor sichtbarer und eindeutiger interpretierbar.
+    // Iter topn-4: optionale eigene Optionsliste (z. B. Heatmap mit
+    // max 30 wegen CSS-Grid-Lesbarkeit).
     return html`
       <span class="inline-topn-wrap">
         <span class="inline-topn-label">zeige</span>
         <span class="inline-topn" role="group" aria-label="Anzahl Einträge">
-          ${TOP_N_OPTIONS.map(
+          ${options.map(
             (n) => html`<button
               class=${`inline-topn__btn ${current === n ? "active" : ""}`}
               @click=${() => onChange(n)}
@@ -2624,11 +2651,18 @@ export class StatsKnxView extends LitElement {
       <section class="mh-card heatmap-card">
         <header class="card-head">
           <h3>Aktivitäts-Heatmap</h3>
-          <span class="muted small">
-            Top-${h.gas.length} GAs × ${h.buckets.length} ${
-              h.bucket_minutes
-            }-Min-Buckets · Maximum ${maxCount} Telegramme/Bucket
-          </span>
+          <div class="card-head__meta">
+            ${this._renderInlineTopN(
+              this._filters.topNHeatmap,
+              (n) => this._onTopNHeatmap(n),
+              HEATMAP_TOP_N_OPTIONS,
+            )}
+            <span class="muted small">
+              Top-${h.gas.length} GAs × ${h.buckets.length} ${
+                h.bucket_minutes
+              }-Min-Buckets · Maximum ${maxCount} Telegramme/Bucket
+            </span>
+          </div>
         </header>
         <div class="heatmap-grid"
           style=${`--heatmap-cols: ${h.buckets.length};`}

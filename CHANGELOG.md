@@ -6,6 +6,21 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (UX)
+- **Iter topn-4 / Sprint A — Heatmap-UI-Top-N-Selektor.**
+  Die Card "Aktivitaets-Heatmap" hatte bisher hardcoded `top_n=10`
+  ohne UI-Selektor. Jetzt eigener Filter `topNHeatmap` mit Optionsliste
+  `[10, 15, 20, 25, 30]` (max 30 wegen CSS-Grid-Lesbarkeit; auf
+  normalen Desktops wird's darueber kaum lesbar). Default bleibt 10
+  fuer Bestandsuser. Selektor-Klick triggert `_load()`, weil das
+  Backend die Top-N-GAs serverseitig auswaehlt — clientseitiges
+  Re-Slicing ist nicht moeglich (gas[]/matrix[][] sind direkt CSS-
+  Grid-Material). `_renderInlineTopN` akzeptiert jetzt eine optionale
+  Optionsliste, sodass Cards mit speziellen Anforderungen ihre
+  eigenen Buttons zeigen koennen (Sprint A wird damit komplett
+  abgeschlossen). 2 neue Vitest (Aufruf-Parameter + DOM-Selektor-
+  Buttons). Phase 8 / Sprint A — TopN-Bug 4/4.
+
 ### Geaendert (Datenqualitaet)
 - **Iter K / Sprint B — Counter-basierter Source-Aggregat-Pfad.**
   Source-Detail-Pane (`/knx-stats/source/{dev_source}`) las bisher

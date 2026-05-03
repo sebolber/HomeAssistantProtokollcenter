@@ -30,6 +30,7 @@ interface MockApi extends ApiClient {
   sensitiveCalls: Array<{ limit?: number }>;
   longTermCalls: Array<{ limit?: number }>;
   busHealthCalls: Array<{ limit?: number }>;
+  heatmapCalls: Array<{ topN?: number }>;
 }
 
 function makeApi(): MockApi {
@@ -112,14 +113,8 @@ function makeApi(): MockApi {
       top_increase: [],
       top_decrease: [],
     })),
-    getKnxStatsHeatmap: vi.fn(async () => ({
-      from: SUMMARY.from,
-      to: SUMMARY.to,
-      bucket_minutes: 60,
-      gas: [],
-      buckets: [],
-      matrix: [],
-    })),
+    // Iter topn-4: Heatmap-Mock mit Aufruf-Logging fuer den 5. Card-Test.
+    getKnxStatsHeatmap: undefined,
     getKnxBusAnalysisState: vi.fn(async () => ({ enabled: true })),
     setKnxBusAnalysisState: vi.fn(async (enabled: boolean) => ({
       ok: true,
@@ -133,7 +128,21 @@ function makeApi(): MockApi {
     sensitiveCalls: [],
     longTermCalls: [],
     busHealthCalls: [],
+    heatmapCalls: [],
   };
+  api.getKnxStatsHeatmap = vi.fn(
+    async (_f: KnxStatsFilters, topN?: number) => {
+      api.heatmapCalls!.push({ topN });
+      return {
+        from: SUMMARY.from,
+        to: SUMMARY.to,
+        bucket_minutes: 60,
+        gas: [],
+        buckets: [],
+        matrix: [],
+      };
+    },
+  );
   api.getKnxStatsBusHealth = vi.fn(async (f: KnxStatsFilters) => {
     api.busHealthCalls!.push({ limit: f.limit });
     return {
@@ -271,5 +280,52 @@ describe("stats-knx-view card-topn limits (Iter topn-2)", () => {
     for (const call of api.busHealthCalls) {
       expect(call.limit).toBe(100);
     }
+  });
+
+  // Iter topn-4 (Sprint A) — Heatmap-Card: hatte bisher hardcoded
+  // top_n=10, kein UI-Selektor. Jetzt eigener `topNHeatmap`-Filter
+  // (default 10, max 30 wegen CSS-Grid-Lesbarkeit).
+  it("Heatmap-Card: getKnxStatsHeatmap wird mit topNHeatmap als topN aufgerufen", async () => {
+    setStoredFilters({ topNHeatmap: 20 });
+    const api = makeApi();
+    await mount(api);
+
+    expect(api.heatmapCalls.length).toBeGreaterThanOrEqual(1);
+    for (const call of api.heatmapCalls) {
+      expect(call.topN).toBe(20);
+    }
+  });
+
+  it("Heatmap-Card rendert einen Top-N-Selektor mit 30 als Maximum", async () => {
+    setStoredFilters({ topNHeatmap: 10 });
+    // Mock muss eine non-leere Heatmap zurueckgeben, damit
+    // _renderHeatmap nicht via early-return (gas.length === 0)
+    // exit'ed.
+    const api = makeApi();
+    api.getKnxStatsHeatmap = vi.fn(
+      async (_f: KnxStatsFilters, topN?: number) => {
+        api.heatmapCalls.push({ topN });
+        return {
+          from: SUMMARY.from,
+          to: SUMMARY.to,
+          bucket_minutes: 60,
+          gas: [{ ga: "1/2/3", label: "Test", total: 1 }],
+          buckets: ["2026-05-03T08:00:00"],
+          matrix: [[1]],
+        };
+      },
+    );
+    const el = await mount(api);
+
+    const heatmapCard = el.shadowRoot!.querySelector(".heatmap-card");
+    expect(heatmapCard).not.toBeNull();
+    const selectorButtons = heatmapCard!.querySelectorAll(".inline-topn__btn");
+    const labels = Array.from(selectorButtons).map((b) =>
+      b.textContent?.trim(),
+    );
+    // CSS-Grid-Limit: 30 muss da sein, > 30 nicht.
+    expect(labels).toContain("30");
+    expect(labels).not.toContain("100");
+    expect(labels).not.toContain("200");
   });
 });
