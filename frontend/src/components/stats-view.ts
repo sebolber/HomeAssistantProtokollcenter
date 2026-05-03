@@ -22,6 +22,11 @@ export class StatsView extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
 
   @state() private _tab: StatsSubTab = this._loadTab();
+  // Iter H (knx-detail-panes): vorbefuellter Source-Filter fuer den
+  // Findings-Sub-Tab. Wird ueber URL-Hash uebergeben
+  // (#findings?source=1.1.42 — siehe stats-knx-view.
+  // _onSourceDetailFindingClick).
+  @state() private _findingsSourceFilter: string | null = null;
 
   private _loadTab(): StatsSubTab {
     try {
@@ -40,6 +45,43 @@ export class StatsView extends LitElement {
     } catch {
       // ignore
     }
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    window.addEventListener("hashchange", this._onHashChange);
+    // Initial-Hash beim Mount auswerten — User kann die Seite mit
+    // #findings?source=... direkt aufrufen.
+    this._handleHash(window.location.hash);
+  }
+
+  override disconnectedCallback(): void {
+    window.removeEventListener("hashchange", this._onHashChange);
+    super.disconnectedCallback();
+  }
+
+  private _onHashChange = (): void => {
+    this._handleHash(window.location.hash);
+  };
+
+  // Iter H (knx-detail-panes): Hash-basierte Tab-Navigation. Format:
+  //   #findings              -> Findings-Tab, kein Filter
+  //   #findings?source=X.Y.Z -> Findings-Tab, Source-Filter X.Y.Z
+  // Andere Hashes bleiben unbeachtet — kein Hijack der Browser-URL.
+  private _handleHash(rawHash: string): void {
+    const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
+    if (!hash.startsWith("findings")) {
+      return;
+    }
+    this._setTab("findings");
+    const queryStart = hash.indexOf("?");
+    if (queryStart === -1) {
+      this._findingsSourceFilter = null;
+      return;
+    }
+    const params = new URLSearchParams(hash.slice(queryStart + 1));
+    const source = params.get("source");
+    this._findingsSourceFilter = source && source.length > 0 ? source : null;
   }
 
   override render(): TemplateResult {
@@ -71,7 +113,10 @@ export class StatsView extends LitElement {
             ? html`<stats-knx-view .api=${this.api}></stats-knx-view>`
             : nothing}
           ${this._tab === "findings"
-            ? html`<findings-view .api=${this.api}></findings-view>`
+            ? html`<findings-view
+                .api=${this.api}
+                .sourceFilter=${this._findingsSourceFilter}
+              ></findings-view>`
             : nothing}
         </div>
       </div>

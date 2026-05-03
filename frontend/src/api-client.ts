@@ -224,6 +224,25 @@ export interface KnxStatsSourceGaSummaryDto {
   last_seen: string | null;
 }
 
+// Iter H (knx-detail-panes): persistierter Detector-Finding fuer das
+// Source-Detail. Spiegel der Backend-Finding-Dataclass; nur die fuer
+// die UI relevanten Felder, weil title/description aus translations/
+// gerendert werden.
+export interface KnxStatsSourcePersistedFindingDto {
+  code: string;
+  schema_version: number;
+  severity: "debug" | "info" | "warning" | "error";
+  ga: string | null;
+  source: string | null;
+  title: string;
+  description: string;
+  occurrence_count: number;
+  first_seen: string;
+  last_seen: string;
+  detector_version: string;
+  evidence?: Record<string, unknown>;
+}
+
 export interface KnxStatsSourceDetailDto {
   dev_source: string;
   total_count: number;
@@ -234,6 +253,8 @@ export interface KnxStatsSourceDetailDto {
   silent_alarm: boolean;
   repeat_ratio_pct: number;
   gas: KnxStatsSourceGaSummaryDto[];
+  // Iter H (knx-detail-panes): Findings-Liste pro Source.
+  findings?: KnxStatsSourcePersistedFindingDto[];
   from?: string;
   to?: string;
   device?: KnxStatsDeviceInfo | null;

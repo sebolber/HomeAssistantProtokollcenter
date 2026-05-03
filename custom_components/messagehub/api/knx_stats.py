@@ -96,7 +96,15 @@ def _service(hass: Any) -> KnxStatsService | None:
     db = get_database(hass)
     if db is None:
         return None
-    return KnxStatsService(KnxStatsRepository(db))
+    # Iter H (knx-detail-panes): findings_repo mitgeben, damit
+    # compute_source_detail die persistierten Findings dieser Source
+    # mitliefern kann. Lokaler Import vermeidet Circular-Import beim
+    # Modul-Laden (FindingsRepository -> processing -> knx_stats_service).
+    from ..storage.findings_repo import FindingsRepository  # noqa: PLC0415
+    return KnxStatsService(
+        KnxStatsRepository(db),
+        findings_repo=FindingsRepository(db),
+    )
 
 
 def _first_entry_options(hass: Any) -> dict[str, Any]:

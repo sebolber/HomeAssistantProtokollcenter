@@ -22,6 +22,7 @@ import type {
   KnxStatsSilenceDto,
   KnxStatsSourceDetailDto,
   KnxStatsSourceGaSummaryDto,
+  KnxStatsSourcePersistedFindingDto,
   KnxStatsSummaryDto,
   KnxStatsHeatmapDto,
   KnxStatsTimelineDto,
@@ -1877,6 +1878,8 @@ export class StatsKnxView extends LitElement {
 
       ${this._renderSourceDetailGas(d)}
 
+      ${this._renderSourceDetailFindings(d)}
+
       ${d.device || d.manufacturer_hints
         ? this._renderDeviceInfo({
             device: d.device,
@@ -1884,6 +1887,80 @@ export class StatsKnxView extends LitElement {
           })
         : nothing}
     `;
+  }
+
+  // Iter H (knx-detail-panes): Findings dieses Geraets. Klick auf
+  // Code-Link setzt window.location.hash auf
+  // "#findings?source=<dev_source>" — messagehub-panel.ts liest den
+  // Hash beim Tab-Switch und aktiviert den Findings-Tab mit
+  // vorbefuelltem Source-Filter.
+  private _renderSourceDetailFindings(
+    d: KnxStatsSourceDetailDto,
+  ): TemplateResult {
+    const findings = d.findings ?? [];
+    if (findings.length === 0) {
+      return html``;
+    }
+    return html`<div class="source-detail-findings">
+      <strong>Findings dieses Geräts (${findings.length}):</strong>
+      <ul class="source-detail-findings__list">
+        ${findings.map((f) => this._renderSourceDetailFinding(f, d.dev_source))}
+      </ul>
+    </div>`;
+  }
+
+  private _renderSourceDetailFinding(
+    f: KnxStatsSourcePersistedFindingDto,
+    devSource: string,
+  ): TemplateResult {
+    return html`<li class=${`source-detail-finding finding-${f.severity}`}>
+      <span class=${`mh-pill ${this._findingPillClass(f.severity)}`}>
+        ${f.severity}
+      </span>
+      <a
+        href="#findings?source=${encodeURIComponent(devSource)}"
+        class="source-detail-finding__link"
+        @click=${(ev: Event) => this._onSourceDetailFindingClick(ev, devSource)}
+        title="Findings-Tab oeffnen, gefiltert auf diese Source"
+      >
+        <code>${f.code}</code>
+      </a>
+      <span class="source-detail-finding__title">
+        ${f.title || f.description || ""}
+      </span>
+      <span class="muted small source-detail-finding__count">
+        ${f.occurrence_count}×
+      </span>
+    </li>`;
+  }
+
+  private _findingPillClass(
+    severity: KnxStatsSourcePersistedFindingDto["severity"],
+  ): string {
+    switch (severity) {
+      case "error":
+        return "mh-pill--error";
+      case "warning":
+        return "mh-pill--warning";
+      case "info":
+        return "mh-pill--info";
+      case "debug":
+      default:
+        return "mh-pill--neutral";
+    }
+  }
+
+  // Iter H: Klick auf einen Finding-Code-Link. window.location.hash
+  // setzen reicht — der Findings-Tab des messagehub-panels reagiert
+  // auf den hashchange. Default-Anchor-Verhalten verhindern wir
+  // bewusst NICHT, weil das Setzen des Hash bereits den hashchange
+  // feuert und der Browser sonst kein Routing macht.
+  private _onSourceDetailFindingClick(
+    ev: Event,
+    devSource: string,
+  ): void {
+    ev.preventDefault();
+    window.location.hash = `findings?source=${encodeURIComponent(devSource)}`;
   }
 
   private _renderSourceDetailKpi(
@@ -4147,6 +4224,42 @@ export class StatsKnxView extends LitElement {
       }
       .source-ga-row:hover {
         background: var(--mh-bg-hover, rgba(0, 0, 0, 0.04));
+      }
+
+      /* Iter H (knx-detail-panes): Findings-Liste im Source-Detail. */
+      .source-detail-findings {
+        margin: var(--mh-space-3) 0;
+      }
+      .source-detail-findings__list {
+        list-style: none;
+        padding: 0;
+        margin: var(--mh-space-2) 0 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .source-detail-finding {
+        display: grid;
+        grid-template-columns: auto auto 1fr auto;
+        gap: var(--mh-space-2);
+        padding: 4px var(--mh-space-2);
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-sm);
+        font-size: var(--mh-text-sm);
+        align-items: center;
+      }
+      .source-detail-finding__link {
+        color: var(--mh-accent);
+        text-decoration: none;
+      }
+      .source-detail-finding__link:hover {
+        text-decoration: underline;
+      }
+      .source-detail-finding__title {
+        color: var(--mh-fg-muted);
+      }
+      .source-detail-finding__count {
+        font-variant-numeric: tabular-nums;
       }
 
       /* Iter E (knx-detail-panes): klickbare Top-Geraete-Zeile.

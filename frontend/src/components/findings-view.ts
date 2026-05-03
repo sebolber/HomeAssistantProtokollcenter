@@ -45,6 +45,10 @@ const PILL_CLASS_FOR_SEVERITY: Readonly<Record<FindingSeverity, string>> = {
 @customElement("findings-view")
 export class FindingsView extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
+  // Iter H (knx-detail-panes): vorbefuellter Source-Filter aus dem
+  // Source-Detail-Pane (via stats-view + URL-Hash). null heisst "kein
+  // Filter aktiv" — die Liste zeigt dann alle Findings.
+  @property({ attribute: false }) sourceFilter: string | null = null;
 
   @state() private _items: FindingDto[] = [];
   @state() private _total = 0;
@@ -59,6 +63,20 @@ export class FindingsView extends LitElement {
     await this._load();
   }
 
+  override updated(changed: Map<string, unknown>): void {
+    // Iter H: bei echter Aenderung der sourceFilter-Property neu laden.
+    // Auf dem ersten Update ist `oldValue === undefined` (Lit-Konvention
+    // fuer initial gesetzte Properties); der initiale Load haengt an
+    // `firstUpdated()`, also ueberspringen wir diesen Pfad — sonst
+    // wuerde listFindings doppelt feuern.
+    if (changed.has("sourceFilter")) {
+      const oldValue = changed.get("sourceFilter");
+      if (oldValue !== undefined) {
+        void this._load();
+      }
+    }
+  }
+
   private async _load(): Promise<void> {
     if (!this.api) return;
     this._loading = true;
@@ -66,6 +84,7 @@ export class FindingsView extends LitElement {
     try {
       const resp: FindingsListResponse = await this.api.listFindings({
         severity: this._severityFilter || undefined,
+        source: this.sourceFilter || undefined,
       });
       this._items = resp.items;
       this._total = resp.total;

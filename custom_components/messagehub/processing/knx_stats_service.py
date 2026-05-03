@@ -8,6 +8,7 @@ Layer und (spaeter) von Alarm-Regeln benutzt.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from dataclasses import field as dataclass_field
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -34,7 +35,9 @@ from .knx_stats import (
 )
 
 if TYPE_CHECKING:
+    from ..storage.findings_repo import FindingsRepository
     from ..storage.knx_stats_repo import KnxStatsRepository
+    from .findings import Finding as PersistedFinding
 
 
 # Bus-Last-Konstanten zentral aus const.py — Iter 36 vereint die alte
@@ -184,8 +187,11 @@ class SourceDetail:
     Geraets (Total/Bus-Anteil/Wiederhol-Quote/last_seen) plus die
     Liste seiner GAs mit Severity-Klassifikation.
 
-    Findings + Trend kommen in Iter H/I dazu (separate Felder, damit
-    der MVP-Build ohne sie laeuft).
+    Iter H: findings-Liste (persistierte Detector-Findings dieser
+    Source). Default leere Liste, wenn der Service ohne FindingsRepo
+    konstruiert wurde — Backwards-kompatibel zu Iter B-Tests.
+
+    Trend kommt in Iter I dazu.
     """
 
     dev_source: str
@@ -197,6 +203,7 @@ class SourceDetail:
     silent_alarm: bool
     repeat_ratio_pct: float
     gas: list[SourceGaSummary]
+    findings: list[PersistedFinding] = dataclass_field(default_factory=list)
 
 
 # Iter B (knx-detail-panes): Defaults fuer Source-Detail.
@@ -259,8 +266,18 @@ def _period_minutes(from_dt: datetime, to_dt: datetime) -> float:
 class KnxStatsService:
     """Orchestriert die Aggregat-Logik fuer den KNX-Stats-Tab."""
 
-    def __init__(self, repo: KnxStatsRepository) -> None:
+    def __init__(
+        self,
+        repo: KnxStatsRepository,
+        *,
+        findings_repo: FindingsRepository | None = None,
+    ) -> None:
+        # Iter H (knx-detail-panes): findings_repo optional, damit
+        # bestehende Aufrufer (Tests, andere Endpoints, Iter A-G) ohne
+        # Refactor weiter funktionieren. Source-Detail liefert dann
+        # `findings=[]` statt zu crashen.
         self._repo = repo
+        self._findings_repo = findings_repo
 
     # --- Buslast-Zeitreihe (Iter 36, Feature A) -----------------------------
 
@@ -600,6 +617,17 @@ class KnxStatsService:
             silent_minutes is not None
             and silent_minutes > max_silence_minutes
         )
+        # Iter H (knx-detail-panes): Findings dieser Source mitliefern.
+        # Limit 200 spiegelt das Default des Findings-Endpoints; bei
+        # Geraeten mit >200 Findings ist die UI ohnehin ueberladen, der
+        # User soll dann ueber den Findings-Tab mit Filtern arbeiten.
+        findings: list[PersistedFinding]
+        if self._findings_repo is not None:
+            findings = await self._findings_repo.list_findings(
+                source=dev_source, limit=200,
+            )
+        else:
+            findings = []
         return SourceDetail(
             dev_source=dev_source,
             total_count=total_count,
@@ -610,6 +638,7 @@ class KnxStatsService:
             silent_alarm=silent_alarm,
             repeat_ratio_pct=float(repeat_ratio["ratio_pct"]),
             gas=gas,
+            findings=findings,
         )
 
     @staticmethod
@@ -1157,7 +1186,11 @@ def ga_detail_to_dict(detail: GaDetail) -> dict[str, Any]:
 
 
 def source_detail_to_dict(detail: SourceDetail) -> dict[str, Any]:
-    """Iter B (knx-detail-panes): SourceDetail -> JSON-Response-Dict."""
+    """Iter B (knx-detail-panes): SourceDetail -> JSON-Response-Dict.
+
+    Iter H: findings via Finding.to_dict serialisieren (nicht asdict —
+    Finding.to_dict konvertiert datetime nach ISO).
+    """
     return {
         "dev_source": detail.dev_source,
         "total_count": detail.total_count,
@@ -1168,6 +1201,7 @@ def source_detail_to_dict(detail: SourceDetail) -> dict[str, Any]:
         "silent_alarm": detail.silent_alarm,
         "repeat_ratio_pct": detail.repeat_ratio_pct,
         "gas": [asdict(g) for g in detail.gas],
+        "findings": [f.to_dict() for f in detail.findings],
     }
 
 
