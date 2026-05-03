@@ -15,6 +15,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   Count, Detector-Version. Stabiler JSON-Round-Trip via
   `to_json`/`from_json`. Vorbereitung fuer Iter 2-31 aus
   `docs/messagehub_knx_konfigurationsfehler_recherche.md` §9.9.
+- **Iter 2 — `knx_findings`-Tabelle + `FindingsRepository`.**
+  Append-only-Log mit Dedup-Schluessel
+  `(code, ga, evidence_hash, schema_version)`: wiederholte Detector-
+  Laeufe mit identischer Evidence aktualisieren `last_seen` +
+  `occurrence_count`, statt neue Rows anzulegen. Migration
+  `0024_knx_findings.sql`. Repo bietet `record(finding)` (Upsert) und
+  `list_findings(code, ga, severity, source, limit)` mit
+  `last_seen DESC`-Sortierung. title/description sind nicht
+  persistiert (UI rendert via translations/).
 
 ## [0.18.0] – 2026-05-03
 
