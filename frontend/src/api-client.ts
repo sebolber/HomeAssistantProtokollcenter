@@ -816,6 +816,22 @@ export class ApiClient {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }
 
+  /**
+   * F-001: Sendet eine Test-Nachricht ueber einen konfigurierten Channel.
+   * Backend ist rate-limited (3 Versuche/Min/Channel; HTTP 429 bei Burst).
+   */
+  async testChannel(id: number): Promise<{ delivered: boolean; channel: string }> {
+    const res = await fetch(`${this.baseUrl}/api/messagehub/channels/${id}/test`, {
+      method: "POST",
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`HTTP ${res.status}: ${body}`);
+    }
+    return (await res.json()) as { delivered: boolean; channel: string };
+  }
+
   async listMqttTopics(): Promise<MqttTopicDto[]> {
     const res = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics`, {
       headers: this.headers(),

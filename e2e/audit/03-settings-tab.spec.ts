@@ -44,8 +44,8 @@ test.describe("Settings-Tab", () => {
     await reqPromise;
   });
 
-  // F-001 — Channel-Test-Knopf fehlt im UI.
-  test.fixme("F-001: Channels haben einen 'Test'-Knopf, der POST /channels/{id}/test ausloest", async ({ page }) => {
+  // F-001 — Channel-Test-Knopf in Iter +1 hinzugefuegt.
+  test("F-001: Channels haben einen 'Test'-Knopf, der POST /channels/{id}/test ausloest", async ({ page }) => {
     const settings = page.locator("messagehub-panel >> settings-view");
     await settings.locator("button.tab", { hasText: "Channels" }).click();
     const channels = settings.locator("channels-view");

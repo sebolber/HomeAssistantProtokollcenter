@@ -6,6 +6,18 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (Anbindungs-Audit Sprint 1)
+- **Iter +1 / F-001 — Channel-Test-Knopf.** Notification-Channels
+  (Telegram / Pushover / ntfy / Signal / notify) haben jetzt im
+  Settings-Tab pro Zeile einen „Test"-Button. Klick sendet eine
+  Test-Nachricht ueber den Channel, das Ergebnis erscheint als Toast
+  („zugestellt an X" / „fehlgeschlagen" / bei HTTP 429: „zu viele
+  Test-Versuche — bitte ~20 s warten"). Doppel-Klick-Schutz pro
+  Channel-ID. Backend-Endpoint
+  `POST /api/messagehub/channels/{id}/test` (rate-limited 3/min/Channel)
+  war seit Iter 88 vorhanden, nur der UI-Trigger fehlte. Audit-Eintrag
+  `channel_test` pro Aufruf. Behebt Audit-Finding F-001.
+
 ## [0.23.0] – 2026-05-03
 
 ### Hinzugefuegt (KNX-Detail-Panes fuer Top-Geraete / Stille-Alarme / Trend)

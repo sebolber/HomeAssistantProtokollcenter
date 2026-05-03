@@ -14,6 +14,8 @@ export class ChannelsView extends LitElement {
   @state() private _items: ChannelDto[] = [];
   @state() private _editing: ChannelDto | null = null;
   @state() private _toast = "";
+  // F-001: Set der gerade getesteten Channel-IDs — verhindert Doppel-Klick.
+  @state() private _testingIds: Set<number> = new Set();
 
   override async firstUpdated(): Promise<void> {
     await this._load();
@@ -22,6 +24,38 @@ export class ChannelsView extends LitElement {
   private async _load(): Promise<void> {
     if (!this.api) return;
     this._items = await this.api.listChannels();
+  }
+
+  private _showToast(text: string): void {
+    this._toast = text;
+    window.setTimeout(() => (this._toast = ""), 3000);
+  }
+
+  // F-001: Test-Knopf — sendet Test-Nachricht und zeigt Resultat als Toast.
+  // Backend ist rate-limited (3/Min/Channel; 429 -> spezifische Fehlermeldung).
+  private async _test(item: ChannelDto): Promise<void> {
+    if (!this.api || item.id == null) return;
+    if (this._testingIds.has(item.id)) return;
+    this._testingIds = new Set([...this._testingIds, item.id]);
+    try {
+      const res = await this.api.testChannel(item.id);
+      if (res.delivered) {
+        this._showToast(`Test-Nachricht zugestellt an „${res.channel}"`);
+      } else {
+        this._showToast(`Test fuer „${res.channel}" fehlgeschlagen — Provider lieferte nicht aus.`);
+      }
+    } catch (err) {
+      const msg = (err as Error).message;
+      if (msg.includes("429")) {
+        this._showToast(`Zu viele Test-Versuche fuer „${item.name}" — bitte ~20 s warten.`);
+      } else {
+        this._showToast(`Test fehlgeschlagen: ${msg}`);
+      }
+    } finally {
+      const next = new Set(this._testingIds);
+      next.delete(item.id);
+      this._testingIds = next;
+    }
   }
 
   private _new(): void {
@@ -52,12 +86,11 @@ export class ChannelsView extends LitElement {
         await this.api.updateChannel(this._editing.id, this._editing);
       }
       this._editing = null;
-      this._toast = "gespeichert";
       await this._load();
+      this._showToast("gespeichert");
     } catch (err) {
-      this._toast = (err as Error).message;
+      this._showToast((err as Error).message);
     }
-    window.setTimeout(() => (this._toast = ""), 2400);
   }
 
   private async _delete(item: ChannelDto): Promise<void> {
@@ -359,6 +392,15 @@ export class ChannelsView extends LitElement {
                     <td>${it.throttle_seconds}s</td>
                     <td>${it.enabled ? "✓" : "—"}</td>
                     <td class="actions">
+                      <button
+                        ?disabled=${it.id != null && this._testingIds.has(it.id)}
+                        title=${it.enabled
+                          ? "Sendet Test-Nachricht ueber diesen Channel"
+                          : "Channel ist deaktiviert — Test sendet trotzdem (ignoriert Quiet/Threshold)"}
+                        @click=${() => void this._test(it)}
+                      >
+                        ${it.id != null && this._testingIds.has(it.id) ? "…" : "Test"}
+                      </button>
                       <button @click=${() => this._edit(it)}>Edit</button>
                       <button class="danger" @click=${() => void this._delete(it)}>
                         Löschen
