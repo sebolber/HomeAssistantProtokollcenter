@@ -2528,6 +2528,31 @@ export class StatsKnxView extends LitElement {
           animation: none;
         }
       }
+
+      /* Iter aiohttp-error-ZU9UA / UX-P3.4: Mobile-Responsive
+         Filter-Bar. Default ist Zeile mit flex-wrap; auf < 640px
+         legen sich die Filter-Groups untereinander, die Periode-Pills
+         duerfen umbrechen und der Aktualisieren-Knopf wird full-width. */
+      @media (max-width: 640px) {
+        .filters {
+          flex-direction: column;
+          align-items: stretch;
+          gap: var(--mh-space-3);
+        }
+        .filter-group {
+          width: 100%;
+        }
+        .filter-group.toggle {
+          width: auto;
+        }
+        .filters .seg {
+          flex-wrap: wrap;
+        }
+        .filter-refresh-btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
       .filter-group {
         display: flex;
         flex-direction: column;
