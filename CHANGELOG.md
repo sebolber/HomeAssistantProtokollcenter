@@ -7,6 +7,12 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L3.2 / Sprint Recommendations — E2E Layer-3-Kombination.**
+  Smoke-Test fuer den vollstaendigen Layer-3-Pfad: hohe Buslast UND
+  aktives SEND_CYCLE_DRIFT-Finding gleichzeitig — beide Effekte
+  greifen (Cycle verlaengert + GA-Severity 'deviation') und
+  beide Reasoning-Marker stehen in der Liste. Plus DTO-Serialisierungs-
+  Smoke mit Layer-3-Daten. **Phase L3 abgeschlossen.** 2 neue Pytests.
 - **Iter L3.1 / Sprint Recommendations — Layer-3-Findings-Override.**
   Aktive (unacked) Findings einer Source mit relevantem Code
   (`SEND_CYCLE_DRIFT`, `REPEAT_APPROXIMATION`, `TOGGLE_LOOP`,
