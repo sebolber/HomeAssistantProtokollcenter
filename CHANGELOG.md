@@ -7,6 +7,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Behoben (UX)
+- **Iter topn-2 / Sprint A — Card-spezifisches Limit fuer 3 Top-N-Cards.**
+  Die Cards "Telegrammfluten (Bursts)", "Long-Term-Sicht" und
+  "Sicherheits-Audit" hatten je einen eigenen Top-N-Selektor — der
+  Backend-Call uebernahm aber das Master-`limit` (= `topN`, default 25)
+  aus `_apiFilters` / `_liveFiltersForRaw`. Eine Card-Auswahl von 50
+  oder 100 wurde im Backend ignoriert: Bursts fielen auf den Default
+  von 50 zurueck, Long-Term auf 50, Sensitive-Log auf 200. Jetzt
+  ueberschreibt jeder der 3 Calls das Master-Limit per Spread mit dem
+  Card-spezifischen Top-N (`topNBursts`, `topNLongTerm`, `topNAudit`).
+  3 neue Vitest decken die Calls je einzeln ab. Phase 8 / Sprint A —
+  TopN-Bug 2/4.
 - **Iter topn-1 / Sprint A — Trend-Card respektiert UI-Top-N-Selektor.**
   Der Top-N-Selektor in der Card "Trend gegenueber Vorperiode" wirkte
   bisher nur auf die Render-Slice — der Backend-Call

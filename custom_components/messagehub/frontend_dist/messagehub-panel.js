@@ -6927,9 +6927,31 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           this.api.getKnxStatsBusload(r, this._suggestBusloadBucketSeconds())
         ),
         t("health-score", this.api.getKnxStatsHealthScore(r)),
-        s ? t("long-term", this.api.getKnxStatsLongTerm(a)) : Promise.resolve(null),
-        t("bursts", this.api.getKnxStatsBursts(r)),
-        t("sensitive-log", this.api.getKnxStatsSensitiveLog(r)),
+        s ? t(
+          "long-term",
+          this.api.getKnxStatsLongTerm({
+            ...a,
+            limit: this._filters.topNLongTerm
+          })
+        ) : Promise.resolve(null),
+        // Iter topn-2: jeder Card-spezifische Call ueberschreibt das von
+        // _liveFiltersForRaw geerbte Master-`limit` (= topN) mit dem
+        // eigenen Top-N — sonst greift das Backend auf seine Defaults
+        // zurueck und der Card-Selektor wirkt nur kosmetisch.
+        t(
+          "bursts",
+          this.api.getKnxStatsBursts({
+            ...r,
+            limit: this._filters.topNBursts
+          })
+        ),
+        t(
+          "sensitive-log",
+          this.api.getKnxStatsSensitiveLog({
+            ...r,
+            limit: this._filters.topNAudit
+          })
+        ),
         // Iter aiohttp-error-ZU9UA / Trend-Fix B+C: bei langen Perioden
         // den vollen Zeitraum (fLongTerm) statt der 48h-Live-Slice
         // (fRaw) senden — Backend liest dann aus knx_telegram_counters.

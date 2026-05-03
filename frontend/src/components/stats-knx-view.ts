@@ -559,10 +559,32 @@ export class StatsKnxView extends LitElement {
         ),
         captureError("health-score", this.api.getKnxStatsHealthScore(fRaw)),
         longTermMode
-          ? captureError("long-term", this.api.getKnxStatsLongTerm(fLongTerm))
+          ? captureError(
+              "long-term",
+              this.api.getKnxStatsLongTerm({
+                ...fLongTerm,
+                limit: this._filters.topNLongTerm,
+              }),
+            )
           : Promise.resolve(null),
-        captureError("bursts", this.api.getKnxStatsBursts(fRaw)),
-        captureError("sensitive-log", this.api.getKnxStatsSensitiveLog(fRaw)),
+        // Iter topn-2: jeder Card-spezifische Call ueberschreibt das von
+        // _liveFiltersForRaw geerbte Master-`limit` (= topN) mit dem
+        // eigenen Top-N — sonst greift das Backend auf seine Defaults
+        // zurueck und der Card-Selektor wirkt nur kosmetisch.
+        captureError(
+          "bursts",
+          this.api.getKnxStatsBursts({
+            ...fRaw,
+            limit: this._filters.topNBursts,
+          }),
+        ),
+        captureError(
+          "sensitive-log",
+          this.api.getKnxStatsSensitiveLog({
+            ...fRaw,
+            limit: this._filters.topNAudit,
+          }),
+        ),
         // Iter aiohttp-error-ZU9UA / Trend-Fix B+C: bei langen Perioden
         // den vollen Zeitraum (fLongTerm) statt der 48h-Live-Slice
         // (fRaw) senden — Backend liest dann aus knx_telegram_counters.
