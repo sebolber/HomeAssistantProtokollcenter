@@ -1876,6 +1876,8 @@ export class StatsKnxView extends LitElement {
 
       ${this._renderSourceDetailSilent(d)}
 
+      ${this._renderSourceDetailTrend(d)}
+
       ${this._renderSourceDetailGas(d)}
 
       ${this._renderSourceDetailFindings(d)}
@@ -1887,6 +1889,48 @@ export class StatsKnxView extends LitElement {
           })
         : nothing}
     `;
+  }
+
+  // Iter I (knx-detail-panes): Trend-Compare-Block. Severity-Klassi-
+  // fikation analog zur globalen Trend-Card (`_classifyTrendSeverity`).
+  // Bei kurzen Perioden liefert der Backend trend=null — kein Render.
+  private _renderSourceDetailTrend(
+    d: KnxStatsSourceDetailDto,
+  ): TemplateResult {
+    const trend = d.trend ?? null;
+    if (trend === null) {
+      return html``;
+    }
+    const severity = this._classifySourceTrendSeverity(trend.delta_pct);
+    const formattedDelta =
+      trend.delta_pct === null
+        ? "neu"
+        : `${trend.delta_pct > 0 ? "+" : ""}${trend.delta_pct.toLocaleString(
+            "de-DE",
+            { minimumFractionDigits: 1, maximumFractionDigits: 1 },
+          )} %`;
+    return html`<div
+      class=${`source-detail-trend source-detail-trend--${severity}`}
+    >
+      <strong>Trend gegenüber Vorperiode:</strong>
+      <span class="muted small">
+        jetzt ${trend.count_now.toLocaleString("de-DE")} ·
+        zuvor ${trend.count_prev.toLocaleString("de-DE")} ·
+        <strong>${formattedDelta}</strong>
+      </span>
+    </div>`;
+  }
+
+  // Iter I: Ampel-Schwellen wie globale Trend-Card. delta_pct=null
+  // => yellow ("neu" bei leerer Vorperiode). 1h/6h-Sonderbehandlung
+  // entfaellt — Backend liefert bei kurzen Perioden trend=null.
+  private _classifySourceTrendSeverity(deltaPct: number | null): string {
+    if (deltaPct === null) return "yellow";
+    const abs = Math.abs(deltaPct);
+    if (abs < TREND_DELTA_PCT_GREEN_MAX) return "green";
+    if (abs < TREND_DELTA_PCT_YELLOW_MAX) return "yellow";
+    if (abs < TREND_DELTA_PCT_ORANGE_MAX) return "orange";
+    return "red";
   }
 
   // Iter H (knx-detail-panes): Findings dieses Geraets. Klick auf
@@ -4224,6 +4268,31 @@ export class StatsKnxView extends LitElement {
       }
       .source-ga-row:hover {
         background: var(--mh-bg-hover, rgba(0, 0, 0, 0.04));
+      }
+
+      /* Iter I (knx-detail-panes): Trend-Block im Source-Detail.
+         Severity-Variante als Border-Left, analog zur Stille-Card. */
+      .source-detail-trend {
+        margin: var(--mh-space-3) 0;
+        padding: var(--mh-space-2) var(--mh-space-3);
+        border-radius: var(--mh-radius-sm);
+        background: var(--mh-surface-2);
+        border-left: 3px solid var(--mh-fg-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .source-detail-trend--green {
+        border-left-color: var(--mh-success);
+      }
+      .source-detail-trend--yellow {
+        border-left-color: var(--mh-caution);
+      }
+      .source-detail-trend--orange {
+        border-left-color: var(--mh-warning);
+      }
+      .source-detail-trend--red {
+        border-left-color: var(--mh-error);
       }
 
       /* Iter H (knx-detail-panes): Findings-Liste im Source-Detail. */

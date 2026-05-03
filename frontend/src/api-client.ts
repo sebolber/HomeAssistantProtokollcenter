@@ -243,6 +243,16 @@ export interface KnxStatsSourcePersistedFindingDto {
   evidence?: Record<string, unknown>;
 }
 
+// Iter I (knx-detail-panes): Trend-Vergleich pro Source — aktuelle
+// Periode vs. gleich-lange Vorperiode davor.
+export interface KnxStatsSourceTrendDeltaDto {
+  count_now: number;
+  count_prev: number;
+  delta_abs: number;
+  /** null wenn count_prev === 0 (Division-durch-0; UI rendert "neu"). */
+  delta_pct: number | null;
+}
+
 export interface KnxStatsSourceDetailDto {
   dev_source: string;
   total_count: number;
@@ -255,6 +265,8 @@ export interface KnxStatsSourceDetailDto {
   gas: KnxStatsSourceGaSummaryDto[];
   // Iter H (knx-detail-panes): Findings-Liste pro Source.
   findings?: KnxStatsSourcePersistedFindingDto[];
+  // Iter I (knx-detail-panes): Trend-Compare bei Perioden >= 24h.
+  trend?: KnxStatsSourceTrendDeltaDto | null;
   from?: string;
   to?: string;
   device?: KnxStatsDeviceInfo | null;

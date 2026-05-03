@@ -180,6 +180,21 @@ class SourceGaSummary:
 
 
 @dataclass(frozen=True, slots=True)
+class SourceTrendDelta:
+    """Iter I (knx-detail-panes): Trend-Vergleich pro Source.
+
+    Vergleich der aktuellen Periode mit der gleich-langen Vorperiode
+    direkt davor. delta_pct = None, wenn count_prev == 0 (Division
+    durch 0 waere irrefuehrend; UI rendert "neu").
+    """
+
+    count_now: int
+    count_prev: int
+    delta_abs: int
+    delta_pct: float | None
+
+
+@dataclass(frozen=True, slots=True)
 class SourceDetail:
     """Iter B (knx-detail-panes): Detail-Sicht einer Source-Adresse.
 
@@ -191,7 +206,9 @@ class SourceDetail:
     Source). Default leere Liste, wenn der Service ohne FindingsRepo
     konstruiert wurde — Backwards-kompatibel zu Iter B-Tests.
 
-    Trend kommt in Iter I dazu.
+    Iter I: trend (Vergleich aktuelle vs. Vorperiode). None bei
+    Perioden < 24h (kurze Vorperioden sind volatil und produzieren
+    irrefuehrende %-Spruenge — siehe Trend-Card-Hinweis im Frontend).
     """
 
     dev_source: str
@@ -204,6 +221,7 @@ class SourceDetail:
     repeat_ratio_pct: float
     gas: list[SourceGaSummary]
     findings: list[PersistedFinding] = dataclass_field(default_factory=list)
+    trend: SourceTrendDelta | None = None
 
 
 # Iter B (knx-detail-panes): Defaults fuer Source-Detail.
@@ -218,6 +236,13 @@ SOURCE_DETAIL_DEFAULT_SILENCE_MINUTES: int = 1440
 # Top-N nach Telegramm-Anzahl reichen fuer die UI; wer mehr braucht,
 # soll den Endpoint mehrfach mit Period-Filtern aufrufen.
 SOURCE_DETAIL_GA_HARD_CAP: int = 100
+
+# Iter I (knx-detail-panes): Trend-Schwellwert. Bei Perioden < 24h
+# liegt die Vorperiode haeufig in einer Tag/Nacht-Schicht — z. B.
+# 04-05 vs. 03-04 Uhr — und produziert irrefuehrende %-Spruenge.
+# Die UI ist konsistent mit dem globalen Trend (siehe Frontend
+# `_isShortTrendPeriod`): kurze Perioden zeigen keinen Trend.
+SOURCE_DETAIL_TREND_MIN_PERIOD_MINUTES: int = 1440
 
 
 def _silent_minutes_from(
@@ -628,6 +653,13 @@ class KnxStatsService:
             )
         else:
             findings = []
+        # Iter I (knx-detail-panes): Trend-Compare nur bei Perioden >= 24h.
+        trend = await self._compute_source_trend(
+            dev_source=dev_source,
+            from_dt=from_dt,
+            to_dt=to_dt,
+            count_now=total_count,
+        )
         return SourceDetail(
             dev_source=dev_source,
             total_count=total_count,
@@ -639,6 +671,41 @@ class KnxStatsService:
             repeat_ratio_pct=float(repeat_ratio["ratio_pct"]),
             gas=gas,
             findings=findings,
+            trend=trend,
+        )
+
+    async def _compute_source_trend(
+        self,
+        *,
+        dev_source: str,
+        from_dt: datetime,
+        to_dt: datetime,
+        count_now: int,
+    ) -> SourceTrendDelta | None:
+        """Iter I: Vergleich aktuelle Periode vs. Vorperiode (gleich lang).
+
+        - Schwellwert: SOURCE_DETAIL_TREND_MIN_PERIOD_MINUTES (1440 Min).
+        - Vorperiode liegt direkt davor (kein Gap, kein Overlap).
+        - delta_pct = None, wenn count_prev == 0 (Division durch 0).
+        """
+        period_minutes = (to_dt - from_dt).total_seconds() / 60.0
+        if period_minutes < SOURCE_DETAIL_TREND_MIN_PERIOD_MINUTES:
+            return None
+        prev_to = from_dt
+        prev_from = from_dt - (to_dt - from_dt)
+        count_prev = await self._repo.count_for_source(
+            dev_source, prev_from.isoformat(), prev_to.isoformat(),
+        )
+        delta_abs = count_now - count_prev
+        if count_prev == 0:
+            delta_pct: float | None = None
+        else:
+            delta_pct = round((delta_abs / count_prev) * 100.0, 2)
+        return SourceTrendDelta(
+            count_now=count_now,
+            count_prev=count_prev,
+            delta_abs=delta_abs,
+            delta_pct=delta_pct,
         )
 
     @staticmethod
@@ -1190,6 +1257,7 @@ def source_detail_to_dict(detail: SourceDetail) -> dict[str, Any]:
 
     Iter H: findings via Finding.to_dict serialisieren (nicht asdict —
     Finding.to_dict konvertiert datetime nach ISO).
+    Iter I: trend (None oder SourceTrendDelta).
     """
     return {
         "dev_source": detail.dev_source,
@@ -1202,6 +1270,7 @@ def source_detail_to_dict(detail: SourceDetail) -> dict[str, Any]:
         "repeat_ratio_pct": detail.repeat_ratio_pct,
         "gas": [asdict(g) for g in detail.gas],
         "findings": [f.to_dict() for f in detail.findings],
+        "trend": asdict(detail.trend) if detail.trend is not None else None,
     }
 
 
