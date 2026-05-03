@@ -27,6 +27,7 @@ from .findings.read_no_response import detect_read_no_response
 from .findings.reconnect_storm import detect_reconnect_storm
 from .findings.repeat_approximation import detect_repeat_approximation
 from .findings.send_cycle_drift import detect_send_cycle_drift
+from .findings.send_to_nowhere import detect_send_to_nowhere
 from .findings.stale_ga import detect_stale_ga
 from .findings.toggle_loop import detect_toggle_loop
 from .findings.value_range import detect_value_out_of_range
@@ -269,6 +270,9 @@ def _per_ga_findings(
         )
         if repeat is not None:
             out.append(repeat)
+    nowhere = detect_send_to_nowhere(ga=ga, samples=samples, now=now)
+    if nowhere is not None:
+        out.append(nowhere)
     return out
 
 

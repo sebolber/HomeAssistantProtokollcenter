@@ -106,6 +106,11 @@
         "title": "GA silencieuse depuis plusieurs jours",
         "description": "Dernier télégramme le {last_seen}, aucune activité depuis {days_silent} jours. Capteur défectueux ou ligne interrompue ?",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
+      },
+      "SEND_TO_NOWHERE": {
+        "title": "Télégramme sans écho de statut",
+        "description": "Le Write à {write_at} n'a reçu aucun écho de statut dans {status_window_ms} ms sur la même GA. Actionneur peut-être hors ligne, non programmé ou statut sur une GA séparée (faux positif possible).",
+        "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
       }
     }
   },

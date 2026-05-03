@@ -106,6 +106,11 @@
         "title": "GA al dagen stil",
         "description": "Laatste telegram op {last_seen}, geen activiteit sinds {days_silent} dagen. Sensor defect of lijn onderbroken?",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
+      },
+      "SEND_TO_NOWHERE": {
+        "title": "Schakelttelegram zonder status-echo",
+        "description": "Write om {write_at} kreeg geen status-echo binnen {status_window_ms} ms op dezelfde GA. Actuator mogelijk offline, niet geprogrammeerd of status op aparte GA (mogelijk vals positief).",
+        "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
       }
     }
   },

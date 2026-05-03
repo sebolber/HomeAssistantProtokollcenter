@@ -7,6 +7,20 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Wiring-Audit + Phase 6+7)
+- **Iter 31 — Detector `SEND_TO_NOWHERE`.**
+  Neuer Detector `processing/findings/send_to_nowhere.py:detect_send_to_nowhere`
+  korreliert GroupValueWrite mit Status-Echo binnen
+  `SEND_TO_NOWHERE_STATUS_WINDOW_MS` (5 s). Heuristik:
+  - Filter Status-Echos vor (Write von anderer Source binnen 5 s nach
+    einem vorherigen Write — typisch Aktor-Antwort) — sonst wuerde
+    der Detector den Status-Update als unbeantworteten Befehl deuten.
+  - Fuer "Command-Writes": fehlt im Fenster ein GroupValueResponse oder
+    ein Write von anderer Source/anderem Wert, Finding mit Evidence
+    `{write_at, status_window_ms, status_received: false}` und
+    Severity `info` (Heuristik kann False-Positive sein, wenn Status-
+    GA separat gepflegt ist). Im per-GA-Runner einsortiert (Iter 29a),
+    Snapshot-Fixture fuer Iter 30 ergaenzt, i18n-Strings in 6 Sprachen
+    plus `frontend/src/utils/findings-i18n.ts`.
 - **Iter 30 — Snapshot-Fixtures pro Detector.**
   Neue Fixtures in `tests/fixtures/knx_findings/<code>.sql` plus Test-
   Suite `tests/test_finding_snapshots.py` laden anonymisierte SQL-

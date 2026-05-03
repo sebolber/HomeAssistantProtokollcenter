@@ -106,6 +106,11 @@
         "title": "GA en silencio desde hace días",
         "description": "Último telegrama el {last_seen}, sin actividad durante {days_silent} días. ¿Sensor defectuoso o línea interrumpida?",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
+      },
+      "SEND_TO_NOWHERE": {
+        "title": "Telegrama sin eco de estado",
+        "description": "El Write a las {write_at} no recibió eco de estado en {status_window_ms} ms en la misma GA. Actuador posiblemente offline, no programado o el estado vive en una GA separada (posible falso positivo).",
+        "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
       }
     }
   },

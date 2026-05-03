@@ -106,6 +106,11 @@
         "title": "GA seit Tagen tot",
         "description": "Letztes Telegramm am {last_seen}, seit {days_silent} Tagen keine weitere Aktivitaet. Sensorik defekt oder Linie unterbrochen?",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
+      },
+      "SEND_TO_NOWHERE": {
+        "title": "Schalt-Telegramm ohne Status-Echo",
+        "description": "Write um {write_at} blieb {status_window_ms} ms ohne Status-Echo auf derselben GA. Aktor moeglicherweise offline, unprogrammiert oder Status liegt auf separater GA (False-Positive moeglich).",
+        "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
       }
     }
   },

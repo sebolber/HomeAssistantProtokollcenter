@@ -29,6 +29,8 @@ _PHASE4_CODES = (
     "SEND_CYCLE_DRIFT",
     "REPEAT_APPROXIMATION",
 )
+# Iter 31 (Phase 7): komplexer Letzter Detector + i18n.
+_PHASE7_CODES = ("SEND_TO_NOWHERE",)
 _LANGS = ("de", "en", "es", "fr", "it", "nl")
 
 
@@ -40,7 +42,10 @@ def test_translations_valid_json(lang: str) -> None:
 
 
 @pytest.mark.parametrize("lang", _LANGS)
-@pytest.mark.parametrize("code", _PHASE2_CODES + _PHASE3_CODES + _PHASE4_CODES)
+@pytest.mark.parametrize(
+    "code",
+    _PHASE2_CODES + _PHASE3_CODES + _PHASE4_CODES + _PHASE7_CODES,
+)
 def test_finding_translation_has_required_keys_for_each_lang(
     lang: str, code: str
 ) -> None:

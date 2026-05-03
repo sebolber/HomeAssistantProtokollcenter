@@ -146,6 +146,13 @@ class TestPerGaSnapshots:
         codes = await _codes(db)
         assert "REPEAT_APPROXIMATION" in codes
 
+    @pytest.mark.asyncio
+    async def test_snapshot_send_to_nowhere(self, db: Database) -> None:
+        await _load_snapshot(db, "send_to_nowhere")
+        await _run_per_ga(db, "14/0/0")
+        codes = await _codes(db)
+        assert "SEND_TO_NOWHERE" in codes
+
 
 class TestBusWideSnapshots:
     @pytest.mark.asyncio

@@ -106,6 +106,11 @@
         "title": "GA gone silent",
         "description": "Last telegram at {last_seen}, no activity for {days_silent} days. Sensor faulty or line interrupted?",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
+      },
+      "SEND_TO_NOWHERE": {
+        "title": "Switching telegram without status echo",
+        "description": "Write at {write_at} received no status echo within {status_window_ms} ms on the same GA. Actuator possibly offline, not programmed, or status lives on a separate GA (false positive possible).",
+        "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
       }
     }
   },

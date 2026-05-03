@@ -122,6 +122,15 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
       help_url:
         "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check",
     },
+    SEND_TO_NOWHERE: {
+      title: "Schalt-Telegramm ohne Status-Echo",
+      description:
+        "Write um {write_at} blieb {status_window_ms} ms ohne Status-Echo " +
+        "auf derselben GA. Aktor moeglicherweise offline, unprogrammiert " +
+        "oder Status liegt auf separater GA (False-Positive moeglich).",
+      help_url:
+        "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics",
+    },
   },
   en: {
     DPT_MISMATCH: {
@@ -214,6 +223,16 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
         "days. Sensor faulty or line interrupted?",
       help_url:
         "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check",
+    },
+    SEND_TO_NOWHERE: {
+      title: "Switching telegram without status echo",
+      description:
+        "Write at {write_at} received no status echo within " +
+        "{status_window_ms} ms on the same GA. Actuator possibly offline, " +
+        "not programmed, or status lives on a separate GA (false positive " +
+        "possible).",
+      help_url:
+        "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics",
     },
   },
 };

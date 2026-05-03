@@ -22,6 +22,7 @@ Finding-Set mit der Erwartung.
 | `orphan_ga.sql` | ORPHAN_GA | Whitelist-GA mit 0 Telegrammen -> Finding |
 | `stale_ga.sql` | STALE_GA | Whitelist-GA mit last_seen > 30 Tage -> Finding |
 | `health_busload.sql` | HEALTH_BUSLOAD | 1500 Telegramme in 10 s -> Buslast > 20% -> Finding |
+| `send_to_nowhere.sql` | SEND_TO_NOWHERE | Write ohne Status-Echo binnen 5 s -> Finding |
 
 ## Konvention
 
