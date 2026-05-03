@@ -38,6 +38,7 @@ from ..processing.knx_recommend_service import (
     compute_device_recommendation,
     device_recommendation_to_dict,
 )
+from ..processing.knx_device_inference import infer_manufacturer_from_labels
 from ..processing.recommendation_cache import RecommendationCache
 from ..storage.knx_devices_repo import KnxDeviceRepository
 from ..processing.knx_stats_service import (
@@ -1171,6 +1172,178 @@ class KnxStatsSourceRecommendationView(RequireAdminView):
         return self.json(result)
 
 
+# =============================================================================
+# Iter L2.3 — Pflege-API fuer KNX-Geraete-Profile
+# =============================================================================
+#
+# Sicherheits-Pyramide:
+# - RequireAdminView + _check_admin auf jeder Methode (GET/PUT/DELETE)
+# - validate_knx_individual_address auf dev_source-Path-Param
+# - validate_note auf manufacturer/model/notes (max 200 chars,
+#   nicht-string -> None)
+# - Audit-Log via _audit fuer PUT (knx_device_set) und DELETE
+#   (knx_device_clear)
+#
+# Default-Pflegepfad: User pflegt manufacturer + model selbst, optional
+# Auto-Inferenz auf Server-Seite (siehe `_infer_manufacturer_from_labels`)
+# beim ersten GET, falls noch kein Eintrag existiert. Auto-Inferenz ist
+# konservativ: nur ein Vorschlag mit confidence-Marker, keine
+# automatische Persistierung.
+
+
+class KnxDeviceListView(RequireAdminView):
+    """Iter L2.3: Liste aller Geraete-Profile."""
+
+    url = "/api/messagehub/knx-devices"
+    name = "api:messagehub:knx-devices:list"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        repo = KnxDeviceRepository(db)
+        items = await repo.list_all()
+        return self.json({"items": items, "count": len(items)})
+
+
+class KnxDeviceDetailView(RequireAdminView):
+    """Iter L2.3: GET/PUT/DELETE pro Geraet.
+
+    GET: Eintrag (oder 404). Bei 404 liefert die View zusaetzlich einen
+    optionalen `inferred`-Block, falls die Auto-Inferenz aus den Live-
+    GA-Labels einen plausiblen Hersteller findet.
+
+    PUT: Body {manufacturer?, model?, notes?}. Empty-String loescht das
+    Feld zu NULL. Audit-Log `knx_device_set`.
+
+    DELETE: Idempotent. Audit-Log `knx_device_clear`.
+    """
+
+    url = "/api/messagehub/knx-devices/{dev_source}"
+    name = "api:messagehub:knx-devices:detail"
+
+    async def get(
+        self, request: web.Request, dev_source: str,
+    ) -> web.Response:
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        dev_source = validate_knx_individual_address(dev_source)
+        repo = KnxDeviceRepository(db)
+        entry = await repo.get(dev_source)
+        if entry is not None:
+            return self.json(entry)
+        # Kein Eintrag -> Auto-Inferenz aus GA-Labels (Live-48h).
+        stats_repo = KnxStatsRepository(db)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=2  # 2 d = 48 h Live-Window
+        )
+        gas = await stats_repo.gas_for_source(
+            dev_source, from_iso, to_iso, limit=100,
+        )
+        labels = [str(g.get("label") or "") for g in gas]
+        inferred = infer_manufacturer_from_labels(labels)
+        body: dict[str, Any] = {
+            "dev_source": dev_source,
+            "manufacturer": None,
+            "model": None,
+            "notes": None,
+            "last_seen": None,
+            "created_at": None,
+            "updated_at": None,
+            "inferred": (
+                {
+                    "manufacturer": inferred,
+                    "confidence": "low",
+                    "rationale": "from_ga_labels",
+                }
+                if inferred is not None
+                else None
+            ),
+        }
+        return self.json(body)
+
+    async def put(
+        self, request: web.Request, dev_source: str,
+    ) -> web.Response:
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        dev_source = validate_knx_individual_address(dev_source)
+        try:
+            data = await request.json()
+        except (ValueError, TypeError):
+            return self.json_message(ERR_INVALID_JSON, status_code=400)
+        if not isinstance(data, dict):
+            return self.json_message(ERR_INVALID_JSON, status_code=400)
+        manufacturer = validate_note(data.get("manufacturer"), max_length=200)
+        model = validate_note(data.get("model"), max_length=200)
+        notes = validate_note(data.get("notes"), max_length=1000)
+        repo = KnxDeviceRepository(db)
+        result = await repo.upsert(
+            dev_source=dev_source,
+            manufacturer=manufacturer if "manufacturer" in data else None,
+            model=model if "model" in data else None,
+            notes=notes if "notes" in data else None,
+        )
+        await audit(
+            request.app["hass"],
+            request,
+            action="knx_device_set",
+            target_type="knx_device",
+            target_id=dev_source,
+            details={
+                "manufacturer": result["manufacturer"],
+                "model": result["model"],
+            },
+        )
+        # Recommendation-Cache fuer dieses Geraet flushen — naechster
+        # Drawer-Open zeigt direkt das aktualisierte Profil.
+        _flush_recommendation_cache_for(dev_source)
+        return self.json(result)
+
+    async def delete(
+        self, request: web.Request, dev_source: str,
+    ) -> web.Response:
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        dev_source = validate_knx_individual_address(dev_source)
+        repo = KnxDeviceRepository(db)
+        ok = await repo.delete(dev_source)
+        if not ok:
+            return self.json_message(ERR_NOT_FOUND, status_code=404)
+        await audit(
+            request.app["hass"],
+            request,
+            action="knx_device_clear",
+            target_type="knx_device",
+            target_id=dev_source,
+        )
+        _flush_recommendation_cache_for(dev_source)
+        return self.json({"ok": True, "dev_source": dev_source})
+
+
+def _flush_recommendation_cache_for(dev_source: str) -> None:
+    """Loescht alle Cache-Eintraege, die zu einem dev_source gehoeren.
+
+    Cache-Keys sind ``{dev_source}:{from}:{to}`` — wir muessen den ganzen
+    Cache iterieren, weil from/to variabel sind. Bei < 200 Eintraegen
+    (Cache-max_entries) ist das O(n) und vernachlaessigbar.
+    """
+    prefix = f"{dev_source}:"
+    keys_to_drop = [
+        k for k in list(_recommendation_cache._store.keys())  # noqa: SLF001
+        if k.startswith(prefix)
+    ]
+    for k in keys_to_drop:
+        _recommendation_cache._store.pop(k, None)  # noqa: SLF001
+
+
 def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsSummaryView())
     hass.http.register_view(KnxStatsTopView())
@@ -1192,3 +1365,5 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsAcknowledgeBulkView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())
     hass.http.register_view(KnxStatsSourceRecommendationView())
+    hass.http.register_view(KnxDeviceListView())
+    hass.http.register_view(KnxDeviceDetailView())

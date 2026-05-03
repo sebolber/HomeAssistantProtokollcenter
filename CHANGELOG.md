@@ -7,6 +7,22 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L2.3 / Sprint Recommendations — Devices-Pflege-API + Auto-Inferenz.**
+  Neue Endpoints:
+  * `GET /api/messagehub/knx-devices` (Liste aller Profile)
+  * `GET /api/messagehub/knx-devices/{dev_source}` (Eintrag oder
+    Auto-Inferenz aus GA-Labels mit Confidence-Marker bei fehlendem
+    Eintrag)
+  * `PUT /api/messagehub/knx-devices/{dev_source}` (Body
+    `{manufacturer?, model?, notes?}`, partial update, Empty-String
+    loescht zu NULL, Audit `knx_device_set`)
+  * `DELETE /api/messagehub/knx-devices/{dev_source}` (idempotent,
+    Audit `knx_device_clear`)
+  Beide Mutationen flushen den Recommendation-Cache fuer
+  das Geraet — naechster Drawer-Open zeigt direkt das aktualisierte
+  Profil. Auto-Inferenz `infer_manufacturer_from_labels` ist
+  konservativ (Mehrfach-Match → keine Empfehlung) und HA-frei in
+  eigenem Modul. 22 neue Pytests.
 - **Iter L2.2 / Sprint Recommendations — Layer-2-Pipeline.**
   Service `compute_device_recommendation` akzeptiert ein optionales
   `devices_repo`. Ist es gegeben, wird das Geraete-Profil (`knx_devices`-
