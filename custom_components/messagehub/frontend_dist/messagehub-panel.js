@@ -7633,10 +7633,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     const t = this._trend, e = t.total_delta_pct !== null ? `${t.total_delta_pct > 0 ? "+" : ""}${t.total_delta_pct.toLocaleString(
       "de-DE",
       { minimumFractionDigits: 1, maximumFractionDigits: 1 }
-    )} %` : "neu", s = (i) => i.delta_pct === null ? i.delta_abs > 0 ? "neu" : "verstummt" : `${i.delta_pct > 0 ? "+" : ""}${i.delta_pct.toLocaleString("de-DE", {
+    )} %` : "neu", s = (o) => o.delta_pct === null ? o.delta_abs > 0 ? "neu" : "verstummt" : `${o.delta_pct > 0 ? "+" : ""}${o.delta_pct.toLocaleString("de-DE", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 1
-    })} %`, r = this._classifyTrendSeverity(t.total_delta_pct), a = this._filters.topNTrend;
+    })} %`, r = this._classifyTrendSeverity(t.total_delta_pct), a = this._filters.topNTrend, i = this._isShortTrendPeriod();
     return n`
       <section class=${`mh-card trend trend--${r}`}>
         <header class="card-head">
@@ -7646,21 +7646,27 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             zuvor ${t.total_prev.toLocaleString("de-DE")} ·
             <strong>${e}</strong>
           </span>
-          ${this._renderInlineTopN(this._filters.topNTrend, (i) => this._onTopNTrend(i))}
+          ${this._renderInlineTopN(this._filters.topNTrend, (o) => this._onTopNTrend(o))}
         </header>
+        ${i ? n`<p class="trend-short-hint muted small">
+              Hinweis: Bei kurzen Perioden vergleicht sich z. B. 04–05 Uhr mit
+              03–04 Uhr — Tag/Nacht-Übergaenge und Automation-Trigger lassen
+              die %-Werte oft 4-stellig wirken. Fuer aussagekraeftige Trends
+              mind. 24 Std waehlen.
+            </p>` : d}
         <div class="trend-grid">
           <div class="trend-col">
             <strong>Größte Anstiege</strong>
             ${t.top_increase.length === 0 ? n`<p class="muted small">Keine signifikanten Anstiege.</p>` : n`<ul class="trend-list trend-list--up">
                   ${t.top_increase.slice(0, a).map(
-      (i) => n`<li>
-                      <code class="ga">${i.ga}</code>
+      (o) => n`<li>
+                      <code class="ga">${o.ga}</code>
                       <span class="trend-label muted"
-                        >${i.label ?? "—"}</span
+                        >${o.label ?? "—"}</span
                       >
                       <span class="trend-delta trend-delta--up"
-                        >+${i.delta_abs.toLocaleString("de-DE")} ·
-                        ${s(i)}</span
+                        >+${o.delta_abs.toLocaleString("de-DE")} ·
+                        ${s(o)}</span
                       >
                     </li>`
     )}
@@ -7670,14 +7676,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             <strong>Größte Rückgänge</strong>
             ${t.top_decrease.length === 0 ? n`<p class="muted small">Keine signifikanten Rückgänge.</p>` : n`<ul class="trend-list trend-list--down">
                   ${t.top_decrease.slice(0, a).map(
-      (i) => n`<li>
-                      <code class="ga">${i.ga}</code>
+      (o) => n`<li>
+                      <code class="ga">${o.ga}</code>
                       <span class="trend-label muted"
-                        >${i.label ?? "—"}</span
+                        >${o.label ?? "—"}</span
                       >
                       <span class="trend-delta trend-delta--down"
-                        >${i.delta_abs.toLocaleString("de-DE")} ·
-                        ${s(i)}</span
+                        >${o.delta_abs.toLocaleString("de-DE")} ·
+                        ${s(o)}</span
                       >
                     </li>`
     )}
@@ -7691,11 +7697,22 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
    * Iter 67: Ampel-Schwellen fuer den Total-Trend. Konservativ:
    * |delta| < 25 % = green (normales Atmen), 25-100 % = yellow,
    * 100-300 % = orange, > 300 % = red.
+   *
+   * Iter aiohttp-error-ZU9UA / P1: bei kurzen Perioden (1h/6h) wird die
+   * Severity auf "green" gedeckelt. Ein 1h-vs-1h-Vergleich erwischt
+   * regelmaessig Tag/Nacht-Uebergaenge oder Automation-Trigger und
+   * produziert haeufig 4-stellige %-Spruenge — der rote Alarm-Look
+   * verschreckt den User unnoetig. Stattdessen zeigt die Trend-Card
+   * einen erklaerenden Hinweis (siehe `_renderTrend`).
    */
   _classifyTrendSeverity(t) {
+    if (this._isShortTrendPeriod()) return "green";
     if (t === null) return "yellow";
     const e = Math.abs(t);
     return e < ha ? "green" : e < ca ? "yellow" : e < pa ? "orange" : "red";
+  }
+  _isShortTrendPeriod() {
+    return this._filters.periodId === "1h" || this._filters.periodId === "6h";
   }
   /**
    * Iter 91 / WR-G: GA-Heatmap als CSS-Grid. Zeilen = Top-N GAs,
@@ -8694,6 +8711,15 @@ b.styles = [
       }
       .trend--red {
         border-left-color: var(--mh-error);
+      }
+      /* Iter aiohttp-error-ZU9UA / P1: Hinweistext bei kurzen Perioden,
+         um den +1.300%-Look in den Kontext zu setzen. */
+      .trend-short-hint {
+        margin: var(--mh-space-2) 0 var(--mh-space-3) 0;
+        padding: var(--mh-space-2) var(--mh-space-3);
+        background: var(--mh-surface-soft, var(--mh-surface));
+        border-left: 3px solid var(--mh-info, var(--mh-divider));
+        border-radius: var(--mh-radius-sm);
       }
       .trend-grid {
         display: grid;

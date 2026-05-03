@@ -558,6 +558,84 @@ describe("stats-knx-view filter bar", () => {
     expect(persisted.periodId).toBe("1h");
   });
 
+  it("Iter aiohttp-error-ZU9UA: Trend-Card bei 1h-Periode hat green-Severity + Hinweis", async () => {
+    localStorage.setItem(
+      "messagehub.knx-stats.filters",
+      JSON.stringify({ periodId: "1h", topN: 25, minRate: 1, includeAck: true }),
+    );
+    const trendSpy = vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      prev_from: SUMMARY.from,
+      prev_to: SUMMARY.from,
+      period_minutes: 60,
+      total_now: 3675,
+      total_prev: 259,
+      total_delta_abs: 3416,
+      // Riesiger %-Sprung — bei kurzen Perioden trotzdem nicht rot.
+      total_delta_pct: 1318.9,
+      top_increase: [{ ga: "1/0/1", label: "x", delta_abs: 100, delta_pct: 200 }],
+      top_decrease: [],
+    }));
+    const api = { ...makeApi(), getKnxStatsTrend: trendSpy } as unknown as ApiClient;
+    const el = document.createElement("stats-knx-view") as HTMLElement & {
+      api?: ApiClient;
+      updateComplete: Promise<unknown>;
+    };
+    el.api = api;
+    document.body.appendChild(el);
+    for (let i = 0; i < 5; i++) {
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    const trendCard = el.shadowRoot!.querySelector(".trend") as HTMLElement | null;
+    expect(trendCard).not.toBeNull();
+    // Severity ist green (kein roter / oranger Border) trotz +1318 %
+    expect(trendCard!.classList.contains("trend--green")).toBe(true);
+    expect(trendCard!.classList.contains("trend--red")).toBe(false);
+    expect(trendCard!.classList.contains("trend--orange")).toBe(false);
+    // Hinweistext steht in der Card
+    const hint = trendCard!.querySelector(".trend-short-hint");
+    expect(hint).not.toBeNull();
+    expect(hint!.textContent).toContain("kurze");
+  });
+
+  it("Iter aiohttp-error-ZU9UA: Trend-Card bei 24h-Periode mit grossem Delta ist rot", async () => {
+    localStorage.setItem(
+      "messagehub.knx-stats.filters",
+      JSON.stringify({ periodId: "24h", topN: 25, minRate: 1, includeAck: true }),
+    );
+    const trendSpy = vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      prev_from: SUMMARY.from,
+      prev_to: SUMMARY.from,
+      period_minutes: 1440,
+      total_now: 100000,
+      total_prev: 100,
+      total_delta_abs: 99900,
+      total_delta_pct: 99900, // > 300 %
+      top_increase: [{ ga: "1/0/1", label: "x", delta_abs: 100, delta_pct: 200 }],
+      top_decrease: [],
+    }));
+    const api = { ...makeApi(), getKnxStatsTrend: trendSpy } as unknown as ApiClient;
+    const el = document.createElement("stats-knx-view") as HTMLElement & {
+      api?: ApiClient;
+      updateComplete: Promise<unknown>;
+    };
+    el.api = api;
+    document.body.appendChild(el);
+    for (let i = 0; i < 5; i++) {
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    const trendCard = el.shadowRoot!.querySelector(".trend") as HTMLElement | null;
+    expect(trendCard).not.toBeNull();
+    expect(trendCard!.classList.contains("trend--red")).toBe(true);
+    // Kein Short-Period-Hinweis bei 24h
+    expect(trendCard!.querySelector(".trend-short-hint")).toBeNull();
+  });
+
   it("Iter aiohttp-error-ZU9UA: Heatmap-Bucket adaptiert sich an die Periode", async () => {
     // 1h → 5 min Buckets, 6h → 15, 24h+ → 60
     const cases: Array<{ periodId: string; expectedBucket: number }> = [

@@ -1941,6 +1941,7 @@ export class StatsKnxView extends LitElement {
     };
     const totalSeverity = this._classifyTrendSeverity(t.total_delta_pct);
     const limit = this._filters.topNTrend;
+    const isShort = this._isShortTrendPeriod();
     return html`
       <section class=${`mh-card trend trend--${totalSeverity}`}>
         <header class="card-head">
@@ -1952,6 +1953,14 @@ export class StatsKnxView extends LitElement {
           </span>
           ${this._renderInlineTopN(this._filters.topNTrend, (n) => this._onTopNTrend(n))}
         </header>
+        ${isShort
+          ? html`<p class="trend-short-hint muted small">
+              Hinweis: Bei kurzen Perioden vergleicht sich z. B. 04–05 Uhr mit
+              03–04 Uhr — Tag/Nacht-Übergaenge und Automation-Trigger lassen
+              die %-Werte oft 4-stellig wirken. Fuer aussagekraeftige Trends
+              mind. 24 Std waehlen.
+            </p>`
+          : nothing}
         <div class="trend-grid">
           <div class="trend-col">
             <strong>Größte Anstiege</strong>
@@ -2000,14 +2009,26 @@ export class StatsKnxView extends LitElement {
    * Iter 67: Ampel-Schwellen fuer den Total-Trend. Konservativ:
    * |delta| < 25 % = green (normales Atmen), 25-100 % = yellow,
    * 100-300 % = orange, > 300 % = red.
+   *
+   * Iter aiohttp-error-ZU9UA / P1: bei kurzen Perioden (1h/6h) wird die
+   * Severity auf "green" gedeckelt. Ein 1h-vs-1h-Vergleich erwischt
+   * regelmaessig Tag/Nacht-Uebergaenge oder Automation-Trigger und
+   * produziert haeufig 4-stellige %-Spruenge — der rote Alarm-Look
+   * verschreckt den User unnoetig. Stattdessen zeigt die Trend-Card
+   * einen erklaerenden Hinweis (siehe `_renderTrend`).
    */
   private _classifyTrendSeverity(deltaPct: number | null): string {
+    if (this._isShortTrendPeriod()) return "green";
     if (deltaPct === null) return "yellow"; // erste Daten oder neu
     const abs = Math.abs(deltaPct);
     if (abs < TREND_DELTA_PCT_GREEN_MAX) return "green";
     if (abs < TREND_DELTA_PCT_YELLOW_MAX) return "yellow";
     if (abs < TREND_DELTA_PCT_ORANGE_MAX) return "orange";
     return "red";
+  }
+
+  private _isShortTrendPeriod(): boolean {
+    return this._filters.periodId === "1h" || this._filters.periodId === "6h";
   }
 
   /**
@@ -3083,6 +3104,15 @@ export class StatsKnxView extends LitElement {
       }
       .trend--red {
         border-left-color: var(--mh-error);
+      }
+      /* Iter aiohttp-error-ZU9UA / P1: Hinweistext bei kurzen Perioden,
+         um den +1.300%-Look in den Kontext zu setzen. */
+      .trend-short-hint {
+        margin: var(--mh-space-2) 0 var(--mh-space-3) 0;
+        padding: var(--mh-space-2) var(--mh-space-3);
+        background: var(--mh-surface-soft, var(--mh-surface));
+        border-left: 3px solid var(--mh-info, var(--mh-divider));
+        border-radius: var(--mh-radius-sm);
       }
       .trend-grid {
         display: grid;
