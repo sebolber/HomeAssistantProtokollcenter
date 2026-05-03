@@ -29,6 +29,8 @@ from .knx_dpt_recommendations import (
 )
 
 if TYPE_CHECKING:
+    from .findings import Finding
+    from ..storage.findings_repo import FindingsRepository
     from ..storage.knx_devices_repo import KnxDeviceRepository
     from ..storage.knx_stats_repo import KnxStatsRepository
 
@@ -548,6 +550,69 @@ def _apply_busload_override(
     return overridden, any_override
 
 
+RELEVANT_FINDING_CODES_FOR_RECOMMENDATIONS: Final[frozenset[str]] = frozenset({
+    "SEND_CYCLE_DRIFT",
+    "REPEAT_APPROXIMATION",
+    "TOGGLE_LOOP",
+    "MULTI_RESPONDER",
+})
+"""Iter L3.1: Findings-Codes, die die Empfehlung schaerfen. Die Liste
+ist bewusst eng — nur Phaenomene, die direkt mit Sende-Modus oder
+Sende-Frequenz zu tun haben. Andere Codes (DPT_MISMATCH, ORPHAN_GA,
+STALE_GA) werden vom User ueber den Findings-Tab adressiert, nicht
+ueber die Empfehlungs-Card."""
+
+
+def _apply_findings_override(
+    ga_recos: list[GaRecommendation],
+    *,
+    active_findings: Sequence["Finding"],
+) -> list[GaRecommendation]:
+    """Layer-3-Findings-Override: aktive (unacked) Findings auf einer
+    GA setzen die GA-Severity auf 'deviation'.
+
+    ``active_findings`` muss bereits ack-gefiltert sein und nur Codes
+    aus ``RELEVANT_FINDING_CODES_FOR_RECOMMENDATIONS`` enthalten.
+    """
+    if not active_findings:
+        return ga_recos
+    affected_gas: set[str] = {
+        str(f.ga) for f in active_findings if f.ga is not None
+    }
+    if not affected_gas:
+        return ga_recos
+    return [
+        replace(ga, severity="deviation") if ga.ga in affected_gas else ga
+        for ga in ga_recos
+    ]
+
+
+async def _fetch_active_findings_for_source(
+    findings_repo: "FindingsRepository",
+    dev_source: str,
+) -> list["Finding"]:
+    """Holt unacked Findings einer Source, gefiltert auf relevante Codes.
+
+    Defensiv gegen Repos ohne ``list_acknowledgements`` (aelteres Schema):
+    fallback liefert alle Findings, sodass die Pipeline nicht abbricht.
+    """
+    items = await findings_repo.list_findings(
+        source=dev_source, limit=200,
+    )
+    if not items:
+        return []
+    if hasattr(findings_repo, "list_acknowledgements"):
+        rows = await findings_repo.list_acknowledgements()
+        acked = {(str(r["ga"]), str(r["finding_code"])) for r in rows}
+    else:
+        acked = set()
+    return [
+        f for f in items
+        if f.code in RELEVANT_FINDING_CODES_FOR_RECOMMENDATIONS
+        and (f.ga is None or (f.ga, f.code) not in acked)
+    ]
+
+
 async def _avg_busload_pct(
     repo: "KnxStatsRepository", from_iso: str, to_iso: str,
 ) -> float:
@@ -570,6 +635,7 @@ async def compute_device_recommendation(
     to_iso: str,
     *,
     devices_repo: "KnxDeviceRepository | None" = None,
+    findings_repo: "FindingsRepository | None" = None,
 ) -> DeviceRecommendation | None:
     """Aggregiert die Geraete-Empfehlung aus den GA-Klassifikationen.
 
@@ -633,6 +699,18 @@ async def compute_device_recommendation(
     avg_busload = await _avg_busload_pct(repo, from_iso, to_iso)
     ga_recos, busload_overridden = _apply_busload_override(ga_recos, avg_busload)
 
+    # Iter L3.1: Layer-3-Findings — aktive (unacked) Findings dieser
+    # Source schaerfen die Severity der betroffenen GAs auf 'deviation'.
+    active_findings: list["Finding"] = []
+    if findings_repo is not None:
+        active_findings = await _fetch_active_findings_for_source(
+            findings_repo, dev_source,
+        )
+        if active_findings:
+            ga_recos = _apply_findings_override(
+                ga_recos, active_findings=active_findings,
+            )
+
     headline_mode, confidence = _aggregate_headline(ga_recos)
     headline_text = _build_headline_text(headline_mode, ga_recos)
 
@@ -668,6 +746,14 @@ async def compute_device_recommendation(
             f"Layer 3 (live_anomaly) — Bus-Avg-Last {avg_busload:.1f} % "
             f">= {BUSLOAD_OVERRIDE_THRESHOLD_PCT:.0f} % → empfohlene "
             f"Zyklen um Faktor {BUSLOAD_OVERRIDE_FACTOR} verlaengert."
+        )
+    for finding in active_findings:
+        ga_label = (
+            f"auf {finding.ga}" if finding.ga is not None else "(bus-weit)"
+        )
+        reasoning.append(
+            f"Layer 3 (live_anomaly) — Finding {finding.code} {ga_label} "
+            f"aktiv: {finding.title}"
         )
     silent_count = sum(1 for r in ga_recos if r.observed.mode == "silent")
     if silent_count:

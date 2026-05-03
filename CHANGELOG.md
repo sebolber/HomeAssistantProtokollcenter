@@ -7,6 +7,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L3.1 / Sprint Recommendations — Layer-3-Findings-Override.**
+  Aktive (unacked) Findings einer Source mit relevantem Code
+  (`SEND_CYCLE_DRIFT`, `REPEAT_APPROXIMATION`, `TOGGLE_LOOP`,
+  `MULTI_RESPONDER`) setzen die Severity der betroffenen GA-
+  Empfehlung auf "deviation". Acked Findings werden ignoriert
+  (User hat das Phaenomen bereits zur Kenntnis genommen). Reasoning-
+  Liste enthaelt einen Eintrag pro aktivem Finding mit Code, GA und
+  Title. 10 neue Pytests.
 - **Iter L3.0 / Sprint Recommendations — Layer-3-Buslast-Override.**
   Bei Periode-Avg-Buslast >= 30 % werden die empfohlenen Zyklus-
   Korridore aller GAs um den Faktor 1.5 verlaengert. Der Empfehlungs-

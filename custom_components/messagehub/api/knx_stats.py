@@ -1159,9 +1159,14 @@ class KnxStatsSourceRecommendationView(RequireAdminView):
             return self.json(cached)
         repo = KnxStatsRepository(db)
         devices_repo = KnxDeviceRepository(db)
+        # Iter L3.1: FindingsRepository fuer Layer-3-Override
+        # mitliefern.
+        from ..storage.findings_repo import FindingsRepository  # noqa: PLC0415
+        findings_repo = FindingsRepository(db)
         reco = await compute_device_recommendation(
             repo, dev_source, from_iso, to_iso,
             devices_repo=devices_repo,
+            findings_repo=findings_repo,
         )
         if reco is None:
             return self.json_message(ERR_NOT_FOUND, status_code=404)
