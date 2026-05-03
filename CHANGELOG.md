@@ -7,6 +7,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L4.0 / Sprint Recommendations — Cache + Provider-Schnittstelle.**
+  Vorbereitung fuer Layer 4 (LLM-Empfehlungen). Migration
+  `0030_knx_recommendation_cache.sql` legt Cache-Tabelle an mit
+  sha256-Cache-Key und Expires-Index. `RecommendationCacheRepository`
+  mit `get`/`set`/`cleanup_expired`/`clear`. `make_cache_key` ist
+  deterministisch ueber (provider, model, dpt, manufacturer,
+  device_model, prompt_version) — Prompt-Tuning per Versionssprung
+  invalidiert sauber. Provider-Schnittstelle als Protocol +
+  `ProviderConfig`-Dataclass (frozen) mit allen Parametern fuer
+  konfigurierbare LLMs (base_url, model, api_key, timeout, max_tokens,
+  system_prompt_override). Bewusst HA-frei. 17 neue Pytests.
 - **Iter L3.2 / Sprint Recommendations — E2E Layer-3-Kombination.**
   Smoke-Test fuer den vollstaendigen Layer-3-Pfad: hohe Buslast UND
   aktives SEND_CYCLE_DRIFT-Finding gleichzeitig — beide Effekte
