@@ -220,6 +220,21 @@ async def findings_markdown_response(repo: Any) -> str:
     return format_findings_markdown(findings)
 
 
+async def aggregate_finding_total(repo: Any) -> dict[tuple[str, str], int]:
+    """SQL-Aggregation `(code, severity) -> count` aus `knx_findings`.
+
+    Iter 29c: Wird vom MetricsView konsumiert und an
+    `format_prometheus_metrics(finding_total=...)` weitergereicht — vorher
+    wurde der Param in der Produktiv-Code nie gefuettert (siehe Wiring-
+    Audit, Iter 28 partial wired).
+    """
+    rows = await repo._db.fetch_all(
+        "SELECT code, severity, COUNT(*) AS c "
+        "FROM knx_findings GROUP BY code, severity"
+    )
+    return {(str(r["code"]), str(r["severity"])): int(r["c"]) for r in rows}
+
+
 # Iter 29a: Refresh-Endpoint fuer per-GA-Detector-Runner (on-demand).
 DEFAULT_REFRESH_PERIOD_DAYS: int = 7
 MIN_REFRESH_PERIOD_DAYS: int = 1
@@ -275,6 +290,7 @@ __all__ = [
     "MAX_REFRESH_PERIOD_DAYS",
     "MIN_REFRESH_PERIOD_DAYS",
     "ack_finding_response",
+    "aggregate_finding_total",
     "clear_severity_override_response",
     "findings_markdown_response",
     "list_findings_response",

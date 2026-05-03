@@ -7,6 +7,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Wiring-Audit + Phase 6+7)
+- **Iter 29c — Prometheus-Aggregation verdrahtet.**
+  Schliesst die letzte Wiring-Audit-Luecke aus Iter 28: der Param
+  `finding_total` von `format_prometheus_metrics` blieb im Produktiv-
+  Code leer, weil `MetricsView.get` ihn nie fuetterte. Neuer Helper
+  `processing/findings_service.py:aggregate_finding_total(repo)`
+  fuehrt `SELECT code, severity, COUNT(*) FROM knx_findings GROUP BY ...`
+  aus; `MetricsView.get` ruft ihn auf und reicht das Mapping durch.
+  Sichtbar als `messagehub_knx_finding_total{code="...",severity="..."} N`
+  unter `/api/messagehub/metrics`.
 - **Iter 29b — Bus-wide-Detector-Runner (periodisch).**
   Schliesst die zweite Wiring-Audit-Luecke: bus-weite Detektoren
   (`lift_health_findings`, `detect_multi_time_master`,

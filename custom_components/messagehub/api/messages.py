@@ -1293,14 +1293,20 @@ class MetricsView(_RequireAdminView):
     async def get(self, request: web.Request) -> web.Response:
         from datetime import UTC, datetime, timedelta  # noqa: PLC0415
 
+        from ..processing.findings_service import (  # noqa: PLC0415
+            aggregate_finding_total,
+        )
         from ..processing.prometheus import format_prometheus_metrics  # noqa: PLC0415
+        from ..storage.findings_repo import FindingsRepository  # noqa: PLC0415
         from ._helpers import get_audit_failure_count  # noqa: PLC0415
 
         self._check_admin(request)
-        repos = _get_repos(request.app["hass"])
+        hass = request.app["hass"]
+        repos = _get_repos(hass)
         if repos is None:
             return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
         msg_repo, wh_repo = repos
+        db = _get_database(hass)
 
         cutoff_24h = (datetime.now(UTC) - timedelta(hours=24)).isoformat(
             timespec="seconds"
@@ -1325,6 +1331,12 @@ class MetricsView(_RequireAdminView):
         webhooks = await wh_repo.list_all()
         webhook_total = len(webhooks)
 
+        # Iter 29c: KNX-Findings-Aggregation als finding_total weiter-
+        # reichen. Vorher fehlte der Caller, der Param war tot.
+        finding_total: dict[tuple[str, str], int] = {}
+        if db is not None:
+            finding_total = await aggregate_finding_total(FindingsRepository(db))
+
         body = format_prometheus_metrics(
             total=total,
             severity_total=severity_total,
@@ -1332,6 +1344,7 @@ class MetricsView(_RequireAdminView):
             knx_total=knx_total,
             webhook_total=webhook_total,
             audit_failure_total=get_audit_failure_count(),
+            finding_total=finding_total,
         )
         return web.Response(
             body=body,

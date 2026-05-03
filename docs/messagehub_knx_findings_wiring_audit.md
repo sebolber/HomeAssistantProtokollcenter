@@ -107,6 +107,19 @@ gerufen aus `jobs/periodic.py:_run_findings_bus_wide_tick` alle
 Verbleibend orphan: `format_prometheus_metrics(finding_total=)` (28) —
 wird in Iter 29c durch `MetricsView` verdrahtet.
 
+## Status nach Iter 29c (Prometheus-Aggregation)
+
+Geschlossen durch `processing/findings_service.py:aggregate_finding_total`,
+gerufen aus `api/messages.py:MetricsView.get` und an
+`format_prometheus_metrics(finding_total=...)` durchgereicht.
+
+| Iter | Symbol | Caller jetzt |
+|------|--------|--------------|
+| 28 | `format_prometheus_metrics(finding_total=)` | `MetricsView.get` ueber `aggregate_finding_total` |
+
+**Bilanz: Alle 17 vorher-orphan-Symbole sind verdrahtet.** Wiring-Audit
+abgeschlossen.
+
 ## Konsequenz: Was sieht der User HEUTE im laufenden System?
 
 - Konfigurations-Check-Tab als 3. Sub-Tab: **leere Tabelle**, weil
