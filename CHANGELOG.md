@@ -6,6 +6,13 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 5)
+- **Iter 24 — Detector `ORPHAN_GA`.**
+  Erkennt Whitelist-Eintraege, die im Auswertezeitraum kein einziges
+  Telegramm gesehen haben (`telegram_count == 0`) — "im Projekt, aber
+  stumm". Severity `info`, Evidence `{period_from, period_to}`.
+  Defensive: negative Counts (Repo-Datenfehler) liefern KEIN Finding.
+
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 4)
 - **Iter 23 — i18n fuer Phase-4-Findings.**
   Title, Description (mit Evidence-Platzhaltern wie `{silence_until}`,
