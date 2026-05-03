@@ -7,6 +7,19 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L4.4 / Sprint Recommendations — E2E Layer-4-Pipeline.**
+  Vollstaendiger Round-Trip-Test mit echter SQLite, persistentem
+  Cache-Repo und einem deterministischen Mock-Provider (`_CountingProvider`)
+  — kein echter HTTP-Verkehr, aber realer Service-Pfad. Verifiziert:
+  Provider wird nur aufgerufen wenn Layer 1+2 keinen Treffer haben,
+  zweiter Aufruf trifft den Cache (kein erneuter Provider-Call),
+  Geraete-Profil-Felder werden im Provider-Aufruf weitergegeben,
+  None-Antwort fuehrt zu unaufdringlichem Fallback (kein Crash),
+  Layer-4-Reasoning-Marker erscheint nur bei tatsaechlichem Treffer,
+  DTO-Schema haelt Layer-4-Daten korrekt fest.
+  **Phase L4 abgeschlossen — Recommendation-Engine ist vollstaendig
+  konfigurierbar mit deterministischem Default und optionalem
+  LLM-Fallback.** 6 neue Pytests.
 - **Iter L4.3 / Sprint Recommendations — Settings-UI fuer LLM-Config.**
   Neuer Settings-Sub-Tab "KI-Empfehlungen" mit vollstaendigem
   Konfigurations-Dialog: Master-Toggle, Base-URL, Modell, API-Key

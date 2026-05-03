@@ -635,7 +635,7 @@ async def _apply_llm_fallback(
 
     Returns: (modifizierte Liste, Anzahl der GAs mit LLM-Befuellung).
     """
-    from .recommendation_cache_repo import (  # noqa: PLC0415
+    from ..storage.recommendation_cache_repo import (  # noqa: PLC0415
         make_cache_key,
     )
 
