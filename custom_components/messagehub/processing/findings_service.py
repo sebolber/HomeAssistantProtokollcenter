@@ -148,10 +148,74 @@ async def unack_finding_response(
     }
 
 
+async def list_severity_overrides_response(repo: Any) -> dict[str, Any]:
+    """Liefert eine Tabelle Code | Default | Override fuer die UI.
+
+    Enthaelt jeden bekannten Code aus `KNX_FINDING_DEFAULT_SEVERITIES`,
+    angereichert mit dem Override (oder None) und der ggf. vorhandenen
+    Note + Update-Zeit. Damit kann die UI eine vollstaendige Liste
+    rendern, ohne separat den Default-Lookup zu kennen.
+    """
+    rows = await repo.list_severity_overrides()
+    by_code: dict[str, dict[str, Any]] = {row["finding_code"]: row for row in rows}
+    items: list[dict[str, Any]] = []
+    for code in sorted(KNX_FINDING_DEFAULT_SEVERITIES):
+        override_row = by_code.get(code)
+        items.append(
+            {
+                "code": code,
+                "default_severity": KNX_FINDING_DEFAULT_SEVERITIES[code],
+                "override_severity": (
+                    override_row["severity"] if override_row else None
+                ),
+                "note": override_row["note"] if override_row else None,
+                "updated_at": (
+                    override_row["updated_at"] if override_row else None
+                ),
+            }
+        )
+    return {"items": items, "total": len(items)}
+
+
+async def set_severity_override_response(
+    repo: Any,
+    *,
+    code: str,
+    severity: FindingSeverity,
+    actor: str,
+    note: str | None = None,
+) -> dict[str, Any]:
+    """Setzt einen Override + liefert eine API-Response."""
+    _validate_code(code)
+    if severity not in FINDING_SEVERITIES:
+        raise ValueError(
+            f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}"
+        )
+    await repo.set_severity_override(
+        code=code, severity=severity, actor=actor, note=note,
+    )
+    return {"code": code, "severity": severity, "note": note}
+
+
+async def clear_severity_override_response(
+    repo: Any,
+    *,
+    code: str,
+    actor: str,
+) -> dict[str, Any]:
+    """Loescht den Override fuer einen Code (idempotent)."""
+    _validate_code(code)
+    await repo.clear_severity_override(code=code, actor=actor)
+    return {"code": code, "cleared": True}
+
+
 __all__ = [
     "DEFAULT_LIMIT",
     "HARD_CAP_LIMIT",
     "ack_finding_response",
+    "clear_severity_override_response",
     "list_findings_response",
+    "list_severity_overrides_response",
+    "set_severity_override_response",
     "unack_finding_response",
 ]

@@ -24,6 +24,16 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   `list_findings(code, ga, severity, source, limit)` mit
   `last_seen DESC`-Sortierung. title/description sind nicht
   persistiert (UI rendert via translations/).
+- **Iter 8 — API CRUD fuer Severity-Overrides.**
+  `GET /findings/severity-overrides` liefert Tabelle Code | Default |
+  Override (alle bekannten Codes inkl. ohne Override-Eintrag — UI muss
+  keinen separaten Default-Lookup kennen).
+  `PUT /findings/severity-overrides/{code}` setzt einen Override
+  idempotent (UPSERT). `DELETE /findings/severity-overrides/{code}`
+  loescht ihn (idempotent, schreibt Audit-Log auch wenn kein Row
+  existiert). Service-Layer validiert Code gegen
+  `KNX_FINDING_DEFAULT_SEVERITIES` und Severity gegen
+  `FINDING_SEVERITIES`.
 - **Iter 7 — API `POST /findings/ack` + `DELETE /findings/ack/{ga}/{code}`.**
   Service-Layer (`ack_finding_response` / `unack_finding_response`)
   validiert GA-Format (`M/L/G`) und Code (muss in

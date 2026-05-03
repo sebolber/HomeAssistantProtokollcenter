@@ -22,7 +22,10 @@ from ..processing.findings_service import (
     DEFAULT_LIMIT,
     HARD_CAP_LIMIT,
     ack_finding_response,
+    clear_severity_override_response,
     list_findings_response,
+    list_severity_overrides_response,
+    set_severity_override_response,
     unack_finding_response,
 )
 from ..storage.findings_repo import FindingsRepository
@@ -144,4 +147,69 @@ class FindingsAckDetailView(RequireAdminView):
         return self.json(payload)
 
 
-__all__ = ["FindingsAckDetailView", "FindingsAckView", "FindingsListView"]
+class FindingsSeverityOverridesView(RequireAdminView):
+    """GET /api/messagehub/findings/severity-overrides — Tabelle Code|Default|Override."""
+
+    url = "/api/messagehub/findings/severity-overrides"
+    name = "api:messagehub:findings:severity-overrides"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        repo = _repo(request.app["hass"])
+        if repo is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        return self.json(await list_severity_overrides_response(repo))
+
+
+class FindingsSeverityOverrideDetailView(RequireAdminView):
+    """PUT/DELETE /api/messagehub/findings/severity-overrides/{code}."""
+
+    url = "/api/messagehub/findings/severity-overrides/{code}"
+    name = "api:messagehub:findings:severity-override-detail"
+
+    async def put(self, request: web.Request, code: str) -> web.Response:
+        self._check_admin(request)
+        repo = _repo(request.app["hass"])
+        if repo is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        try:
+            body = await request.json()
+        except (ValueError, TypeError) as err:
+            raise web.HTTPBadRequest(reason=ERR_INVALID_JSON) from err
+        severity = body.get("severity")
+        note = body.get("note")
+        if note is not None and len(str(note)) > _HARD_NOTE_LENGTH:
+            raise web.HTTPBadRequest(reason="note too long")
+        try:
+            payload = await set_severity_override_response(
+                repo,
+                code=code,
+                severity=severity,
+                actor=actor(request),
+                note=str(note) if note else None,
+            )
+        except ValueError as err:
+            raise web.HTTPBadRequest(reason=str(err)) from err
+        return self.json(payload)
+
+    async def delete(self, request: web.Request, code: str) -> web.Response:
+        self._check_admin(request)
+        repo = _repo(request.app["hass"])
+        if repo is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        try:
+            payload = await clear_severity_override_response(
+                repo, code=code, actor=actor(request),
+            )
+        except ValueError as err:
+            raise web.HTTPBadRequest(reason=str(err)) from err
+        return self.json(payload)
+
+
+__all__ = [
+    "FindingsAckDetailView",
+    "FindingsAckView",
+    "FindingsListView",
+    "FindingsSeverityOverrideDetailView",
+    "FindingsSeverityOverridesView",
+]
