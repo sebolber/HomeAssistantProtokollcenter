@@ -2309,7 +2309,13 @@ export class StatsKnxView extends LitElement {
               ? html`<p class="muted small">Keine signifikanten Anstiege.</p>`
               : html`<ul class="trend-list trend-list--up">
                   ${t.top_increase.slice(0, limit).map(
-                    (row) => html`<li>
+                    (row) => html`<li
+                      class=${`trend-row ${
+                        this._selectedGa === row.ga ? "selected" : ""
+                      }`}
+                      @click=${() => void this._onSelectGa(row.ga)}
+                      title="GA-Detail oeffnen"
+                    >
                       <code class="ga">${row.ga}</code>
                       <span class="trend-label muted"
                         >${row.label ?? "—"}</span
@@ -2328,7 +2334,13 @@ export class StatsKnxView extends LitElement {
               ? html`<p class="muted small">Keine signifikanten Rückgänge.</p>`
               : html`<ul class="trend-list trend-list--down">
                   ${t.top_decrease.slice(0, limit).map(
-                    (row) => html`<li>
+                    (row) => html`<li
+                      class=${`trend-row ${
+                        this._selectedGa === row.ga ? "selected" : ""
+                      }`}
+                      @click=${() => void this._onSelectGa(row.ga)}
+                      title="GA-Detail oeffnen"
+                    >
                       <code class="ga">${row.ga}</code>
                       <span class="trend-label muted"
                         >${row.label ?? "—"}</span
@@ -3646,6 +3658,18 @@ export class StatsKnxView extends LitElement {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      /* Iter G (knx-detail-panes): klickbare Trend-Zeile.
+         GA-Klick wechselt zum GA-Detail-Pane (Trend zeigt GAs, nicht
+         Sources — siehe knx_detail_panes_konzept.md). */
+      .trend-list .trend-row {
+        cursor: pointer;
+      }
+      .trend-list .trend-row:hover {
+        filter: brightness(1.05);
+      }
+      .trend-list .trend-row.selected {
+        box-shadow: inset 3px 0 0 var(--mh-primary);
       }
       /* Iter 64 / WR-P: Detail-Pane Schnell-Aktionen mit HA-Konfig +
          Forum-Link. Anchors als kompakte Liste, kein Button-Stil. */
