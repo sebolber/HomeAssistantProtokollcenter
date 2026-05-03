@@ -53,6 +53,36 @@ export class DetailPane extends LitElement {
     try {
       await this.api.setMessageStatus(this.msg.id, status);
       this._status = status;
+      // F-008: gezielter Single-Item-Refresh. Vorher loeste der Panel
+      // ein full-list-_reload() aus, was bei 1000+ Nachrichten teuer
+      // war und die Scroll-Position riss. Jetzt holt detail-pane das
+      // eine Item neu via getMessage(id) und propagiert es ueber das
+      // 'message-updated'-Event — Panel patcht nur den einen Eintrag
+      // im _items-Array, kein Full-Reload.
+      try {
+        const fresh = await this.api.getMessage(this.msg.id);
+        this.msg = fresh;
+        this.dispatchEvent(
+          new CustomEvent("message-updated", {
+            detail: { msg: fresh },
+            bubbles: true,
+            composed: true,
+          })
+        );
+      } catch (refreshErr) {
+        // setMessageStatus war erfolgreich — der Refresh-Fehler darf
+        // den UI-Flow nicht haengen lassen. error-Event signalisiert
+        // dem Panel, dass es ggf. selbst neuladen soll.
+        this.dispatchEvent(
+          new CustomEvent("error", {
+            detail: { message: (refreshErr as Error).message },
+            bubbles: true,
+            composed: true,
+          })
+        );
+      }
+      // Backwards-Compat: status-change Event bleibt fuer aeltere
+      // Listener (z. B. Audit-Counter im Panel-Header).
       this.dispatchEvent(
         new CustomEvent("status-change", {
           detail: { id: this.msg.id, status },

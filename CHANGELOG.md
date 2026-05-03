@@ -6,6 +6,20 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Geaendert (Performance + Code-Hygiene)
+- **Iter +8 / F-008 — Gezielter Refresh nach Status-Wechsel.** Wenn der
+  User im Detail-Pane „Bestaetigen" / „Geloest" / „Neu oeffnen" klickt,
+  feuerte der Pane bisher ein `status-change`-Event, woraufhin das
+  Hauptpanel die *gesamte Liste* per `listMessages()` neu lud — bei
+  1000+ Eintraegen sichtbar laggig + Scroll-Position weg. Jetzt holt
+  der Pane via `getMessage(id)` nur noch das eine Item, patcht
+  `this.msg` direkt und feuert ein neues `message-updated`-Event mit
+  dem frischen DTO. Das Panel ersetzt punktuell ein Item im
+  `_items`-Array. Backwards-Compat: `status-change`-Event bleibt fuer
+  evtl. dritt-Komponenten erhalten. Der frueher ungenutzte ApiClient-
+  `getMessage(id)`-Endpoint hat damit einen Caller. Behebt Audit-
+  Finding F-008 (DRY-Cleanup + Performance).
+
 ### Dokumentation (Code-Hygiene)
 - **Iter +7 / F-007 — `WebhookDetailView.GET` bewusst beibehalten.**
   Audit-Befund: Frontend nutzt aktuell keinen Single-Get fuer Webhooks.
