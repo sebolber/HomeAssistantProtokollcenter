@@ -11,5 +11,5 @@
   "issue_tracker": "https://github.com/sebolber/HomeAssistantProtokollcenter/issues",
   "loggers": ["custom_components.messagehub", "aiosqlite", "jsonpath_ng"],
   "requirements": ["aiosqlite>=0.20,<1.0", "jsonpath-ng>=1.6,<2.0"],
-  "version": "0.14.0"
+  "version": "0.16.0"
 }

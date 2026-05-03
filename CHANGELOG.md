@@ -6,6 +6,96 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.16.0] – 2026-05-03
+
+UX + Stability Release. Fokus: drei kritische Production-Bugs aus
+Screenshot-Reviews behoben, Diagnose-UX gehaertet (Integration ist
+endlich im HA-Log-Filter sichtbar), zwei Iterationen UX-Verbesserungen
+am KNX-Bus-Analyse-Tab (P0–P2 aus systematischem UX-Review).
+
+Tests: 706 Backend (+0, alle gruen), 124 → 138 Vitest (+14).
+Bundle: 348 → 360 KB (+12 KB).
+
+### Behoben (Production-Bugs)
+- **`KnxStatsGaDetailView.get() got an unexpected keyword argument 'ga'`**
+  — Home Assistant ruft View-Handler ueber `handler(request, **request.match_info)`
+  auf. Die vier KNX-Stats-Views, die `{ga}` in der URL deklarieren,
+  hatten Methoden-Signaturen `(self, request)` ohne `ga`-Parameter.
+  Jeder Aufruf brach mit HTTP 500 ab. Betroffen: `KnxStatsGaDetailView.get`,
+  `KnxStatsGaExportView.get`, `KnxStatsSensitiveSetView.post/delete/_toggle`,
+  `KnxStatsAcknowledgeDetailView.delete`. Plus AST-basierter Regression-
+  Test, der jede HTTP-Methode aller `api/*.py`-Views auf vollstaendige
+  Path-Parameter-Akzeptanz prueft.
+- **HTTP 500 im Statistik > KNX-Bus-Analyse-Tab + Dauer-Spinner im
+  Einstellungen > KNX-Bus-Tab, wenn keine ETS-Projektdatei geladen.**
+  Ursache: xknx-Project-Properties (`group_addresses`, `devices`)
+  warfen RuntimeError/TypeError beim Zugriff auf nicht-geladene
+  Strukturen. `getattr(..., default)` faengt nur AttributeError. Fix:
+  `_safe_getattr` + `_safe_truthy` in `processing/knx_discovery.py`,
+  Top-Level-Safety-Net in `discover_knx_project` /
+  `discover_knx_devices` faengt jede Exception und faellt auf den
+  Storage-Reader zurueck. 5 neue Resilience-Tests gegen RuntimeError-
+  Properties + raisende `__bool__`-Container.
+
+### Behoben (HACS-Diagnose)
+- **`manifest.json:loggers`-Feld ergaenzt** — vorher tauchte
+  `messagehub` ueberhaupt nicht im HA-Log-Filter-Dropdown
+  (Einstellungen → System → Protokolle, Filter rechts oben) auf, und
+  Debug-Logging via UI funktionierte nicht. Damit waren KNX-Listener-
+  und Discovery-Probleme im Produktivbetrieb unauffindbar. Loggers:
+  `custom_components.messagehub`, `aiosqlite`, `jsonpath_ng`.
+
+### Hinzugefuegt (UX P0)
+- **Inline-TopN-Filter pro Card** im KNX-Bus-Analyse-Tab — bisher nur
+  bei Top-Sender + Top-Geraete vorhanden, jetzt zusaetzlich an
+  Sicherheits-Audit, Telegrammfluten (Bursts), Long-Term-Sicht, Trend,
+  Verwaiste GAs (pro Spalte einen), Stille-Alarme,
+  Bus-Gesundheit. Optionen: 10 / 25 / 50 / 100 / 200, Default 25.
+- **Reihenfolge der Cards** an mentales User-Modell angepasst:
+  Übersicht-KPIs ganz oben, Health-Score, dann Top-Sender + Top-
+  Geraete + Detail-Pane, danach Tagesverlauf/Heatmap/Trend, dann
+  Anomalie-Cards (Bursts, Stille, Bus-Health), Audit + Verwaiste GAs
+  ans Ende. Vorher war Verwaiste GAs (3000+ Eintraege) im Mittelteil,
+  Top-Sender im unteren Drittel.
+- **Sticky Filter-Bar** mit subtilem Schatten — Periode/Min-Tel/Min
+  bleiben beim Scrollen oben.
+- **Verwaiste-GAs-Card: ETS-Platzhalter-Filter** (Default ON,
+  erkennt `^[\s\-_=]*$` und Label==Address). Reduziert die Liste bei
+  3000+ Projekt-GAs um ~80 % typischen Noise-Anteil.
+
+### Hinzugefuegt (UX P1)
+- **Detail-Pane als Side-Drawer** statt inline am Tabellen-Ende.
+  `<aside role="dialog" aria-modal="true">` mit Backdrop, Slide-In-
+  Animation 200 ms (`prefers-reduced-motion` respektiert). Schliessen
+  via X / Backdrop-Klick / Escape. Mobile (< 720 px): full-width.
+- **Heatmap-Bucket-Groesse adaptiv** je Periode: 1 h → 5 min, 6 h →
+  15 min, 24 h+ → 60 min. Vorher immer 60 min, was bei kurzen
+  Perioden in 1–2 Spalten resultierte.
+- **Trend-Card bei kurzen Perioden entschaerft** — 1h-vs-1h-Vergleich
+  produziert regelmaessig 4-stellige %-Spruenge (Tag/Nacht-Wechsel,
+  Automation). Severity wird bei 1h/6h auf "green" gedeckelt + ein
+  erklaerender Hinweistext erscheint. 24h+-Perioden behalten die alte
+  Ampel-Logik.
+
+### Hinzugefuegt (UX P2)
+- **Top-Sender-Status-Spalte konsolidiert**: vorher bis zu 3 Pills
+  uebereinander (Severity, Findings, Bekannt), jetzt genau 1 Pill.
+  `green + has_findings` escaliert auf `yellow` mit ⚠-Glyph statt
+  widerspruechlichem "OK + auffaellig"-Look.
+- **Health-Score-Komponenten als Badges** statt 4 Reihen mit immer-
+  gruenen Balken. Eigene Severity-Faerbung pro Komponente:
+  ≥ 80 → green, ≥ 60 → yellow, ≥ 40 → orange, < 40 → red.
+- **Aktualisieren-Button visuell verstaerkt**: eigene
+  `.filter-refresh-btn`-Klasse mit explizitem accent-Fallback,
+  Semibold-Font, box-shadow + hover-lift. Bei Loading-State rotiert
+  der ↻-Glyph.
+
+### Migration
+Keine Datenbank-Migrationen.
+Alle UI-Aenderungen nutzen `localStorage`-Filter; vorhandene Filter-
+Presets bleiben erhalten und werden mit den neuen Default-Feldern
+gemerged.
+
 ## [0.14.0] – 2026-05-02
 
 Großer Quality + Feature-Release. Sammelt Iter 59–93 (35 Iterationen):
