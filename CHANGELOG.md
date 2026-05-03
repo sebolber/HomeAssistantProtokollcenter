@@ -7,6 +7,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L2.1 / Sprint Recommendations — Modell-Recommendation-Tabelle.**
+  Neues Modul `processing/knx_device_model_recommendations.py` mit
+  ~10 kuratierten Modellen (Hoermann Garage, MDT-DALI/Dimm, Hager-
+  Schalt, Gira-Wetter, ABB-Heiz, Theben-Praesenz, Busch-Jaeger-
+  Thermo, Zennio-Multi, Elsner-T-AP). Lookup case-insensitive auf
+  manufacturer + fnmatch-Glob auf model. Konsistenz-Tests
+  (lowercase, rationale, DptRecommendation-Subtype, kein
+  Wildcard-Glob). 15 neue Pytests.
 - **Iter L2.0 / Sprint Recommendations — Schema `knx_devices`.**
   Neue Tabelle `knx_devices(dev_source PK, manufacturer, model, notes,
   last_seen, created_at, updated_at)` mit CHECK-Constraint fuer
