@@ -6933,9 +6933,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         // Iter aiohttp-error-ZU9UA / Trend-Fix B+C: bei langen Perioden
         // den vollen Zeitraum (fLongTerm) statt der 48h-Live-Slice
         // (fRaw) senden — Backend liest dann aus knx_telegram_counters.
+        // Iter topn-1: top_n folgt dem Card-Selektor (this._filters.topNTrend),
+        // vorher hardcoded 5 → User-Auswahl > 5 ohne Effekt.
         t(
           "trend",
-          this.api.getKnxStatsTrend(s ? a : r, 5)
+          this.api.getKnxStatsTrend(
+            s ? a : r,
+            this._filters.topNTrend
+          )
         ),
         t(
           "heatmap",

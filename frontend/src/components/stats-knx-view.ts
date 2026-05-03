@@ -566,9 +566,14 @@ export class StatsKnxView extends LitElement {
         // Iter aiohttp-error-ZU9UA / Trend-Fix B+C: bei langen Perioden
         // den vollen Zeitraum (fLongTerm) statt der 48h-Live-Slice
         // (fRaw) senden — Backend liest dann aus knx_telegram_counters.
+        // Iter topn-1: top_n folgt dem Card-Selektor (this._filters.topNTrend),
+        // vorher hardcoded 5 → User-Auswahl > 5 ohne Effekt.
         captureError(
           "trend",
-          this.api.getKnxStatsTrend(longTermMode ? fLongTerm : fRaw, 5),
+          this.api.getKnxStatsTrend(
+            longTermMode ? fLongTerm : fRaw,
+            this._filters.topNTrend,
+          ),
         ),
         captureError(
           "heatmap",

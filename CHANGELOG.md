@@ -6,6 +6,18 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Behoben (UX)
+- **Iter topn-1 / Sprint A — Trend-Card respektiert UI-Top-N-Selektor.**
+  Der Top-N-Selektor in der Card "Trend gegenueber Vorperiode" wirkte
+  bisher nur auf die Render-Slice — der Backend-Call
+  `getKnxStatsTrend(...)` lief mit hardcoded `top_n=5`. Damit lieferte
+  das Backend nie mehr als 5 Increase- bzw. Decrease-Eintraege, eine
+  User-Auswahl von z. B. 10 oder 25 zeigte trotzdem maximal 5 Zeilen.
+  Jetzt fliesst `this._filters.topNTrend` als zweiter Parameter in den
+  API-Call, sodass die Card so viele Trend-Zeilen zeigt wie der
+  Selektor verlangt. 2 neue Vitest decken den API-Aufruf-Parameter
+  und die DOM-Render-Anzahl ab. Phase 8 / Sprint A — TopN-Bug 1/4.
+
 ### Hinzugefuegt (UX)
 - **Iter +11 / F-010 — Deep-Linking via URL-Hash.** Top- und Sub-Tabs
   reagieren jetzt auf URL-Hash-Praefixe — alle Bereiche sind direkt
