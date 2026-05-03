@@ -14,11 +14,23 @@ ein Pfad die Invalidation vergisst.
 from __future__ import annotations
 
 import asyncio
+import math
 from time import monotonic
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .knx_repo import KnxAddress, KnxAddressRepository
+
+
+# Iter aiohttp-error-ZU9UA / Tech-Debt: `-inf` als Sentinel fuer "nie
+# geladen". Vorher war `_loaded_at = 0.0` mit der impliziten Annahme,
+# dass `monotonic() - 0.0` immer groesser TTL ist — das stimmt aber
+# nur bei System-Uptime > TTL (300s). In Containern oder Sandboxes mit
+# kurzer Uptime wurde der erste Refresh uebersprungen ("Cache ist
+# frisch") und Tests schlugen flackernd fehl. Mit -inf ist
+# `monotonic() - (-inf) = inf > TTL` immer true, der erste Refresh
+# laeuft IMMER.
+_NEVER_LOADED: float = -math.inf
 
 
 class KnxWhitelistCache:
@@ -40,7 +52,7 @@ class KnxWhitelistCache:
         self._repo = repo
         self._ttl = ttl_seconds
         self._items: dict[str, KnxAddress] = {}
-        self._loaded_at: float = 0.0
+        self._loaded_at: float = _NEVER_LOADED
         self._lock = asyncio.Lock()
 
     async def get(self, address: str) -> KnxAddress | None:
@@ -65,7 +77,7 @@ class KnxWhitelistCache:
         Wird vom CRUD-Pfad (upsert/delete) aufgerufen, damit der Listener
         ohne TTL-Verzoegerung die neue Konfiguration sieht.
         """
-        self._loaded_at = 0.0
+        self._loaded_at = _NEVER_LOADED
 
     async def warmup(self) -> None:
         """Explizites Erst-Laden — vom Setup aufrufbar, damit der erste

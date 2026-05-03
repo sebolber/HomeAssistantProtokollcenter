@@ -106,3 +106,41 @@ async def test_warmup_laedt_und_zaehlt_size() -> None:
     assert cache.size == 0
     await cache.warmup()
     assert cache.size == 3
+
+
+@pytest.mark.asyncio
+async def test_initial_refresh_runs_regardless_of_short_uptime() -> None:
+    """Iter aiohttp-error-ZU9UA / Tech-Debt: Regression gegen flackerndes
+    Verhalten bei System-Uptime < TTL. Vorher war `_loaded_at = 0.0`
+    initial; in Containern/Sandboxes mit Uptime < 300s war
+    `monotonic() - 0.0 <= TTL` und der erste Refresh wurde
+    uebersprungen. Jetzt -inf-Sentinel: erster Refresh laeuft immer,
+    unabhaengig vom monotonic-Anker.
+    """
+    repo = AsyncMock()
+    repo.list_logged = AsyncMock(return_value={"1/2/3": _addr("1/2/3")})
+    # TTL absichtlich riesig (waere bei kurzem monotonic-Anker fatal).
+    cache = KnxWhitelistCache(repo, ttl_seconds=86400 * 365)
+
+    # Erster Lookup MUSS den Repo treffen, sonst war der Sentinel falsch.
+    assert cache.size == 0
+    hit = await cache.get("1/2/3")
+    assert hit is not None
+    repo.list_logged.assert_awaited_once()
+    assert cache.size == 1
+
+
+@pytest.mark.asyncio
+async def test_invalidate_forces_reload_regardless_of_short_uptime() -> None:
+    """Auch nach `invalidate()` muss der naechste Lookup neu laden,
+    egal wie kurz die Uptime ist (analog zum Init-Sentinel-Fall).
+    """
+    repo = AsyncMock()
+    repo.list_logged = AsyncMock(return_value={"1/2/3": _addr("1/2/3")})
+    cache = KnxWhitelistCache(repo, ttl_seconds=86400 * 365)
+
+    await cache.warmup()
+    repo.list_logged.assert_awaited_once()
+    cache.invalidate()
+    await cache.get("1/2/3")
+    assert repo.list_logged.await_count == 2
