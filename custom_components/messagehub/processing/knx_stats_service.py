@@ -154,6 +154,95 @@ class GaDetail:
     value_history: list[dict[str, Any]]
 
 
+@dataclass(frozen=True, slots=True)
+class SourceGaSummary:
+    """Iter B (knx-detail-panes): pro GA eines Geraets im Source-Detail.
+
+    Schlankere Sicht als TopRow — kein dpt_inferred, keine
+    Findings-Aggregation pro GA (separate findings-Liste auf Source-
+    Ebene). Acknowledged-Status mitliefern, damit die UI Bulk-Ack
+    intelligent rendern kann.
+    """
+
+    ga: str
+    label: str | None
+    dpt: str | None
+    count: int
+    rate_per_min: float
+    recommended_rate: float
+    ratio: float
+    severity: str
+    acknowledged: bool
+    last_seen: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class SourceDetail:
+    """Iter B (knx-detail-panes): Detail-Sicht einer Source-Adresse.
+
+    Anker fuer Top-Geraete und Stille-Alarme. Aggregiert KPIs des
+    Geraets (Total/Bus-Anteil/Wiederhol-Quote/last_seen) plus die
+    Liste seiner GAs mit Severity-Klassifikation.
+
+    Findings + Trend kommen in Iter H/I dazu (separate Felder, damit
+    der MVP-Build ohne sie laeuft).
+    """
+
+    dev_source: str
+    total_count: int
+    ga_count: int
+    share_pct: float
+    last_seen: str | None
+    silent_minutes: float | None
+    silent_alarm: bool
+    repeat_ratio_pct: float
+    gas: list[SourceGaSummary]
+
+
+# Iter B (knx-detail-panes): Defaults fuer Source-Detail.
+#
+# Silence-Schwelle: spiegelt den Default des /alarms-Endpoints (1440 Min
+# = 24 h). Konservativ — viele Geraete haben Tag/Nacht-Pausen, kuerzere
+# Schwellen wuerden False-Positives erzeugen.
+SOURCE_DETAIL_DEFAULT_SILENCE_MINUTES: int = 1440
+
+# Hard-Cap fuer GA-Liste in der Source-Detail-Antwort. Schuetzt vor
+# Geraeten mit hunderten von GAs (z. B. zentrale Logik-Module). Die
+# Top-N nach Telegramm-Anzahl reichen fuer die UI; wer mehr braucht,
+# soll den Endpoint mehrfach mit Period-Filtern aufrufen.
+SOURCE_DETAIL_GA_HARD_CAP: int = 100
+
+
+def _silent_minutes_from(
+    last_seen_iso: str | None,
+    *,
+    now: datetime,
+) -> float | None:
+    """Liefert Silent-Minutes zwischen `now` und `last_seen_iso` oder None.
+
+    Defensiv gegenueber kaputten ts-Strings: liefert None statt zu
+    crashen. SQLite kann sowohl `+00:00`- als auch naive-Strings
+    liefern (Mix aus eigenen Inserts und externen Tools); wir
+    normalisieren beide Seiten zu naive UTC vor der Subtraktion.
+    """
+    if not last_seen_iso:
+        return None
+    try:
+        last_seen = datetime.fromisoformat(last_seen_iso)
+    except ValueError:
+        return None
+    last_seen_naive = (
+        last_seen.replace(tzinfo=None)
+        if last_seen.tzinfo is not None
+        else last_seen
+    )
+    now_naive = now.replace(tzinfo=None) if now.tzinfo is not None else now
+    delta_seconds = (now_naive - last_seen_naive).total_seconds()
+    if delta_seconds < 0:
+        return 0.0
+    return round(delta_seconds / 60.0, 1)
+
+
 def estimate_busload_pct(total_telegrams: int, period_seconds: float) -> float:
     """Schaetzt die Buslast in Prozent ueber den Zeitraum."""
     if period_seconds <= 0.0 or total_telegrams <= 0:
@@ -448,6 +537,105 @@ class KnxStatsService:
             for row in rows
             if row["ga"] != own_ga
         ]
+
+    # ------------------------------------------------------------------
+    # Iter B (knx-detail-panes): Source-Detail-Sicht.
+    # ------------------------------------------------------------------
+
+    async def compute_source_detail(
+        self,
+        dev_source: str,
+        from_iso: str,
+        to_iso: str,
+        *,
+        max_silence_minutes: int = SOURCE_DETAIL_DEFAULT_SILENCE_MINUTES,
+        ga_limit: int = SOURCE_DETAIL_GA_HARD_CAP,
+    ) -> SourceDetail | None:
+        """Aggregiert Source-Detail-Sicht fuer Top-Geraete + Stille-Alarme.
+
+        Bei `dev_source` ohne Telegramme im Period: liefert None
+        (View antwortet 404). Bei mindestens einem GA-Eintrag:
+        SourceDetail mit KPIs + GA-Liste sortiert nach Telegramm-Anzahl.
+
+        Performance:
+        - 4 SQL-Queries (gas_for_source, last_seen, count, repeat_ratio)
+          + 1 ack_active_set + 1 summary-Total — alle indexiert.
+        - GA-Liste hard-capped auf ga_limit (Default 100), damit ein
+          Geraet mit hunderten GAs den Roundtrip nicht sprengt.
+        - Pro GA werden Rate/Severity in Python berechnet (keine
+          zusaetzlichen Queries).
+        """
+        if not dev_source:
+            return None
+        ga_rows = await self._repo.gas_for_source(
+            dev_source, from_iso, to_iso, limit=ga_limit,
+        )
+        if not ga_rows:
+            return None
+        from_dt = datetime.fromisoformat(from_iso)
+        to_dt = datetime.fromisoformat(to_iso)
+        minutes = _period_minutes(from_dt, to_dt)
+        last_seen = await self._repo.last_seen_for_source(dev_source)
+        total_count = await self._repo.count_for_source(
+            dev_source, from_iso, to_iso,
+        )
+        repeat_ratio = await self._repo.repeat_ratio_for_source(
+            dev_source, from_iso, to_iso,
+        )
+        period_summary = await self._repo.summary(from_iso, to_iso)
+        period_total = int(period_summary.get("total_telegrams", 0))
+        ack_set = await self._repo.ack_active_set()
+
+        gas = [
+            self._build_source_ga_summary(
+                row=row, minutes=minutes, ack_set=ack_set,
+            )
+            for row in ga_rows
+        ]
+        share_pct = (
+            (total_count / period_total * 100.0) if period_total > 0 else 0.0
+        )
+        silent_minutes = _silent_minutes_from(last_seen, now=datetime.now(UTC))
+        silent_alarm = (
+            silent_minutes is not None
+            and silent_minutes > max_silence_minutes
+        )
+        return SourceDetail(
+            dev_source=dev_source,
+            total_count=total_count,
+            ga_count=len(ga_rows),
+            share_pct=round(share_pct, 2),
+            last_seen=last_seen,
+            silent_minutes=silent_minutes,
+            silent_alarm=silent_alarm,
+            repeat_ratio_pct=float(repeat_ratio["ratio_pct"]),
+            gas=gas,
+        )
+
+    @staticmethod
+    def _build_source_ga_summary(
+        *,
+        row: dict[str, Any],
+        minutes: float,
+        ack_set: set[str],
+    ) -> SourceGaSummary:
+        ga = str(row["ga"])
+        count = int(row["count"])
+        rate = (count / minutes) if minutes > 0 else 0.0
+        dpt = row.get("dpt")
+        recommended = recommended_rate_for(dpt)
+        return SourceGaSummary(
+            ga=ga,
+            label=row.get("label"),
+            dpt=dpt,
+            count=count,
+            rate_per_min=round(rate, 2),
+            recommended_rate=recommended,
+            ratio=safe_ratio(rate, recommended),
+            severity=classify_severity(rate, recommended),
+            acknowledged=ga in ack_set,
+            last_seen=row.get("last_seen"),
+        )
 
     async def compute_timeline(
         self,
@@ -965,6 +1153,21 @@ def ga_detail_to_dict(detail: GaDetail) -> dict[str, Any]:
         "findings": [asdict(f) for f in detail.findings],
         "sibling_gas": [asdict(s) for s in detail.sibling_gas],
         "value_history": detail.value_history,
+    }
+
+
+def source_detail_to_dict(detail: SourceDetail) -> dict[str, Any]:
+    """Iter B (knx-detail-panes): SourceDetail -> JSON-Response-Dict."""
+    return {
+        "dev_source": detail.dev_source,
+        "total_count": detail.total_count,
+        "ga_count": detail.ga_count,
+        "share_pct": detail.share_pct,
+        "last_seen": detail.last_seen,
+        "silent_minutes": detail.silent_minutes,
+        "silent_alarm": detail.silent_alarm,
+        "repeat_ratio_pct": detail.repeat_ratio_pct,
+        "gas": [asdict(g) for g in detail.gas],
     }
 
 
