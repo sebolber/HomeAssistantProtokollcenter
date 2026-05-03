@@ -123,4 +123,34 @@ describe("ApiClient", () => {
       client.updateMqttTopic(7, { topic_pattern: "x", source: "y", severity: "info", enabled: true })
     ).rejects.toThrow("HTTP 400");
   });
+
+  // F-005: Heartbeat-Lifecycle.
+  it("deleteHeartbeat ruft DELETE /heartbeats/{source} mit URL-Encoding", async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true } as Response));
+    vi.stubGlobal("fetch", fetchMock);
+    const client = new ApiClient();
+    await client.deleteHeartbeat("raspi keller/A");
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("/api/messagehub/heartbeats/raspi%20keller%2FA");
+    expect(init.method).toBe("DELETE");
+  });
+
+  it("setHeartbeatEnabled ruft PATCH /heartbeats/{source} mit JSON", async () => {
+    const fetchMock = vi.fn(async () =>
+      ({ ok: true, async json() { return { source: "a", enabled: false }; } } as Response)
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const client = new ApiClient();
+    await client.setHeartbeatEnabled("a", false);
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("/api/messagehub/heartbeats/a");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(String(init.body))).toEqual({ enabled: false });
+  });
+
+  it("deleteHeartbeat wirft bei 404", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 404 } as Response)));
+    const client = new ApiClient();
+    await expect(client.deleteHeartbeat("ghost")).rejects.toThrow("HTTP 404");
+  });
 });

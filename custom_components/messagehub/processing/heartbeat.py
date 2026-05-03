@@ -87,3 +87,40 @@ class HeartbeatRepository:
             "UPDATE heartbeat_sources SET silent_alert_active = ? WHERE source = ?",
             (1 if silent else 0, source),
         )
+
+    async def _exists(self, source: str) -> bool:
+        row = await self._db.fetch_one(
+            "SELECT 1 FROM heartbeat_sources WHERE source = ? LIMIT 1", (source,)
+        )
+        return row is not None
+
+    async def delete(self, source: str) -> bool:
+        """F-005: Entfernt einen Heartbeat-Eintrag.
+
+        Liefert True, wenn ein Eintrag entfernt wurde, sonst False
+        (dann verhaelt sich der Endpoint wie 404). Keine Atomic-Garantie
+        gegen gleichzeitige Inserts mit derselben Source — das ist OK,
+        weil heartbeat_sources einen UNIQUE-Index auf source hat und
+        DELETE WHERE source=? eine harmlose No-Op-Operation ist.
+        """
+        if not await self._exists(source):
+            return False
+        await self._db.execute(
+            "DELETE FROM heartbeat_sources WHERE source = ?", (source,)
+        )
+        return True
+
+    async def set_enabled(self, source: str, enabled: bool) -> bool:
+        """F-005: Toggle des enabled-Flags. False -> Heartbeat-Job
+        ueberspringt diese Source, generiert keine Silent-Warnings mehr.
+
+        Liefert True, wenn die Source existierte und das Flag gesetzt
+        wurde, sonst False (UI -> 404).
+        """
+        if not await self._exists(source):
+            return False
+        await self._db.execute(
+            "UPDATE heartbeat_sources SET enabled = ? WHERE source = ?",
+            (1 if enabled else 0, source),
+        )
+        return True
