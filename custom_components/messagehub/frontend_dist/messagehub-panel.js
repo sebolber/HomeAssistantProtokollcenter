@@ -6935,7 +6935,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         // (fRaw) senden — Backend liest dann aus knx_telegram_counters.
         t(
           "trend",
-          this.api.getKnxStatsTrend(s ? a : r, 5)
+          this.api.getKnxStatsTrend(
+            s ? a : r,
+            this._filters.topNTrend
+          )
         ),
         t(
           "heatmap",

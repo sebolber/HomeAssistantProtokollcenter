@@ -568,7 +568,10 @@ export class StatsKnxView extends LitElement {
         // (fRaw) senden — Backend liest dann aus knx_telegram_counters.
         captureError(
           "trend",
-          this.api.getKnxStatsTrend(longTermMode ? fLongTerm : fRaw, 5),
+          this.api.getKnxStatsTrend(
+            longTermMode ? fLongTerm : fRaw,
+            this._filters.topNTrend,
+          ),
         ),
         captureError(
           "heatmap",

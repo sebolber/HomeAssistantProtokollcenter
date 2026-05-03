@@ -6,6 +6,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Behoben (UX-Bugfix Sprint A — Top-N-Konsistenz, Phase 8)
+- **Iter topn-1 — Trend-Card respektiert UI-Top-N-Selektor.** Der
+  Trend-Card-Backend-Call in `stats-knx-view` war hartkodiert auf
+  `top_n=5`, obwohl die Card einen eigenen Inline-Top-N-Selektor
+  (`topNTrend`, default 25) hatte. Effekt: User wechselte 10/25/50,
+  bekam aber nur die ersten 5 Eintraege geliefert — der Slice im
+  Render half nicht, weil das API-Limit kleiner war. Fix:
+  `getKnxStatsTrend(filters, this._filters.topNTrend)`. Zwei neue
+  Vitest in `frontend/tests/trend-topn.test.ts` decken (a) den
+  Backend-Call mit `topN=10` und (b) zehn Up-Zeilen im DOM ab.
+
 ### Hinzugefuegt (UX)
 - **Iter +11 / F-010 — Deep-Linking via URL-Hash.** Top- und Sub-Tabs
   reagieren jetzt auf URL-Hash-Praefixe — alle Bereiche sind direkt
