@@ -10,6 +10,11 @@ Iter 24: knx-stats-Cleanup laeuft alle 6 Stunden — loescht
 knx_raw_telegrams aelter als DEFAULT_KNX_RAW_RETENTION_HOURS,
 knx_telegram_counters aelter als DEFAULT_KNX_COUNTER_RETENTION_DAYS,
 plus Hard-Cap KNX_RAW_HARD_CAP_ROWS.
+
+Iter 29b: bus-wide-Findings-Tick laeuft alle
+KNX_FINDINGS_RUN_INTERVAL_MINUTES (default 15) — fuehrt
+`run_bus_wide_detectors` aus, das HEALTH_*, RECONNECT_STORM,
+SEND_CYCLE_DRIFT, MULTI_TIME_MASTER, ORPHAN_GA, STALE_GA aufruft.
 """
 
 from __future__ import annotations
@@ -20,7 +25,9 @@ from typing import TYPE_CHECKING, Any
 
 from ..const import (
     DEFAULT_KNX_COUNTER_RETENTION_DAYS,
+    DEFAULT_KNX_FINDINGS_BUS_WIDE_PERIOD_DAYS,
     DEFAULT_KNX_RAW_RETENTION_HOURS,
+    KNX_FINDINGS_RUN_INTERVAL_MINUTES,
     KNX_RAW_HARD_CAP_ROWS,
 )
 from ..helpers import fire_message_added
@@ -136,9 +143,40 @@ async def _run_knx_stats_cleanup(database: Any) -> None:
         _LOGGER.warning("knx-stats cleanup failed: %s", err)
 
 
+async def _run_findings_bus_wide_tick(database: Any) -> None:
+    """Iter 29b: triggert run_bus_wide_detectors periodisch.
+
+    Faengt Exceptions defensiv ab und loggt sie, damit ein einzelner
+    fehlerhafter Tick den HA-Job-Scheduler nicht stoert.
+    """
+    from ..processing.findings_runner import (  # noqa: PLC0415
+        run_bus_wide_detectors,
+    )
+    from ..processing.knx_repo import KnxAddressRepository  # noqa: PLC0415
+    from ..storage.findings_repo import FindingsRepository  # noqa: PLC0415
+    from ..storage.knx_stats_repo import KnxStatsRepository  # noqa: PLC0415
+
+    now = datetime.now(UTC)
+    period_to = now
+    period_from = now - timedelta(days=DEFAULT_KNX_FINDINGS_BUS_WIDE_PERIOD_DAYS)
+    try:
+        recorded = await run_bus_wide_detectors(
+            findings_repo=FindingsRepository(database),
+            address_repo=KnxAddressRepository(database),
+            stats_repo=KnxStatsRepository(database),
+            period_from=period_from.isoformat(timespec="seconds"),
+            period_to=period_to.isoformat(timespec="seconds"),
+            now=now,
+        )
+        if recorded:
+            _LOGGER.info("knx-findings bus-wide tick: %d Findings persistiert", recorded)
+    except (ValueError, RuntimeError) as err:
+        _LOGGER.warning("knx-findings bus-wide tick failed: %s", err)
+
+
 def async_register_periodic_jobs(hass: HomeAssistant, database: Any, repository: Any) -> Any:
     """Registriert Heartbeat + Anomaly-Tick (alle 60 s) + KNX-Stats-Cleanup
-    (alle 6 h)."""
+    (alle 6 h) + bus-wide-Findings-Tick (alle 15 Min)."""
     # HA-Eventbus-Helper bleibt lazy: Tests instanziieren Periodic-Jobs
     # ohne vollstaendigen HA-Stack.
     from homeassistant.helpers.event import async_track_time_interval  # noqa: PLC0415
@@ -155,13 +193,22 @@ def async_register_periodic_jobs(hass: HomeAssistant, database: Any, repository:
     async def _knx_cleanup_tick(_now: Any) -> None:
         await _run_knx_stats_cleanup(database)
 
+    async def _findings_bus_wide_tick(_now: Any) -> None:
+        await _run_findings_bus_wide_tick(database)
+
     unsub_hb = async_track_time_interval(hass, _heartbeat_tick, timedelta(seconds=60))
     unsub_an = async_track_time_interval(hass, _anomaly_tick, timedelta(seconds=60))
     unsub_cleanup = async_track_time_interval(hass, _knx_cleanup_tick, timedelta(hours=6))
+    unsub_findings = async_track_time_interval(
+        hass,
+        _findings_bus_wide_tick,
+        timedelta(minutes=KNX_FINDINGS_RUN_INTERVAL_MINUTES),
+    )
 
     def _unsub() -> None:
         unsub_hb()
         unsub_an()
         unsub_cleanup()
+        unsub_findings()
 
     return _unsub

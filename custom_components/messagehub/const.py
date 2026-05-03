@@ -114,6 +114,18 @@ DEFAULT_KNX_ACK_EXPIRY_DAYS: Final[int] = 90
 # Default-Auswertezeitraum fuer KNX-Stats-Tab (Tage)
 DEFAULT_KNX_STATS_PERIOD_DAYS: Final[int] = 7
 
+# Iter 29b: periodischer Bus-wide-Detector-Runner. 15 Min ist die
+# Balance zwischen "Findings tauchen schnell auf" und "DB-Last bleibt
+# moderat". Buslast/Reconnect/Drift brauchen keine Sekundenfrequenz —
+# sie laufen ueber Stunden-Skalen, deshalb sind 15 Min defensiv genug.
+KNX_FINDINGS_RUN_INTERVAL_MINUTES: Final[int] = 15
+
+# Default-Auswertezeitraum fuer den bus-weiten Job (Tage). Reicht fuer
+# RECONNECT_STORM (Stille >=60 s + Burst), MULTI_TIME_MASTER (mehrere
+# Sources auf Zeit-GA), HEALTH_*; SEND_CYCLE_DRIFT/STALE_GA brauchen
+# laengere Baselines und ziehen sich die selbst aus knx_raw_telegrams.
+DEFAULT_KNX_FINDINGS_BUS_WIDE_PERIOD_DAYS: Final[int] = 1
+
 # QS-(l) Default-Alarm-Schwellen.
 # Konfigurierbar via Config-Flow-Options (siehe README "KNX-Bus-Analyse").
 KNX_ALARM_BUSLOAD_PCT_DEFAULT: Final[float] = 25.0  # > X% Buslast

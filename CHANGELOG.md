@@ -7,6 +7,23 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Wiring-Audit + Phase 6+7)
+- **Iter 29b — Bus-wide-Detector-Runner (periodisch).**
+  Schliesst die zweite Wiring-Audit-Luecke: bus-weite Detektoren
+  (`lift_health_findings`, `detect_multi_time_master`,
+  `detect_reconnect_storm`, `detect_send_cycle_drift`,
+  `detect_orphan_ga`, `detect_stale_ga`) hatten keinen Caller.
+  Neuer Service `processing/findings_runner.py:run_bus_wide_detectors`
+  baut die Health-Score-Inputs aus `bus_health` + `busload_timeseries`
+  + `silence_detect`, iteriert pro Whitelist-GA fuer Clock-Master /
+  Drift / Orphan / Stale, und liftet die Findings analog zum per-GA-
+  Runner. Aufgerufen aus dem neuen Periodischen Job
+  `jobs/periodic.py:_run_findings_bus_wide_tick`, alle
+  `KNX_FINDINGS_RUN_INTERVAL_MINUTES` (default 15) Min — Tick wird
+  in `async_register_periodic_jobs` zusammen mit Heartbeat- und
+  Anomaly-Tick registriert. SEND_CYCLE_DRIFT vergleicht Recent
+  (24h) gegen Baseline (7 Tage davor); RECONNECT_STORM aggregiert
+  pro `dev_source` und nutzt 30-s-Avg ueber den Periodic-Run-
+  Zeitraum als Burst-Baseline.
 - **Iter 29a — Per-GA-Detector-Runner (on-demand).**
   Schliesst die End-to-End-Luecke aus dem Wiring-Audit (Iter 1-29):
   bisher waren die elf neuen Detektoren reine Lib-Funktionen ohne

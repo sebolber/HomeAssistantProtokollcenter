@@ -1,33 +1,37 @@
-"""Detector-Runner — verbindet Bausteine aus Iter 5/11/12/13/15/16/17/22.
+"""Detector-Runner — verbindet Bausteine aus Iter 5/11/12/13/15-22/24/25.
 
-Iter 29a (Wiring-Audit-Folge): Bisher waren die Detektoren reine Lib-
-Funktionen ohne Caller. Dieser Runner fuehrt sie pro GA aus, wendet
-den Severity-Resolver an und persistiert die Findings via
-`FindingsRepository.record(...)`.
+Iter 29a (Wiring-Audit-Folge): Per-GA-Detektoren (DPT_MISMATCH,
+VALUE_OUT_OF_RANGE, MULTI_RESPONDER, READ_NO_RESPONSE, TOGGLE_LOOP,
+REPEAT_APPROXIMATION, PATTERN_*) laufen on-demand via API
+(`POST /findings/refresh`).
 
-Aufgerufen vom Endpoint `POST /api/messagehub/findings/refresh` (siehe
-`api/findings.py:FindingsRefreshView`) — der User triggert den Lauf
-manuell aus der findings-view.
-
-Bus-weite Detektoren (HEALTH_*, RECONNECT_STORM, MULTI_TIME_MASTER,
-SEND_CYCLE_DRIFT, ORPHAN_GA, STALE_GA) laufen in Iter 29b ueber einen
-Periodischen Job.
+Iter 29b: Bus-weite Detektoren (HEALTH_*, RECONNECT_STORM,
+SEND_CYCLE_DRIFT, MULTI_TIME_MASTER, ORPHAN_GA, STALE_GA) laufen
+periodisch (alle 15 Min default) ueber einen Job
+(`jobs/periodic.py:_run_findings_bus_wide_tick`).
 """
 
 from __future__ import annotations
 
 import logging
+from collections import defaultdict
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from .findings import Finding, lift_pattern_findings
+from .findings import Finding, lift_health_findings, lift_pattern_findings
 from .findings.dpt_mismatch import detect_dpt_mismatch
 from .findings.multi_responder import detect_multi_responder
+from .findings.multi_time_master import CLOCK_DPTS, detect_multi_time_master
+from .findings.orphan_ga import detect_orphan_ga
 from .findings.read_no_response import detect_read_no_response
+from .findings.reconnect_storm import detect_reconnect_storm
 from .findings.repeat_approximation import detect_repeat_approximation
+from .findings.send_cycle_drift import detect_send_cycle_drift
+from .findings.stale_ga import detect_stale_ga
 from .findings.toggle_loop import detect_toggle_loop
 from .findings.value_range import detect_value_out_of_range
 from .knx_stats import (
+    HealthScoreInput,
     TelegramSample,
     detect_patterns,
     infer_dpt_from_samples,
@@ -329,4 +333,336 @@ def _period_days(period_from: str, period_to: str) -> float:
     return delta / 86400.0
 
 
-__all__ = ["run_per_ga_detectors"]
+# ============================================================================
+# Iter 29b: Bus-wide Detector Runner (periodisch).
+# ============================================================================
+
+# Default-Schwelle "stille Quelle" fuer den Health-Score-Input.
+# Spiegelt den Default des KnxStatsService-/health_score-Endpoints
+# (max_silence_minutes=60). 60 min ist konservativ — kuerzer wuerde
+# tagsueber regelmaessig 'stille Heizungssteuerungen' melden.
+_DEFAULT_MAX_SILENCE_MINUTES = 60
+
+# Baseline fuer SEND_CYCLE_DRIFT: Recent = letzte 24 h, Baseline = die
+# 7 Tage davor. Schwelle in `detect_send_cycle_drift` (50%-Halbierung).
+_DRIFT_RECENT_DAYS = 1
+_DRIFT_BASELINE_DAYS = 7
+
+
+async def run_bus_wide_detectors(
+    *,
+    findings_repo: FindingsRepository,
+    address_repo: KnxAddressRepository,
+    stats_repo: KnxStatsRepository,
+    period_from: str,
+    period_to: str,
+    now: datetime,
+) -> int:
+    """Fuehrt alle bus-weiten Detektoren aus und persistiert Findings.
+
+    Reihenfolge:
+    1. Bus-Health-Score-Inputs sammeln -> `lift_health_findings` (Iter 5).
+    2. Pro Source: RECONNECT_STORM (Iter 20).
+    3. Pro Whitelist-GA mit Clock-DPT (10/11/19): MULTI_TIME_MASTER (Iter 18).
+    4. Pro Whitelist-GA: SEND_CYCLE_DRIFT (Iter 21), ORPHAN_GA (Iter 24),
+       STALE_GA (Iter 25).
+    5. Severity-Resolver + record() — analog zum per-GA-Runner.
+
+    Returns: Anzahl persistierter Findings.
+    """
+    findings: list[Finding] = []
+    findings.extend(await _build_health_findings(stats_repo, period_from, period_to, now))
+    addresses = await address_repo.list_all()
+
+    findings.extend(
+        await _build_per_source_findings(stats_repo, period_from, period_to, now)
+    )
+    findings.extend(
+        await _build_clock_master_findings(
+            stats_repo, addresses, period_from, period_to, now,
+        )
+    )
+    findings.extend(
+        await _build_drift_findings(stats_repo, addresses, period_to, now)
+    )
+    findings.extend(
+        await _build_silent_ga_findings(
+            stats_repo, addresses, period_from, period_to, now,
+        )
+    )
+    return await _record_with_severity_override(findings_repo, findings)
+
+
+async def _build_health_findings(
+    stats_repo: KnxStatsRepository,
+    period_from: str,
+    period_to: str,
+    now: datetime,
+) -> list[Finding]:
+    """Aggregiert die vier Health-KPIs und liftet sie auf Findings."""
+    bus_h = await stats_repo.bus_health(period_from, period_to)
+    busload = await stats_repo.busload_timeseries(period_from, period_to)
+    busload_max = max((b["busload_pct"] for b in busload), default=0.0)
+    silence = await stats_repo.silence_detect(
+        period_from,
+        period_to,
+        now_iso=now.isoformat(timespec="seconds"),
+        max_silence_minutes=_DEFAULT_MAX_SILENCE_MINUTES,
+    )
+    silent_devices = sum(1 for r in silence if r["alarm"])
+    input_ = HealthScoreInput(
+        repeat_ratio_pct=float(bus_h["ratio_pct"]),
+        busload_max_pct=float(busload_max),
+        silent_devices=silent_devices,
+        # open_alarms aus dem KnxStats-Service nicht direkt verfuegbar;
+        # der Score-Endpoint nutzt aktuell auch 0 (siehe knx_stats_service
+        # Iter 37). Identisches Verhalten hier, damit Findings konsistent
+        # mit dem Score-Tab bleiben.
+        open_alarms=0,
+    )
+    return lift_health_findings(input_, now=now)
+
+
+async def _build_per_source_findings(
+    stats_repo: KnxStatsRepository,
+    period_from: str,
+    period_to: str,
+    now: datetime,
+) -> list[Finding]:
+    """RECONNECT_STORM: Pro `dev_source` 30-s-Avg + Burst nach Stille."""
+    sample_rows = await _samples_for_period(stats_repo, period_from, period_to)
+    if not sample_rows:
+        return []
+    by_source: dict[str, list[TelegramSample]] = defaultdict(list)
+    for row in sample_rows:
+        ts_str = row.get("ts")
+        if not ts_str:
+            continue
+        try:
+            ts = datetime.fromisoformat(str(ts_str))
+        except ValueError:
+            continue
+        sample = TelegramSample(
+            ts=ts,
+            value=row.get("value"),
+            telegramtype=row.get("telegramtype"),
+            source=str(row.get("dev_source", "")),
+        )
+        by_source[sample.source].append(sample)
+
+    out: list[Finding] = []
+    for source, samples in by_source.items():
+        if not source:
+            continue
+        normal_avg = _normal_avg_per_30s(samples)
+        finding = detect_reconnect_storm(
+            source=source,
+            samples=samples,
+            now=now,
+            normal_avg_per_30s=normal_avg,
+        )
+        if finding is not None:
+            out.append(finding)
+    return out
+
+
+async def _build_clock_master_findings(
+    stats_repo: KnxStatsRepository,
+    addresses: list[Any],
+    period_from: str,
+    period_to: str,
+    now: datetime,
+) -> list[Finding]:
+    """MULTI_TIME_MASTER fuer alle Whitelist-GAs mit Clock-DPT."""
+    out: list[Finding] = []
+    for addr in addresses:
+        if addr.dpt not in CLOCK_DPTS:
+            continue
+        samples_raw = await stats_repo.ga_samples(
+            addr.address, period_from, period_to,
+        )
+        samples = _samples_from_raw(samples_raw)
+        finding = detect_multi_time_master(
+            ga=addr.address, dpt=addr.dpt, samples=samples, now=now,
+        )
+        if finding is not None:
+            out.append(finding)
+    return out
+
+
+async def _build_drift_findings(
+    stats_repo: KnxStatsRepository,
+    addresses: list[Any],
+    period_to: str,
+    now: datetime,
+) -> list[Finding]:
+    """SEND_CYCLE_DRIFT pro Whitelist-GA, mit 24h-vs-7d-Baseline."""
+    out: list[Finding] = []
+    try:
+        period_to_dt = datetime.fromisoformat(period_to)
+    except ValueError:
+        return []
+    from datetime import timedelta as _td  # noqa: PLC0415
+    recent_from = period_to_dt - _td(days=_DRIFT_RECENT_DAYS)
+    baseline_to = recent_from
+    baseline_from = baseline_to - _td(days=_DRIFT_BASELINE_DAYS)
+    for addr in addresses:
+        recent_samples = _samples_from_raw(
+            await stats_repo.ga_samples(
+                addr.address,
+                recent_from.isoformat(timespec="seconds"),
+                period_to_dt.isoformat(timespec="seconds"),
+            )
+        )
+        baseline_samples = _samples_from_raw(
+            await stats_repo.ga_samples(
+                addr.address,
+                baseline_from.isoformat(timespec="seconds"),
+                baseline_to.isoformat(timespec="seconds"),
+            )
+        )
+        recent_dt = _median_dt_seconds(recent_samples)
+        baseline_dt = _median_dt_seconds(baseline_samples)
+        finding = detect_send_cycle_drift(
+            ga=addr.address,
+            recent_median_dt_sec=recent_dt,
+            baseline_median_dt_sec=baseline_dt,
+            now=now,
+        )
+        if finding is not None:
+            out.append(finding)
+    return out
+
+
+async def _build_silent_ga_findings(
+    stats_repo: KnxStatsRepository,
+    addresses: list[Any],
+    period_from: str,
+    period_to: str,
+    now: datetime,
+) -> list[Finding]:
+    """ORPHAN_GA + STALE_GA pro Whitelist-Eintrag."""
+    out: list[Finding] = []
+    counts = await _counts_per_ga(stats_repo, period_from, period_to)
+    last_seen_map = await _last_seen_per_ga(stats_repo)
+    for addr in addresses:
+        count = counts.get(addr.address, 0)
+        orphan = detect_orphan_ga(
+            ga=addr.address,
+            telegram_count=count,
+            period_from=period_from,
+            period_to=period_to,
+            now=now,
+        )
+        if orphan is not None:
+            out.append(orphan)
+        last_seen_str = last_seen_map.get(addr.address)
+        last_seen_dt: datetime | None = None
+        if last_seen_str:
+            try:
+                last_seen_dt = datetime.fromisoformat(last_seen_str)
+            except ValueError:
+                last_seen_dt = None
+        stale = detect_stale_ga(ga=addr.address, last_seen=last_seen_dt, now=now)
+        if stale is not None:
+            out.append(stale)
+    return out
+
+
+async def _samples_for_period(
+    stats_repo: KnxStatsRepository,
+    period_from: str,
+    period_to: str,
+) -> list[dict[str, Any]]:
+    """Liefert ALLE Samples ueber den Zeitraum (fuer per-Source-Aggregation).
+
+    Ohne explizite GA-Filterung — wir brauchen Samples aller Quellen, um
+    RECONNECT_STORM-Bursts zu erkennen. SQL via direktes Query, weil
+    `ga_samples` strikt pro GA arbeitet.
+    """
+    import contextlib  # noqa: PLC0415
+    import json as _json  # noqa: PLC0415
+    rows = await stats_repo._db.fetch_all(
+        "SELECT timestamp AS ts, destination AS ga, source AS dev_source, "
+        "       value, telegramtype "
+        "FROM knx_raw_telegrams "
+        "WHERE timestamp >= ? AND timestamp < ? "
+        "ORDER BY timestamp ASC",
+        (period_from, period_to),
+    )
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        raw = row["value"]
+        if isinstance(raw, str):
+            with contextlib.suppress(ValueError, TypeError):
+                raw = _json.loads(raw)
+        out.append({
+            "ts": str(row["ts"]),
+            "ga": str(row["ga"]),
+            "dev_source": str(row["dev_source"] or ""),
+            "value": raw,
+            "telegramtype": row["telegramtype"],
+        })
+    return out
+
+
+async def _counts_per_ga(
+    stats_repo: KnxStatsRepository,
+    period_from: str,
+    period_to: str,
+) -> dict[str, int]:
+    rows = await stats_repo._db.fetch_all(
+        "SELECT destination AS ga, COUNT(*) AS n "
+        "FROM knx_raw_telegrams "
+        "WHERE timestamp >= ? AND timestamp < ? "
+        "GROUP BY destination",
+        (period_from, period_to),
+    )
+    return {str(r["ga"]): int(r["n"]) for r in rows}
+
+
+async def _last_seen_per_ga(stats_repo: KnxStatsRepository) -> dict[str, str]:
+    rows = await stats_repo._db.fetch_all(
+        "SELECT destination AS ga, MAX(timestamp) AS last_seen "
+        "FROM knx_raw_telegrams "
+        "GROUP BY destination",
+    )
+    out: dict[str, str] = {}
+    for row in rows:
+        last = row["last_seen"]
+        if last is None:
+            continue
+        out[str(row["ga"])] = str(last)
+    return out
+
+
+_MIN_SAMPLES_FOR_RATE = 2
+
+
+def _normal_avg_per_30s(samples: list[TelegramSample]) -> float:
+    """Mittlere Telegramm-Anzahl pro 30 s ueber den Sample-Zeitraum."""
+    if len(samples) < _MIN_SAMPLES_FOR_RATE:
+        return 0.0
+    sorted_samples = sorted(samples, key=lambda s: s.ts)
+    total_seconds = (sorted_samples[-1].ts - sorted_samples[0].ts).total_seconds()
+    if total_seconds <= 0:
+        return 0.0
+    buckets = total_seconds / 30.0
+    return len(samples) / buckets if buckets > 0 else 0.0
+
+
+def _median_dt_seconds(samples: list[TelegramSample]) -> float:
+    """Median(Δt) in Sekunden ueber die Sample-Folge.
+
+    0.0 bei < 2 Samples — der Detector handhabt das als 'keine Baseline'.
+    """
+    if len(samples) < _MIN_SAMPLES_FOR_RATE:
+        return 0.0
+    import statistics  # noqa: PLC0415
+    from itertools import pairwise  # noqa: PLC0415
+    sorted_samples = sorted(samples, key=lambda s: s.ts)
+    deltas = [(b.ts - a.ts).total_seconds() for a, b in pairwise(sorted_samples)]
+    return float(statistics.median(deltas))
+
+
+__all__ = ["run_bus_wide_detectors", "run_per_ga_detectors"]

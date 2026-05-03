@@ -89,6 +89,24 @@ Verbleibend orphan: `lift_health_findings` (5), `detect_multi_time_master`
 Alle bus-weit (oder `MULTI_TIME_MASTER` als pseudo-bus-weit) und werden
 in Iter 29b / 29c verdrahtet.
 
+## Status nach Iter 29b (Bus-wide-Detector-Runner periodisch)
+
+Geschlossen durch `processing/findings_runner.py:run_bus_wide_detectors`,
+gerufen aus `jobs/periodic.py:_run_findings_bus_wide_tick` alle
+`KNX_FINDINGS_RUN_INTERVAL_MINUTES` (default 15) Minuten.
+
+| Iter | Symbol | Caller jetzt |
+|------|--------|--------------|
+| 5 | `lift_health_findings` | `_build_health_findings` im Runner |
+| 18 | `detect_multi_time_master` | `_build_clock_master_findings` im Runner |
+| 20 | `detect_reconnect_storm` | `_build_per_source_findings` im Runner |
+| 21 | `detect_send_cycle_drift` | `_build_drift_findings` im Runner |
+| 24 | `detect_orphan_ga` | `_build_silent_ga_findings` im Runner |
+| 25 | `detect_stale_ga` | `_build_silent_ga_findings` im Runner |
+
+Verbleibend orphan: `format_prometheus_metrics(finding_total=)` (28) —
+wird in Iter 29c durch `MetricsView` verdrahtet.
+
 ## Konsequenz: Was sieht der User HEUTE im laufenden System?
 
 - Konfigurations-Check-Tab als 3. Sub-Tab: **leere Tabelle**, weil
