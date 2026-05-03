@@ -905,6 +905,26 @@ export class ApiClient {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }
 
+  /**
+   * F-006: ID-stabiles Update eines Remediation-Hooks.
+   * Erfordert vollstaendigen Payload (name, source_pattern, automation_id);
+   * optionale Felder duerfen weggelassen werden.
+   */
+  async updateRemediationHook(
+    id: number,
+    payload: Partial<RemediationHookDto>
+  ): Promise<void> {
+    const res = await fetch(
+      `${this.baseUrl}/api/messagehub/remediation-hooks/${id}`,
+      {
+        method: "PUT",
+        headers: this.headers(),
+        body: JSON.stringify(payload),
+      }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
   async listHeartbeats(): Promise<HeartbeatDto[]> {
     const res = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
       headers: this.headers(),

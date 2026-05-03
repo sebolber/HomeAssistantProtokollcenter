@@ -546,8 +546,8 @@ let x = class extends oe {
     return X;
   }
 };
-var It;
-x._$litElement$ = !0, x.finalized = !0, (It = Y.litElementHydrateSupport) == null || It.call(Y, { LitElement: x });
+var Nt;
+x._$litElement$ = !0, x.finalized = !0, (Nt = Y.litElementHydrateSupport) == null || Nt.call(Y, { LitElement: x });
 const je = Y.litElementPolyfillSupport;
 je == null || je({ LitElement: x });
 (Y.litElementVersions ?? (Y.litElementVersions = [])).push("4.2.2");
@@ -601,7 +601,7 @@ function w(e) {
 function l(e) {
   return w({ ...e, state: !0, attribute: !1 });
 }
-function S(e) {
+function T(e) {
   const t = ws(e);
   return (s, a) => customElements.get(e) ? s : t(s, a);
 }
@@ -864,6 +864,22 @@ class $s {
       headers: this.headers()
     });
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
+  }
+  /**
+   * F-006: ID-stabiles Update eines Remediation-Hooks.
+   * Erfordert vollstaendigen Payload (name, source_pattern, automation_id);
+   * optionale Felder duerfen weggelassen werden.
+   */
+  async updateRemediationHook(t, s) {
+    const a = await fetch(
+      `${this.baseUrl}/api/messagehub/remediation-hooks/${t}`,
+      {
+        method: "PUT",
+        headers: this.headers(),
+        body: JSON.stringify(s)
+      }
+    );
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
   async listHeartbeats() {
     const t = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
@@ -1552,21 +1568,21 @@ const ft = (e, t, s) => {
     else if (d[u] === o[v]) h[v] = q(r[u], n[v]), fe(e, h[v + 1], r[u]), u++, v--;
     else if (d[p] === o[b]) h[b] = q(r[p], n[b]), fe(e, r[u], r[p]), p--, b++;
     else if (m === void 0 && (m = ft(o, b, v), g = ft(d, u, p)), m.has(d[u])) if (m.has(d[p])) {
-      const k = g.get(o[b]), ge = k !== void 0 ? r[k] : null;
+      const S = g.get(o[b]), ge = S !== void 0 ? r[S] : null;
       if (ge === null) {
         const Ee = fe(e, r[u]);
         q(Ee, n[b]), h[b] = Ee;
-      } else h[b] = q(ge, n[b]), fe(e, r[u], ge), r[k] = null;
+      } else h[b] = q(ge, n[b]), fe(e, r[u], ge), r[S] = null;
       b++;
     } else Ge(r[p]), p--;
     else Ge(r[u]), u++;
     for (; b <= v; ) {
-      const k = fe(e, h[v + 1]);
-      q(k, n[b]), h[b++] = k;
+      const S = fe(e, h[v + 1]);
+      q(S, n[b]), h[b++] = S;
     }
     for (; u <= p; ) {
-      const k = r[u++];
-      k !== null && Ge(k);
+      const S = r[u++];
+      S !== null && Ge(S);
     }
     return this.ut = o, Ps(e, h), X;
   }
@@ -1616,7 +1632,7 @@ const bt = {
   warning: "Warn",
   info: "Info",
   debug: "Debug"
-}, Ns = ["error", "warning", "info", "debug"];
+}, Is = ["error", "warning", "info", "debug"];
 let Q = class extends x {
   constructor() {
     super(...arguments), this.items = [], this._now = /* @__PURE__ */ new Date(), this._editSeverityFor = null, this._popoverPos = null, this._onClick = (e) => {
@@ -1668,7 +1684,7 @@ let Q = class extends x {
         style=${`top: ${this._popoverPos.top}px; left: ${this._popoverPos.left}px`}
         @click=${(a) => a.stopPropagation()}
       >
-        ${Ns.map(
+        ${Is.map(
       (a) => i`<button
             role="menuitemradio"
             aria-checked=${a === t}
@@ -1955,12 +1971,12 @@ Te([
   l()
 ], Q.prototype, "_popoverPos", 2);
 Q = Te([
-  S("message-table")
+  T("message-table")
 ], Q);
-var Is = Object.defineProperty, Rs = Object.getOwnPropertyDescriptor, Kt = (e, t, s, a) => {
+var Ns = Object.defineProperty, Rs = Object.getOwnPropertyDescriptor, Kt = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Rs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Is(t, s, r), r;
+  return a && r && Ns(t, s, r), r;
 };
 const wt = ["error", "warning", "info", "debug"];
 let Oe = class extends x {
@@ -2076,9 +2092,9 @@ Kt([
   w({ attribute: !1 })
 ], Oe.prototype, "selected", 2);
 Oe = Kt([
-  S("severity-filter")
+  T("severity-filter")
 ], Oe);
-var Us = Object.defineProperty, Hs = Object.getOwnPropertyDescriptor, Ne = (e, t, s, a) => {
+var Us = Object.defineProperty, Hs = Object.getOwnPropertyDescriptor, Ie = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Hs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && Us(t, s, r), r;
@@ -2123,17 +2139,17 @@ de.styles = y`
       color: inherit;
     }
   `;
-Ne([
+Ie([
   w({ attribute: !1 })
 ], de.prototype, "api", 2);
-Ne([
+Ie([
   w({ attribute: !1 })
 ], de.prototype, "selected", 2);
-Ne([
+Ie([
   l()
 ], de.prototype, "_sources", 2);
-de = Ne([
-  S("source-filter")
+de = Ie([
+  T("source-filter")
 ], de);
 var Ms = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, et = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Bs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
@@ -2183,7 +2199,7 @@ et([
   w({ attribute: !1 })
 ], ke.prototype, "toIso", 2);
 ke = et([
-  S("time-range-filter")
+  T("time-range-filter")
 ], ke);
 var js = Object.defineProperty, Gs = Object.getOwnPropertyDescriptor, W = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Gs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
@@ -2605,9 +2621,9 @@ W([
   l()
 ], N.prototype, "_busy", 2);
 N = W([
-  S("detail-pane")
+  T("detail-pane")
 ], N);
-var Ks = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, R = (e, t, s, a) => {
+var Ks = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, U = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ws(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && Ks(t, s, r), r;
@@ -2924,37 +2940,37 @@ O.styles = y`
       margin-top: 4px;
     }
   `;
-R([
+U([
   w({ attribute: !1 })
 ], O.prototype, "api", 2);
-R([
+U([
   w({ attribute: !1 })
 ], O.prototype, "editing", 2);
-R([
+U([
   l()
 ], O.prototype, "_name", 2);
-R([
+U([
   l()
 ], O.prototype, "_source", 2);
-R([
+U([
   l()
 ], O.prototype, "_severity", 2);
-R([
+U([
   l()
 ], O.prototype, "_enabled", 2);
-R([
+U([
   l()
 ], O.prototype, "_mappingText", 2);
-R([
+U([
   l()
 ], O.prototype, "_error", 2);
-R([
+U([
   l()
 ], O.prototype, "_saving", 2);
-O = R([
-  S("webhook-form")
+O = U([
+  T("webhook-form")
 ], O);
-var Ys = Object.defineProperty, Zs = Object.getOwnPropertyDescriptor, T = (e, t, s, a) => {
+var Ys = Object.defineProperty, Zs = Object.getOwnPropertyDescriptor, A = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Zs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && Ys(t, s, r), r;
@@ -4175,68 +4191,68 @@ $.styles = [
       }
     `
 ];
-T([
+A([
   w({ attribute: !1 })
 ], $.prototype, "api", 2);
-T([
+A([
   l()
 ], $.prototype, "_items", 2);
-T([
+A([
   l()
 ], $.prototype, "_loading", 2);
-T([
+A([
   l()
 ], $.prototype, "_filter", 2);
-T([
+A([
   l()
 ], $.prototype, "_onlyEnabled", 2);
-T([
+A([
   l()
 ], $.prototype, "_hidePlaceholders", 2);
-T([
+A([
   l()
 ], $.prototype, "_displayedCount", 2);
-T([
+A([
   l()
 ], $.prototype, "_selected", 2);
-T([
+A([
   l()
 ], $.prototype, "_bulkSeverityValue", 2);
-T([
+A([
   l()
 ], $.prototype, "_bulkActionRunning", 2);
-T([
+A([
   l()
 ], $.prototype, "_newAddr", 2);
-T([
+A([
   l()
 ], $.prototype, "_newLabel", 2);
-T([
+A([
   l()
 ], $.prototype, "_newDpt", 2);
-T([
+A([
   l()
 ], $.prototype, "_sevPopoverFor", 2);
-T([
+A([
   l()
 ], $.prototype, "_sevPopoverPos", 2);
-T([
+A([
   l()
 ], $.prototype, "_discovery", 2);
-T([
+A([
   l()
 ], $.prototype, "_discoveryStatus", 2);
-T([
+A([
   l()
 ], $.prototype, "_editing", 2);
-T([
+A([
   l()
 ], $.prototype, "_toast", 2);
-T([
+A([
   l()
 ], $.prototype, "_error", 2);
-$ = T([
-  S("knx-addresses-view")
+$ = A([
+  T("knx-addresses-view")
 ], $);
 var ta = Object.defineProperty, sa = Object.getOwnPropertyDescriptor, me = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? sa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
@@ -4745,9 +4761,9 @@ me([
   l()
 ], K.prototype, "_testingIds", 2);
 K = me([
-  S("channels-view")
+  T("channels-view")
 ], K);
-var ia = Object.defineProperty, na = Object.getOwnPropertyDescriptor, A = (e, t, s, a) => {
+var ia = Object.defineProperty, na = Object.getOwnPropertyDescriptor, k = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? na(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && ia(t, s, r), r;
@@ -4866,7 +4882,7 @@ const tt = y`
     color: var(--secondary-text-color, #666);
   }
 `;
-let I = class extends x {
+let R = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._newPattern = "", this._newSource = "", this._newSeverity = "info", this._editId = null, this._editDraft = null;
   }
@@ -5015,31 +5031,31 @@ let I = class extends x {
     </tr>`;
   }
 };
-I.styles = tt;
-A([
+R.styles = tt;
+k([
   w({ attribute: !1 })
-], I.prototype, "api", 2);
-A([
+], R.prototype, "api", 2);
+k([
   l()
-], I.prototype, "_items", 2);
-A([
+], R.prototype, "_items", 2);
+k([
   l()
-], I.prototype, "_newPattern", 2);
-A([
+], R.prototype, "_newPattern", 2);
+k([
   l()
-], I.prototype, "_newSource", 2);
-A([
+], R.prototype, "_newSource", 2);
+k([
   l()
-], I.prototype, "_newSeverity", 2);
-A([
+], R.prototype, "_newSeverity", 2);
+k([
   l()
-], I.prototype, "_editId", 2);
-A([
+], R.prototype, "_editId", 2);
+k([
   l()
-], I.prototype, "_editDraft", 2);
-I = A([
-  S("mqtt-topics-view")
-], I);
+], R.prototype, "_editDraft", 2);
+R = k([
+  T("mqtt-topics-view")
+], R);
 let ee = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._newSource = "", this._newInterval = 3600;
@@ -5124,24 +5140,24 @@ let ee = class extends x {
   }
 };
 ee.styles = tt;
-A([
+k([
   w({ attribute: !1 })
 ], ee.prototype, "api", 2);
-A([
+k([
   l()
 ], ee.prototype, "_items", 2);
-A([
+k([
   l()
 ], ee.prototype, "_newSource", 2);
-A([
+k([
   l()
 ], ee.prototype, "_newInterval", 2);
-ee = A([
-  S("heartbeats-view")
+ee = k([
+  T("heartbeats-view")
 ], ee);
-let U = class extends x {
+let F = class extends x {
   constructor() {
-    super(...arguments), this._items = [], this._newName = "", this._newSource = "", this._newAutomation = "", this._newAuto = !1;
+    super(...arguments), this._items = [], this._newName = "", this._newSource = "", this._newAutomation = "", this._newAuto = !1, this._editId = null, this._editDraft = null;
   }
   async firstUpdated() {
     await this._load();
@@ -5160,6 +5176,39 @@ let U = class extends x {
   }
   async _delete(e) {
     !this.api || e.id == null || window.confirm(`Hook '${e.name}' löschen?`) && (await this.api.deleteRemediationHook(e.id), await this._load());
+  }
+  // F-006: Edit-Modus aktivieren.
+  _startEdit(e) {
+    e.id != null && (this._editId = e.id, this._editDraft = { ...e });
+  }
+  _cancelEdit() {
+    this._editId = null, this._editDraft = null;
+  }
+  async _saveEdit() {
+    if (!this.api || this._editId == null || !this._editDraft) return;
+    const e = this._editDraft;
+    !e.name.trim() || !e.source_pattern.trim() || !e.automation_id.trim() || (await this.api.updateRemediationHook(this._editId, {
+      name: e.name.trim(),
+      source_pattern: e.source_pattern.trim(),
+      automation_id: e.automation_id.trim(),
+      fingerprint: e.fingerprint,
+      confirm_required: e.confirm_required,
+      enabled: e.enabled
+    }), this._cancelEdit(), await this._load());
+  }
+  _patchDraft(e) {
+    this._editDraft && (this._editDraft = { ...this._editDraft, ...e });
+  }
+  // F-006: Toggle aktiv/inaktiv ohne Edit-Modus, kein Confirm.
+  async _toggleEnabled(e) {
+    !this.api || e.id == null || (await this.api.updateRemediationHook(e.id, {
+      name: e.name,
+      source_pattern: e.source_pattern,
+      automation_id: e.automation_id,
+      fingerprint: e.fingerprint,
+      confirm_required: e.confirm_required,
+      enabled: !e.enabled
+    }), await this._load());
   }
   render() {
     return i`
@@ -5213,50 +5262,105 @@ let U = class extends x {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map(
-      (e) => i`<tr>
-                    <td>${e.name}</td>
-                    <td><code>${e.source_pattern}</code></td>
-                    <td><code>${e.automation_id}</code></td>
-                    <td>
-                      ${e.confirm_required ? i`<span class="muted">Vorschlag</span>` : i`<span class="alert">Auto</span>`}
-                    </td>
-                    <td>${e.enabled ? "✓" : "—"}</td>
-                    <td class="actions">
-                      <button class="danger" @click=${() => void this._delete(e)}>
-                        Löschen
-                      </button>
-                    </td>
-                  </tr>`
-    )}
+                ${this._items.map((e) => this._renderRow(e))}
               </tbody>
             </table>`}
       </section>
     `;
   }
+  _renderRow(e) {
+    if (e.id != null && e.id === this._editId && this._editDraft) {
+      const s = this._editDraft;
+      return i`<tr>
+        <td>
+          <input
+            .value=${s.name}
+            @input=${(a) => this._patchDraft({ name: a.target.value })}
+          />
+        </td>
+        <td>
+          <input
+            .value=${s.source_pattern}
+            @input=${(a) => this._patchDraft({ source_pattern: a.target.value })}
+          />
+        </td>
+        <td>
+          <input
+            .value=${s.automation_id}
+            @input=${(a) => this._patchDraft({ automation_id: a.target.value })}
+          />
+        </td>
+        <td>
+          <label class="inline">
+            <input
+              type="checkbox"
+              .checked=${!s.confirm_required}
+              @change=${(a) => this._patchDraft({
+        confirm_required: !a.target.checked
+      })}
+            />
+            <span>Auto</span>
+          </label>
+        </td>
+        <td>
+          <input
+            type="checkbox"
+            .checked=${s.enabled}
+            @change=${(a) => this._patchDraft({ enabled: a.target.checked })}
+          />
+        </td>
+        <td class="actions">
+          <button class="primary" @click=${() => void this._saveEdit()}>Speichern</button>
+          <button @click=${() => this._cancelEdit()}>Abbrechen</button>
+        </td>
+      </tr>`;
+    }
+    return i`<tr>
+      <td>${e.name}</td>
+      <td><code>${e.source_pattern}</code></td>
+      <td><code>${e.automation_id}</code></td>
+      <td>
+        ${e.confirm_required ? i`<span class="muted">Vorschlag</span>` : i`<span class="alert">Auto</span>`}
+      </td>
+      <td>${e.enabled ? "✓" : "—"}</td>
+      <td class="actions">
+        <button @click=${() => this._startEdit(e)}>Bearbeiten</button>
+        <button @click=${() => void this._toggleEnabled(e)}>
+          ${e.enabled ? "Pause" : "Aktivieren"}
+        </button>
+        <button class="danger" @click=${() => void this._delete(e)}>Löschen</button>
+      </td>
+    </tr>`;
+  }
 };
-U.styles = tt;
-A([
+F.styles = tt;
+k([
   w({ attribute: !1 })
-], U.prototype, "api", 2);
-A([
+], F.prototype, "api", 2);
+k([
   l()
-], U.prototype, "_items", 2);
-A([
+], F.prototype, "_items", 2);
+k([
   l()
-], U.prototype, "_newName", 2);
-A([
+], F.prototype, "_newName", 2);
+k([
   l()
-], U.prototype, "_newSource", 2);
-A([
+], F.prototype, "_newSource", 2);
+k([
   l()
-], U.prototype, "_newAutomation", 2);
-A([
+], F.prototype, "_newAutomation", 2);
+k([
   l()
-], U.prototype, "_newAuto", 2);
-U = A([
-  S("remediation-view")
-], U);
+], F.prototype, "_newAuto", 2);
+k([
+  l()
+], F.prototype, "_editId", 2);
+k([
+  l()
+], F.prototype, "_editDraft", 2);
+F = k([
+  T("remediation-view")
+], F);
 var oa = Object.defineProperty, la = Object.getOwnPropertyDescriptor, B = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? la(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
@@ -5278,7 +5382,7 @@ function da() {
   }
   return "webhooks";
 }
-let F = class extends x {
+let C = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._showForm = !1, this._editing = null, this._toast = "", this._menuOpenId = null, this._activeTab = da(), this._closeMenu = () => {
       this._menuOpenId !== null && (this._menuOpenId = null);
@@ -5507,7 +5611,7 @@ let F = class extends x {
     `;
   }
 };
-F.styles = [
+C.styles = [
   L,
   se,
   Se,
@@ -5864,31 +5968,31 @@ F.styles = [
 ];
 B([
   w({ attribute: !1 })
-], F.prototype, "api", 2);
+], C.prototype, "api", 2);
 B([
   l()
-], F.prototype, "_items", 2);
+], C.prototype, "_items", 2);
 B([
   l()
-], F.prototype, "_loading", 2);
+], C.prototype, "_loading", 2);
 B([
   l()
-], F.prototype, "_showForm", 2);
+], C.prototype, "_showForm", 2);
 B([
   l()
-], F.prototype, "_editing", 2);
+], C.prototype, "_editing", 2);
 B([
   l()
-], F.prototype, "_toast", 2);
+], C.prototype, "_toast", 2);
 B([
   l()
-], F.prototype, "_menuOpenId", 2);
+], C.prototype, "_menuOpenId", 2);
 B([
   l()
-], F.prototype, "_activeTab", 2);
-F = B([
-  S("settings-view")
-], F);
+], C.prototype, "_activeTab", 2);
+C = B([
+  T("settings-view")
+], C);
 var ca = Object.defineProperty, ha = Object.getOwnPropertyDescriptor, re = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? ha(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
@@ -6197,9 +6301,9 @@ re([
   l()
 ], H.prototype, "_loading", 2);
 H = re([
-  S("stats-live-view")
+  T("stats-live-view")
 ], H);
-var ua = Object.defineProperty, ma = Object.getOwnPropertyDescriptor, Ie = (e, t, s, a) => {
+var ua = Object.defineProperty, ma = Object.getOwnPropertyDescriptor, Ne = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? ma(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && ua(t, s, r), r;
@@ -6261,7 +6365,7 @@ let ce = class extends x {
               </circle>
             </g>`;
       }
-      const b = g.values.map((v, k) => `${h(k)},${m(v)}`).join(" ");
+      const b = g.values.map((v, S) => `${h(S)},${m(v)}`).join(" ");
       return i`<g class="series">
             <polyline
               points=${b}
@@ -6271,7 +6375,7 @@ let ce = class extends x {
               vector-effect="non-scaling-stroke"
             ><title>${g.ga}</title></polyline>
             ${g.values.map(
-        (v, k) => i`<circle cx=${h(k)} cy=${m(v)} r="2" fill=${p}>
+        (v, S) => i`<circle cx=${h(S)} cy=${m(v)} r="2" fill=${p}>
                 <title>${g.ga}: ${v}</title>
               </circle>`
       )}
@@ -6358,17 +6462,17 @@ ce.styles = [
       }
     `
 ];
-Ie([
+Ne([
   w({ attribute: !1 })
 ], ce.prototype, "items", 2);
-Ie([
+Ne([
   w({ type: Number })
 ], ce.prototype, "width", 2);
-Ie([
+Ne([
   w({ type: Number })
 ], ce.prototype, "height", 2);
-ce = Ie([
-  S("knx-timeline-chart")
+ce = Ne([
+  T("knx-timeline-chart")
 ], ce);
 var ga = Object.defineProperty, va = Object.getOwnPropertyDescriptor, Re = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? va(t, s) : t, n = e.length - 1, o; n >= 0; n--)
@@ -6398,7 +6502,7 @@ let he = class extends x {
         Wertverlauf: zu wenige numerische Datenpunkte
         (${e.length} von ${this.points.length}).
       </p>`;
-    const t = e.map((v) => v.value), s = Math.min(...t), a = Math.max(...t), r = a - s || 1, n = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - n.left - n.right, d = this.height - n.top - n.bottom, h = (v) => n.left + v / Math.max(1, e.length - 1) * o, m = (v) => n.top + (1 - (v - s) / r) * d, g = e.map((v, k) => `${h(k)},${m(v.value)}`).join(" "), p = [...t.slice(1).map((v, k) => Math.abs(v - t[k]))].sort((v, k) => v - k), b = p[Math.floor(p.length / 2)];
+    const t = e.map((v) => v.value), s = Math.min(...t), a = Math.max(...t), r = a - s || 1, n = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - n.left - n.right, d = this.height - n.top - n.bottom, h = (v) => n.left + v / Math.max(1, e.length - 1) * o, m = (v) => n.top + (1 - (v - s) / r) * d, g = e.map((v, S) => `${h(S)},${m(v.value)}`).join(" "), p = [...t.slice(1).map((v, S) => Math.abs(v - t[S]))].sort((v, S) => v - S), b = p[Math.floor(p.length / 2)];
     return i`
       <div class="wrap">
         <svg
@@ -6480,7 +6584,7 @@ Re([
   w({ type: Number })
 ], he.prototype, "height", 2);
 he = Re([
-  S("knx-value-sparkline")
+  T("knx-value-sparkline")
 ], he);
 const ba = "";
 var _a = Object.defineProperty, wa = Object.getOwnPropertyDescriptor, _ = (e, t, s, a) => {
@@ -6749,7 +6853,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         p,
         b,
         v,
-        k,
+        S,
         ge,
         Ee,
         Zt,
@@ -6785,7 +6889,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           this.api.getKnxStatsHeatmap(r, 10, this._suggestHeatmapBucketMinutes())
         )
       ]);
-      this._summary = o, this._top = d.items, this._topBySource = h.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = b, this._health = v, this._longTerm = k, this._bursts = ge, this._sensitiveLog = Ee, this._trend = Zt, this._heatmap = Xt, this._apiErrors = e, this._apiErrorsDismissed = !1;
+      this._summary = o, this._top = d.items, this._topBySource = h.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = b, this._health = v, this._longTerm = S, this._bursts = ge, this._sensitiveLog = Ee, this._trend = Zt, this._heatmap = Xt, this._apiErrors = e, this._apiErrorsDismissed = !1;
       const at = d.items.slice(0, 5).map((Qt) => Qt.ga);
       at.length > 0 ? this._timeline = await this.api.getKnxStatsTimeline({
         ...r,
@@ -10171,7 +10275,7 @@ _([
   l()
 ], f.prototype, "_toast", 2);
 f = _([
-  S("stats-knx-view")
+  T("stats-knx-view")
 ], f);
 const st = {
   de: {
@@ -10324,10 +10428,10 @@ function Fa(e, t, s) {
 function Ca(e, t) {
   return e.replace(/\{(\w+)\}/g, (s, a) => a in t ? String(t[a]) : s);
 }
-var Na = Object.defineProperty, Ia = Object.getOwnPropertyDescriptor, Ae = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Ia(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Ia = Object.defineProperty, Na = Object.getOwnPropertyDescriptor, Ae = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Na(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Na(t, s, r), r;
+  return a && r && Ia(t, s, r), r;
 };
 const Ra = [
   "debug",
@@ -10481,9 +10585,9 @@ Ae([
   l()
 ], te.prototype, "_error", 2);
 te = Ae([
-  S("severity-override-form")
+  T("severity-override-form")
 ], te);
-var Ua = Object.defineProperty, Ha = Object.getOwnPropertyDescriptor, C = (e, t, s, a) => {
+var Ua = Object.defineProperty, Ha = Object.getOwnPropertyDescriptor, I = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ha(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && Ua(t, s, r), r;
@@ -11040,38 +11144,38 @@ z.styles = [
       }
     `
 ];
-C([
+I([
   w({ attribute: !1 })
 ], z.prototype, "api", 2);
-C([
+I([
   w({ attribute: !1 })
 ], z.prototype, "sourceFilter", 2);
-C([
+I([
   l()
 ], z.prototype, "_items", 2);
-C([
+I([
   l()
 ], z.prototype, "_total", 2);
-C([
+I([
   l()
 ], z.prototype, "_loading", 2);
-C([
+I([
   l()
 ], z.prototype, "_error", 2);
-C([
+I([
   l()
 ], z.prototype, "_severityFilter", 2);
-C([
+I([
   l()
 ], z.prototype, "_projectOnly", 2);
-C([
+I([
   l()
 ], z.prototype, "_selectedKey", 2);
-C([
+I([
   l()
 ], z.prototype, "_showOverrides", 2);
-z = C([
-  S("findings-view")
+z = I([
+  T("findings-view")
 ], z);
 var Ba = Object.defineProperty, ja = Object.getOwnPropertyDescriptor, Ue = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? ja(t, s) : t, n = e.length - 1, o; n >= 0; n--)
@@ -11222,7 +11326,7 @@ Ue([
   l()
 ], pe.prototype, "_findingsSourceFilter", 2);
 pe = Ue([
-  S("stats-view")
+  T("stats-view")
 ], pe);
 var Ka = Object.defineProperty, Wa = Object.getOwnPropertyDescriptor, ie = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Wa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
@@ -11687,7 +11791,7 @@ ie([
   l()
 ], M.prototype, "_now", 2);
 M = ie([
-  S("audit-view")
+  T("audit-view")
 ], M);
 var Ja = Object.defineProperty, Ya = Object.getOwnPropertyDescriptor, P = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ya(t, s) : t, n = e.length - 1, o; n >= 0; n--)
@@ -11697,7 +11801,7 @@ var Ja = Object.defineProperty, Ya = Object.getOwnPropertyDescriptor, P = (e, t,
 function Za(e) {
   return e.source === "knx-bus" && e.text.includes("(GroupValueRead)");
 }
-const Nt = "messagehub.filters", ne = {
+const It = "messagehub.filters", ne = {
   severity: ["error", "warning", "info"],
   source: "",
   search: "",
@@ -11761,7 +11865,7 @@ let E = class extends x {
   }
   _loadFilters() {
     try {
-      const e = localStorage.getItem(Nt);
+      const e = localStorage.getItem(It);
       if (e) return { ...ne, ...JSON.parse(e) };
     } catch {
     }
@@ -11769,7 +11873,7 @@ let E = class extends x {
   }
   _persistFilters() {
     try {
-      localStorage.setItem(Nt, JSON.stringify(this._filters));
+      localStorage.setItem(It, JSON.stringify(this._filters));
     } catch {
     }
   }
@@ -12571,7 +12675,7 @@ P([
   l()
 ], E.prototype, "_savedFiltersOpen", 2);
 E = P([
-  S("messagehub-panel")
+  T("messagehub-panel")
 ], E);
 export {
   E as MessageHubPanel,

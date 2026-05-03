@@ -443,6 +443,9 @@ export class RemediationView extends LitElement {
   @state() private _newSource = "";
   @state() private _newAutomation = "";
   @state() private _newAuto = false;
+  // F-006: Edit-State pro Zeile.
+  @state() private _editId: number | null = null;
+  @state() private _editDraft: RemediationHookDto | null = null;
 
   override async firstUpdated(): Promise<void> {
     await this._load();
@@ -472,6 +475,53 @@ export class RemediationView extends LitElement {
     if (!this.api || it.id == null) return;
     if (!window.confirm(`Hook '${it.name}' löschen?`)) return;
     await this.api.deleteRemediationHook(it.id);
+    await this._load();
+  }
+
+  // F-006: Edit-Modus aktivieren.
+  private _startEdit(it: RemediationHookDto): void {
+    if (it.id == null) return;
+    this._editId = it.id;
+    this._editDraft = { ...it };
+  }
+
+  private _cancelEdit(): void {
+    this._editId = null;
+    this._editDraft = null;
+  }
+
+  private async _saveEdit(): Promise<void> {
+    if (!this.api || this._editId == null || !this._editDraft) return;
+    const d = this._editDraft;
+    if (!d.name.trim() || !d.source_pattern.trim() || !d.automation_id.trim()) return;
+    await this.api.updateRemediationHook(this._editId, {
+      name: d.name.trim(),
+      source_pattern: d.source_pattern.trim(),
+      automation_id: d.automation_id.trim(),
+      fingerprint: d.fingerprint,
+      confirm_required: d.confirm_required,
+      enabled: d.enabled,
+    });
+    this._cancelEdit();
+    await this._load();
+  }
+
+  private _patchDraft(patch: Partial<RemediationHookDto>): void {
+    if (!this._editDraft) return;
+    this._editDraft = { ...this._editDraft, ...patch };
+  }
+
+  // F-006: Toggle aktiv/inaktiv ohne Edit-Modus, kein Confirm.
+  private async _toggleEnabled(it: RemediationHookDto): Promise<void> {
+    if (!this.api || it.id == null) return;
+    await this.api.updateRemediationHook(it.id, {
+      name: it.name,
+      source_pattern: it.source_pattern,
+      automation_id: it.automation_id,
+      fingerprint: it.fingerprint,
+      confirm_required: it.confirm_required,
+      enabled: !it.enabled,
+    });
     await this._load();
   }
 
@@ -533,28 +583,84 @@ export class RemediationView extends LitElement {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map(
-                  (it) => html`<tr>
-                    <td>${it.name}</td>
-                    <td><code>${it.source_pattern}</code></td>
-                    <td><code>${it.automation_id}</code></td>
-                    <td>
-                      ${it.confirm_required
-                        ? html`<span class="muted">Vorschlag</span>`
-                        : html`<span class="alert">Auto</span>`}
-                    </td>
-                    <td>${it.enabled ? "✓" : "—"}</td>
-                    <td class="actions">
-                      <button class="danger" @click=${() => void this._delete(it)}>
-                        Löschen
-                      </button>
-                    </td>
-                  </tr>`
-                )}
+                ${this._items.map((it) => this._renderRow(it))}
               </tbody>
             </table>`}
       </section>
     `;
+  }
+
+  private _renderRow(it: RemediationHookDto): TemplateResult {
+    const isEditing = it.id != null && it.id === this._editId && this._editDraft;
+    if (isEditing) {
+      const d = this._editDraft!;
+      return html`<tr>
+        <td>
+          <input
+            .value=${d.name}
+            @input=${(e: InputEvent) =>
+              this._patchDraft({ name: (e.target as HTMLInputElement).value })}
+          />
+        </td>
+        <td>
+          <input
+            .value=${d.source_pattern}
+            @input=${(e: InputEvent) =>
+              this._patchDraft({ source_pattern: (e.target as HTMLInputElement).value })}
+          />
+        </td>
+        <td>
+          <input
+            .value=${d.automation_id}
+            @input=${(e: InputEvent) =>
+              this._patchDraft({ automation_id: (e.target as HTMLInputElement).value })}
+          />
+        </td>
+        <td>
+          <label class="inline">
+            <input
+              type="checkbox"
+              .checked=${!d.confirm_required}
+              @change=${(e: Event) =>
+                this._patchDraft({
+                  confirm_required: !(e.target as HTMLInputElement).checked,
+                })}
+            />
+            <span>Auto</span>
+          </label>
+        </td>
+        <td>
+          <input
+            type="checkbox"
+            .checked=${d.enabled}
+            @change=${(e: Event) =>
+              this._patchDraft({ enabled: (e.target as HTMLInputElement).checked })}
+          />
+        </td>
+        <td class="actions">
+          <button class="primary" @click=${() => void this._saveEdit()}>Speichern</button>
+          <button @click=${() => this._cancelEdit()}>Abbrechen</button>
+        </td>
+      </tr>`;
+    }
+    return html`<tr>
+      <td>${it.name}</td>
+      <td><code>${it.source_pattern}</code></td>
+      <td><code>${it.automation_id}</code></td>
+      <td>
+        ${it.confirm_required
+          ? html`<span class="muted">Vorschlag</span>`
+          : html`<span class="alert">Auto</span>`}
+      </td>
+      <td>${it.enabled ? "✓" : "—"}</td>
+      <td class="actions">
+        <button @click=${() => this._startEdit(it)}>Bearbeiten</button>
+        <button @click=${() => void this._toggleEnabled(it)}>
+          ${it.enabled ? "Pause" : "Aktivieren"}
+        </button>
+        <button class="danger" @click=${() => void this._delete(it)}>Löschen</button>
+      </td>
+    </tr>`;
   }
   static override styles = sharedStyles;
 }
