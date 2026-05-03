@@ -1,0 +1,322 @@
+# Webrecherche: KNX-Konfigurationsfehler im Group-Monitor erkennen
+
+**Status:** Recherche / Konzept-Vorschlag
+**Datum:** 2026-05-03
+**Branch:** `claude/knx-config-error-detection-gVMw1`
+**Bezug:** Erweiterung von `messagehub_knx_statistik.md` §5.6 (Anti-Pattern-
+Detector) — neuer Schwerpunkt: Konfigurationsfehler, die rein aus dem
+geloggten Telegrammverkehr (ohne ETS-Projekt-Zugriff) erkennbar sind.
+
+---
+
+## 1. Ziel der Recherche
+
+Wir haben heute einen funktionierenden Anti-Pattern-Detector für vier
+Muster (Konstant-Wert, Read-Burst, Mehrfach-Response, Heartbeat-Spam)
+plus einen Bus-Health-Score. Die Frage: **Was sehen erfahrene
+KNX-Anwender im ETS-Group-Monitor an Fehlern, das wir noch nicht
+abdecken?** Ziel ist eine priorisierte Lückenliste mit konkreten
+Erkennungsregeln, die sich aus `messages.source = 'knx-bus'` und den
+vorhandenen `metadata`-Feldern (`knx_ga`, `knx_dpt`, `knx_source`,
+`knx_value`, Telegram-Typ) ableiten lassen.
+
+---
+
+## 2. Bestandsaufnahme — was die App heute kann
+
+| Feature | Modul | Status |
+|---|---|---|
+| Rate-Klassifizierung pro GA (grün/gelb/orange/rot) | `processing/knx_stats.py` | ✅ |
+| Empfehlungs-Engine (Templates pro DPT) | `processing/knx_stats.py` | ✅ |
+| **Konstant-Wert-Spam** | `_detect_constant_value` | ✅ |
+| **Read-Burst** | `_detect_read_burst` | ✅ |
+| **Mehrfach-Response** | `_detect_multiple_response` | ✅ |
+| **Heartbeat-Spam** | `_detect_heartbeat_spam` | ✅ |
+| Bus-Health-Score (4 KPIs) | `_build_health_findings` | ✅ |
+| DPT-Auto-Erkennung (Heuristik aus Werten) | `infer_dpt_from_samples` | ✅ |
+| Source-Address-Sicht (Pivot pro Gerät) | `knx_stats_service.py` | ✅ |
+| Telegramm-Typ-Filter (Read/Response/Write) | API + Frontend | ✅ |
+| Silence-Detection (Geräte ohne Lebenszeichen) | `knx_stats.py` | ✅ |
+| Trend-Vergleich (24h vs. 7d) | WR-I | ✅ |
+| Multi-byte-ASCII-Decoder | WR-V | ✅ |
+| ACK/NAK-Statistik | xknx-Layer | ❌ **BL-D blocked** |
+| Telegram-Tracer | xknx-Layer | ❌ **BL-E blocked** |
+
+**Die Basis ist solide.** Was folgt, sind Erweiterungen, die mit den
+heute verfügbaren Datenfeldern (kein xknx-Tieflevel-Zugriff nötig)
+realisierbar sind.
+
+---
+
+## 3. Recherche-Befunde — was die KNX-Welt als typische Fehler nennt
+
+Quellen sind die offizielle KNX-Association-Doku (support.knx.org),
+die deutschen Foren (knx-user-forum.de, knx-blogger.de), Hersteller-
+Wissensdatenbanken (1Home, Hager, Voltus) sowie Issue-Tracker von
+HA/openHAB/ioBroker. Vollständige Linkliste in §7.
+
+### 3.1 Häufige Fehlerklassen (konsolidiert aus 7 Quellen)
+
+| # | Fehler | Symptom auf dem Bus | Quelle |
+|---|---|---|---|
+| **F1** | **DPT-Mismatch** — GA mit falschem Datentyp belegt (z. B. 4-Bit-Objekt auf 1-Bit-GA) | Werte werden falsch dekodiert (`85 A8` statt `−6 °C`) | KNX Association: [Group Addresses & Datapoint Types](https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types) |
+| **F2** | **Multi-Responder** — mehrere Aktoren mit gesetztem L-Flag auf derselben GA | >1 Response auf 1 Read, oft millisekunden-versetzt | [knx-blogger Flags](https://knx-blogger.de/knx-flags-einfach-erklaert/), [KNX Flags](https://support.knx.org/hc/en-us/articles/115003188089-Flags) |
+| **F3** | **Filter-Tabelle veraltet** — Linienkoppler routet Telegramme ungewollt durch / blockt | Viele GAs erscheinen auf falscher Linie, Repeat-Telegramme | [KNX Couplers & Filter Tables](https://support.knx.org/hc/en-us/articles/360007445460-Couplers-Filter-Tables) |
+| **F4** | **Telegrammwiederholung (Repeat-Flag)** — fehlender ACK, NACK oder BUSY | Gleicher Frame mit Repeat-Bit binnen 50 ms | [KNX LL acknowledgement](https://support.knx.org/hc/en-us/articles/115003188269-LL-acknowledgement), [knx-user-forum: Unbestätigte Telegramme](https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung) |
+| **F5** | **Sendung ohne Empfänger** — GA hat kein Ziel-Group-Object | KNX wiederholt 3× wegen fehlendem ACK | [knx-user-forum: Telegrammverlust](https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/2058313-telegrammverlust-in-ips-problem-zu-viele-ger%C3%A4te-gruppenadressen) |
+| **F6** | **Schaltschleife / Toggle-Loop** — gleiche GA wird sendend+hörend gleichzeitig genutzt | DPT 1.001 alterniert in fester Frequenz <2 s | [openHAB: Loops on KNX bus](https://community.openhab.org/t/loops-on-knx-bus/22185) |
+| **F7** | **Buslast >50 %** — sporadische Fehlfunktionen | hohe Tel/s + viele Repeats | [KNX Bus Activity Monitor](https://support.knx.org/hc/en-us/articles/360018712880-Bus-Monitor-Group-Monitor-and-ETS-Bus-Activity-Monitor) |
+| **F8** | **Read ohne Response** — GA wird gelesen, niemand antwortet | GroupValueRead ohne nachfolgenden Response binnen 3 s | [KNX Groups Diagnostics](https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics) |
+| **F9** | **Hop-Counter-Erschöpfung** — Telegramm zirkuliert, Hop=0 | Telegramme verschwinden auf Linie X, obwohl gesendet | [KNX Couplers Topology](https://support.knx.org/hc/en-us/articles/360007457380-Couplers-Topology-Changes) |
+| **F10** | **Adresskonflikt** — zwei Geräte mit identischer Phys.-Adresse | Programmiermodus zeigt mehrere Geräte | [KNX Individual Addresses](https://support.knx.org/hc/en-us/articles/360011844719-Individual-Addresses) |
+| **F11** | **Default-0-Spam** — Gateway sendet Klima-Werte aus nicht-existenter Sensorik | DPT 9.x mit konstant `0x0000` (bereits abgedeckt durch _detect_constant_value) | User-Sample 2026-05-02 (Hörmann-Tor) |
+| **F12** | **Wert-Range-Verletzung** — DPT-konforme GA bekommt Werte außerhalb des erlaubten Bereichs | DPT 5.001 (Prozent) bekommt 200 statt 0–100 | [XKNX Issue #137 (Percentage parsing)](https://github.com/XKNX/xknx/issues/137) |
+| **F13** | **Reconnect-Storm** — nach Bus-Spannungsausfall fluten Geräte mit Reads/Writes | Spike auf einer Source-Adresse direkt nach Lücke | [HA-Issue #69328](https://github.com/home-assistant/core/issues/69328) |
+| **F14** | **Mehrfache Time-Master** — zwei Geräte schreiben auf 0/0/1 (Datum)/0/0/2 (Uhrzeit) | DPT 10.001/11.001 von ≥2 verschiedenen `knx_source` | [User-Sample 2026-05-02 §15.3] |
+| **F15** | **Sendezyklus-Drift** — Wetterstation/Sensor verkürzt Zyklus über Zeit | Median(Δt) sinkt über mehrere Tage | knx-blogger.de Bus-Lifecycle |
+
+### 3.2 Was User in Foren am häufigsten fragen
+
+Aus dem Sample der Top-Threads im KNX-User-Forum, KNX-Professionals,
+loxforum, Timberwolf-Forum, Home-Assistant-Community und openHAB-
+Community kristallisieren sich fünf Themenblöcke heraus:
+
+1. **„Mein Bus ist überlastet — wer ist schuld?"**
+   → Wetterstationen, Heizungsstellgrößen, Bewegungsmelder ohne
+     Hysterese. **Heute schon abgedeckt** (Top-Sender-Tabelle + Empfehlung).
+2. **„Das Ding tut einfach nicht — Telegramm geht raus, kommt nicht an."**
+   → meist F2 (Multi-Responder), F3 (Filter veraltet), F4 (Repeat),
+     F5 (Empfängerlos). **Teilweise abgedeckt** (Mehrfach-Response).
+3. **„Status-LED stimmt nicht mit dem Aktor überein."**
+   → meist F2 oder Schaltschleife (F6). Aktor-Rückmeldung wird nicht
+     geschrieben oder nicht gelesen.
+4. **„Home Assistant zeigt veraltete Werte / muss neu gestartet werden."**
+   → typisch F13 (Reconnect-Storm) + zu kurzes `sync_state`-Intervall.
+5. **„Warum sehe ich Werte, mit denen ich nichts anfangen kann?"**
+   → F1 (DPT-Mismatch). **Teilweise mit DPT-Auto-Erkennung adressiert**,
+     aber wir geben heute keine Warnung, wenn der vom Projekt
+     gelieferte DPT widerspricht.
+
+### 3.3 ETS-Bordmittel als Maßstab
+
+Die ETS bietet zwei Diagnose-Wizards, die als Inspirationsquelle
+dienen, ohne dass wir sie 1:1 nachbauen können (uns fehlt der
+Telegram-Tracer-Zugriff):
+
+- **Groups Diagnostics** ([Doku](https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics)):
+  prüft pro GA, ob **kein Empfänger acknowledged**, **negativer ACK
+  (NAK)** oder **BUSY** vorliegt — alle drei brauchen Layer-2-Frames
+  und sind für uns blocked (BL-D/BL-E).
+- **Project Check** ([Doku](https://support.knx.org/hc/en-us/articles/115001822790-Project-Check)):
+  Offline-Check auf **Orphan-Devices** (kein Group-Object verlinkt)
+  und **ungenutzte GAs** (kein Link). Das **können wir nachbilden**,
+  wenn der User sein ETS-Projekt geladen hat (knx_group_addresses
+  hat dann die Soll-Liste, und wir vergleichen mit `messages` →
+  *„im Projekt, aber nie auf dem Bus gesehen"*).
+
+---
+
+## 4. Lücken-Analyse — was wir noch nicht haben
+
+Aus §3 abgeleitet, mit Vergleich zur Implementierung in §2:
+
+| Lücke | Quelle in §3 | Datenbasis ausreichend? |
+|---|---|---|
+| **L1** DPT-Mismatch-Warnung (Projekt-DPT vs. erkannter DPT) | F1 | ✅ — `knx_dpt` aus Projekt + `infer_dpt_from_samples` |
+| **L2** Multi-Responder-Detector (≥2 verschiedene `knx_source` antworten auf gleichen Read) | F2 | ✅ — Telegram-Typ + `knx_source` |
+| **L3** Read-ohne-Response (Read, dann 3 s lang nichts auf gleicher GA) | F8 | ✅ — Telegram-Typ + Zeit |
+| **L4** Toggle-Loop-Detector (DPT 1.001, alterniert <2 s in mehreren Zyklen) | F6 | ✅ — Wert + Zeit |
+| **L5** Wert-Range-Validator (DPT-spezifischer Min/Max) | F12 | ✅ — DPT + Wert |
+| **L6** Reconnect-Storm-Detector (Spike auf Source-Adresse nach Bus-Lücke) | F13 | ✅ — `knx_source` + Zeit |
+| **L7** Multi-Time-Master (≥2 `knx_source` schreiben 0/0/1 oder 10.001-DPT) | F14 | ✅ — `knx_source` + DPT |
+| **L8** Sendezyklus-Drift (Median(Δt) sinkt über Tage) | F15 | ✅ — Trend-Vergleich-Infra ist da |
+| **L9** Orphan-GA-Check (Projekt-GA, aber nie auf Bus) | Project Check | ✅ — Whitelist + COUNT(messages) |
+| **L10** „Stille" GA (war aktiv, ist seit X Tagen tot) | erweiterte Silence-Detection | ✅ — Silence-Infra ist da, aber pro Gerät, nicht pro GA |
+| **L11** Repeat-Pattern-Detector (gleicher Wert auf gleicher GA <50 ms später) | F4 | ⚠️ teilweise — wir sehen die Wiederholung, aber nicht das Repeat-Bit. **Approximation** möglich. |
+| **L12** „Sendung ins Leere" (GA wird beschrieben, kein Group-Object lauscht) | F5 | ⚠️ braucht Projekt-Daten zur Empfänger-Liste |
+
+**Nicht aufnehmen, weil ohne xknx-Frame-Layer nicht machbar:**
+- Hop-Counter-Werte (F9)
+- echte ACK/NAK/BUSY-Statistik (F4 vollständig, F7 vollständig)
+- Adresskonflikt-Detektion (F10) — braucht Programmiermodus-Frames
+
+---
+
+## 5. Vorschlag — Erweiterungs-Roadmap (priorisiert)
+
+Reihenfolge nach Nutzen-pro-Aufwand. Jede Iteration hält sich an
+CLAUDE.md (≤ 60 Min, TDD, Quality-Gates grün).
+
+### 5.1 Phase A — Quick-Wins aus vorhandenen Daten
+
+| # | Feature | Aufwand | Nutzen | Iter |
+|---|---|---|---|---|
+| **E1** | **DPT-Mismatch-Warnung** (L1): wenn `infer_dpt_from_samples` ≠ Projekt-DPT, gelbes Finding *„Erkannter Datentyp X widerspricht Projekt-DPT Y — bitte ETS prüfen"* | S | hoch | 1 Iter |
+| **E2** | **Multi-Responder-Finding** (L2): Erweiterung von `_detect_multiple_response`, das heute nur „mehr als 1 Response" erkennt — neu: separate Findings je `knx_source`-Set, listet die widersprüchlichen Geräte | S | hoch | 1 Iter |
+| **E3** | **Read-ohne-Response-Finding** (L3): pro `(GA, Read-Telegramm)` prüfen, ob im 3-s-Fenster ein Response folgte; sonst Finding *„GA wird gelesen, aber niemand antwortet — ETS L-Flag fehlt"* | S | hoch | 1 Iter |
+| **E4** | **Toggle-Loop-Detector** (L4): DPT 1.001 + Wert-Sequenz `0,1,0,1,...` mit Δt < 2 s ≥ 4×; Finding *„Schaltschleife — gleiche GA sendend und hörend?"* | M | hoch | 1 Iter |
+| **E5** | **Wert-Range-Validator** (L5): pro DPT (5.001 0-100, 9.005 -67-+670, 5.005 0-360, ...) Min/Max in `const.py`; Wert außerhalb → Finding *„Wert X liegt außerhalb des DPT-Bereichs"* | M | mittel | 1 Iter |
+
+### 5.2 Phase B — Verhaltensmuster über Zeit
+
+| # | Feature | Aufwand | Nutzen | Iter |
+|---|---|---|---|---|
+| **E6** | **Reconnect-Storm-Detector** (L6): nach `silence_devices`-Lücke ≥ 60 s Spike-Erkennung pro `knx_source` (≥10× normaler Schnitt im 30-s-Fenster) | M | mittel | 1 Iter |
+| **E7** | **Multi-Time-Master-Finding** (L7): Pivot auf DPT 10.001/11.001/19.001 nach `knx_source` — wenn ≥2 unterschiedliche Sources auf derselben GA schreiben: Finding | S | mittel | 1 Iter |
+| **E8** | **Sendezyklus-Drift** (L8): Median(Δt) der letzten 24 h vs. letzten 7 Tagen — wenn ≤ 50 % gefallen: Trend-Finding *„Sendezyklus hat sich halbiert"* | M | mittel | 1 Iter |
+| **E9** | **Repeat-Approximation** (L11): zwei identische Tel auf gleicher GA mit Δt < 100 ms → Repeat-Verdacht, in Tageszählung als KPI *„Vermutete Wiederholungen/Tag"* | M | mittel | 1 Iter |
+
+### 5.3 Phase C — Projekt-Integration (braucht knx_group_addresses)
+
+| # | Feature | Aufwand | Nutzen | Iter |
+|---|---|---|---|---|
+| **E10** | **Orphan-GA-Report** (L9): Liste aller Whitelist-GAs mit `count(messages) = 0` im Auswertezeitraum — *„im Projekt, aber stumm"* | S | mittel | 1 Iter |
+| **E11** | **Silence-pro-GA** (L10): Erweiterung Silence-Detection von Geräte- auf GA-Ebene; *„GA war aktiv bis 2026-04-01, seit 32 Tagen tot"* | M | mittel | 1 Iter |
+| **E12** | **„Sendung ins Leere"** (L12): Korrelation zwischen GroupValueWrite und nachgelagertem Status-Wechsel — wenn nie ein Status zurückkommt, vermutlich kein Empfänger | L | niedrig | 2 Iter |
+
+### 5.4 Phase D — UX-Konsolidierung
+
+| # | Feature | Aufwand | Nutzen | Iter |
+|---|---|---|---|---|
+| **E13** | **„Konfigurations-Check"-Tab** als dritter Sub-Tab neben Live-Status + KNX-Bus-Analyse: aggregierte Findings-Liste über alle Detektoren, sortiert nach Severity | M | hoch | 2 Iter |
+| **E14** | **Finding-Whitelist** analog zur GA-Acknowledge-Tabelle: ein Finding-Typ pro GA als „bekannt/akzeptiert" markierbar | S | mittel | 1 Iter |
+| **E15** | **Export der Findings als ETS-Notiz-Vorlage** (Markdown, copy-paste-ready in die ETS-Notiz-Spalte) | S | niedrig | 1 Iter |
+
+### 5.5 Empfohlene Reihenfolge
+
+1. **E1, E2, E3** (3 Iter) — die drei Klassiker aus den Foren (DPT-
+   Mismatch, Multi-Responder, Read-ohne-Response). Dadurch deckt der
+   Detector die häufigsten User-Schmerzpunkte ab.
+2. **E13** (2 Iter) — *bevor* weitere Findings dazukommen, brauchen
+   wir eine UI-Aggregation, sonst werden die Findings im Detail-Pane
+   pro GA übersehen.
+3. **E4, E5, E7** (3 Iter) — orthogonale Konfigurations-Probleme.
+4. **E10, E11** (2 Iter) — Project-Integration-Quick-Wins.
+5. **E6, E8, E9** (3 Iter) — Verhalten-über-Zeit, brauchen längere
+   Datenbasis (mind. 7 Tage Logs).
+6. **E14, E15** (2 Iter) — UX-Politur.
+7. **E12** (2 Iter) — komplex, kleinster Nutzen, zuletzt.
+
+**Gesamtaufwand:** ~17 Iterationen ≙ ~17 Stunden Entwicklungszeit
+für die volle Roadmap. Phase A allein (E1-E5) wäre in **5 Iterationen
+≙ 1 Arbeitstag** machbar und liefert bereits den größten Hub.
+
+---
+
+## 6. Architektur-Skizze
+
+Die Erweiterungen passen in das bestehende `_run_detectors`-Pattern
+(`processing/knx_stats.py:449-476`):
+
+```python
+detectors = (
+    _detect_constant_value,        # bestehend
+    _detect_read_burst,            # bestehend
+    _detect_multiple_response,     # bestehend (E2 erweitert)
+    _detect_heartbeat_spam,        # bestehend
+    _detect_dpt_mismatch,          # NEU E1 (braucht project_dpt-Param)
+    _detect_multi_responder,       # NEU E2 (Subtyp von Mehrfach-Response)
+    _detect_read_without_response, # NEU E3
+    _detect_toggle_loop,           # NEU E4 (DPT 1.001-spezifisch)
+    _detect_value_out_of_range,    # NEU E5 (DPT-spezifisch)
+    _detect_reconnect_storm,       # NEU E6 (braucht Source-Pivot)
+    _detect_multi_time_master,     # NEU E7 (braucht GA-übergreifenden Pivot)
+    _detect_send_cycle_drift,      # NEU E8 (braucht Trend-Vergleich)
+    _detect_repeat_approximation,  # NEU E9
+)
+```
+
+Detektoren mit GA-übergreifendem Scope (E2, E6, E7) brauchen eine
+zweite Dispatch-Schicht im `knx_stats_service.py` — sie laufen pro
+**Set von TelegramSamples**, nicht pro einzelne GA.
+
+Die Wert-Range-Validator-Tabelle (E5) und die DPT-Min/Max-Tabelle
+gehören in `const.py` neben `KNX_RECOMMENDED_RATES_PER_MIN`. Format:
+
+```python
+# const.py (Vorschlag)
+KNX_DPT_VALUE_RANGES: Final[dict[str, tuple[float, float]]] = {
+    "5.001": (0.0, 100.0),    # Prozent
+    "5.003": (0.0, 360.0),    # Winkel
+    "5.004": (0.0, 255.0),    # Counter pulses (8 bit)
+    "9.001": (-273.0, 670760.96),  # Temperatur (DPT-Spec)
+    "9.005": (0.0, 670760.96),     # Wind, nicht negativ
+    "9.007": (0.0, 100.0),    # Feuchte
+    "9.008": (0.0, 670760.96),     # CO2
+    "13.010": (-2147483648, 2147483647),  # Energie int32
+    # ... weitere nach Bedarf
+}
+```
+
+---
+
+## 7. Quellen
+
+### KNX Association (offizielle Doku)
+- [Group Addresses & Datapoint Types](https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types)
+- [KNX Flags](https://support.knx.org/hc/en-us/articles/115003188089-Flags)
+- [LL acknowledgement](https://support.knx.org/hc/en-us/articles/115003188269-LL-acknowledgement)
+- [Online Error Diagnostics](https://support.knx.org/hc/en-us/articles/360011738780-Online-Error-Diagnostics)
+- [Groups Diagnostics](https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics)
+- [Groups Diagnostics (detailed)](https://support.knx.org/hc/en-us/articles/360019069020-Groups-Diagnostics-detailed)
+- [Bus Monitor, Group Monitor and ETS Bus Activity Monitor](https://support.knx.org/hc/en-us/articles/360018712880-Bus-Monitor-Group-Monitor-and-ETS-Bus-Activity-Monitor)
+- [Telegram tracer](https://support.knx.org/hc/en-us/articles/4417351727762-Telegram-tracer)
+- [Couplers & Filter Tables](https://support.knx.org/hc/en-us/articles/360007445460-Couplers-Filter-Tables)
+- [Couplers & Topology Changes](https://support.knx.org/hc/en-us/articles/360007457380-Couplers-Topology-Changes)
+- [Filter tables](https://support.knx.org/hc/en-us/articles/115003363245-Filter-tables)
+- [Project Check](https://support.knx.org/hc/en-us/articles/115001822790-Project-Check)
+- [Project check (Offline)](https://support.knx.org/hc/en-us/articles/360019116959-Project-check-Offline)
+- [Individual Addresses](https://support.knx.org/hc/en-us/articles/360011844719-Individual-Addresses)
+- [Group Address & Ranges](https://support.knx.org/hc/en-us/articles/115001825304-Group-Address-Ranges)
+- [Datapoint Type](https://support.knx.org/hc/en-us/articles/115001133744-Datapoint-Type)
+
+### Deutsche KNX-Communities
+- [knx-blogger: Flags einfach erklärt](https://knx-blogger.de/knx-flags-einfach-erklaert/)
+- [knx-blogger: Was ist auf deinem KNX-Bus los?](https://knx-blogger.de/was-ist-auf-deinem-knx-bus-los/)
+- [knx-blogger: KNX-Telegramm-Interna](https://knx-blogger.de/die-knx-telegramm-interna/)
+- [knx-user-forum: Unbestätigte Telegramme / Wiederholung](https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung)
+- [knx-user-forum: Telegrammverlust IPS](https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/2058313-telegrammverlust-in-ips-problem-zu-viele-ger%C3%A4te-gruppenadressen)
+- [knx-user-forum: Buslast was sind 100%?](https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/2336-buslast-was-sind-100)
+- [Voltus: KNX Flags, Sperrfunktion und Objekt-Priorität](https://www.voltus.de/blog/knx-flags-sperrfunktion-und-objekt-prioritaet/)
+- [Voltimum: KNX Bussystem-Grundlagen](https://www.voltimum.de/news/knx-grundlagenwissen-teil-2-knx-bussystem)
+- [smarthomebau: ETS-Tipps & FAQs](https://smarthomebau.de/knx-ets-5-tipps-tricks-faqs-demo-lite-professional/)
+- [Timberwolf-Forum: erhöhte Buslast durch unbekannten Fehler](https://forum.timberwolf.io/viewtopic.php?t=3808)
+
+### Home Assistant / openHAB / ioBroker
+- [HA Community: KNX Error in logs](https://community.home-assistant.io/t/knx-error-in-logs/272809)
+- [HA Community: HomeAssistant becomes unresponsive (KNX)](https://community.home-assistant.io/t/homeassistant-becomes-unresponsive-knx-interface-errors-in-selectordatagramtransport/660601)
+- [HA Community: Repeated telegrams (not acknowledged)](https://community.home-assistant.io/t/knx-repeated-telegrams-not-acknowledged/544138)
+- [HA-Issue #69328: KNX tunneling connection loss](https://github.com/home-assistant/core/issues/69328)
+- [HA-Issue #71342: 2022.5.0 communication failed](https://github.com/home-assistant/core/issues/71342)
+- [openHAB: Loops on KNX bus](https://community.openhab.org/t/loops-on-knx-bus/22185)
+- [openHAB: Steinel feedback loop](https://community.openhab.org/t/knx-dpt-5-005-endless-feedback-loop-when-changing-value-steinel-presence-detector-sensitivity/58071)
+- [XKNX Issue #137: Percentage parsing](https://github.com/XKNX/xknx/issues/137)
+
+### Sonstige
+- [1Home: Häufige KNX-Probleme](https://www.1home.io/docs/en/server/knx/troubleshooting-knx)
+- [Helge Klein: KNX Topology Troubleshooting with ETS Tools](https://helgeklein.com/blog/knx-topology-troubleshooting-with-ets-tools/)
+- [knxhub: KNX Programming Troubleshooting Guide](https://www.knxhub.com/knx-programming-troubleshooting-steps-guide/)
+- [eBook24-7: Troubleshooting & Diagnostics](https://www.ebook24-7.com/en/knx-programming/troubleshooting-diagnostics/)
+- [Dear Devices: KNX Link-Layer Ack analysis](https://deardevices.com/2020/01/25/knx-link-layer-ack/)
+
+---
+
+## 8. Offene Fragen an den User
+
+1. **Phase A reicht?** Reichen E1-E5 als nächster Schritt, oder soll
+   E13 (Findings-Aggregation-Tab) zwischengezogen werden, weil die
+   neuen Findings sonst im Detail-Pane verstreut sind?
+2. **Projekt-DPT-Quelle:** Für E1 brauchen wir die *Soll-DPTs* aus
+   dem ETS-Projekt. Heute haben wir die in `knx_group_addresses`
+   bereits, oder? (Bitte verifizieren — falls nein, ist E1
+   blockiert, bis das Schema erweitert wird.)
+3. **Severity-Default für Konfig-Findings:** sollen DPT-Mismatch und
+   Multi-Responder per Default `warning` (gelb) sein, oder direkt
+   `error` (rot) — letztere sind eher *„echt kaputt"*-Signale.
+4. **Whitelist-Granularität (E14):** ein Acknowledge pro `(GA,
+   finding_code)` oder pro `(GA, *)`? Letzteres ist einfacher,
+   ersteres präziser.
+
+---
+
+**Ende der Recherche.**
