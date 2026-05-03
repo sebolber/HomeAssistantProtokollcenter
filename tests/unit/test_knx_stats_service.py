@@ -300,6 +300,68 @@ class TestComputeTrend:
         result = await svc.compute_trend(_ts(60), _ts(120), top_n=3)
         assert len(result["top_increase"]) == 3
 
+    @pytest.mark.asyncio
+    async def test_long_period_reads_from_counter_not_raw(self, db: Database) -> None:
+        """Iter aiohttp-error-ZU9UA / Trend-Fix B+C: bei Perioden >= 48h
+        soll compute_trend die Counter-Tabelle benutzen. Test schreibt
+        NUR in counter (kein raw) und prueft, dass die Trend-Berechnung
+        trotzdem Daten liefert.
+        """
+        repo = KnxStatsRepository(db)
+        base = datetime(2026, 5, 1, 0, 0, 0, tzinfo=UTC)
+        # Prev-Periode: tag 1-7, now-Periode: tag 8-14.
+        # GA "1/0/1": prev=49 (7 Buckets * 7), now=98 (7 Buckets * 14)
+        # GA "1/0/2": prev=35 (7 Buckets * 5), now=0 (verstummt)
+        for offset_h in range(7 * 24):
+            ts = (base + timedelta(hours=offset_h)).strftime(
+                "%Y-%m-%dT%H:00:00"
+            )
+            if offset_h % 24 == 0:
+                for _ in range(7):
+                    await repo.increment_counter("1/0/1", ts)
+                for _ in range(5):
+                    await repo.increment_counter("1/0/2", ts)
+        for offset_h in range(7 * 24):
+            ts = (base + timedelta(days=7, hours=offset_h)).strftime(
+                "%Y-%m-%dT%H:00:00"
+            )
+            if offset_h % 24 == 0:
+                for _ in range(14):
+                    await repo.increment_counter("1/0/1", ts)
+        from_iso = (base + timedelta(days=7)).isoformat()
+        to_iso = (base + timedelta(days=14)).isoformat()
+        svc = KnxStatsService(repo)
+        result = await svc.compute_trend(from_iso, to_iso, top_n=10)
+        # Periode = 7 Tage = 10080 Min, also Counter-Source.
+        assert result["period_minutes"] == 10080
+        # Wir haben NIE raw geschrieben — wenn Werte da sind, ist es Counter.
+        assert result["total_now"] == 98
+        assert result["total_prev"] == 49 + 35  # 84
+        ups = {t["ga"]: t for t in result["top_increase"]}
+        assert ups["1/0/1"]["count_now"] == 98
+        assert ups["1/0/1"]["count_prev"] == 49
+        assert ups["1/0/1"]["delta_abs"] == 49
+        downs = {t["ga"]: t for t in result["top_decrease"]}
+        assert downs["1/0/2"]["count_now"] == 0
+        assert downs["1/0/2"]["count_prev"] == 35
+
+    @pytest.mark.asyncio
+    async def test_short_period_still_reads_from_raw(self, db: Database) -> None:
+        """Iter aiohttp-error-ZU9UA / Trend-Fix B+C: bei Perioden < 48h
+        soll compute_trend weiter die Raw-Telegramme nutzen. Test
+        schreibt NUR raw (keine Counter-Inserts) — wenn das Resultat
+        Daten enthaelt, ist raw die Quelle.
+        """
+        for i in range(10):
+            await _insert_knx(db, ts=_ts(70 + i), ga="1/0/1")
+        for i in range(5):
+            await _insert_knx(db, ts=_ts(10 + i), ga="1/0/1")
+        svc = KnxStatsService(KnxStatsRepository(db))
+        result = await svc.compute_trend(_ts(60), _ts(120), top_n=10)
+        assert result["period_minutes"] == 60
+        assert result["total_now"] == 10
+        assert result["total_prev"] == 5
+
 
 class TestComputeGaDetail:
     @pytest.mark.asyncio

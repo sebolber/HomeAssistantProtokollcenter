@@ -489,7 +489,13 @@ export class StatsKnxView extends LitElement {
           : Promise.resolve(null),
         captureError("bursts", this.api.getKnxStatsBursts(fRaw)),
         captureError("sensitive-log", this.api.getKnxStatsSensitiveLog(fRaw)),
-        captureError("trend", this.api.getKnxStatsTrend(fRaw, 5)),
+        // Iter aiohttp-error-ZU9UA / Trend-Fix B+C: bei langen Perioden
+        // den vollen Zeitraum (fLongTerm) statt der 48h-Live-Slice
+        // (fRaw) senden — Backend liest dann aus knx_telegram_counters.
+        captureError(
+          "trend",
+          this.api.getKnxStatsTrend(longTermMode ? fLongTerm : fRaw, 5),
+        ),
         captureError(
           "heatmap",
           this.api.getKnxStatsHeatmap(fRaw, 10, this._suggestHeatmapBucketMinutes()),

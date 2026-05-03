@@ -6517,7 +6517,13 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         s ? e("long-term", this.api.getKnxStatsLongTerm(r)) : Promise.resolve(null),
         e("bursts", this.api.getKnxStatsBursts(a)),
         e("sensitive-log", this.api.getKnxStatsSensitiveLog(a)),
-        e("trend", this.api.getKnxStatsTrend(a, 5)),
+        // Iter aiohttp-error-ZU9UA / Trend-Fix B+C: bei langen Perioden
+        // den vollen Zeitraum (fLongTerm) statt der 48h-Live-Slice
+        // (fRaw) senden — Backend liest dann aus knx_telegram_counters.
+        e(
+          "trend",
+          this.api.getKnxStatsTrend(s ? r : a, 5)
+        ),
         e(
           "heatmap",
           this.api.getKnxStatsHeatmap(a, 10, this._suggestHeatmapBucketMinutes())

@@ -57,6 +57,26 @@ WHERE r.timestamp >= ?
 GROUP BY r.destination, a.label, a.dpt
 """
 
+# Iter aiohttp-error-ZU9UA / Trend-Fix B+C: Total pro GA aus der
+# Counter-Tabelle (knx_telegram_counters), Retention 365 Tage. Wird
+# vom Trend-Service fuer Perioden >= 48h benutzt — Raw-Telegramme
+# werden nur 48h vorgehalten, die Vorperiode bei langen Perioden ist
+# komplett ausserhalb der Raw-Retention. Counter aggregiert pro
+# Stunde, daher ist die Periodengrenze hour-aligned (Service stellt
+# das sicher: floor fuer from, ceil fuer to).
+_TOTAL_BY_GA_FROM_COUNTER_SQL = """
+SELECT
+    c.ga          AS ga,
+    a.label       AS label,
+    a.dpt         AS dpt,
+    SUM(c.count)  AS n
+FROM knx_telegram_counters c
+LEFT JOIN knx_group_addresses a ON a.address = c.ga
+WHERE c.hour_bucket >= ?
+  AND c.hour_bucket <  ?
+GROUP BY c.ga, a.label, a.dpt
+"""
+
 _TOP_BY_SOURCE_SQL = """
 SELECT
     r.source AS dev_source,
@@ -283,6 +303,32 @@ class KnxStatsRepository:
         zum Trend-Vergleich.
         """
         rows = await self._db.fetch_all(_TOTAL_BY_GA_SQL, (from_iso, to_iso))
+        return [
+            {
+                "ga": str(row["ga"]),
+                "label": row["label"],
+                "dpt": row["dpt"],
+                "count": int(row["n"]),
+            }
+            for row in rows
+        ]
+
+    async def total_by_ga_for_period_from_counter(
+        self, hour_floor: str, hour_ceil: str
+    ) -> list[dict[str, Any]]:
+        """Iter aiohttp-error-ZU9UA / Trend-Fix B+C: gleiche Form wie
+        ``total_by_ga_for_period``, liest aber aus ``knx_telegram_counters``
+        (Retention 365 Tage statt Raw-48h). Granularitaet: Stunden-
+        Buckets — Service muss die Periodengrenze hour-alignen
+        (floor/ceil), bevor er hier aufruft.
+
+        Wird vom Trend-Service fuer Perioden >= 48h benutzt; bei
+        kuerzeren Perioden bleibt es bei der Raw-Quelle (feinere
+        Granularitaet, in Retention).
+        """
+        rows = await self._db.fetch_all(
+            _TOTAL_BY_GA_FROM_COUNTER_SQL, (hour_floor, hour_ceil)
+        )
         return [
             {
                 "ga": str(row["ga"]),

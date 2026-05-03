@@ -8,7 +8,7 @@ Layer und (spaeter) von Alarm-Regeln benutzt.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from ..const import (
@@ -42,6 +42,33 @@ if TYPE_CHECKING:
 # Inter-Frame-Overhead (50 + 15 Bit Pause) mitrechnet (~200 Bit/Telegramm).
 _AVG_TELEGRAM_BITS: float = float(KNX_AVG_TELEGRAM_BITS)
 _TP1_BITRATE: float = float(KNX_TP_BAUDRATE_BPS)
+
+# Iter aiohttp-error-ZU9UA / Trend-Fix B+C: Schwellwert in Minuten,
+# ab dem compute_trend die Counter-Tabelle statt Raw-Telegramme nutzt.
+# 48h = 2880 min = Raw-Retention. Bei dieser Periode oder laenger ist
+# die Vorperiode (gleiche Laenge davor) ausserhalb der Raw-Retention,
+# Counter ist die einzige Quelle mit verlaesslichem Vergleichswert.
+_TREND_COUNTER_THRESHOLD_MIN: int = 2880
+
+
+def _hour_align_period(from_iso: str, to_iso: str) -> tuple[str, str]:
+    """Rundet Periodengrenzen auf Stunden-Buckets, kompatibel zum
+    Listener-Format (`%Y-%m-%dT%H:00:00`, ohne Timezone-Suffix).
+
+    - from: floor (Anfang der enthaltenden Stunde)
+    - to:   ceil  (Anfang der ersten ausschliessenden Stunde)
+
+    Damit deckt das resultierende Intervall die gesamte ueberlappende
+    Stundenmenge ab, sodass kein Counter-Bucket ausgelassen wird.
+    """
+    from_dt = datetime.fromisoformat(from_iso)
+    to_dt = datetime.fromisoformat(to_iso)
+    floor = from_dt.replace(minute=0, second=0, microsecond=0)
+    ceil = to_dt.replace(minute=0, second=0, microsecond=0)
+    if to_dt != ceil:
+        ceil = ceil + timedelta(hours=1)
+    fmt = "%Y-%m-%dT%H:00:00"
+    return floor.strftime(fmt), ceil.strftime(fmt)
 
 
 @dataclass(frozen=True, slots=True)
@@ -683,8 +710,25 @@ class KnxStatsService:
         prev_from = (from_dt - delta).isoformat()
         prev_to = from_iso
 
-        rows_now = await self._repo.total_by_ga_for_period(from_iso, to_iso)
-        rows_prev = await self._repo.total_by_ga_for_period(prev_from, prev_to)
+        # Iter aiohttp-error-ZU9UA / Trend-Fix B+C: Datenquelle nach
+        # Periodenlaenge waehlen. Raw-Telegramme leben nur 48h, also
+        # liegt bei Perioden >= 48h die Vorperiode (48-96h zurueck oder
+        # weiter) komplett ausserhalb. Counter-Tabelle hat 365d
+        # Retention + Per-GA-Aggregation und ist ab 48h die richtige
+        # Wahl. Schwellwert 48h = 2880 Min.
+        period_minutes = max(0, int(delta.total_seconds() // 60))
+        if period_minutes >= _TREND_COUNTER_THRESHOLD_MIN:
+            now_floor, now_ceil = _hour_align_period(from_iso, to_iso)
+            prev_floor, prev_ceil = _hour_align_period(prev_from, prev_to)
+            rows_now = await self._repo.total_by_ga_for_period_from_counter(
+                now_floor, now_ceil
+            )
+            rows_prev = await self._repo.total_by_ga_for_period_from_counter(
+                prev_floor, prev_ceil
+            )
+        else:
+            rows_now = await self._repo.total_by_ga_for_period(from_iso, to_iso)
+            rows_prev = await self._repo.total_by_ga_for_period(prev_from, prev_to)
 
         prev_by_ga = {r["ga"]: r["count"] for r in rows_prev}
         now_total = sum(r["count"] for r in rows_now)
@@ -743,8 +787,6 @@ class KnxStatsService:
             key=lambda t: t.delta_abs,
         )[:top_n]
 
-        period_seconds = max(0, int(delta.total_seconds()))
-        period_minutes = period_seconds // 60
         if prev_total == 0:
             total_delta_pct: float | None = None
         else:

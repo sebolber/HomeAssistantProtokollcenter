@@ -400,8 +400,14 @@ class KnxStatsTrendView(RequireAdminView):
         svc = _service(request.app["hass"])
         if svc is None:
             return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        # Iter aiohttp-error-ZU9UA / Trend-Fix B+C: max_days auf
+        # Counter-Retention setzen — der Service waehlt ab 48h die
+        # Counter-Tabelle als Datenquelle und kann damit auch
+        # 7d/30d/365d-Perioden bedienen.
         from_iso, to_iso = parse_iso_period(
-            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+            request.query,
+            default_days=DEFAULT_KNX_STATS_PERIOD_DAYS,
+            max_days=DEFAULT_KNX_COUNTER_RETENTION_DAYS,
         )
         top_n = parse_int_param(
             request.query, "top_n", 10, min_value=1, max_value=50
