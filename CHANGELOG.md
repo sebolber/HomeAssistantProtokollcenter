@@ -7,6 +7,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L2.0 / Sprint Recommendations — Schema `knx_devices`.**
+  Neue Tabelle `knx_devices(dev_source PK, manufacturer, model, notes,
+  last_seen, created_at, updated_at)` mit CHECK-Constraint fuer
+  KNX-IA-Pattern und Index `idx_knx_devices_manufacturer_model` fuer
+  Layer-2-Lookup. Repository `KnxDeviceRepository` mit
+  `get`/`list_all`/`upsert`/`update_last_seen`/`delete`. `upsert`
+  ist partiell — nur explizit gesetzte Felder werden geaendert,
+  Leerstring loescht zu NULL. 16 neue Pytests.
 - **Iter L1.5 / Sprint Recommendations — End-to-End-Verifikation L1.**
   Schema-Contract-Test zwischen Python-DTO
   (`device_recommendation_to_dict`) und Frontend-Interface
