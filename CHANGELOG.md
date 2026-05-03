@@ -7,6 +7,18 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L1.4 / Sprint Recommendations — Frontend Recommendation-Card.**
+  Neue Sub-Card im Source-Detail-Pane, default `collapsed`. Klick auf
+  den Toggle laedt lazily die Empfehlung via neue API-Methode
+  `getKnxStatsSourceRecommendation` und rendert: Headline (Mode-Pill +
+  Konfidenz-Pill), menschen-lesbarer Empfehlungs-Satz,
+  collapsible Reasoning-Liste, GA-Detail-Tabelle (observed/recommended/
+  Hysterese/Severity je GA mit Severity-Color-Coding), generated_at-
+  Footer. Drawer-Wechsel resetet Karten-State. Fehler-Pfade:
+  Backend-404 (Geraet ohne Telegramme) zeigt stillen Hinweis,
+  Backend-5xx zeigt Fehler-Box mit Retry-Knopf. 8 neue Vitest. Frontend-
+  DTOs (`KnxStatsSourceRecommendationDto` + Sub-Types) als Schema-
+  Vertrag mit dem Backend.
 - **Iter L1.3 / Sprint Recommendations — API-Endpoint + Caching.**
   Neuer Endpoint `GET /api/messagehub/knx-stats/source/{dev_source}/recommendation`
   mit `RequireAdminView`, `validate_knx_individual_address`, `parse_iso_period`

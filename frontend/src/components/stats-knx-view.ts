@@ -21,6 +21,7 @@ import type {
   KnxStatsSensitiveLogDto,
   KnxStatsSilenceDto,
   KnxStatsSourceDetailDto,
+  KnxStatsSourceRecommendationDto,
   KnxStatsSourceGaSummaryDto,
   KnxStatsSourcePersistedFindingDto,
   KnxStatsSummaryDto,
@@ -355,6 +356,12 @@ export class StatsKnxView extends LitElement {
   @state() private _selectedSource: string | null = null;
   @state() private _sourceDetail: KnxStatsSourceDetailDto | null = null;
   @state() private _sourceDetailLoading = false;
+  // Iter L1.4: Recommendation-Card (Sende-Modus + DPT-Empfehlung).
+  // Lazy-Load: triggert erst beim Aufklappen, nicht beim Drawer-Open.
+  @state() private _recommendation: KnxStatsSourceRecommendationDto | null = null;
+  @state() private _recommendationLoading = false;
+  @state() private _recommendationError = "";
+  @state() private _recommendationExpanded = false;
   @state() private _loading = false;
   @state() private _error = "";
   @state() private _toast = "";
@@ -400,6 +407,12 @@ export class StatsKnxView extends LitElement {
     this._selectedSource = null;
     this._sourceDetail = null;
     this._sourceDetailLoading = false;
+    // Iter L1.4: Recommendation-State mit-resetten, sonst leakt der
+    // Stand des vorherigen Geraets in das naechst-geoeffnete Drawer.
+    this._recommendation = null;
+    this._recommendationLoading = false;
+    this._recommendationError = "";
+    this._recommendationExpanded = false;
   }
 
   private async _loadBusAnalysisState(): Promise<void> {
@@ -766,6 +779,12 @@ export class StatsKnxView extends LitElement {
     this._selectedSource = devSource;
     this._sourceDetailLoading = true;
     this._sourceDetail = null;
+    // Iter L1.4: Recommendation-State frisch fuer das neue Geraet.
+    // Karte bleibt collapsed; Lade-Trigger erst beim Aufklappen.
+    this._recommendation = null;
+    this._recommendationLoading = false;
+    this._recommendationError = "";
+    this._recommendationExpanded = false;
     try {
       const f = this._apiFilters();
       this._sourceDetail = await this.api.getKnxStatsSourceDetail(
@@ -777,6 +796,45 @@ export class StatsKnxView extends LitElement {
       );
     } finally {
       this._sourceDetailLoading = false;
+    }
+  }
+
+  // Iter L1.4: Lazy-Loader fuer die Recommendation-Card. Wird durch
+  // den Aufklappen-Klick angestossen.
+  private async _loadRecommendation(devSource: string): Promise<void> {
+    if (!this.api) return;
+    this._recommendationLoading = true;
+    this._recommendationError = "";
+    try {
+      const f = this._apiFilters();
+      this._recommendation = await this.api.getKnxStatsSourceRecommendation(
+        devSource, f,
+      );
+    } catch (err) {
+      const msg = (err as Error).message;
+      // 404 = "Geraet hat keine Telegramme im Period" — kein Fehler-
+      // Toast, sondern stille Card-Anzeige.
+      if (msg.includes("HTTP 404")) {
+        this._recommendation = null;
+        this._recommendationError = "";
+      } else {
+        this._recommendationError = msg;
+      }
+    } finally {
+      this._recommendationLoading = false;
+    }
+  }
+
+  private _toggleRecommendation(): void {
+    if (!this._selectedSource) return;
+    this._recommendationExpanded = !this._recommendationExpanded;
+    if (
+      this._recommendationExpanded
+      && this._recommendation === null
+      && !this._recommendationLoading
+      && this._recommendationError === ""
+    ) {
+      void this._loadRecommendation(this._selectedSource);
     }
   }
 
@@ -1987,6 +2045,8 @@ export class StatsKnxView extends LitElement {
 
       ${this._renderSourceDetailFindings(d)}
 
+      ${this._renderRecommendationCard()}
+
       ${d.device || d.manufacturer_hints
         ? this._renderDeviceInfo({
             device: d.device,
@@ -1994,6 +2054,193 @@ export class StatsKnxView extends LitElement {
           })
         : nothing}
     `;
+  }
+
+  // Iter L1.4: Recommendation-Card. Default: collapsed; aufklappen
+  // triggert API-Call + Anzeige. Headline (Mode-Pill + Empfehlung)
+  // ist immer sichtbar, sobald der API-Call fertig ist.
+  private _renderRecommendationCard(): TemplateResult {
+    if (this._selectedSource === null) return html``;
+    return html`
+      <section class="mh-card recommendation-card">
+        <header class="card-head recommendation-card__head">
+          <button
+            type="button"
+            class="recommendation-card__toggle"
+            @click=${() => this._toggleRecommendation()}
+            aria-expanded=${this._recommendationExpanded ? "true" : "false"}
+          >
+            <span class="recommendation-card__caret">
+              ${this._recommendationExpanded ? "▾" : "▸"}
+            </span>
+            <h3>Sende-Modus &amp; Empfehlung</h3>
+          </button>
+          ${this._renderRecommendationHeadline()}
+        </header>
+        ${this._recommendationExpanded
+          ? this._renderRecommendationBody()
+          : nothing}
+      </section>
+    `;
+  }
+
+  private _renderRecommendationHeadline(): TemplateResult {
+    if (this._recommendationLoading) {
+      return html`<span class="muted small">Lade Empfehlung...</span>`;
+    }
+    if (this._recommendationError !== "") {
+      return html`<span class="mh-pill mh-pill--error">Fehler</span>`;
+    }
+    const reco = this._recommendation;
+    if (reco === null) {
+      return html`<span class="muted small">Klicken zum Laden</span>`;
+    }
+    const modePill = this._renderRecommendationModePill(reco.headline_mode);
+    const confPill = this._renderRecommendationConfidencePill(reco.confidence);
+    return html`<span class="recommendation-card__pills">${modePill} ${confPill}</span>`;
+  }
+
+  private _renderRecommendationModePill(
+    mode: KnxStatsSourceRecommendationDto["headline_mode"],
+  ): TemplateResult {
+    const labels: Record<typeof mode, string> = {
+      cyclic: "zyklisch",
+      on_change: "bei Änderung",
+      hybrid: "hybrid",
+      silent: "stumm",
+      insufficient: "zu wenig Daten",
+    };
+    const variants: Record<typeof mode, string> = {
+      cyclic: "mh-pill--info",
+      on_change: "mh-pill--info",
+      hybrid: "mh-pill--caution",
+      silent: "mh-pill--neutral",
+      insufficient: "mh-pill--neutral",
+    };
+    return html`<span class=${`mh-pill ${variants[mode]}`}>${labels[mode]}</span>`;
+  }
+
+  private _renderRecommendationConfidencePill(
+    confidence: KnxStatsSourceRecommendationDto["confidence"],
+  ): TemplateResult {
+    const labels = {
+      high: "hohe Konfidenz",
+      medium: "mittlere Konfidenz",
+      low: "niedrige Konfidenz",
+    } as const;
+    const variants = {
+      high: "mh-pill--neutral",
+      medium: "mh-pill--neutral",
+      low: "mh-pill--caution",
+    } as const;
+    return html`<span class=${`mh-pill ${variants[confidence]}`}>${labels[confidence]}</span>`;
+  }
+
+  private _renderRecommendationBody(): TemplateResult {
+    if (this._recommendationLoading) {
+      return html`<p class="muted">Berechne Empfehlung — kann ein paar Sekunden dauern...</p>`;
+    }
+    if (this._recommendationError !== "") {
+      return html`<div class="recommendation-card__error">
+        <p class="mh-error">${this._recommendationError}</p>
+        <button
+          type="button"
+          class="mh-button"
+          @click=${() => {
+            if (this._selectedSource) {
+              void this._loadRecommendation(this._selectedSource);
+            }
+          }}
+        >
+          Erneut versuchen
+        </button>
+      </div>`;
+    }
+    const reco = this._recommendation;
+    if (reco === null) {
+      return html`<p class="muted">
+        Geraet hat im aktuellen Zeitraum keine Telegramme — keine
+        Empfehlung verfuegbar.
+      </p>`;
+    }
+    return html`
+      <p class="recommendation-card__headline">${reco.headline_recommendation}</p>
+      ${reco.reasoning.length > 0
+        ? html`<details class="recommendation-card__reasoning">
+            <summary>Begründung (${reco.reasoning.length})</summary>
+            <ul>
+              ${reco.reasoning.map(
+                (entry) => html`<li>${entry}</li>`,
+              )}
+            </ul>
+          </details>`
+        : nothing}
+      ${this._renderRecommendationGaTable(reco)}
+      <p class="muted small recommendation-card__footer">
+        Berechnet am ${reco.generated_at} fuer Geraet
+        <code>${reco.dev_source}</code>.
+      </p>
+    `;
+  }
+
+  private _renderRecommendationGaTable(
+    reco: KnxStatsSourceRecommendationDto,
+  ): TemplateResult {
+    if (reco.ga_recommendations.length === 0) {
+      return html``;
+    }
+    return html`
+      <table class="recommendation-card__table">
+        <thead>
+          <tr>
+            <th>GA</th>
+            <th>DPT</th>
+            <th>aktuell</th>
+            <th>empfohlen</th>
+            <th>Hysterese</th>
+            <th>Severity</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${reco.ga_recommendations.map(
+            (ga) => html`<tr
+              class=${`recommendation-card__row recommendation-card__row--${ga.severity}`}
+              title=${ga.rationale ?? ""}
+            >
+              <td><code>${ga.ga}</code> ${ga.label ? html`<span class="muted small">${ga.label}</span>` : nothing}</td>
+              <td>${ga.dpt ?? "—"}</td>
+              <td>${this._renderRecommendationModePill(ga.observed.mode)}</td>
+              <td>${ga.recommended_mode === null
+                ? html`<span class="muted">—</span>`
+                : this._renderRecommendationModePill(ga.recommended_mode)}
+                ${ga.recommended_cycle_minutes
+                  ? html`<span class="muted small">(${ga.recommended_cycle_minutes[0]}–${ga.recommended_cycle_minutes[1]} Min)</span>`
+                  : nothing}</td>
+              <td>${ga.recommended_hysteresis ?? "—"}</td>
+              <td>${this._renderRecommendationSeverityPill(ga.severity)}</td>
+            </tr>`,
+          )}
+        </tbody>
+      </table>
+    `;
+  }
+
+  private _renderRecommendationSeverityPill(
+    sev: KnxStatsSourceRecommendationDto["ga_recommendations"][number]["severity"],
+  ): TemplateResult {
+    const labels = {
+      ok: "ok",
+      info: "info",
+      warn: "abweichend",
+      deviation: "Abweichung",
+    } as const;
+    const variants = {
+      ok: "mh-pill--success",
+      info: "mh-pill--neutral",
+      warn: "mh-pill--caution",
+      deviation: "mh-pill--error",
+    } as const;
+    return html`<span class=${`mh-pill ${variants[sev]}`}>${labels[sev]}</span>`;
   }
 
   // Iter I (knx-detail-panes): Trend-Compare-Block. Severity-Klassi-
@@ -3812,6 +4059,81 @@ export class StatsKnxView extends LitElement {
       }
       .heatmap-legend {
         margin-top: var(--mh-space-2);
+      }
+      /* Iter L1.4 — Recommendation-Card */
+      .recommendation-card__head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--mh-space-2);
+      }
+      .recommendation-card__toggle {
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-1);
+        color: var(--mh-fg-default);
+        font: inherit;
+      }
+      .recommendation-card__toggle h3 {
+        margin: 0;
+      }
+      .recommendation-card__caret {
+        font-size: 0.9em;
+        line-height: 1;
+        color: var(--mh-fg-muted);
+      }
+      .recommendation-card__pills {
+        margin-left: auto;
+        display: inline-flex;
+        gap: var(--mh-space-1);
+      }
+      .recommendation-card__headline {
+        margin: var(--mh-space-2) 0;
+        font-weight: var(--mh-weight-semibold);
+      }
+      .recommendation-card__reasoning {
+        margin: var(--mh-space-2) 0;
+      }
+      .recommendation-card__reasoning summary {
+        cursor: pointer;
+        color: var(--mh-fg-muted);
+      }
+      .recommendation-card__reasoning ul {
+        margin: var(--mh-space-1) 0 0 0;
+        padding-left: var(--mh-space-4);
+      }
+      .recommendation-card__table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: var(--mh-space-2);
+        font-size: var(--mh-text-sm);
+      }
+      .recommendation-card__table th,
+      .recommendation-card__table td {
+        text-align: left;
+        padding: var(--mh-space-1) var(--mh-space-2);
+        border-bottom: 1px solid var(--mh-divider);
+        vertical-align: top;
+      }
+      .recommendation-card__row--deviation {
+        background: var(--mh-error-soft);
+      }
+      .recommendation-card__row--warn {
+        background: var(--mh-caution-soft);
+      }
+      .recommendation-card__error {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-2);
+        align-items: flex-start;
+      }
+      .recommendation-card__footer {
+        margin-top: var(--mh-space-3);
       }
       /* Iter 67 / WR-I: Trend-Card. Color-Border je nach Total-Severity. */
       .trend {

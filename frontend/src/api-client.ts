@@ -253,6 +253,60 @@ export interface KnxStatsSourceTrendDeltaDto {
   delta_pct: number | null;
 }
 
+// =============================================================================
+// Iter L1 — Sende-Modus-Recommendation-Engine (Backend ↔ Frontend Vertrag)
+// =============================================================================
+//
+// Schema-Pinning: jede Aenderung muss synchron im Python-DTO
+// (``processing/knx_recommend_service.py:device_recommendation_to_dict``)
+// gespiegelt werden. Schema-Contract-Test in Iter L1.5.
+
+export type KnxRecommendationMode =
+  | "cyclic"
+  | "on_change"
+  | "hybrid"
+  | "silent"
+  | "insufficient";
+
+export type KnxRecommendationConfidence = "high" | "medium" | "low";
+
+export type KnxRecommendationSeverity = "ok" | "info" | "warn" | "deviation";
+
+export interface KnxRecommendationObservedDto {
+  mode: KnxRecommendationMode;
+  confidence: KnxRecommendationConfidence;
+  sample_count: number;
+  value_changes: number;
+  median_interval_s: number | null;
+  median_interval_minutes: number | null;
+  stdev_interval_s: number | null;
+}
+
+export interface KnxRecommendationGaDto {
+  ga: string;
+  label: string | null;
+  dpt: string | null;
+  observed: KnxRecommendationObservedDto;
+  recommended_mode: KnxRecommendationMode | null;
+  recommended_cycle_minutes: [number, number] | null;
+  recommended_hysteresis: string | null;
+  severity: KnxRecommendationSeverity;
+  rationale: string | null;
+}
+
+export interface KnxStatsSourceRecommendationDto {
+  dev_source: string;
+  headline_mode: KnxRecommendationMode;
+  headline_recommendation: string;
+  confidence: KnxRecommendationConfidence;
+  reasoning: string[];
+  generated_at: string;
+  ga_recommendations: KnxRecommendationGaDto[];
+  // optional: Backend setzt these zusaetzlich aus parse_iso_period
+  from?: string;
+  to?: string;
+}
+
 export interface KnxStatsSourceDetailDto {
   dev_source: string;
   total_count: number;
@@ -1188,6 +1242,17 @@ export class ApiClient {
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxStatsSourceDetailDto;
+  }
+
+  /** Iter L1.3 (Sprint Recommendations): Geraete-Empfehlung. */
+  async getKnxStatsSourceRecommendation(
+    devSource: string,
+    f: KnxStatsFilters
+  ): Promise<KnxStatsSourceRecommendationDto> {
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/source/${encodeURIComponent(devSource)}/recommendation?${this._knxStatsParams(f).toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsSourceRecommendationDto;
   }
 
   async getKnxStatsTimeline(

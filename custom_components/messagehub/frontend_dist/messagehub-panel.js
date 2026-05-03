@@ -3,7 +3,7 @@
  * Copyright 2019 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const De = globalThis, Ze = De.ShadowRoot && (De.ShadyCSS === void 0 || De.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, Xe = Symbol(), it = /* @__PURE__ */ new WeakMap();
+const De = globalThis, Ye = De.ShadowRoot && (De.ShadyCSS === void 0 || De.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, Xe = Symbol(), it = /* @__PURE__ */ new WeakMap();
 let Ht = class {
   constructor(t, s, a) {
     if (this._$cssResult$ = !0, a !== Xe) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
@@ -12,7 +12,7 @@ let Ht = class {
   get styleSheet() {
     let t = this.o;
     const s = this.t;
-    if (Ze && t === void 0) {
+    if (Ye && t === void 0) {
       const a = s !== void 0 && s.length === 1;
       a && (t = it.get(s)), t === void 0 && ((this.o = t = new CSSStyleSheet()).replaceSync(this.cssText), a && it.set(s, t));
     }
@@ -30,12 +30,12 @@ const es = (e) => new Ht(typeof e == "string" ? e : e + "", void 0, Xe), y = (e,
   })(r) + e[n + 1], e[0]);
   return new Ht(s, e, Xe);
 }, ts = (e, t) => {
-  if (Ze) e.adoptedStyleSheets = t.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
+  if (Ye) e.adoptedStyleSheets = t.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
   else for (const s of t) {
     const a = document.createElement("style"), r = De.litNonce;
     r !== void 0 && a.setAttribute("nonce", r), a.textContent = s.cssText, e.appendChild(a);
   }
-}, nt = Ze ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((t) => {
+}, nt = Ye ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((t) => {
   let s = "";
   for (const a of t.cssRules) s += a.cssText;
   return es(s);
@@ -45,7 +45,7 @@ const es = (e) => new Ht(typeof e == "string" ? e : e + "", void 0, Xe), y = (e,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: ss, defineProperty: as, getOwnPropertyDescriptor: rs, getOwnPropertyNames: is, getOwnPropertySymbols: ns, getPrototypeOf: os } = Object, G = globalThis, ot = G.trustedTypes, ls = ot ? ot.emptyScript : "", Me = G.reactiveElementPolyfillSupport, _e = (e, t) => e, ze = { toAttribute(e, t) {
+const { is: ss, defineProperty: as, getOwnPropertyDescriptor: rs, getOwnPropertyNames: is, getOwnPropertySymbols: ns, getPrototypeOf: os } = Object, G = globalThis, ot = G.trustedTypes, ls = ot ? ot.emptyScript : "", Me = G.reactiveElementPolyfillSupport, be = (e, t) => e, Le = { toAttribute(e, t) {
   switch (t) {
     case Boolean:
       e = e ? ls : null;
@@ -73,7 +73,7 @@ const { is: ss, defineProperty: as, getOwnPropertyDescriptor: rs, getOwnProperty
       }
   }
   return s;
-} }, Qe = (e, t) => !ss(e, t), lt = { attribute: !0, type: String, converter: ze, reflect: !1, useDefault: !1, hasChanged: Qe };
+} }, Qe = (e, t) => !ss(e, t), lt = { attribute: !0, type: String, converter: Le, reflect: !1, useDefault: !1, hasChanged: Qe };
 Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), G.litPropertyMetadata ?? (G.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
 let oe = class extends HTMLElement {
   static addInitializer(t) {
@@ -103,13 +103,13 @@ let oe = class extends HTMLElement {
     return this.elementProperties.get(t) ?? lt;
   }
   static _$Ei() {
-    if (this.hasOwnProperty(_e("elementProperties"))) return;
+    if (this.hasOwnProperty(be("elementProperties"))) return;
     const t = os(this);
     t.finalize(), t.l !== void 0 && (this.l = [...t.l]), this.elementProperties = new Map(t.elementProperties);
   }
   static finalize() {
-    if (this.hasOwnProperty(_e("finalized"))) return;
-    if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(_e("properties"))) {
+    if (this.hasOwnProperty(be("finalized"))) return;
+    if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(be("properties"))) {
       const s = this.properties, a = [...is(s), ...ns(s)];
       for (const r of a) this.createProperty(r, s[r]);
     }
@@ -184,7 +184,7 @@ let oe = class extends HTMLElement {
     var n;
     const a = this.constructor.elementProperties.get(t), r = this.constructor._$Eu(t, a);
     if (r !== void 0 && a.reflect === !0) {
-      const o = (((n = a.converter) == null ? void 0 : n.toAttribute) !== void 0 ? a.converter : ze).toAttribute(s, a.type);
+      const o = (((n = a.converter) == null ? void 0 : n.toAttribute) !== void 0 ? a.converter : Le).toAttribute(s, a.type);
       this._$Em = t, o == null ? this.removeAttribute(r) : this.setAttribute(r, o), this._$Em = null;
     }
   }
@@ -192,7 +192,7 @@ let oe = class extends HTMLElement {
     var n, o;
     const a = this.constructor, r = a._$Eh.get(t);
     if (r !== void 0 && this._$Em !== r) {
-      const d = a.getPropertyOptions(r), h = typeof d.converter == "function" ? { fromAttribute: d.converter } : ((n = d.converter) == null ? void 0 : n.fromAttribute) !== void 0 ? d.converter : ze;
+      const d = a.getPropertyOptions(r), h = typeof d.converter == "function" ? { fromAttribute: d.converter } : ((n = d.converter) == null ? void 0 : n.fromAttribute) !== void 0 ? d.converter : Le;
       this._$Em = r;
       const m = h.fromAttribute(s, d.type);
       this[r] = m ?? ((o = this._$Ej) == null ? void 0 : o.get(r)) ?? m, this._$Em = null;
@@ -278,15 +278,15 @@ let oe = class extends HTMLElement {
   firstUpdated(t) {
   }
 };
-oe.elementStyles = [], oe.shadowRootOptions = { mode: "open" }, oe[_e("elementProperties")] = /* @__PURE__ */ new Map(), oe[_e("finalized")] = /* @__PURE__ */ new Map(), Me == null || Me({ ReactiveElement: oe }), (G.reactiveElementVersions ?? (G.reactiveElementVersions = [])).push("2.1.2");
+oe.elementStyles = [], oe.shadowRootOptions = { mode: "open" }, oe[be("elementProperties")] = /* @__PURE__ */ new Map(), oe[be("finalized")] = /* @__PURE__ */ new Map(), Me == null || Me({ ReactiveElement: oe }), (G.reactiveElementVersions ?? (G.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const we = globalThis, dt = (e) => e, Le = we.trustedTypes, ct = Le ? Le.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Ut = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Mt = "?" + j, ds = `<${Mt}>`, Z = document, xe = () => Z.createComment(""), ye = (e) => e === null || typeof e != "object" && typeof e != "function", et = Array.isArray, cs = (e) => et(e) || typeof (e == null ? void 0 : e[Symbol.iterator]) == "function", Be = `[ 	
+const we = globalThis, dt = (e) => e, ze = we.trustedTypes, ct = ze ? ze.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Ut = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Mt = "?" + j, ds = `<${Mt}>`, Y = document, xe = () => Y.createComment(""), ye = (e) => e === null || typeof e != "object" && typeof e != "function", et = Array.isArray, cs = (e) => et(e) || typeof (e == null ? void 0 : e[Symbol.iterator]) == "function", Be = `[ 	
 \f\r]`, fe = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ht = /-->/g, pt = />/g, V = RegExp(`>|${Be}(?:([^\\s"'>=/]+)(${Be}*=${Be}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), ut = /'/g, mt = /"/g, Bt = /^(?:script|style|textarea|title)$/i, hs = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), i = hs(1), X = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), gt = /* @__PURE__ */ new WeakMap(), J = Z.createTreeWalker(Z, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), ut = /'/g, mt = /"/g, Bt = /^(?:script|style|textarea|title)$/i, hs = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), i = hs(1), X = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), gt = /* @__PURE__ */ new WeakMap(), J = Y.createTreeWalker(Y, 129);
 function jt(e, t) {
   if (!et(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return ct !== void 0 ? ct.createHTML(t) : t;
@@ -322,7 +322,7 @@ class $e {
         if (Bt.test(r.tagName)) {
           const u = r.textContent.split(j), p = u.length - 1;
           if (p > 0) {
-            r.textContent = Le ? Le.emptyScript : "";
+            r.textContent = ze ? ze.emptyScript : "";
             for (let b = 0; b < p; b++) r.append(u[b], xe()), J.nextNode(), h.push({ type: 2, index: ++n });
             r.append(u[p], xe());
           }
@@ -336,7 +336,7 @@ class $e {
     }
   }
   static createElement(t, s) {
-    const a = Z.createElement("template");
+    const a = Y.createElement("template");
     return a.innerHTML = t, a;
   }
 }
@@ -358,7 +358,7 @@ class us {
     return this._$AM._$AU;
   }
   u(t) {
-    const { el: { content: s }, parts: a } = this._$AD, r = ((t == null ? void 0 : t.creationScope) ?? Z).importNode(s, !0);
+    const { el: { content: s }, parts: a } = this._$AD, r = ((t == null ? void 0 : t.creationScope) ?? Y).importNode(s, !0);
     J.currentNode = r;
     let n = J.nextNode(), o = 0, d = 0, h = a[0];
     for (; h !== void 0; ) {
@@ -368,7 +368,7 @@ class us {
       }
       o !== (h == null ? void 0 : h.index) && (n = J.nextNode(), o++);
     }
-    return J.currentNode = Z, r;
+    return J.currentNode = Y, r;
   }
   p(t) {
     let s = 0;
@@ -404,7 +404,7 @@ class ue {
     this._$AH !== t && (this._$AR(), this._$AH = this.O(t));
   }
   _(t) {
-    this._$AH !== c && ye(this._$AH) ? this._$AA.nextSibling.data = t : this.T(Z.createTextNode(t)), this._$AH = t;
+    this._$AH !== c && ye(this._$AH) ? this._$AA.nextSibling.data = t : this.T(Y.createTextNode(t)), this._$AH = t;
   }
   $(t) {
     var n;
@@ -504,9 +504,9 @@ class vs {
     le(this, t);
   }
 }
-const bs = { I: ue }, je = we.litHtmlPolyfillSupport;
+const _s = { I: ue }, je = we.litHtmlPolyfillSupport;
 je == null || je($e, ue), (we.litHtmlVersions ?? (we.litHtmlVersions = [])).push("3.3.2");
-const _s = (e, t, s) => {
+const bs = (e, t, s) => {
   const a = (s == null ? void 0 : s.renderBefore) ?? t;
   let r = a._$litPart$;
   if (r === void 0) {
@@ -520,7 +520,7 @@ const _s = (e, t, s) => {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const Y = globalThis;
+const Z = globalThis;
 let x = class extends oe {
   constructor() {
     super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
@@ -532,7 +532,7 @@ let x = class extends oe {
   }
   update(t) {
     const s = this.render();
-    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(t), this._$Do = _s(s, this.renderRoot, this.renderOptions);
+    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(t), this._$Do = bs(s, this.renderRoot, this.renderOptions);
   }
   connectedCallback() {
     var t;
@@ -547,10 +547,10 @@ let x = class extends oe {
   }
 };
 var Rt;
-x._$litElement$ = !0, x.finalized = !0, (Rt = Y.litElementHydrateSupport) == null || Rt.call(Y, { LitElement: x });
-const Ge = Y.litElementPolyfillSupport;
+x._$litElement$ = !0, x.finalized = !0, (Rt = Z.litElementHydrateSupport) == null || Rt.call(Z, { LitElement: x });
+const Ge = Z.litElementPolyfillSupport;
 Ge == null || Ge({ LitElement: x });
-(Y.litElementVersions ?? (Y.litElementVersions = [])).push("4.2.2");
+(Z.litElementVersions ?? (Z.litElementVersions = [])).push("4.2.2");
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -566,7 +566,7 @@ const ws = (e) => (t, s) => {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const xs = { attribute: !0, type: String, converter: ze, reflect: !1, hasChanged: Qe }, ys = (e = xs, t, s) => {
+const xs = { attribute: !0, type: String, converter: Le, reflect: !1, hasChanged: Qe }, ys = (e = xs, t, s) => {
   const { kind: a, metadata: r } = s;
   let n = globalThis.litPropertyMetadata.get(r);
   if (n === void 0 && globalThis.litPropertyMetadata.set(r, n = /* @__PURE__ */ new Map()), a === "setter" && ((e = Object.create(e)).wrapped = !0), n.set(s.name, e), a === "accessor") {
@@ -1046,6 +1046,12 @@ class $s {
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
     return await r.json();
   }
+  /** Iter L1.3 (Sprint Recommendations): Geraete-Empfehlung. */
+  async getKnxStatsSourceRecommendation(t, s) {
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/source/${encodeURIComponent(t)}/recommendation?${this._knxStatsParams(s).toString()}`, r = await fetch(a, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
+  }
   async getKnxStatsTimeline(t) {
     const s = this._knxStatsParams(t);
     s.set("gas", t.gas.join(",")), t.bucketMinutes !== void 0 && s.set("bucket", String(t.bucketMinutes));
@@ -1238,7 +1244,7 @@ class $s {
     return await o.json();
   }
 }
-const L = y`
+const z = y`
   :host {
     /* Spacing-Skala (4-px-Grid) */
     --mh-space-1: 4px;
@@ -1519,7 +1525,7 @@ let Ts = class {
  * Copyright 2020 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { I: As } = bs, ft = (e) => e, vt = () => document.createComment(""), ve = (e, t, s) => {
+const { I: As } = _s, ft = (e) => e, vt = () => document.createComment(""), ve = (e, t, s) => {
   var n;
   const a = e._$AA.parentNode, r = t === void 0 ? e._$AB : t._$AA;
   if (s === void 0) {
@@ -1548,11 +1554,11 @@ const { I: As } = bs, ft = (e) => e, vt = () => document.createComment(""), ve =
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const bt = (e, t, s) => {
+const _t = (e, t, s) => {
   const a = /* @__PURE__ */ new Map();
   for (let r = t; r <= s; r++) a.set(e[r], r);
   return a;
-}, zs = Ss(class extends Ts {
+}, Ls = Ss(class extends Ts {
   constructor(e) {
     if (super(e), e.type !== ks.CHILD) throw Error("repeat() can only be used in text expressions");
   }
@@ -1578,7 +1584,7 @@ const bt = (e, t, s) => {
     else if (d[p] === o[f]) h[f] = q(r[p], n[f]), p--, f--;
     else if (d[u] === o[f]) h[f] = q(r[u], n[f]), ve(e, h[f + 1], r[u]), u++, f--;
     else if (d[p] === o[b]) h[b] = q(r[p], n[b]), ve(e, r[u], r[p]), p--, b++;
-    else if (m === void 0 && (m = bt(o, b, f), g = bt(d, u, p)), m.has(d[u])) if (m.has(d[p])) {
+    else if (m === void 0 && (m = _t(o, b, f), g = _t(d, u, p)), m.has(d[u])) if (m.has(d[p])) {
       const S = g.get(o[b]), ge = S !== void 0 ? r[S] : null;
       if (ge === null) {
         const Ee = ve(e, r[u]);
@@ -1597,7 +1603,7 @@ const bt = (e, t, s) => {
     }
     return this.ut = o, Ps(e, h), X;
   }
-}), Ls = new Intl.RelativeTimeFormat("de", { numeric: "auto" }), Os = [
+}), zs = new Intl.RelativeTimeFormat("de", { numeric: "auto" }), Os = [
   { unit: "year", seconds: 31536e3 },
   { unit: "month", seconds: 2592e3 },
   { unit: "week", seconds: 604800 },
@@ -1614,7 +1620,7 @@ function Gt(e, t = /* @__PURE__ */ new Date()) {
   for (const { unit: n, seconds: o } of Os)
     if (r >= o) {
       const d = Math.round(a / o);
-      return Ls.format(d, n);
+      return zs.format(d, n);
     }
   return "gerade eben";
 }
@@ -1633,7 +1639,7 @@ var Cs = Object.defineProperty, Fs = Object.getOwnPropertyDescriptor, Te = (e, t
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && Cs(t, s, r), r;
 };
-const _t = {
+const bt = {
   error: "✕",
   warning: "⚠",
   info: "ⓘ",
@@ -1703,7 +1709,7 @@ let Q = class extends x {
             @click=${(r) => this._onSeverityPick(r, s, t, a)}
           >
             <span class=${`mh-pill mh-pill--${a}`}>
-              <span class="sev-icon" aria-hidden="true">${_t[a]}</span>
+              <span class="sev-icon" aria-hidden="true">${bt[a]}</span>
               ${wt[a]}
             </span>
             ${a === t ? i`<span class="check" aria-hidden="true">✓</span>` : c}
@@ -1727,11 +1733,11 @@ let Q = class extends x {
       <div class="root">
         ${this._renderHeader()}
         <div class="scroll" role="list">
-          ${zs(
+          ${Ls(
       this.items,
       (e) => e.id,
       (e) => {
-        const t = e.severity ?? "info", s = wt[t] ?? t, a = _t[t] ?? "·", r = Gt(e.timestamp, this._now), n = Kt(e.timestamp, this._now);
+        const t = e.severity ?? "info", s = wt[t] ?? t, a = bt[t] ?? "·", r = Gt(e.timestamp, this._now), n = Kt(e.timestamp, this._now);
         return i`
                 <div
                   class=${`row sev-${t} ${this._editSeverityFor === e.id ? "row-active" : ""}`}
@@ -1774,7 +1780,7 @@ let Q = class extends x {
   }
 };
 Q.styles = [
-  L,
+  z,
   ae,
   y`
       :host {
@@ -2023,7 +2029,7 @@ let Oe = class extends x {
   }
 };
 Oe.styles = [
-  L,
+  z,
   y`
       .chips {
         display: flex;
@@ -3000,10 +3006,10 @@ H([
 O = H([
   T("webhook-form")
 ], O);
-var Ys = Object.defineProperty, Zs = Object.getOwnPropertyDescriptor, A = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Zs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Zs = Object.defineProperty, Ys = Object.getOwnPropertyDescriptor, A = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ys(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Ys(t, s, r), r;
+  return a && r && Zs(t, s, r), r;
 };
 const Xs = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, Ve = ["debug", "info", "warning", "error"], yt = [...Ve, "auto"], Vt = "messagehub.knx-addresses.only-enabled";
 function Qs() {
@@ -3014,10 +3020,10 @@ function Qs() {
     return !0;
   }
 }
-const ea = /^[\s\-_=]*$/, be = 200;
+const ea = /^[\s\-_=]*$/, _e = 200;
 let $ = class extends x {
   constructor() {
-    super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._onlyEnabled = Qs(), this._hidePlaceholders = !0, this._displayedCount = be, this._selected = /* @__PURE__ */ new Set(), this._bulkSeverityValue = "warning", this._bulkActionRunning = !1, this._newAddr = "", this._newLabel = "", this._newDpt = "", this._sevPopoverFor = null, this._sevPopoverPos = null, this._discovery = [], this._discoveryStatus = "loading", this._editing = null, this._toast = "", this._error = "";
+    super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._onlyEnabled = Qs(), this._hidePlaceholders = !0, this._displayedCount = _e, this._selected = /* @__PURE__ */ new Set(), this._bulkSeverityValue = "warning", this._bulkActionRunning = !1, this._newAddr = "", this._newLabel = "", this._newDpt = "", this._sevPopoverFor = null, this._sevPopoverPos = null, this._discovery = [], this._discoveryStatus = "loading", this._editing = null, this._toast = "", this._error = "";
   }
   async firstUpdated() {
     await this._load(), await this._loadDiscovery();
@@ -3530,7 +3536,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
             placeholder="Suche (GA / Label / DPT)…"
             .value=${this._filter}
             @input=${(r) => {
-      this._filter = r.target.value, this._displayedCount = be;
+      this._filter = r.target.value, this._displayedCount = _e;
     }}
           />
           <label class="toggle">
@@ -3538,7 +3544,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
               type="checkbox"
               .checked=${this._onlyEnabled}
               @change=${(r) => {
-      this._onlyEnabled = r.target.checked, this._displayedCount = be;
+      this._onlyEnabled = r.target.checked, this._displayedCount = _e;
       try {
         localStorage.setItem(
           Vt,
@@ -3555,7 +3561,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
               type="checkbox"
               .checked=${this._hidePlaceholders}
               @change=${(r) => {
-      this._hidePlaceholders = r.target.checked, this._displayedCount = be;
+      this._hidePlaceholders = r.target.checked, this._displayedCount = _e;
     }}
             />
             <span>Platzhalter ausblenden</span>
@@ -3692,7 +3698,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
                         <button
                           class="mh-btn"
                           @click=${() => this._displayedCount = Math.min(
-      this._displayedCount + be,
+      this._displayedCount + _e,
       e.length
     )}
                         >
@@ -3716,7 +3722,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
   }
 };
 $.styles = [
-  L,
+  z,
   se,
   Ne,
   ae,
@@ -5665,7 +5671,7 @@ let F = class extends x {
   }
 };
 F.styles = [
-  L,
+  z,
   se,
   Se,
   y`
@@ -6268,7 +6274,7 @@ let U = class extends x {
   }
 };
 U.styles = [
-  L,
+  z,
   Se,
   ae,
   y`
@@ -6465,7 +6471,7 @@ let ce = class extends x {
   }
 };
 ce.styles = [
-  L,
+  z,
   y`
       :host {
         display: block;
@@ -6581,14 +6587,14 @@ let he = class extends x {
         <p class="muted small">
           ${e.length} Punkte • Min ${s.toFixed(1)} • Max ${a.toFixed(1)} •
           Median Δ ${b.toFixed(2)}
-          ${b < 0.1 && r > 0 ? i` <span class="hint">→ enge Hysterese</span>` : ba}
+          ${b < 0.1 && r > 0 ? i` <span class="hint">→ enge Hysterese</span>` : _a}
         </p>
       </div>
     `;
   }
 };
 he.styles = [
-  L,
+  z,
   y`
       :host {
         display: block;
@@ -6639,11 +6645,11 @@ He([
 he = He([
   T("knx-value-sparkline")
 ], he);
-const ba = "";
-var _a = Object.defineProperty, wa = Object.getOwnPropertyDescriptor, _ = (e, t, s, a) => {
+const _a = "";
+var ba = Object.defineProperty, wa = Object.getOwnPropertyDescriptor, _ = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? wa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && _a(t, s, r), r;
+  return a && r && ba(t, s, r), r;
 };
 const Jt = "messagehub.knx-stats.filters", Tt = "messagehub.knx-stats.filters.defaults-version", At = "v2", xa = 1, ya = /^[\s\-_=]*$/;
 function $a(e, t) {
@@ -6707,7 +6713,7 @@ function P(e) {
   } catch {
   }
 }
-function zt(e) {
+function Lt(e) {
   const t = qe.find((r) => r.id === e) ?? qe[2], s = /* @__PURE__ */ new Date();
   return { from: new Date(s.getTime() - t.days * 864e5).toISOString(), to: s.toISOString() };
 }
@@ -6716,7 +6722,7 @@ function Da() {
   const e = /* @__PURE__ */ new Date();
   return { from: new Date(e.getTime() - Pa * 3600 * 1e3).toISOString(), to: e.toISOString() };
 }
-function Lt(e) {
+function zt(e) {
   switch (e) {
     case "red":
       return "mh-pill--error";
@@ -6734,7 +6740,7 @@ const Ot = {
   orange: 2,
   red: 3
 };
-function za(e, t, s) {
+function La(e, t, s) {
   return [...e].sort((r, n) => {
     let o;
     switch (t) {
@@ -6766,7 +6772,7 @@ function za(e, t, s) {
 }
 let v = class extends x {
   constructor() {
-    super(...arguments), this._filters = Aa(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._heatmap = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansHidePlaceholders = !0, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._selectedSource = null, this._sourceDetail = null, this._sourceDetailLoading = !1, this._loading = !1, this._error = "", this._toast = "", this._onWindowKeyDown = (e) => {
+    super(...arguments), this._filters = Aa(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._heatmap = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansHidePlaceholders = !0, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._selectedSource = null, this._sourceDetail = null, this._sourceDetailLoading = !1, this._recommendation = null, this._recommendationLoading = !1, this._recommendationError = "", this._recommendationExpanded = !1, this._loading = !1, this._error = "", this._toast = "", this._onWindowKeyDown = (e) => {
       if (e.key === "Escape") {
         if (this._detail !== null || this._detailLoading) {
           this._closeDetail();
@@ -6791,7 +6797,7 @@ let v = class extends x {
   // Iter D.2 (knx-detail-panes): pendant zu _closeDetail fuer das
   // Source-Detail-Pane.
   _closeSourceDetail() {
-    this._selectedSource = null, this._sourceDetail = null, this._sourceDetailLoading = !1;
+    this._selectedSource = null, this._sourceDetail = null, this._sourceDetailLoading = !1, this._recommendation = null, this._recommendationLoading = !1, this._recommendationError = "", this._recommendationExpanded = !1;
   }
   async _loadBusAnalysisState() {
     if (this.api)
@@ -6866,7 +6872,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       }
   }
   _apiFilters() {
-    const { from: e, to: t } = zt(this._filters.periodId);
+    const { from: e, to: t } = Lt(this._filters.periodId);
     return {
       from: e,
       to: t,
@@ -6910,7 +6916,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         S,
         ge,
         Ee,
-        Zt,
+        Yt,
         Xt
       ] = await Promise.all([
         this.api.getKnxStatsSummary(r),
@@ -6982,7 +6988,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           )
         )
       ]);
-      this._summary = o, this._top = d.items, this._topBySource = h.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = b, this._health = f, this._longTerm = S, this._bursts = ge, this._sensitiveLog = Ee, this._trend = Zt, this._heatmap = Xt, this._apiErrors = e, this._apiErrorsDismissed = !1;
+      this._summary = o, this._top = d.items, this._topBySource = h.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = b, this._health = f, this._longTerm = S, this._bursts = ge, this._sensitiveLog = Ee, this._trend = Yt, this._heatmap = Xt, this._apiErrors = e, this._apiErrorsDismissed = !1;
       const rt = d.items.slice(0, 5).map((Qt) => Qt.ga);
       rt.length > 0 ? this._timeline = await this.api.getKnxStatsTimeline({
         ...r,
@@ -7076,7 +7082,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   // analog _loadDetail.
   async _loadSourceDetail(e) {
     if (this.api) {
-      this._closeDetail(), this._selectedSource = e, this._sourceDetailLoading = !0, this._sourceDetail = null;
+      this._closeDetail(), this._selectedSource = e, this._sourceDetailLoading = !0, this._sourceDetail = null, this._recommendation = null, this._recommendationLoading = !1, this._recommendationError = "", this._recommendationExpanded = !1;
       try {
         const t = this._apiFilters();
         this._sourceDetail = await this.api.getKnxStatsSourceDetail(
@@ -7091,6 +7097,28 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         this._sourceDetailLoading = !1;
       }
     }
+  }
+  // Iter L1.4: Lazy-Loader fuer die Recommendation-Card. Wird durch
+  // den Aufklappen-Klick angestossen.
+  async _loadRecommendation(e) {
+    if (this.api) {
+      this._recommendationLoading = !0, this._recommendationError = "";
+      try {
+        const t = this._apiFilters();
+        this._recommendation = await this.api.getKnxStatsSourceRecommendation(
+          e,
+          t
+        );
+      } catch (t) {
+        const s = t.message;
+        s.includes("HTTP 404") ? (this._recommendation = null, this._recommendationError = "") : this._recommendationError = s;
+      } finally {
+        this._recommendationLoading = !1;
+      }
+    }
+  }
+  _toggleRecommendation() {
+    this._selectedSource && (this._recommendationExpanded = !this._recommendationExpanded, this._recommendationExpanded && this._recommendation === null && !this._recommendationLoading && this._recommendationError === "" && this._loadRecommendation(this._selectedSource));
   }
   async _onSelectGa(e) {
     if (this._selectedGa === e) {
@@ -7307,7 +7335,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       </div>
       <div class="severity-counts">
         ${["red", "orange", "yellow", "green"].map(
-      (o) => i`<span class=${`mh-pill ${Lt(o)}`}>
+      (o) => i`<span class=${`mh-pill ${zt(o)}`}>
             <span class="mh-pill__dot"></span>
             ${this._severityLabel(o)}: ${t[o] ?? 0}
           </span>`
@@ -7684,7 +7712,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       return i`<p class="muted">lade…</p>`;
     if (this._top.length === 0)
       return i`<p class="muted">Keine Telegramme in diesem Zeitraum.</p>`;
-    const e = this._topSortKey, t = this._topSortDir, s = za(this._top, e, t);
+    const e = this._topSortKey, t = this._topSortDir, s = La(this._top, e, t);
     return i`
       <div class="table-wrap">
         <table>
@@ -8035,11 +8063,159 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
 
       ${this._renderSourceDetailFindings(e)}
 
+      ${this._renderRecommendationCard()}
+
       ${e.device || e.manufacturer_hints ? this._renderDeviceInfo({
       device: e.device,
       manufacturer_hints: e.manufacturer_hints
     }) : c}
     `;
+  }
+  // Iter L1.4: Recommendation-Card. Default: collapsed; aufklappen
+  // triggert API-Call + Anzeige. Headline (Mode-Pill + Empfehlung)
+  // ist immer sichtbar, sobald der API-Call fertig ist.
+  _renderRecommendationCard() {
+    return this._selectedSource === null ? i`` : i`
+      <section class="mh-card recommendation-card">
+        <header class="card-head recommendation-card__head">
+          <button
+            type="button"
+            class="recommendation-card__toggle"
+            @click=${() => this._toggleRecommendation()}
+            aria-expanded=${this._recommendationExpanded ? "true" : "false"}
+          >
+            <span class="recommendation-card__caret">
+              ${this._recommendationExpanded ? "▾" : "▸"}
+            </span>
+            <h3>Sende-Modus &amp; Empfehlung</h3>
+          </button>
+          ${this._renderRecommendationHeadline()}
+        </header>
+        ${this._recommendationExpanded ? this._renderRecommendationBody() : c}
+      </section>
+    `;
+  }
+  _renderRecommendationHeadline() {
+    if (this._recommendationLoading)
+      return i`<span class="muted small">Lade Empfehlung...</span>`;
+    if (this._recommendationError !== "")
+      return i`<span class="mh-pill mh-pill--error">Fehler</span>`;
+    const e = this._recommendation;
+    if (e === null)
+      return i`<span class="muted small">Klicken zum Laden</span>`;
+    const t = this._renderRecommendationModePill(e.headline_mode), s = this._renderRecommendationConfidencePill(e.confidence);
+    return i`<span class="recommendation-card__pills">${t} ${s}</span>`;
+  }
+  _renderRecommendationModePill(e) {
+    const t = {
+      cyclic: "zyklisch",
+      on_change: "bei Änderung",
+      hybrid: "hybrid",
+      silent: "stumm",
+      insufficient: "zu wenig Daten"
+    };
+    return i`<span class=${`mh-pill ${{
+      cyclic: "mh-pill--info",
+      on_change: "mh-pill--info",
+      hybrid: "mh-pill--caution",
+      silent: "mh-pill--neutral",
+      insufficient: "mh-pill--neutral"
+    }[e]}`}>${t[e]}</span>`;
+  }
+  _renderRecommendationConfidencePill(e) {
+    const t = {
+      high: "hohe Konfidenz",
+      medium: "mittlere Konfidenz",
+      low: "niedrige Konfidenz"
+    };
+    return i`<span class=${`mh-pill ${{
+      high: "mh-pill--neutral",
+      medium: "mh-pill--neutral",
+      low: "mh-pill--caution"
+    }[e]}`}>${t[e]}</span>`;
+  }
+  _renderRecommendationBody() {
+    if (this._recommendationLoading)
+      return i`<p class="muted">Berechne Empfehlung — kann ein paar Sekunden dauern...</p>`;
+    if (this._recommendationError !== "")
+      return i`<div class="recommendation-card__error">
+        <p class="mh-error">${this._recommendationError}</p>
+        <button
+          type="button"
+          class="mh-button"
+          @click=${() => {
+        this._selectedSource && this._loadRecommendation(this._selectedSource);
+      }}
+        >
+          Erneut versuchen
+        </button>
+      </div>`;
+    const e = this._recommendation;
+    return e === null ? i`<p class="muted">
+        Geraet hat im aktuellen Zeitraum keine Telegramme — keine
+        Empfehlung verfuegbar.
+      </p>` : i`
+      <p class="recommendation-card__headline">${e.headline_recommendation}</p>
+      ${e.reasoning.length > 0 ? i`<details class="recommendation-card__reasoning">
+            <summary>Begründung (${e.reasoning.length})</summary>
+            <ul>
+              ${e.reasoning.map(
+      (t) => i`<li>${t}</li>`
+    )}
+            </ul>
+          </details>` : c}
+      ${this._renderRecommendationGaTable(e)}
+      <p class="muted small recommendation-card__footer">
+        Berechnet am ${e.generated_at} fuer Geraet
+        <code>${e.dev_source}</code>.
+      </p>
+    `;
+  }
+  _renderRecommendationGaTable(e) {
+    return e.ga_recommendations.length === 0 ? i`` : i`
+      <table class="recommendation-card__table">
+        <thead>
+          <tr>
+            <th>GA</th>
+            <th>DPT</th>
+            <th>aktuell</th>
+            <th>empfohlen</th>
+            <th>Hysterese</th>
+            <th>Severity</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${e.ga_recommendations.map(
+      (t) => i`<tr
+              class=${`recommendation-card__row recommendation-card__row--${t.severity}`}
+              title=${t.rationale ?? ""}
+            >
+              <td><code>${t.ga}</code> ${t.label ? i`<span class="muted small">${t.label}</span>` : c}</td>
+              <td>${t.dpt ?? "—"}</td>
+              <td>${this._renderRecommendationModePill(t.observed.mode)}</td>
+              <td>${t.recommended_mode === null ? i`<span class="muted">—</span>` : this._renderRecommendationModePill(t.recommended_mode)}
+                ${t.recommended_cycle_minutes ? i`<span class="muted small">(${t.recommended_cycle_minutes[0]}–${t.recommended_cycle_minutes[1]} Min)</span>` : c}</td>
+              <td>${t.recommended_hysteresis ?? "—"}</td>
+              <td>${this._renderRecommendationSeverityPill(t.severity)}</td>
+            </tr>`
+    )}
+        </tbody>
+      </table>
+    `;
+  }
+  _renderRecommendationSeverityPill(e) {
+    const t = {
+      ok: "ok",
+      info: "info",
+      warn: "abweichend",
+      deviation: "Abweichung"
+    };
+    return i`<span class=${`mh-pill ${{
+      ok: "mh-pill--success",
+      info: "mh-pill--neutral",
+      warn: "mh-pill--caution",
+      deviation: "mh-pill--error"
+    }[e]}`}>${t[e]}</span>`;
   }
   // Iter I (knx-detail-panes): Trend-Compare-Block. Severity-Klassi-
   // fikation analog zur globalen Trend-Card (`_classifyTrendSeverity`).
@@ -8346,7 +8522,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     );
     if (t !== null)
       try {
-        const { from: s, to: a } = zt(this._filters.periodId), r = await this.api.acknowledgeKnxBulk(e, {
+        const { from: s, to: a } = Lt(this._filters.periodId), r = await this.api.acknowledgeKnxBulk(e, {
           note: t || void 0,
           from: s,
           to: a
@@ -8773,7 +8949,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _severityPillClass(e) {
-    return Lt(e);
+    return zt(e);
   }
   /**
    * Iter aiohttp-error-ZU9UA / P2: konsolidierte Status-Spalte fuer
@@ -8803,7 +8979,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   }
 };
 v.styles = [
-  L,
+  z,
   Se,
   ae,
   se,
@@ -9607,6 +9783,81 @@ v.styles = [
       .heatmap-legend {
         margin-top: var(--mh-space-2);
       }
+      /* Iter L1.4 — Recommendation-Card */
+      .recommendation-card__head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--mh-space-2);
+      }
+      .recommendation-card__toggle {
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-1);
+        color: var(--mh-fg-default);
+        font: inherit;
+      }
+      .recommendation-card__toggle h3 {
+        margin: 0;
+      }
+      .recommendation-card__caret {
+        font-size: 0.9em;
+        line-height: 1;
+        color: var(--mh-fg-muted);
+      }
+      .recommendation-card__pills {
+        margin-left: auto;
+        display: inline-flex;
+        gap: var(--mh-space-1);
+      }
+      .recommendation-card__headline {
+        margin: var(--mh-space-2) 0;
+        font-weight: var(--mh-weight-semibold);
+      }
+      .recommendation-card__reasoning {
+        margin: var(--mh-space-2) 0;
+      }
+      .recommendation-card__reasoning summary {
+        cursor: pointer;
+        color: var(--mh-fg-muted);
+      }
+      .recommendation-card__reasoning ul {
+        margin: var(--mh-space-1) 0 0 0;
+        padding-left: var(--mh-space-4);
+      }
+      .recommendation-card__table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: var(--mh-space-2);
+        font-size: var(--mh-text-sm);
+      }
+      .recommendation-card__table th,
+      .recommendation-card__table td {
+        text-align: left;
+        padding: var(--mh-space-1) var(--mh-space-2);
+        border-bottom: 1px solid var(--mh-divider);
+        vertical-align: top;
+      }
+      .recommendation-card__row--deviation {
+        background: var(--mh-error-soft);
+      }
+      .recommendation-card__row--warn {
+        background: var(--mh-caution-soft);
+      }
+      .recommendation-card__error {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-2);
+        align-items: flex-start;
+      }
+      .recommendation-card__footer {
+        margin-top: var(--mh-space-3);
+      }
       /* Iter 67 / WR-I: Trend-Card. Color-Border je nach Total-Severity. */
       .trend {
         border-left: 3px solid var(--mh-divider);
@@ -10371,6 +10622,18 @@ _([
 ], v.prototype, "_sourceDetailLoading", 2);
 _([
   l()
+], v.prototype, "_recommendation", 2);
+_([
+  l()
+], v.prototype, "_recommendationLoading", 2);
+_([
+  l()
+], v.prototype, "_recommendationError", 2);
+_([
+  l()
+], v.prototype, "_recommendationExpanded", 2);
+_([
+  l()
 ], v.prototype, "_loading", 2);
 _([
   l()
@@ -10506,19 +10769,19 @@ const at = {
       help_url: "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
     }
   }
-}, La = /* @__PURE__ */ new Set([
+}, za = /* @__PURE__ */ new Set([
   "DPT_MISMATCH",
   "ORPHAN_GA",
   "STALE_GA"
 ]);
 function Oa(e) {
-  return La.has(e);
+  return za.has(e);
 }
-function Yt(e) {
+function Zt(e) {
   return e.startsWith("de") ? "de" : "en";
 }
-function Ye(e, t) {
-  const s = at[Yt(t)][e];
+function Ze(e, t) {
+  const s = at[Zt(t)][e];
   return (s == null ? void 0 : s.title) ?? "";
 }
 function Ca(e) {
@@ -10526,7 +10789,7 @@ function Ca(e) {
   return ((t = at.en[e]) == null ? void 0 : t.help_url) ?? "";
 }
 function Fa(e, t, s) {
-  const a = at[Yt(t)][e];
+  const a = at[Zt(t)][e];
   return a === void 0 ? "" : Na(a.description, s);
 }
 function Na(e, t) {
@@ -10605,7 +10868,7 @@ let te = class extends x {
     `;
   }
   _renderRow(e) {
-    const t = this._lang(), s = Ye(e.code, t) || e.code, a = e.override_severity ?? "_default";
+    const t = this._lang(), s = Ze(e.code, t) || e.code, a = e.override_severity ?? "_default";
     return i`
       <tr data-test="override-row" data-code=${e.code}>
         <td class="code">
@@ -10634,7 +10897,7 @@ let te = class extends x {
   }
 };
 te.styles = [
-  L,
+  z,
   se,
   Ne,
   ae,
@@ -10708,7 +10971,7 @@ const Ba = [
   info: "mh-pill mh-pill--info",
   debug: "mh-pill mh-pill--debug"
 };
-let z = class extends x {
+let L = class extends x {
   constructor() {
     super(...arguments), this.sourceFilter = null, this._items = [], this._total = 0, this._loading = !1, this._error = null, this._severityFilter = "", this._projectOnly = !1, this._selectedKey = null, this._showOverrides = !1;
   }
@@ -10930,7 +11193,7 @@ let z = class extends x {
     </ul>`;
   }
   _renderItem(e) {
-    const t = this._itemKey(e), s = this._selectedKey === t, a = Ye(e.code, this._lang()) || e.code, r = e.acknowledged === !0;
+    const t = this._itemKey(e), s = this._selectedKey === t, a = Ze(e.code, this._lang()) || e.code, r = e.acknowledged === !0;
     return i`
       <li
         class=${`item ${s ? "item--selected" : ""} ${r ? "item--acked" : ""}`}
@@ -10969,7 +11232,7 @@ let z = class extends x {
   _renderDetailPane() {
     const e = this._currentSelection();
     if (e === null) return c;
-    const t = this._lang(), s = Ye(e.code, t) || e.code, a = Fa(
+    const t = this._lang(), s = Ze(e.code, t) || e.code, a = Fa(
       e.code,
       t,
       e.evidence
@@ -11053,8 +11316,8 @@ let z = class extends x {
     }
   }
 };
-z.styles = [
-  L,
+L.styles = [
+  z,
   se,
   Ne,
   ae,
@@ -11250,37 +11513,37 @@ z.styles = [
 ];
 N([
   w({ attribute: !1 })
-], z.prototype, "api", 2);
+], L.prototype, "api", 2);
 N([
   w({ attribute: !1 })
-], z.prototype, "sourceFilter", 2);
+], L.prototype, "sourceFilter", 2);
 N([
   l()
-], z.prototype, "_items", 2);
+], L.prototype, "_items", 2);
 N([
   l()
-], z.prototype, "_total", 2);
+], L.prototype, "_total", 2);
 N([
   l()
-], z.prototype, "_loading", 2);
+], L.prototype, "_loading", 2);
 N([
   l()
-], z.prototype, "_error", 2);
+], L.prototype, "_error", 2);
 N([
   l()
-], z.prototype, "_severityFilter", 2);
+], L.prototype, "_severityFilter", 2);
 N([
   l()
-], z.prototype, "_projectOnly", 2);
+], L.prototype, "_projectOnly", 2);
 N([
   l()
-], z.prototype, "_selectedKey", 2);
+], L.prototype, "_selectedKey", 2);
 N([
   l()
-], z.prototype, "_showOverrides", 2);
-z = N([
+], L.prototype, "_showOverrides", 2);
+L = N([
   T("findings-view")
-], z);
+], L);
 var ja = Object.defineProperty, Ga = Object.getOwnPropertyDescriptor, Ue = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ga(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
@@ -11373,7 +11636,7 @@ let pe = class extends x {
   }
 };
 pe.styles = [
-  L,
+  z,
   y`
       :host {
         display: block;
@@ -11640,7 +11903,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
   }
 };
 M.styles = [
-  L,
+  z,
   se,
   Ne,
   ae,
@@ -11906,10 +12169,10 @@ ie([
 M = ie([
   T("audit-view")
 ], M);
-var Ya = Object.defineProperty, Za = Object.getOwnPropertyDescriptor, D = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Za(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Za = Object.defineProperty, Ya = Object.getOwnPropertyDescriptor, D = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ya(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Ya(t, s, r), r;
+  return a && r && Za(t, s, r), r;
 };
 function Xa(e) {
   return e.source === "knx-bus" && e.text.includes("(GroupValueRead)");
@@ -12388,7 +12651,7 @@ let E = class extends x {
   }
 };
 E.styles = [
-  L,
+  z,
   se,
   y`
       :host {
