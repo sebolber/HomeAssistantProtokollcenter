@@ -43,6 +43,41 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
       help_url:
         "https://support.knx.org/hc/en-us/articles/115001133744-Datapoint-Type",
     },
+    MULTI_RESPONDER: {
+      title: "Mehrere Aktoren antworten auf gleicher GA",
+      description:
+        "{count} Quellen antworten innerhalb {window_ms} ms: " +
+        "{responding_sources}. Wahrscheinlich mehrere Aktoren mit gesetztem " +
+        "L-Flag — kann beabsichtigt sein bei parallelen Aktoren, sonst " +
+        "ETS-Topologie pruefen.",
+      help_url: "https://knx-blogger.de/knx-flags-einfach-erklaert/",
+    },
+    READ_NO_RESPONSE: {
+      title: "GroupValueRead bleibt ohne Antwort",
+      description:
+        "Read um {read_at} hat innerhalb von {timeout_sec} s keine Antwort " +
+        "erhalten. Empfaenger fehlt, ist offline oder das L-Flag ist nicht " +
+        "gesetzt.",
+      help_url:
+        "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics",
+    },
+    TOGGLE_LOOP: {
+      title: "Schaltschleife auf DPT 1.001",
+      description:
+        "GA wechselt zyklisch zwischen 0 und 1 (Periode {period_ms} ms, " +
+        "{cycles} Wertwechsel). Vermutung: gleiche GA wird sendend und " +
+        "hoerend gleichzeitig genutzt.",
+      help_url: "https://community.openhab.org/t/loops-on-knx-bus/22185",
+    },
+    MULTI_TIME_MASTER: {
+      title: "Mehrere Zeit-Master auf gleicher GA",
+      description:
+        "{sources} schreiben gemeinsam auf eine GA mit DPT {clock_dpt}. " +
+        "Doppelte Zeitquellen erzeugen Drift — nur ein Geraet als " +
+        "Time-Master konfigurieren.",
+      help_url:
+        "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types",
+    },
   },
   en: {
     DPT_MISMATCH: {
@@ -61,6 +96,38 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
         "for DPT {dpt}. Likely wrong DPT or faulty sensor.",
       help_url:
         "https://support.knx.org/hc/en-us/articles/115001133744-Datapoint-Type",
+    },
+    MULTI_RESPONDER: {
+      title: "Multiple actuators respond on same group address",
+      description:
+        "{count} sources answered within {window_ms} ms: {responding_sources}. " +
+        "Likely multiple actuators with the L-flag set — may be intentional " +
+        "for parallel actuators, otherwise verify the ETS topology.",
+      help_url: "https://knx-blogger.de/knx-flags-einfach-erklaert/",
+    },
+    READ_NO_RESPONSE: {
+      title: "GroupValueRead without response",
+      description:
+        "Read at {read_at} received no response within {timeout_sec} s. " +
+        "Receiver missing, offline, or L-flag not set.",
+      help_url:
+        "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics",
+    },
+    TOGGLE_LOOP: {
+      title: "Switching loop on DPT 1.001",
+      description:
+        "Group address alternates between 0 and 1 (period {period_ms} ms, " +
+        "{cycles} value changes). Likely the same GA is used both sending " +
+        "and listening.",
+      help_url: "https://community.openhab.org/t/loops-on-knx-bus/22185",
+    },
+    MULTI_TIME_MASTER: {
+      title: "Multiple time masters on same group address",
+      description:
+        "{sources} both write to a GA with DPT {clock_dpt}. Duplicate " +
+        "time sources cause drift — configure only one device as time master.",
+      help_url:
+        "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types",
     },
   },
 };

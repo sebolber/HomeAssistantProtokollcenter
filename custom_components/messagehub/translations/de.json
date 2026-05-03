@@ -61,6 +61,26 @@
         "title": "Wert ausserhalb des erlaubten DPT-Bereichs",
         "description": "Wert {value} liegt ausserhalb des fuer DPT {dpt} erlaubten Bereichs [{range_min}, {range_max}]. Wahrscheinlich falscher DPT oder fehlerhafte Sensorik.",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001133744-Datapoint-Type"
+      },
+      "MULTI_RESPONDER": {
+        "title": "Mehrere Aktoren antworten auf gleicher GA",
+        "description": "{count} Quellen antworten innerhalb {window_ms} ms: {responding_sources}. Wahrscheinlich mehrere Aktoren mit gesetztem L-Flag — kann beabsichtigt sein bei parallelen Aktoren, sonst ETS-Topologie pruefen.",
+        "help_url": "https://knx-blogger.de/knx-flags-einfach-erklaert/"
+      },
+      "READ_NO_RESPONSE": {
+        "title": "GroupValueRead bleibt ohne Antwort",
+        "description": "Read um {read_at} hat innerhalb von {timeout_sec} s keine Antwort erhalten. Empfaenger fehlt, ist offline oder das L-Flag ist nicht gesetzt.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
+      },
+      "TOGGLE_LOOP": {
+        "title": "Schaltschleife auf DPT 1.001",
+        "description": "GA wechselt zyklisch zwischen 0 und 1 (Periode {period_ms} ms, {cycles} Wertwechsel). Vermutung: gleiche GA wird sendend und hoerend gleichzeitig genutzt.",
+        "help_url": "https://community.openhab.org/t/loops-on-knx-bus/22185"
+      },
+      "MULTI_TIME_MASTER": {
+        "title": "Mehrere Zeit-Master auf gleicher GA",
+        "description": "{sources} schreiben gemeinsam auf eine GA mit DPT {clock_dpt}. Doppelte Zeitquellen erzeugen Drift — nur ein Geraet als Time-Master konfigurieren.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
       }
     }
   }

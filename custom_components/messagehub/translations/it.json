@@ -61,6 +61,26 @@
         "title": "Valore fuori dall'intervallo consentito del DPT",
         "description": "Il valore {value} è fuori dall'intervallo consentito [{range_min}, {range_max}] per il DPT {dpt}. Probabilmente DPT errato o sensore difettoso.",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001133744-Datapoint-Type"
+      },
+      "MULTI_RESPONDER": {
+        "title": "Più attuatori rispondono sullo stesso indirizzo di gruppo",
+        "description": "{count} sorgenti hanno risposto in {window_ms} ms: {responding_sources}. Probabilmente più attuatori con L-flag impostato — può essere intenzionale per attuatori paralleli, altrimenti verifica la topologia ETS.",
+        "help_url": "https://knx-blogger.de/knx-flags-einfach-erklaert/"
+      },
+      "READ_NO_RESPONSE": {
+        "title": "GroupValueRead senza risposta",
+        "description": "Read a {read_at} non ha ricevuto risposta entro {timeout_sec} s. Ricevitore assente, offline o L-flag non impostato.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
+      },
+      "TOGGLE_LOOP": {
+        "title": "Anello di commutazione su DPT 1.001",
+        "description": "L'indirizzo di gruppo alterna tra 0 e 1 (periodo {period_ms} ms, {cycles} cambi di valore). Probabilmente la stessa GA è usata per inviare e ascoltare contemporaneamente.",
+        "help_url": "https://community.openhab.org/t/loops-on-knx-bus/22185"
+      },
+      "MULTI_TIME_MASTER": {
+        "title": "Più master di tempo sullo stesso indirizzo di gruppo",
+        "description": "{sources} scrivono insieme su una GA con DPT {clock_dpt}. Sorgenti di tempo duplicate causano deriva — configura un solo dispositivo come master del tempo.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
       }
     }
   }

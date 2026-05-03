@@ -61,6 +61,26 @@
         "title": "Waarde buiten het toegestane DPT-bereik",
         "description": "Waarde {value} ligt buiten het toegestane bereik [{range_min}, {range_max}] voor DPT {dpt}. Waarschijnlijk verkeerd DPT of defecte sensor.",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001133744-Datapoint-Type"
+      },
+      "MULTI_RESPONDER": {
+        "title": "Meerdere actuatoren reageren op hetzelfde groepsadres",
+        "description": "{count} bronnen antwoordden binnen {window_ms} ms: {responding_sources}. Waarschijnlijk meerdere actuatoren met L-flag actief — kan opzettelijk zijn bij parallelle actuatoren, anders ETS-topologie controleren.",
+        "help_url": "https://knx-blogger.de/knx-flags-einfach-erklaert/"
+      },
+      "READ_NO_RESPONSE": {
+        "title": "GroupValueRead zonder antwoord",
+        "description": "Read om {read_at} heeft binnen {timeout_sec} s geen antwoord ontvangen. Ontvanger ontbreekt, is offline of L-flag is niet ingesteld.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
+      },
+      "TOGGLE_LOOP": {
+        "title": "Schakellus op DPT 1.001",
+        "description": "Groepsadres wisselt cyclisch tussen 0 en 1 (periode {period_ms} ms, {cycles} waardewisselingen). Waarschijnlijk wordt dezelfde GA tegelijk verzendend en luisterend gebruikt.",
+        "help_url": "https://community.openhab.org/t/loops-on-knx-bus/22185"
+      },
+      "MULTI_TIME_MASTER": {
+        "title": "Meerdere tijdmasters op hetzelfde groepsadres",
+        "description": "{sources} schrijven samen op een GA met DPT {clock_dpt}. Dubbele tijdbronnen veroorzaken drift — configureer slechts één apparaat als tijdmaster.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
       }
     }
   }

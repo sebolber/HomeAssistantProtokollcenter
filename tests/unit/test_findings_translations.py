@@ -18,6 +18,12 @@ _TRANSLATIONS_DIR = (
     / "translations"
 )
 _PHASE2_CODES = ("DPT_MISMATCH", "VALUE_OUT_OF_RANGE")
+_PHASE3_CODES = (
+    "MULTI_RESPONDER",
+    "READ_NO_RESPONSE",
+    "TOGGLE_LOOP",
+    "MULTI_TIME_MASTER",
+)
 _LANGS = ("de", "en", "es", "fr", "it", "nl")
 
 
@@ -29,7 +35,7 @@ def test_translations_valid_json(lang: str) -> None:
 
 
 @pytest.mark.parametrize("lang", _LANGS)
-@pytest.mark.parametrize("code", _PHASE2_CODES)
+@pytest.mark.parametrize("code", _PHASE2_CODES + _PHASE3_CODES)
 def test_finding_translation_has_required_keys_for_each_lang(
     lang: str, code: str
 ) -> None:
@@ -41,6 +47,40 @@ def test_finding_translation_has_required_keys_for_each_lang(
     for key in ("title", "description", "help_url"):
         assert key in entry, f"{lang}.json -> {code} fehlt Key {key!r}"
         assert entry[key], f"{lang}.json -> {code}.{key} ist leer"
+
+
+def test_finding_translation_resolves_all_phase3_codes() -> None:
+    """Iter 19: alle Phase-3-Codes sind in DE und EN gepflegt.
+
+    Spiegelt das Test-zuerst-Artefakt aus §9.9 Iter 19. Pruefen wir
+    explizit die Description-Platzhalter, weil ein leeres Template
+    sonst stillschweigend durchrutschen wuerde.
+    """
+    de = json.loads((_TRANSLATIONS_DIR / "de.json").read_text(encoding="utf-8"))
+    en = json.loads((_TRANSLATIONS_DIR / "en.json").read_text(encoding="utf-8"))
+    expected_placeholders = {
+        "MULTI_RESPONDER": ("{count}", "{window_ms}", "{responding_sources}"),
+        "READ_NO_RESPONSE": ("{read_at}", "{timeout_sec}"),
+        "TOGGLE_LOOP": ("{period_ms}", "{cycles}"),
+        "MULTI_TIME_MASTER": ("{sources}", "{clock_dpt}"),
+    }
+    for code, placeholders in expected_placeholders.items():
+        de_entry = de["findings"]["codes"][code]
+        en_entry = en["findings"]["codes"][code]
+        # Title: DE/EN unterschiedlich, beide nicht leer.
+        assert de_entry["title"]
+        assert en_entry["title"]
+        assert de_entry["title"] != en_entry["title"], (
+            f"{code} hat identische Titel in DE und EN — vermutlich kopiert"
+        )
+        # Description enthaelt alle Evidence-Platzhalter.
+        for placeholder in placeholders:
+            assert placeholder in de_entry["description"], (
+                f"DE.{code} fehlt Platzhalter {placeholder}"
+            )
+            assert placeholder in en_entry["description"], (
+                f"EN.{code} fehlt Platzhalter {placeholder}"
+            )
 
 
 def test_finding_translation_resolves_for_dpt_mismatch_de_and_en() -> None:

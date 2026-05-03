@@ -70,3 +70,61 @@ describe("findings-i18n Iter 14: Phase 2", () => {
     expect(title).toBe("");
   });
 });
+
+describe("findings-i18n Iter 19: Phase 3 Codes", () => {
+  it.each([
+    "MULTI_RESPONDER",
+    "READ_NO_RESPONSE",
+    "TOGGLE_LOOP",
+    "MULTI_TIME_MASTER",
+  ])("hat Title in DE und EN: %s", (code) => {
+    const titleDe = getFindingTitle(code, "de");
+    const titleEn = getFindingTitle(code, "en");
+    expect(titleDe).not.toEqual("");
+    expect(titleEn).not.toEqual("");
+    expect(titleDe).not.toEqual(titleEn);
+  });
+
+  it("rendert MULTI_RESPONDER-Description mit count + window_ms", () => {
+    const description = getFindingDescription(
+      "MULTI_RESPONDER",
+      "de",
+      {
+        count: 3,
+        window_ms: 1000,
+        responding_sources: ["1.1.5", "1.1.6", "1.1.7"],
+      }
+    );
+    expect(description).toContain("3");
+    expect(description).toContain("1000");
+  });
+
+  it("rendert READ_NO_RESPONSE-Description mit read_at + timeout_sec", () => {
+    const description = getFindingDescription(
+      "READ_NO_RESPONSE",
+      "en",
+      { read_at: "2026-05-03T08:00:00", timeout_sec: 3 }
+    );
+    expect(description).toContain("2026-05-03T08:00:00");
+    expect(description).toContain("3");
+  });
+
+  it("rendert TOGGLE_LOOP-Description mit period_ms + cycles", () => {
+    const description = getFindingDescription(
+      "TOGGLE_LOOP",
+      "de",
+      { period_ms: 2000, cycles: 6 }
+    );
+    expect(description).toContain("2000");
+    expect(description).toContain("6");
+  });
+
+  it("rendert MULTI_TIME_MASTER-Description mit sources + clock_dpt", () => {
+    const description = getFindingDescription(
+      "MULTI_TIME_MASTER",
+      "en",
+      { sources: ["1.1.5", "1.1.6"], clock_dpt: "10.001" }
+    );
+    expect(description).toContain("10.001");
+  });
+});

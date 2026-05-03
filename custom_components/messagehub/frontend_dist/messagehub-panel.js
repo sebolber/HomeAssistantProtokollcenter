@@ -45,7 +45,7 @@ const Vt = (t) => new zt(typeof t == "string" ? t : t + "", void 0, Ge), $ = (t,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: Jt, defineProperty: Yt, getOwnPropertyDescriptor: Xt, getOwnPropertyNames: Zt, getOwnPropertySymbols: Qt, getPrototypeOf: es } = Object, R = globalThis, st = R.trustedTypes, ts = st ? st.emptyScript : "", Ce = R.reactiveElementPolyfillSupport, ve = (t, e) => t, Pe = { toAttribute(t, e) {
+const { is: Jt, defineProperty: Yt, getOwnPropertyDescriptor: Zt, getOwnPropertyNames: Xt, getOwnPropertySymbols: Qt, getPrototypeOf: es } = Object, R = globalThis, st = R.trustedTypes, ts = st ? st.emptyScript : "", Ce = R.reactiveElementPolyfillSupport, ve = (t, e) => t, Pe = { toAttribute(t, e) {
   switch (e) {
     case Boolean:
       t = t ? ts : null;
@@ -89,7 +89,7 @@ let re = class extends HTMLElement {
     }
   }
   static getPropertyDescriptor(e, s, r) {
-    const { get: a, set: i } = Xt(this.prototype, e) ?? { get() {
+    const { get: a, set: i } = Zt(this.prototype, e) ?? { get() {
       return this[s];
     }, set(o) {
       this[s] = o;
@@ -110,7 +110,7 @@ let re = class extends HTMLElement {
   static finalize() {
     if (this.hasOwnProperty(ve("finalized"))) return;
     if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(ve("properties"))) {
-      const s = this.properties, r = [...Zt(s), ...Qt(s)];
+      const s = this.properties, r = [...Xt(s), ...Qt(s)];
       for (const a of r) this.createProperty(a, s[a]);
     }
     const e = this[Symbol.metadata];
@@ -284,9 +284,9 @@ re.elementStyles = [], re.shadowRootOptions = { mode: "open" }, re[ve("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const fe = globalThis, rt = (t) => t, Ee = fe.trustedTypes, it = Ee ? Ee.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Lt = "$lit$", M = `lit$${Math.random().toFixed(9).slice(2)}$`, Ot = "?" + M, ss = `<${Ot}>`, Y = document, be = () => Y.createComment(""), _e = (t) => t === null || typeof t != "object" && typeof t != "function", Ve = Array.isArray, as = (t) => Ve(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Ie = `[ 	
+const fe = globalThis, rt = (t) => t, Ee = fe.trustedTypes, it = Ee ? Ee.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Lt = "$lit$", B = `lit$${Math.random().toFixed(9).slice(2)}$`, Ot = "?" + B, ss = `<${Ot}>`, Y = document, be = () => Y.createComment(""), _e = (t) => t === null || typeof t != "object" && typeof t != "function", Ve = Array.isArray, as = (t) => Ve(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Ie = `[ 	
 \f\r]`, ue = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, nt = /-->/g, ot = />/g, W = RegExp(`>|${Ie}(?:([^\\s"'>=/]+)(${Ie}*=${Ie}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), lt = /'/g, dt = /"/g, Nt = /^(?:script|style|textarea|title)$/i, rs = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), n = rs(1), X = Symbol.for("lit-noChange"), h = Symbol.for("lit-nothing"), ht = /* @__PURE__ */ new WeakMap(), q = Y.createTreeWalker(Y, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), lt = /'/g, dt = /"/g, Nt = /^(?:script|style|textarea|title)$/i, rs = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), n = rs(1), Z = Symbol.for("lit-noChange"), h = Symbol.for("lit-nothing"), ht = /* @__PURE__ */ new WeakMap(), q = Y.createTreeWalker(Y, 129);
 function Ft(t, e) {
   if (!Ve(t) || !t.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return it !== void 0 ? it.createHTML(e) : e;
@@ -299,7 +299,7 @@ const is = (t, e) => {
     let m, g, u = -1, p = 0;
     for (; p < c.length && (o.lastIndex = p, g = o.exec(c), g !== null); ) p = o.lastIndex, o === ue ? g[1] === "!--" ? o = nt : g[1] !== void 0 ? o = ot : g[2] !== void 0 ? (Nt.test(g[2]) && (a = RegExp("</" + g[2], "g")), o = W) : g[3] !== void 0 && (o = W) : o === W ? g[0] === ">" ? (o = a ?? ue, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? W : g[3] === '"' ? dt : lt) : o === dt || o === lt ? o = W : o === nt || o === ot ? o = ue : (o = W, a = void 0);
     const f = o === W && t[d + 1].startsWith("/>") ? " " : "";
-    i += o === ue ? c + ss : u >= 0 ? (r.push(m), c.slice(0, u) + Lt + c.slice(u) + M + f) : c + M + (u === -2 ? d : f);
+    i += o === ue ? c + ss : u >= 0 ? (r.push(m), c.slice(0, u) + Lt + c.slice(u) + B + f) : c + B + (u === -2 ? d : f);
   }
   return [Ft(t, i + (t[s] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), r];
 };
@@ -316,11 +316,11 @@ class xe {
     for (; (a = q.nextNode()) !== null && c.length < d; ) {
       if (a.nodeType === 1) {
         if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Lt)) {
-          const p = g[o++], f = a.getAttribute(u).split(M), v = /([.?@])?(.*)/.exec(p);
+          const p = g[o++], f = a.getAttribute(u).split(B), v = /([.?@])?(.*)/.exec(p);
           c.push({ type: 1, index: i, name: v[2], strings: f, ctor: v[1] === "." ? os : v[1] === "?" ? ls : v[1] === "@" ? ds : ze }), a.removeAttribute(u);
-        } else u.startsWith(M) && (c.push({ type: 6, index: i }), a.removeAttribute(u));
+        } else u.startsWith(B) && (c.push({ type: 6, index: i }), a.removeAttribute(u));
         if (Nt.test(a.tagName)) {
-          const u = a.textContent.split(M), p = u.length - 1;
+          const u = a.textContent.split(B), p = u.length - 1;
           if (p > 0) {
             a.textContent = Ee ? Ee.emptyScript : "";
             for (let f = 0; f < p; f++) a.append(u[f], be()), q.nextNode(), c.push({ type: 2, index: ++i });
@@ -330,7 +330,7 @@ class xe {
       } else if (a.nodeType === 8) if (a.data === Ot) c.push({ type: 2, index: i });
       else {
         let u = -1;
-        for (; (u = a.data.indexOf(M, u + 1)) !== -1; ) c.push({ type: 7, index: i }), u += M.length - 1;
+        for (; (u = a.data.indexOf(B, u + 1)) !== -1; ) c.push({ type: 7, index: i }), u += B.length - 1;
       }
       i++;
     }
@@ -342,7 +342,7 @@ class xe {
 }
 function ie(t, e, s = t, r) {
   var o, d;
-  if (e === X) return e;
+  if (e === Z) return e;
   let a = r !== void 0 ? (o = s._$Co) == null ? void 0 : o[r] : s._$Cl;
   const i = _e(e) ? void 0 : e._$litDirective$;
   return (a == null ? void 0 : a.constructor) !== i && ((d = a == null ? void 0 : a._$AO) == null || d.call(a, !1), i === void 0 ? a = void 0 : (a = new i(t), a._$AT(t, s, r)), r !== void 0 ? (s._$Co ?? (s._$Co = []))[r] = a : s._$Cl = a), a !== void 0 && (e = ie(t, a._$AS(t, e.values), a, r)), e;
@@ -395,7 +395,7 @@ class de {
     return this._$AB;
   }
   _$AI(e, s = this) {
-    e = ie(this, e, s), _e(e) ? e === h || e == null || e === "" ? (this._$AH !== h && this._$AR(), this._$AH = h) : e !== this._$AH && e !== X && this._(e) : e._$litType$ !== void 0 ? this.$(e) : e.nodeType !== void 0 ? this.T(e) : as(e) ? this.k(e) : this._(e);
+    e = ie(this, e, s), _e(e) ? e === h || e == null || e === "" ? (this._$AH !== h && this._$AR(), this._$AH = h) : e !== this._$AH && e !== Z && this._(e) : e._$litType$ !== void 0 ? this.$(e) : e.nodeType !== void 0 ? this.T(e) : as(e) ? this.k(e) : this._(e);
   }
   O(e) {
     return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -451,11 +451,11 @@ class ze {
   _$AI(e, s = this, r, a) {
     const i = this.strings;
     let o = !1;
-    if (i === void 0) e = ie(this, e, s, 0), o = !_e(e) || e !== this._$AH && e !== X, o && (this._$AH = e);
+    if (i === void 0) e = ie(this, e, s, 0), o = !_e(e) || e !== this._$AH && e !== Z, o && (this._$AH = e);
     else {
       const d = e;
       let c, m;
-      for (e = i[0], c = 0; c < i.length - 1; c++) m = ie(this, d[r + c], s, c), m === X && (m = this._$AH[c]), o || (o = !_e(m) || m !== this._$AH[c]), m === h ? e = h : e !== h && (e += (m ?? "") + i[c + 1]), this._$AH[c] = m;
+      for (e = i[0], c = 0; c < i.length - 1; c++) m = ie(this, d[r + c], s, c), m === Z && (m = this._$AH[c]), o || (o = !_e(m) || m !== this._$AH[c]), m === h ? e = h : e !== h && (e += (m ?? "") + i[c + 1]), this._$AH[c] = m;
     }
     o && !a && this.j(e);
   }
@@ -484,7 +484,7 @@ class ds extends ze {
     super(e, s, r, a, i), this.type = 5;
   }
   _$AI(e, s = this) {
-    if ((e = ie(this, e, s, 0) ?? h) === X) return;
+    if ((e = ie(this, e, s, 0) ?? h) === Z) return;
     const r = this._$AH, a = e === h && r !== h || e.capture !== r.capture || e.once !== r.once || e.passive !== r.passive, i = e !== h && (r === h || a);
     a && this.element.removeEventListener(this.name, this, r), i && this.element.addEventListener(this.name, this, e), this._$AH = e;
   }
@@ -504,8 +504,8 @@ class hs {
     ie(this, e);
   }
 }
-const cs = { I: de }, Ue = fe.litHtmlPolyfillSupport;
-Ue == null || Ue(xe, de), (fe.litHtmlVersions ?? (fe.litHtmlVersions = [])).push("3.3.2");
+const cs = { I: de }, Me = fe.litHtmlPolyfillSupport;
+Me == null || Me(xe, de), (fe.litHtmlVersions ?? (fe.litHtmlVersions = [])).push("3.3.2");
 const ps = (t, e, s) => {
   const r = (s == null ? void 0 : s.renderBefore) ?? e;
   let a = r._$litPart$;
@@ -543,13 +543,13 @@ let w = class extends re {
     super.disconnectedCallback(), (e = this._$Do) == null || e.setConnected(!1);
   }
   render() {
-    return X;
+    return Z;
   }
 };
 var Dt;
 w._$litElement$ = !0, w.finalized = !0, (Dt = J.litElementHydrateSupport) == null || Dt.call(J, { LitElement: w });
-const He = J.litElementPolyfillSupport;
-He == null || He({ LitElement: w });
+const Ue = J.litElementPolyfillSupport;
+Ue == null || Ue({ LitElement: w });
 (J.litElementVersions ?? (J.litElementVersions = [])).push("4.2.2");
 /**
  * @license
@@ -1439,7 +1439,7 @@ const { I: xs } = cs, ct = (t) => t, pt = () => document.createComment(""), me =
     }
   }
   return s;
-}, V = (t, e, s = t) => (t._$AI(e, s), t), ws = {}, ys = (t, e = ws) => t._$AH = e, $s = (t) => t._$AH, Be = (t) => {
+}, V = (t, e, s = t) => (t._$AI(e, s), t), ws = {}, ys = (t, e = ws) => t._$AH = e, $s = (t) => t._$AH, He = (t) => {
   t._$AR(), t._$AA.remove();
 };
 /**
@@ -1484,17 +1484,17 @@ const ut = (t, e, s) => {
         V(Se, i[f]), c[f] = Se;
       } else c[f] = V(pe, i[f]), me(t, a[u], pe), a[k] = null;
       f++;
-    } else Be(a[p]), p--;
-    else Be(a[u]), u++;
+    } else He(a[p]), p--;
+    else He(a[u]), u++;
     for (; f <= v; ) {
       const k = me(t, c[v + 1]);
       V(k, i[f]), c[f++] = k;
     }
     for (; u <= p; ) {
       const k = a[u++];
-      k !== null && Be(k);
+      k !== null && He(k);
     }
-    return this.ut = o, ys(t, c), X;
+    return this.ut = o, ys(t, c), Z;
   }
 }), Ss = new Intl.RelativeTimeFormat("de", { numeric: "auto" }), Ts = [
   { unit: "year", seconds: 31536e3 },
@@ -1543,7 +1543,7 @@ const mt = {
   info: "Info",
   debug: "Debug"
 }, Es = ["error", "warning", "info", "debug"];
-let Z = class extends w {
+let X = class extends w {
   constructor() {
     super(...arguments), this.items = [], this._now = /* @__PURE__ */ new Date(), this._editSeverityFor = null, this._popoverPos = null, this._onClick = (t) => {
       this.dispatchEvent(
@@ -1672,7 +1672,7 @@ let Z = class extends w {
       `;
   }
 };
-Z.styles = [
+X.styles = [
   L,
   ce,
   $`
@@ -1870,20 +1870,20 @@ Z.styles = [
 ];
 $e([
   x({ attribute: !1 })
-], Z.prototype, "items", 2);
+], X.prototype, "items", 2);
 $e([
   l()
-], Z.prototype, "_now", 2);
+], X.prototype, "_now", 2);
 $e([
   l()
-], Z.prototype, "_editSeverityFor", 2);
+], X.prototype, "_editSeverityFor", 2);
 $e([
   l()
-], Z.prototype, "_popoverPos", 2);
-Z = $e([
+], X.prototype, "_popoverPos", 2);
+X = $e([
   T("message-table")
-], Z);
-var Ds = Object.defineProperty, zs = Object.getOwnPropertyDescriptor, Ut = (t, e, s, r) => {
+], X);
+var Ds = Object.defineProperty, zs = Object.getOwnPropertyDescriptor, Mt = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? zs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && Ds(e, s, a), a;
@@ -1998,10 +1998,10 @@ De.styles = [
       }
     `
 ];
-Ut([
+Mt([
   x({ attribute: !1 })
 ], De.prototype, "selected", 2);
-De = Ut([
+De = Mt([
   T("severity-filter")
 ], De);
 var Ls = Object.defineProperty, Os = Object.getOwnPropertyDescriptor, Oe = (t, e, s, r) => {
@@ -2533,12 +2533,12 @@ K([
 N = K([
   T("detail-pane")
 ], N);
-var Us = Object.defineProperty, Hs = Object.getOwnPropertyDescriptor, C = (t, e, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Hs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+var Ms = Object.defineProperty, Us = Object.getOwnPropertyDescriptor, C = (t, e, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Us(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && Us(e, s, a), a;
+  return r && a && Ms(e, s, a), a;
 };
-const Bs = ["debug", "info", "warning", "error"], Ms = JSON.stringify(
+const Hs = ["debug", "info", "warning", "error"], Bs = JSON.stringify(
   {
     severity: "$.level",
     source: "$.app.name",
@@ -2547,7 +2547,7 @@ const Bs = ["debug", "info", "warning", "error"], Ms = JSON.stringify(
   },
   null,
   2
-), Me = /^[a-z0-9._-]{1,64}$/;
+), Be = /^[a-z0-9._-]{1,64}$/;
 function Rs(t) {
   return t.toLowerCase().normalize("NFKD").replaceAll(/[äÄ]/g, "ae").replaceAll(/[öÖ]/g, "oe").replaceAll(/[üÜ]/g, "ue").replaceAll(/ß/g, "ss").replaceAll(/[\s/\\]+/g, "-").replaceAll(/[^a-z0-9._-]/g, "").slice(0, 64);
 }
@@ -2578,7 +2578,7 @@ let z = class extends w {
       try {
         const t = this._validateMapping();
         if (!this._name.trim()) throw new Error("Name darf nicht leer sein");
-        if (!Me.test(this._source))
+        if (!Be.test(this._source))
           throw new Error("Source ist leer oder ungueltig.");
         let e;
         this.editing ? e = await this.api.updateWebhook(this.editing.webhook_id, {
@@ -2611,7 +2611,7 @@ let z = class extends w {
     this.dispatchEvent(new CustomEvent("cancel", { bubbles: !0, composed: !0 }));
   }
   _useExample() {
-    this._mappingText = Ms;
+    this._mappingText = Bs;
   }
   render() {
     const t = this.editing !== null;
@@ -2633,11 +2633,11 @@ let z = class extends w {
           <label>
             <span>
               Default-Source
-              ${this._source && Me.test(this._source) ? n`<span class="ok-badge" title="ok">✓</span>` : null}
+              ${this._source && Be.test(this._source) ? n`<span class="ok-badge" title="ok">✓</span>` : null}
             </span>
             <input
               type="text"
-              class=${this._source && !Me.test(this._source) ? "invalid" : ""}
+              class=${this._source && !Be.test(this._source) ? "invalid" : ""}
               .value=${this._source}
               @input=${(e) => {
       const s = e.target.value;
@@ -2661,7 +2661,7 @@ let z = class extends w {
               .value=${this._severity}
               @change=${(e) => this._severity = e.target.value}
             >
-              ${Bs.map(
+              ${Hs.map(
       (e) => n`<option value=${e} ?selected=${this._severity === e}>${e}</option>`
     )}
             </select>
@@ -2885,10 +2885,10 @@ var js = Object.defineProperty, Ks = Object.getOwnPropertyDescriptor, S = (t, e,
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && js(e, s, a), a;
 };
-const Gs = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, Re = ["debug", "info", "warning", "error"], ft = [...Re, "auto"], Ht = "messagehub.knx-addresses.only-enabled";
+const Gs = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, Re = ["debug", "info", "warning", "error"], ft = [...Re, "auto"], Ut = "messagehub.knx-addresses.only-enabled";
 function Ws() {
   try {
-    const t = localStorage.getItem(Ht);
+    const t = localStorage.getItem(Ut);
     return t === null ? !0 : t === "1" || t === "true";
   } catch {
     return !0;
@@ -3421,7 +3421,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
       this._onlyEnabled = a.target.checked, this._displayedCount = ge;
       try {
         localStorage.setItem(
-          Ht,
+          Ut,
           this._onlyEnabled ? "1" : "0"
         );
       } catch {
@@ -4169,7 +4169,7 @@ var qs = Object.defineProperty, Js = Object.getOwnPropertyDescriptor, ke = (t, e
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && qs(e, s, a), a;
 };
-const Ys = ["telegram", "pushover", "ntfy", "signal", "notify"], Xs = ["debug", "info", "warning", "error"];
+const Ys = ["telegram", "pushover", "ntfy", "signal", "notify"], Zs = ["debug", "info", "warning", "error"];
 let Q = class extends w {
   constructor() {
     super(...arguments), this._items = [], this._editing = null, this._toast = "";
@@ -4343,7 +4343,7 @@ let Q = class extends w {
       e({ severity_threshold: r });
     }}
               >
-                ${Xs.map((s) => n`<option value=${s}>${s}</option>`)}
+                ${Zs.map((s) => n`<option value=${s}>${s}</option>`)}
               </select>
             </label>
             <label>
@@ -4645,10 +4645,10 @@ ke([
 Q = ke([
   T("channels-view")
 ], Q);
-var Zs = Object.defineProperty, Qs = Object.getOwnPropertyDescriptor, P = (t, e, s, r) => {
+var Xs = Object.defineProperty, Qs = Object.getOwnPropertyDescriptor, P = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? Qs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && Zs(e, s, a), a;
+  return r && a && Xs(e, s, a), a;
 };
 const Ye = $`
   section {
@@ -5071,23 +5071,23 @@ P([
 I = P([
   T("remediation-view")
 ], I);
-var ea = Object.defineProperty, ta = Object.getOwnPropertyDescriptor, B = (t, e, s, r) => {
+var ea = Object.defineProperty, ta = Object.getOwnPropertyDescriptor, H = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? ta(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && ea(e, s, a), a;
 };
-const Bt = [
+const Ht = [
   { id: "webhooks", label: "Webhooks" },
   { id: "knx", label: "KNX-Bus" },
   { id: "channels", label: "Channels" },
   { id: "mqtt", label: "MQTT" },
   { id: "heartbeats", label: "Heartbeats" },
   { id: "remediation", label: "Auto-Remediation" }
-], Mt = "messagehub.settings.tab";
+], Bt = "messagehub.settings.tab";
 function sa() {
   try {
-    const t = localStorage.getItem(Mt);
-    if (t && Bt.some((e) => e.id === t)) return t;
+    const t = localStorage.getItem(Bt);
+    if (t && Ht.some((e) => e.id === t)) return t;
   } catch {
   }
   return "webhooks";
@@ -5146,7 +5146,7 @@ let O = class extends w {
   _selectTab(t) {
     this._activeTab = t;
     try {
-      localStorage.setItem(Mt, t);
+      localStorage.setItem(Bt, t);
     } catch {
     }
   }
@@ -5256,7 +5256,7 @@ let O = class extends w {
     return n`
       <div class="root" @click=${this._closeMenu}>
         <nav class="tabs" role="tablist" aria-label="Einstellungs-Bereiche">
-          ${Bt.map(
+          ${Ht.map(
       (t) => n`<button
               role="tab"
               aria-selected=${this._activeTab === t.id}
@@ -5676,31 +5676,31 @@ O.styles = [
       }
     `
 ];
-B([
+H([
   x({ attribute: !1 })
 ], O.prototype, "api", 2);
-B([
+H([
   l()
 ], O.prototype, "_items", 2);
-B([
+H([
   l()
 ], O.prototype, "_loading", 2);
-B([
+H([
   l()
 ], O.prototype, "_showForm", 2);
-B([
+H([
   l()
 ], O.prototype, "_editing", 2);
-B([
+H([
   l()
 ], O.prototype, "_toast", 2);
-B([
+H([
   l()
 ], O.prototype, "_menuOpenId", 2);
-B([
+H([
   l()
 ], O.prototype, "_activeTab", 2);
-O = B([
+O = H([
   T("settings-view")
 ], O);
 var aa = Object.defineProperty, ra = Object.getOwnPropertyDescriptor, te = (t, e, s, r) => {
@@ -5719,7 +5719,7 @@ const bt = {
   info: "var(--mh-info)",
   debug: "var(--mh-debug)"
 }, xt = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], ia = [1, 2, 3, 4, 5, 6, 0];
-let U = class extends w {
+let M = class extends w {
   constructor() {
     super(...arguments), this._stats = null, this._sources = [], this._heatmap = [], this._topSources = [], this._loading = !1;
   }
@@ -5924,7 +5924,7 @@ let U = class extends w {
     `;
   }
 };
-U.styles = [
+M.styles = [
   L,
   Le,
   ce,
@@ -5994,25 +5994,25 @@ U.styles = [
 ];
 te([
   x({ attribute: !1 })
-], U.prototype, "api", 2);
+], M.prototype, "api", 2);
 te([
   l()
-], U.prototype, "_stats", 2);
+], M.prototype, "_stats", 2);
 te([
   l()
-], U.prototype, "_sources", 2);
+], M.prototype, "_sources", 2);
 te([
   l()
-], U.prototype, "_heatmap", 2);
+], M.prototype, "_heatmap", 2);
 te([
   l()
-], U.prototype, "_topSources", 2);
+], M.prototype, "_topSources", 2);
 te([
   l()
-], U.prototype, "_loading", 2);
-U = te([
+], M.prototype, "_loading", 2);
+M = te([
   T("stats-live-view")
-], U);
+], M);
 var na = Object.defineProperty, oa = Object.getOwnPropertyDescriptor, Ne = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? oa(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
@@ -9521,7 +9521,7 @@ _([
 b = _([
   T("stats-knx-view")
 ], b);
-const Xe = {
+const Ze = {
   de: {
     DPT_MISMATCH: {
       title: "Erkannter Datentyp widerspricht Projekt-DPT",
@@ -9532,6 +9532,26 @@ const Xe = {
       title: "Wert ausserhalb des erlaubten DPT-Bereichs",
       description: "Wert {value} liegt ausserhalb des fuer DPT {dpt} erlaubten Bereichs [{range_min}, {range_max}]. Wahrscheinlich falscher DPT oder fehlerhafte Sensorik.",
       help_url: "https://support.knx.org/hc/en-us/articles/115001133744-Datapoint-Type"
+    },
+    MULTI_RESPONDER: {
+      title: "Mehrere Aktoren antworten auf gleicher GA",
+      description: "{count} Quellen antworten innerhalb {window_ms} ms: {responding_sources}. Wahrscheinlich mehrere Aktoren mit gesetztem L-Flag — kann beabsichtigt sein bei parallelen Aktoren, sonst ETS-Topologie pruefen.",
+      help_url: "https://knx-blogger.de/knx-flags-einfach-erklaert/"
+    },
+    READ_NO_RESPONSE: {
+      title: "GroupValueRead bleibt ohne Antwort",
+      description: "Read um {read_at} hat innerhalb von {timeout_sec} s keine Antwort erhalten. Empfaenger fehlt, ist offline oder das L-Flag ist nicht gesetzt.",
+      help_url: "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
+    },
+    TOGGLE_LOOP: {
+      title: "Schaltschleife auf DPT 1.001",
+      description: "GA wechselt zyklisch zwischen 0 und 1 (Periode {period_ms} ms, {cycles} Wertwechsel). Vermutung: gleiche GA wird sendend und hoerend gleichzeitig genutzt.",
+      help_url: "https://community.openhab.org/t/loops-on-knx-bus/22185"
+    },
+    MULTI_TIME_MASTER: {
+      title: "Mehrere Zeit-Master auf gleicher GA",
+      description: "{sources} schreiben gemeinsam auf eine GA mit DPT {clock_dpt}. Doppelte Zeitquellen erzeugen Drift — nur ein Geraet als Time-Master konfigurieren.",
+      help_url: "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
     }
   },
   en: {
@@ -9544,6 +9564,26 @@ const Xe = {
       title: "Value outside allowed DPT range",
       description: "Value {value} is outside the allowed range [{range_min}, {range_max}] for DPT {dpt}. Likely wrong DPT or faulty sensor.",
       help_url: "https://support.knx.org/hc/en-us/articles/115001133744-Datapoint-Type"
+    },
+    MULTI_RESPONDER: {
+      title: "Multiple actuators respond on same group address",
+      description: "{count} sources answered within {window_ms} ms: {responding_sources}. Likely multiple actuators with the L-flag set — may be intentional for parallel actuators, otherwise verify the ETS topology.",
+      help_url: "https://knx-blogger.de/knx-flags-einfach-erklaert/"
+    },
+    READ_NO_RESPONSE: {
+      title: "GroupValueRead without response",
+      description: "Read at {read_at} received no response within {timeout_sec} s. Receiver missing, offline, or L-flag not set.",
+      help_url: "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
+    },
+    TOGGLE_LOOP: {
+      title: "Switching loop on DPT 1.001",
+      description: "Group address alternates between 0 and 1 (period {period_ms} ms, {cycles} value changes). Likely the same GA is used both sending and listening.",
+      help_url: "https://community.openhab.org/t/loops-on-knx-bus/22185"
+    },
+    MULTI_TIME_MASTER: {
+      title: "Multiple time masters on same group address",
+      description: "{sources} both write to a GA with DPT {clock_dpt}. Duplicate time sources cause drift — configure only one device as time master.",
+      help_url: "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
     }
   }
 };
@@ -9551,15 +9591,15 @@ function jt(t) {
   return t.startsWith("de") ? "de" : "en";
 }
 function St(t, e) {
-  const s = Xe[jt(e)][t];
+  const s = Ze[jt(e)][t];
   return (s == null ? void 0 : s.title) ?? "";
 }
 function Sa(t) {
   var e;
-  return ((e = Xe.en[t]) == null ? void 0 : e.help_url) ?? "";
+  return ((e = Ze.en[t]) == null ? void 0 : e.help_url) ?? "";
 }
 function Ta(t, e, s) {
-  const r = Xe[jt(e)][t];
+  const r = Ze[jt(e)][t];
   return r === void 0 ? "" : Aa(r.description, s);
 }
 function Aa(t, e) {
@@ -9986,7 +10026,7 @@ G([
 F = G([
   T("findings-view")
 ], F);
-var za = Object.defineProperty, La = Object.getOwnPropertyDescriptor, Ze = (t, e, s, r) => {
+var za = Object.defineProperty, La = Object.getOwnPropertyDescriptor, Xe = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? La(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && za(e, s, a), a;
@@ -10097,13 +10137,13 @@ ye.styles = [
       }
     `
 ];
-Ze([
+Xe([
   x({ attribute: !1 })
 ], ye.prototype, "api", 2);
-Ze([
+Xe([
   l()
 ], ye.prototype, "_tab", 2);
-ye = Ze([
+ye = Xe([
   T("stats-view")
 ], ye);
 var Na = Object.defineProperty, Fa = Object.getOwnPropertyDescriptor, se = (t, e, s, r) => {
@@ -10133,7 +10173,7 @@ function Ia(t) {
   }
   return `{${s.slice(0, 3).map(([a]) => a).join(", ")}${s.length > 3 ? ", …" : ""}}`;
 }
-let H = class extends w {
+let U = class extends w {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._expanded = /* @__PURE__ */ new Set(), this._now = /* @__PURE__ */ new Date();
   }
@@ -10304,7 +10344,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     `;
   }
 };
-H.styles = [
+U.styles = [
   L,
   he,
   qe,
@@ -10552,31 +10592,31 @@ H.styles = [
 ];
 se([
   x({ attribute: !1 })
-], H.prototype, "api", 2);
+], U.prototype, "api", 2);
 se([
   l()
-], H.prototype, "_items", 2);
+], U.prototype, "_items", 2);
 se([
   l()
-], H.prototype, "_loading", 2);
+], U.prototype, "_loading", 2);
 se([
   l()
-], H.prototype, "_filter", 2);
+], U.prototype, "_filter", 2);
 se([
   l()
-], H.prototype, "_expanded", 2);
+], U.prototype, "_expanded", 2);
 se([
   l()
-], H.prototype, "_now", 2);
-H = se([
+], U.prototype, "_now", 2);
+U = se([
   T("audit-view")
-], H);
-var Ua = Object.defineProperty, Ha = Object.getOwnPropertyDescriptor, E = (t, e, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Ha(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+], U);
+var Ma = Object.defineProperty, Ua = Object.getOwnPropertyDescriptor, E = (t, e, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Ua(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && Ua(e, s, a), a;
+  return r && a && Ma(e, s, a), a;
 };
-function Ba(t) {
+function Ha(t) {
   return t.source === "knx-bus" && t.text.includes("(GroupValueRead)");
 }
 const Et = "messagehub.filters", ae = {
@@ -10639,7 +10679,7 @@ let A = class extends w {
     }, "messagehub_message_added"));
   }
   _matchesFilters(t) {
-    return !(this._filters.severity.length && !this._filters.severity.includes(t.severity) || this._filters.source && t.source !== this._filters.source || this._filters.search && !t.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && Ba(t));
+    return !(this._filters.severity.length && !this._filters.severity.includes(t.severity) || this._filters.source && t.source !== this._filters.source || this._filters.search && !t.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && Ha(t));
   }
   _loadFilters() {
     try {
@@ -11457,5 +11497,5 @@ A = E([
 ], A);
 export {
   A as MessageHubPanel,
-  Ba as isKnxReadMessage
+  Ha as isKnxReadMessage
 };

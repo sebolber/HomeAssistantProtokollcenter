@@ -7,6 +7,13 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 3)
+- **Iter 19 — i18n fuer Phase-3-Findings.**
+  Title, Description (mit Evidence-Platzhaltern wie `{count}`,
+  `{read_at}`, `{period_ms}`, `{sources}`) und Help-URL pro Code in
+  allen sechs Sprachen (de/en/es/fr/it/nl) fuer MULTI_RESPONDER,
+  READ_NO_RESPONSE, TOGGLE_LOOP, MULTI_TIME_MASTER. Frontend-Helper
+  ergaenzt um diese Codes; UI rendert Title statt Code, Detail-Pane
+  zeigt Description + Help-URL.
 - **Iter 18 — Detector `MULTI_TIME_MASTER`.**
   Erkennt: >=2 unterschiedliche `knx_source` schreiben auf eine
   Zeit-/Datums-GA (DPT 10.001 Time-of-day, 11.001 Date, 19.001
