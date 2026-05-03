@@ -7,6 +7,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L3.0 / Sprint Recommendations — Layer-3-Buslast-Override.**
+  Bei Periode-Avg-Buslast >= 30 % werden die empfohlenen Zyklus-
+  Korridore aller GAs um den Faktor 1.5 verlaengert. Der Empfehlungs-
+  Modus bleibt unveraendert (Layer 3 ist eine Anpassung, kein Override).
+  Reasoning-Liste bekommt einen Layer-3-Marker mit der gemessenen
+  Buslast. Schwellwerte als Module-Konstanten gepinnt
+  (BUSLOAD_OVERRIDE_THRESHOLD_PCT=30, BUSLOAD_OVERRIDE_FACTOR=1.5).
+  8 neue Pytests.
 - **Iter L2.4 / Sprint Recommendations — Frontend-Geraete-Editor + E2E.**
   Inline-Editor fuer Hersteller/Modell/Notiz in der Recommendation-
   Card. Default: Read-only-Block mit "noch nicht gepflegt" oder

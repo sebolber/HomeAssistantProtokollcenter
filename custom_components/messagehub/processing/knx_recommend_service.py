@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import statistics
 from collections.abc import Iterable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Final, Literal
 
@@ -510,6 +510,59 @@ def _build_headline_text(
     )
 
 
+# Iter L3.0: Layer-3-Schwellwerte (Live-Anomalie-Override).
+BUSLOAD_OVERRIDE_THRESHOLD_PCT: Final[float] = 30.0
+"""Bei Periode-Avg-Buslast >= 30 % wird die Empfehlung um den Faktor
+``BUSLOAD_OVERRIDE_FACTOR`` verlaengert. Schwelle aus User-Praxis:
+< 30 % ist normaler Betrieb, daruber wird das KNX-TP-Bus zunehmend
+ineffizient (Kollisionen, Repeats)."""
+
+BUSLOAD_OVERRIDE_FACTOR: Final[float] = 1.5
+"""Cycle-Stretch-Faktor — z. B. 5-15 Min wird zu 8-23 Min."""
+
+
+def _apply_busload_override(
+    ga_recos: list[GaRecommendation], avg_busload_pct: float,
+) -> tuple[list[GaRecommendation], bool]:
+    """Layer-3-Override: bei hoher Buslast cycle_minutes-Korridor
+    nach oben strecken (cycles werden seltener).
+
+    Return: (neue Liste, wurde-overridden-Flag). Flag signalisiert dem
+    Service, ob ein Reasoning-Eintrag noetig ist.
+    """
+    if avg_busload_pct < BUSLOAD_OVERRIDE_THRESHOLD_PCT:
+        return ga_recos, False
+    factor = BUSLOAD_OVERRIDE_FACTOR
+    overridden: list[GaRecommendation] = []
+    any_override = False
+    for ga in ga_recos:
+        if ga.recommended_cycle_minutes is None:
+            overridden.append(ga)
+            continue
+        new_min = max(1, round(ga.recommended_cycle_minutes[0] * factor))
+        new_max = max(new_min, round(ga.recommended_cycle_minutes[1] * factor))
+        overridden.append(
+            replace(ga, recommended_cycle_minutes=(new_min, new_max))
+        )
+        any_override = True
+    return overridden, any_override
+
+
+async def _avg_busload_pct(
+    repo: "KnxStatsRepository", from_iso: str, to_iso: str,
+) -> float:
+    """Hilfsfunktion: durchschnittliche Buslast ueber die Periode.
+
+    Nutzt das gleiche Bucketing-Schema wie ``compute_busload`` im
+    ``KnxStatsService`` (Default 10 s). Robust bei leeren Perioden.
+    """
+    series = await repo.busload_timeseries(from_iso, to_iso, bucket_seconds=10)
+    if not series:
+        return 0.0
+    pcts = [float(b["busload_pct"]) for b in series]
+    return sum(pcts) / len(pcts)
+
+
 async def compute_device_recommendation(
     repo: "KnxStatsRepository",
     dev_source: str,
@@ -575,6 +628,11 @@ async def compute_device_recommendation(
             )
         )
 
+    # Iter L3.0: Layer-3-Override — bei hoher Buslast die Cycle-
+    # Korridore nach oben strecken. Modifiziert nicht den Modus.
+    avg_busload = await _avg_busload_pct(repo, from_iso, to_iso)
+    ga_recos, busload_overridden = _apply_busload_override(ga_recos, avg_busload)
+
     headline_mode, confidence = _aggregate_headline(ga_recos)
     headline_text = _build_headline_text(headline_mode, ga_recos)
 
@@ -604,6 +662,12 @@ async def compute_device_recommendation(
             "Layer 2 (device_model) — Hersteller/Modell-Profil ist "
             "gepflegt, fuer dieses Modell gibt es noch keinen "
             "kuratierten Override."
+        )
+    if busload_overridden:
+        reasoning.append(
+            f"Layer 3 (live_anomaly) — Bus-Avg-Last {avg_busload:.1f} % "
+            f">= {BUSLOAD_OVERRIDE_THRESHOLD_PCT:.0f} % → empfohlene "
+            f"Zyklen um Faktor {BUSLOAD_OVERRIDE_FACTOR} verlaengert."
         )
     silent_count = sum(1 for r in ga_recos if r.observed.mode == "silent")
     if silent_count:
