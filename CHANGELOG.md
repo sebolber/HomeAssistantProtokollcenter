@@ -6,6 +6,20 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.20.0] – 2026-05-03
+
+KNX-Konfigurations-Findings — Phase 2 + 3 (Iter 11-19) aus
+`docs/messagehub_knx_konfigurationsfehler_recherche.md` §9.9.
+
+DPT-Validierung (DPT_MISMATCH, VALUE_OUT_OF_RANGE) + die vier
+Foren-Klassiker (MULTI_RESPONDER, READ_NO_RESPONSE, TOGGLE_LOOP,
+MULTI_TIME_MASTER). Migration `0027_knx_dpt_inferred.sql` (Soll/Ist-
+Trennung). DE/EN-Translations + Fallback-Strings fuer 4 weitere
+Sprachen.
+
+Tests: 801 → 901 Backend (+100), 155 → 170 Vitest (+15).
+Bundle: 376,94 KB → 382,79 KB.
+
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 3)
 - **Iter 19 — i18n fuer Phase-3-Findings.**
   Title, Description (mit Evidence-Platzhaltern wie `{count}`,
