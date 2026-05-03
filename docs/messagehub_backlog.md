@@ -1,6 +1,8 @@
 # Messagehub-Backlog: KNX-Konfigurations-Findings
 
-Letzte Aktualisierung: 2026-05-03 (Release v0.23.0 + minRate-Hotfix).
+Letzte Aktualisierung: 2026-05-03 (Release v0.24.0 — Phase 8
+abgeschlossen: Top-N-Konsistenz, Counter-Source-Aggregat,
+Findings-Source-Index).
 
 ## Erledigt
 
@@ -58,66 +60,28 @@ Conventional Commit (`Iteration: N` im Footer); Releases in
 | Detail-Pane I | Trend-Compare pro Source im Source-Detail (>= 24h) | 0.23.0 |
 | Detail-Pane J | CHANGELOG + Konzept-Status + Release v0.23.0 | 0.23.0 |
 
-## Bekannte UX-Bugs: Top-N-Konsistenz pro Card (Stand v0.23.0 + Hotfix)
+## Phase 8 — abgeschlossen in v0.24.0
 
-Hintergrund: Nach dem Hotfix vom 2026-05-03 (Default `minRate` 1.0 →
-0.0, Commit `020a73f`) hat der User berichtet, dass der Top-N-Selektor
-auch in anderen Cards keinen Effekt zeigt. Systematische Pruefung
-der Pipeline `_load()` -> Backend-Endpunkt -> UI-Render im
-stats-knx-view ergibt fuenf Cards mit dem **gleichen Pattern-Bug**:
-das UI hat einen card-spezifischen Inline-Top-N-Selektor (`topNXxx`),
-aber die Daten werden mit dem GLOBALEN `_filters.topN` (Top-Sender-
-Limit) oder einem hardcodierten Wert geladen — der UI-Selektor sliced
-nur lokal, kann aber nie mehr zeigen als das Backend liefert.
+Top-N-Konsistenz, Counter-Source-Aggregat und Findings-Source-Index
+sind alle als saubere Iter umgesetzt — siehe `CHANGELOG.md`.
 
-| Card | UI-Selektor | Backend-Aufruf | Diagnose |
-|------|-------------|----------------|----------|
-| Trend gegenüber Vorperiode | `topNTrend` | `getKnxStatsTrend(filters, **5**)` | Frontend hardcoded `top_n=5` als 2. Param. |
-| Bus-Gesundheit (Top-GAs Wiederholrate) | `topNBusHealth` | `getKnxStatsBusHealth(fRaw)` | Backend (`KnxStatsBusHealthView`) hardcoded `bus_health_per_ga(..., limit=20)`; Query-Limit ignoriert. |
-| Telegrammfluten (Bursts) | `topNBursts` | `getKnxStatsBursts(fRaw)` | `fRaw.limit = _filters.topN` — Backend-Default 50 wird durch Top-Sender-Limit ueberschrieben. |
-| Long-Term-Sicht (Top-GAs) | `topNLongTerm` | `getKnxStatsLongTerm(fLongTerm)` | Gleiche Sache: `fLongTerm.limit = _filters.topN`. |
-| Sicherheits-Audit (sensitive Telegramme) | `topNAudit` | `getKnxStatsSensitiveLog(fRaw)` | Gleiche Sache: `fRaw.limit = _filters.topN`. |
+| Iter | Inhalt | Commit |
+|------|--------|--------|
+| **TopN-1** | Trend-Card respektiert `topNTrend` (vorher hardcoded 5). | `22da5b4` |
+| **TopN-2** | Bursts/Long-Term/Sensitive-Audit: Card-spezifisches `limit` ueberschreibt Master-`topN`. | `bf173db` |
+| **TopN-3** | Bus-Health-View liest `limit` aus Query (default 20, max 500); Repo-Cap auf 500 erhoeht. | `a00add7` |
+| **TopN-4** | Heatmap-UI-Selektor `topNHeatmap` (Optionsliste [10,15,20,25,30]). | `a88b0d1` |
+| **Iter K** | Counter-basierter Source-Aggregat-Pfad: bei Periode > 48h liest `compute_source_detail` Per-GA-Counts aus `knx_telegram_counters` statt aus 48h-Live. | `fd0ed30` |
+| **Iter Idx** | Index `idx_knx_findings_source` fuer Source-Filter im Findings-Repo. | `74605ca` |
 
-**Konsistente Cards (ohne Bug):**
-- Top-Sender (`topN`), Top-Geräte (`topNDevices`) — `limit` korrekt
-  pro Card durchgereicht.
-- Stille-Alarme (`topNSilence`), Verwaiste GAs (`topNOrphansMissing/
-  Extra`), Andere GAs des Geraets (`topNSiblings`) — Backend liefert
-  vollstaendige Liste, UI-side Slice ist hier korrekt.
-- Heatmap — kein UI-Selektor, hardcoded `top_n=10` ist intentional
-  (CSS-Grid limitiert Anzeige).
-
-### Iter-Aufteilung (Vorschlag)
-
-| Iter | Inhalt | Erwartet |
-|------|--------|----------|
-| **TopN-1** | Trend-Card: `getKnxStatsTrend(filters, this._filters.topNTrend)` + Test, der bei `topNTrend=10` zehn `top_increase`-Eintraege erwartet. | <30 min |
-| **TopN-2** | Bursts/Long-Term/Sensitive-Audit: jeden API-Aufruf um `{...fXxx, limit: this._filters.topNXxx}` erweitern; pro Card ein Test. | 60 min |
-| **TopN-3** | Bus-Health: Backend-View `KnxStatsBusHealthView.get` muss `limit` aus Query lesen (default 25, max 500); Frontend reicht `topNBusHealth` durch. Plus Backend-Test, dass `limit` respektiert wird. | 60 min |
-| **TopN-4** | Optional: Heatmap-UI-Selektor `topNHeatmap` (default 10, max 30 wegen CSS-Grid-Lesbarkeit) — nur wenn User-Bedarf. | 30 min |
-
-Alle Iter folgen dem **TDD-Pattern**, das bei `minRate`-Hotfix
-(Commit `020a73f`) etabliert wurde:
-1. Smoke-Test First — der Test pruefen, dass UI-Selektor X tatsaechlich
-   X Eintraege im DOM erzeugt (mock-API liefert genug Daten).
-2. Frontend-Fix bzw. Backend-Erweiterung.
-3. Quality-Gates: pytest + npm test + build + ruff clean, Bundle commit.
-4. Conventional Commit `fix(frontend): TopN-Konsistenz Card-X` mit
-   Footer `Iteration: topn-N`.
-
-### Architektur-Lessons (Out-of-scope fuer Iter, aber dokumentiert)
-
-Der Pattern-Fehler entstand, weil das Frontend einen geteilten
-`KnxStatsFilters`-Block fuer ALLE Endpunkte nutzt (`fRaw`,
+**Architektur-Lesson (jetzt resolved):** Frontend hatte einen
+geteilten `KnxStatsFilters`-Block fuer ALLE Endpunkte (`fRaw`,
 `fLongTerm`), in dem `limit` per Convention auf `_filters.topN`
-(Top-Sender) zeigt. Card-spezifische Inline-Top-N-Selektoren wurden
+(Top-Sender) zeigte. Card-spezifische Inline-Top-N-Selektoren wurden
 spaeter ergaenzt (Iter 45 und Iter aiohttp-error-ZU9UA), aber die
-Backend-Aufruf-Wiring blieb beim globalen `topN`.
-
-Nachhaltige Loesung (Phase 8): das Frontend duerfte gar keinen
-geteilten `fRaw.limit` haben — jeder API-Aufruf sollte sein
-card-spezifisches `limit` explizit setzen. Heute leichter Smell, aber
-mit den vier Iter oben adressiert.
+Backend-Aufruf-Wiring blieb beim globalen `topN`. Phase 8 hat das
+durchgaengig per Spread-Override pro Card aufgeloest, plus
+Backend-`limit`-Param fuer Bus-Health.
 
 ## Offen / Out-of-scope (Stand v0.23.0)
 

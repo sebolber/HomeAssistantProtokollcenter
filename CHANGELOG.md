@@ -6,6 +6,8 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-05-03
+
 ### Hinzugefuegt (UX)
 - **Iter topn-4 / Sprint A — Heatmap-UI-Top-N-Selektor.**
   Die Card "Aktivitaets-Heatmap" hatte bisher hardcoded `top_n=10`

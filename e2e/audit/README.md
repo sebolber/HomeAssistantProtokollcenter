@@ -1,8 +1,9 @@
 # E2E-Audit-Tests (Playwright)
 
-Vorbereitet im Rahmen des Anbindungs-Audits (`docs/20260503/anbindungs-audit/`).
-Die Tests sind **nicht ausgeführt** worden, weil die Audit-Sandbox keinen Docker-Daemon
-und kein Playwright-Browser-Bundle bereitstellt.
+Vorbereitet im Rahmen des Anbindungs-Audits (Findings F-001..F-011, alle in
+`CHANGELOG.md` ab v0.23.0). Die Tests sind **nicht ausgeführt** worden,
+weil die Audit-Sandbox keinen Docker-Daemon und kein Playwright-Browser-
+Bundle bereitstellt.
 
 ## Voraussetzungen
 
