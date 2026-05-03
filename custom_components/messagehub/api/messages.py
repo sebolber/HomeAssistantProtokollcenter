@@ -1285,32 +1285,6 @@ class StatsExtendedView(_RequireAdminView):
         )
 
 
-class MttrView(_RequireAdminView):
-    """Mean-Time-To-Resolution pro Source.
-
-    Eigener Endpoint zusaetzlich zur Aggregation in /stats-extended,
-    damit Frontends/Skripte gezielt nur MTTR abfragen koennen ohne
-    den gesamten Stats-Block zu laden.
-    """
-
-    url = "/api/messagehub/mttr"
-    name = "api:messagehub:mttr"
-
-    async def get(self, request: web.Request) -> web.Response:
-        self._check_admin(request)
-        repos = _get_repos(request.app["hass"])
-        if repos is None:
-            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
-        msg_repo, _ = repos
-        days = _parse_int_param(request.query, "days", 30, min_value=1, max_value=365)
-        return self.json(
-            {
-                "days": days,
-                "items": await msg_repo.mttr_per_source(days=days),
-            }
-        )
-
-
 class SavedFiltersView(_RequireAdminView):
     """Iter 92 / K1: Saved Filters serverseitig.
 
@@ -1513,7 +1487,6 @@ def async_register_views(hass: HomeAssistant) -> None:
         RemediationHooksView,
         RemediationHookDetailView,
         StatsExtendedView,
-        MttrView,
         KnxStatsSummaryView,
         KnxStatsTopView,
         KnxStatsTopBySourceView,

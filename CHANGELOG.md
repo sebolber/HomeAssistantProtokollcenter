@@ -6,6 +6,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Entfernt (Code-Hygiene)
+- **Iter +6 / F-003 — `MttrView` und `/api/messagehub/mttr` entfernt.**
+  Dedizierter MTTR-Endpoint hatte keinen Frontend-Caller — `mttr_per_source`
+  ist Teil von `/api/messagehub/stats-extended` (`StatsExtendedView`),
+  von wo das Frontend es bereits konsumiert. Loeschung schliesst eine
+  Duplicate-Source und reduziert die Anzahl der registrierten Views von
+  57 auf 56. Behebt Audit-Finding F-003 (DRY-Cleanup).
+
 ### Hinzugefuegt (Anbindungs-Audit Sprint 1+2)
 - **Iter +5 / F-006 — Auto-Remediation-Hook-Edit + Toggle.** Hook-
   Zeilen im Settings-Tab haben jetzt einen „Bearbeiten"-Knopf
