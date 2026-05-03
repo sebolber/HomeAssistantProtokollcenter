@@ -558,6 +558,57 @@ describe("stats-knx-view filter bar", () => {
     expect(persisted.periodId).toBe("1h");
   });
 
+  it("Iter aiohttp-error-ZU9UA: Heatmap-Bucket adaptiert sich an die Periode", async () => {
+    // 1h → 5 min Buckets, 6h → 15, 24h+ → 60
+    const cases: Array<{ periodId: string; expectedBucket: number }> = [
+      { periodId: "1h", expectedBucket: 5 },
+      { periodId: "6h", expectedBucket: 15 },
+      { periodId: "24h", expectedBucket: 60 },
+      { periodId: "48h", expectedBucket: 60 },
+    ];
+    for (const { periodId, expectedBucket } of cases) {
+      document.body.innerHTML = "";
+      try {
+        localStorage.removeItem("messagehub.knx-stats.filters");
+      } catch {
+        // ignore
+      }
+      localStorage.setItem(
+        "messagehub.knx-stats.filters",
+        JSON.stringify({ periodId, topN: 25, minRate: 1, includeAck: true }),
+      );
+      const heatmapSpy = vi.fn(
+        async (
+          _filters: Record<string, unknown>,
+          _topN: number,
+          _bucketMinutes: number,
+        ) => ({
+          from: SUMMARY.from,
+          to: SUMMARY.to,
+          bucket_minutes: expectedBucket,
+          gas: [],
+          buckets: [],
+          matrix: [],
+        }),
+      );
+      const api = { ...makeApi(), getKnxStatsHeatmap: heatmapSpy } as unknown as ApiClient;
+      const el = document.createElement("stats-knx-view") as HTMLElement & {
+        api?: ApiClient;
+        updateComplete: Promise<unknown>;
+      };
+      el.api = api;
+      document.body.appendChild(el);
+      for (let i = 0; i < 5; i++) {
+        await el.updateComplete;
+        await new Promise((r) => setTimeout(r, 0));
+      }
+      expect(heatmapSpy).toHaveBeenCalled();
+      const call = heatmapSpy.mock.calls[0];
+      // Signatur (filters, top_n, bucket_minutes)
+      expect(call[2]).toBe(expectedBucket);
+    }
+  });
+
   it("liest persistierte Filter beim Mount wieder ein", async () => {
     localStorage.setItem(
       "messagehub.knx-stats.filters",

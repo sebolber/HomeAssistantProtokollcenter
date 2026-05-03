@@ -492,7 +492,7 @@ export class StatsKnxView extends LitElement {
         captureError("trend", this.api.getKnxStatsTrend(fRaw, 5)),
         captureError(
           "heatmap",
-          this.api.getKnxStatsHeatmap(fRaw, 10, 60),
+          this.api.getKnxStatsHeatmap(fRaw, 10, this._suggestHeatmapBucketMinutes()),
         ),
       ]);
       this._summary = summary;
@@ -558,6 +558,25 @@ export class StatsKnxView extends LitElement {
       case "48h":
       default:
         return 30;
+    }
+  }
+
+  // Iter aiohttp-error-ZU9UA / P1: Heatmap-Bucket je Periode. Vorher
+  // immer 60 min — bei 1h-Periode resultierte das in nur 1-2 Spalten,
+  // die Heatmap wirkte leer. Backend-Limit max 60 min.
+  // 1h → 5 min (12 Spalten)
+  // 6h → 15 min (24 Spalten)
+  // 24h+ → 60 min (24-N Spalten, Default)
+  private _suggestHeatmapBucketMinutes(): number {
+    switch (this._filters.periodId) {
+      case "1h":
+        return 5;
+      case "6h":
+        return 15;
+      case "24h":
+      case "48h":
+      default:
+        return 60;
     }
   }
 

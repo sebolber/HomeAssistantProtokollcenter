@@ -6520,7 +6520,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         e("trend", this.api.getKnxStatsTrend(a, 5)),
         e(
           "heatmap",
-          this.api.getKnxStatsHeatmap(a, 10, 60)
+          this.api.getKnxStatsHeatmap(a, 10, this._suggestHeatmapBucketMinutes())
         )
       ]);
       this._summary = o, this._top = h.items, this._topBySource = c.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = f, this._health = v, this._longTerm = k, this._bursts = le, this._sensitiveLog = $e, this._trend = Mt, this._heatmap = Ht, this._apiErrors = t, this._apiErrorsDismissed = !1;
@@ -6547,6 +6547,24 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       case "48h":
       default:
         return 30;
+    }
+  }
+  // Iter aiohttp-error-ZU9UA / P1: Heatmap-Bucket je Periode. Vorher
+  // immer 60 min — bei 1h-Periode resultierte das in nur 1-2 Spalten,
+  // die Heatmap wirkte leer. Backend-Limit max 60 min.
+  // 1h → 5 min (12 Spalten)
+  // 6h → 15 min (24 Spalten)
+  // 24h+ → 60 min (24-N Spalten, Default)
+  _suggestHeatmapBucketMinutes() {
+    switch (this._filters.periodId) {
+      case "1h":
+        return 5;
+      case "6h":
+        return 15;
+      case "24h":
+      case "48h":
+      default:
+        return 60;
     }
   }
   // Iter 36 (Feature A): pro Periode passende Bucket-Groesse fuer Buslast-%
