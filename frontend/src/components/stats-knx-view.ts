@@ -32,6 +32,22 @@ import "./knx-value-sparkline.js";
 
 const STORAGE_KEY = "messagehub.knx-stats.filters";
 
+// Iter aiohttp-error-ZU9UA: ETS-Platzhalter-Label-Erkennung — gleiche
+// Regex wie in knx-addresses-view.ts (Iter 53). Reale ETS-Projekte
+// enthalten oft Hunderte Trenner-GAs ("-----", "----- -----", leer)
+// als Strukturhilfe. In "Verwaiste GAs" sind die reines Rauschen.
+const PLACEHOLDER_LABEL_RE = /^[\s\-_=]*$/;
+
+function isOrphanPlaceholder(address: string, label: string | null | undefined): boolean {
+  const l = (label ?? "").trim();
+  if (l === "") return true;
+  if (PLACEHOLDER_LABEL_RE.test(l)) return true;
+  // Falls extract_group_address_entry den Label-Fallback auf die
+  // Address gesetzt hat (Backend-Default bei leerem Name).
+  if (l === address) return true;
+  return false;
+}
+
 // Iter 86 / CR-3: Trend-Severity-Schwellen als benannte Konstanten
 // statt Magic Numbers im Funktions-Body.
 const TREND_DELTA_PCT_GREEN_MAX = 25;
@@ -244,9 +260,12 @@ export class StatsKnxView extends LitElement {
   // Iter 61 / U3 + Iter aiohttp-error-ZU9UA: Verwaiste-GAs-Card mit
   // Suche; Anzahl-Begrenzung jetzt ueber inline-topn (UiFilters.
   // topNOrphansMissing / topNOrphansExtra), persistent im localStorage
-  // wie alle anderen Top-N-Filter.
+  // wie alle anderen Top-N-Filter. ETS-Platzhalter (Label nur Striche
+  // / leer / == Address) sind per Default ausgeblendet — bei 3000+ GAs
+  // sind die ein massiver Noise-Anteil.
   @state() private _orphansMissingFilter = "";
   @state() private _orphansExtraFilter = "";
+  @state() private _orphansHidePlaceholders = true;
   // Iter 51: Sichtbarkeit fuer einzeln gefailte Endpunkte. Vorher hat
   // .catch(() => null) Fehler stillschweigend geschluckt — und der User
   // sah leere Cards, ohne zu wissen warum. Jetzt: Banner mit Liste der
@@ -573,6 +592,15 @@ export class StatsKnxView extends LitElement {
     }
     this._selectedGa = ga;
     await this._loadDetail(ga);
+    // Iter aiohttp-error-ZU9UA: Detail-Pane scrollt sich selbst in den
+    // Viewport, sonst muesste der User raten, dass etwas passiert ist
+    // und dann die ganze Seite runter scrollen. Guarded, weil jsdom in
+    // Tests scrollIntoView nicht implementiert.
+    await this.updateComplete;
+    const pane = this.shadowRoot?.querySelector(".detail-pane");
+    if (pane && typeof (pane as HTMLElement).scrollIntoView === "function") {
+      (pane as HTMLElement).scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 
   private async _ackGa(ga: string): Promise<void> {
@@ -1163,14 +1191,16 @@ export class StatsKnxView extends LitElement {
           : nothing}
 
         ${this._isLongTermMode() ? this._renderLongTermBanner() : nothing}
-        ${this._health !== null ? this._renderHealthScore() : nothing}
-        ${this._longTerm !== null ? this._renderLongTerm() : nothing}
-        ${this._bursts !== null && this._bursts.bursts.length > 0
-          ? this._renderBursts()
-          : nothing}
-        ${this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0
-          ? this._renderSensitiveLog()
-          : nothing}
+
+        <!--
+          Iter aiohttp-error-ZU9UA: Reihenfolge nach mentalem User-Modell:
+          1. At-a-glance: Übersicht-KPIs + Health-Score
+          2. Haupttabellen: Top-Sender / Top-Geräte (+ Detail-Pane direkt darunter)
+          3. Visuelle Auswertungen: Tagesverlauf, Heatmap, Trend
+          4. Anomalie-Cards: Bursts, Stille-Alarme, Bus-Gesundheit
+          5. Audit / Diagnose-Listen: Sicherheits-Audit, Verwaiste GAs
+          6. Long-Term-Sicht (cond.) ans Ende
+        -->
 
         <section class="mh-card kpi-card">
           <header class="card-head">
@@ -1182,26 +1212,7 @@ export class StatsKnxView extends LitElement {
             : this._renderKpis()}
         </section>
 
-        ${this._busHealth !== null && this._busHealth.summary.total > 0
-          ? this._renderBusHealth()
-          : nothing}
-        ${this._silence !== null && this._silence.alarm_count > 0
-          ? this._renderSilenceAlarms()
-          : nothing}
-        ${this._orphans !== null &&
-        (this._orphans.missing_in_log.length > 0 ||
-          this._orphans.extra_in_log.length > 0)
-          ? this._renderOrphans()
-          : nothing}
-
-        ${this._trend !== null &&
-        (this._trend.total_now > 0 || this._trend.total_prev > 0)
-          ? this._renderTrend()
-          : nothing}
-
-        ${this._heatmap !== null && this._heatmap.gas.length > 0
-          ? this._renderHeatmap()
-          : nothing}
+        ${this._health !== null ? this._renderHealthScore() : nothing}
 
         <section class="mh-card">
           <header class="card-head">
@@ -1233,6 +1244,10 @@ export class StatsKnxView extends LitElement {
             </section>`
           : nothing}
 
+        ${this._detail !== null || this._detailLoading
+          ? this._renderDetailPane()
+          : nothing}
+
         ${this._timeline !== null && this._timeline.items.length > 0
           ? html`<section class="mh-card">
               <header class="card-head">
@@ -1246,9 +1261,36 @@ export class StatsKnxView extends LitElement {
             </section>`
           : nothing}
 
-        ${this._detail !== null || this._detailLoading
-          ? this._renderDetailPane()
+        ${this._heatmap !== null && this._heatmap.gas.length > 0
+          ? this._renderHeatmap()
           : nothing}
+
+        ${this._trend !== null &&
+        (this._trend.total_now > 0 || this._trend.total_prev > 0)
+          ? this._renderTrend()
+          : nothing}
+
+        ${this._bursts !== null && this._bursts.bursts.length > 0
+          ? this._renderBursts()
+          : nothing}
+        ${this._silence !== null && this._silence.alarm_count > 0
+          ? this._renderSilenceAlarms()
+          : nothing}
+        ${this._busHealth !== null && this._busHealth.summary.total > 0
+          ? this._renderBusHealth()
+          : nothing}
+
+        ${this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0
+          ? this._renderSensitiveLog()
+          : nothing}
+        ${this._orphans !== null &&
+        (this._orphans.missing_in_log.length > 0 ||
+          this._orphans.extra_in_log.length > 0)
+          ? this._renderOrphans()
+          : nothing}
+
+        ${this._longTerm !== null ? this._renderLongTerm() : nothing}
+
         ${this._toast ? html`<div class="toast">${this._toast}</div>` : nothing}
       </div>
     `;
@@ -1976,23 +2018,53 @@ export class StatsKnxView extends LitElement {
 
   private _renderOrphans(): TemplateResult {
     const o = this._orphans!;
-    const missingFiltered = o.missing_in_log.filter((m) =>
+    const placeholderFilter = <T extends { address: string }>(
+      arr: T[],
+      labelOf: (item: T) => string | null | undefined,
+    ): T[] =>
+      this._orphansHidePlaceholders
+        ? arr.filter((it) => !isOrphanPlaceholder(it.address, labelOf(it)))
+        : arr;
+    const missingNonPlaceholder = placeholderFilter(o.missing_in_log, (m) => m.name);
+    const extraNonPlaceholder = placeholderFilter(o.extra_in_log, (e) => e.label);
+    const missingFiltered = missingNonPlaceholder.filter((m) =>
       this._matchesOrphanFilter(this._orphansMissingFilter, [m.address, m.name, m.dpt]),
     );
-    const extraFiltered = o.extra_in_log.filter((e) =>
+    const extraFiltered = extraNonPlaceholder.filter((e) =>
       this._matchesOrphanFilter(this._orphansExtraFilter, [e.address, e.label]),
     );
     const missingLimit = this._filters.topNOrphansMissing;
     const extraLimit = this._filters.topNOrphansExtra;
     const missingShown = missingFiltered.slice(0, missingLimit);
     const extraShown = extraFiltered.slice(0, extraLimit);
+    const missingPlaceholderCount = o.missing_in_log.length - missingNonPlaceholder.length;
+    const extraPlaceholderCount = o.extra_in_log.length - extraNonPlaceholder.length;
     return html`
       <section class="mh-card">
         <header class="card-head">
           <h3>Verwaiste GAs (Projekt vs Realität)</h3>
-          <span class="muted small">
-            Projekt: ${o.project_total} • geloggt: ${o.log_total}
-          </span>
+          <div class="card-head__meta">
+            <label class="orphans-placeholder-toggle" title="ETS-Platzhalter ohne Label (z. B. '-----') ausblenden">
+              <input
+                type="checkbox"
+                .checked=${this._orphansHidePlaceholders}
+                @change=${(e: Event) => {
+                  this._orphansHidePlaceholders = (e.target as HTMLInputElement).checked;
+                }}
+              />
+              <span>Platzhalter ausblenden${
+                this._orphansHidePlaceholders &&
+                missingPlaceholderCount + extraPlaceholderCount > 0
+                  ? html` <span class="muted small">(${
+                      missingPlaceholderCount + extraPlaceholderCount
+                    })</span>`
+                  : nothing
+              }</span>
+            </label>
+            <span class="muted small">
+              Projekt: ${o.project_total} • geloggt: ${o.log_total}
+            </span>
+          </div>
         </header>
         <div class="orphans-grid">
           ${o.missing_in_log.length > 0
@@ -2224,6 +2296,13 @@ export class StatsKnxView extends LitElement {
         gap: var(--mh-space-4);
       }
       .filters {
+        /* Iter aiohttp-error-ZU9UA: sticky beim Scrollen — User soll
+           Periode/Filter aendern koennen, ohne hochscrollen zu muessen.
+           z-index ueber dem Card-Stack, opaque background, damit der
+           Inhalt darunter durchscrollt. */
+        position: sticky;
+        top: 0;
+        z-index: 10;
         display: flex;
         flex-wrap: wrap;
         gap: var(--mh-space-4);
@@ -2232,6 +2311,7 @@ export class StatsKnxView extends LitElement {
         background: var(--mh-surface);
         border: 1px solid var(--mh-divider);
         border-radius: var(--mh-radius-md);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
       }
       .filter-group {
         display: flex;
@@ -3249,6 +3329,16 @@ export class StatsKnxView extends LitElement {
         margin: var(--mh-space-2) 0;
         width: 100%;
         max-width: 320px;
+      }
+      .orphans-placeholder-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .orphans-placeholder-toggle input {
+        cursor: pointer;
       }
       .orphans-list {
         list-style: none;

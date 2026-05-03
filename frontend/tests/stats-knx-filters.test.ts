@@ -222,6 +222,142 @@ describe("stats-knx-view filter bar", () => {
     }
   });
 
+  it("Iter aiohttp-error-ZU9UA: Übersicht-KPIs stehen vor Top-Sender, Verwaiste GAs steht danach", async () => {
+    // User-Beschwerde: Reihenfolge entsprach nicht der Erwartung.
+    // Übersicht ist At-a-glance — gehoert direkt unter den Filter,
+    // dann Health-Score, dann Top-Sender. Verwaiste GAs (3000+ Eintraege)
+    // gehoert ans Ende, nicht in die Mitte.
+    document.body.innerHTML = "";
+    const el = document.createElement("stats-knx-view") as HTMLElement & {
+      api?: ApiClient;
+      updateComplete: Promise<unknown>;
+    };
+    const baseApi = makeApi();
+    const api = {
+      ...baseApi,
+      getKnxStatsOrphans: vi.fn(async () => ({
+        from: SUMMARY.from,
+        to: SUMMARY.to,
+        missing_in_log: [{ address: "1/0/1", name: "Heizung", dpt: "1.005" }],
+        extra_in_log: [],
+        project_total: 1,
+        log_total: 0,
+        discovery_status: "ok",
+      })),
+    } as unknown as ApiClient;
+    el.api = api;
+    document.body.appendChild(el);
+    for (let i = 0; i < 5; i++) {
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    const headings = Array.from(
+      el.shadowRoot!.querySelectorAll("h3")
+    ).map((h) => h.textContent?.trim() ?? "");
+    const idx = (needle: string): number =>
+      headings.findIndex((h) => h.includes(needle));
+    const uebersicht = idx("Uebersicht");
+    const topSender = idx("Top-Sender");
+    const orphans = idx("Verwaiste GAs");
+    expect(uebersicht).toBeGreaterThanOrEqual(0);
+    expect(topSender).toBeGreaterThan(uebersicht);
+    expect(orphans).toBeGreaterThan(topSender);
+  });
+
+  it("Iter aiohttp-error-ZU9UA: Verwaiste GAs blendet ETS-Platzhalter per Default aus", async () => {
+    document.body.innerHTML = "";
+    const el = document.createElement("stats-knx-view") as HTMLElement & {
+      api?: ApiClient;
+      updateComplete: Promise<unknown>;
+    };
+    const baseApi = makeApi();
+    const api = {
+      ...baseApi,
+      getKnxStatsOrphans: vi.fn(async () => ({
+        from: SUMMARY.from,
+        to: SUMMARY.to,
+        missing_in_log: [
+          { address: "0/1/99", name: "-----", dpt: null }, // Platzhalter
+          { address: "0/1/154", name: "  ---  ", dpt: null }, // Platzhalter
+          { address: "0/1/200", name: "0/1/200", dpt: null }, // Address-as-Label = Platzhalter
+          { address: "1/0/1", name: "Heizung Wohnzimmer", dpt: "1.005" }, // echt
+        ],
+        extra_in_log: [
+          { address: "9/9/9", label: "", count: 5 }, // Platzhalter
+          { address: "9/9/8", label: "echtes Label", count: 12 }, // echt
+        ],
+        project_total: 4,
+        log_total: 2,
+        discovery_status: "ok",
+      })),
+    } as unknown as ApiClient;
+    el.api = api;
+    document.body.appendChild(el);
+    for (let i = 0; i < 5; i++) {
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    const orphansCard = Array.from(
+      el.shadowRoot!.querySelectorAll(".mh-card")
+    ).find((c) => c.textContent?.includes("Verwaiste GAs"));
+    expect(orphansCard).toBeDefined();
+    const allText = orphansCard!.textContent ?? "";
+    // Echter Eintrag muss da sein:
+    expect(allText).toContain("Heizung Wohnzimmer");
+    expect(allText).toContain("echtes Label");
+    // Platzhalter dürfen NICHT sichtbar sein:
+    expect(allText).not.toContain("0/1/99");
+    expect(allText).not.toContain("0/1/154");
+    expect(allText).not.toContain("0/1/200");
+    expect(allText).not.toContain("9/9/9");
+    // Toggle existiert und ist standardmaessig aktiviert:
+    const toggle = orphansCard!.querySelector(
+      ".orphans-placeholder-toggle input"
+    ) as HTMLInputElement | null;
+    expect(toggle).not.toBeNull();
+    expect(toggle!.checked).toBe(true);
+  });
+
+  it("Iter aiohttp-error-ZU9UA: Verwaiste GAs zeigt Platzhalter wenn Toggle aus", async () => {
+    document.body.innerHTML = "";
+    const el = document.createElement("stats-knx-view") as HTMLElement & {
+      api?: ApiClient;
+      updateComplete: Promise<unknown>;
+    };
+    const baseApi = makeApi();
+    const api = {
+      ...baseApi,
+      getKnxStatsOrphans: vi.fn(async () => ({
+        from: SUMMARY.from,
+        to: SUMMARY.to,
+        missing_in_log: [
+          { address: "0/1/99", name: "-----", dpt: null },
+        ],
+        extra_in_log: [],
+        project_total: 1,
+        log_total: 0,
+        discovery_status: "ok",
+      })),
+    } as unknown as ApiClient;
+    el.api = api;
+    document.body.appendChild(el);
+    for (let i = 0; i < 5; i++) {
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    const orphansCard = Array.from(
+      el.shadowRoot!.querySelectorAll(".mh-card")
+    ).find((c) => c.textContent?.includes("Verwaiste GAs"));
+    const toggle = orphansCard!.querySelector(
+      ".orphans-placeholder-toggle input"
+    ) as HTMLInputElement;
+    toggle.checked = false;
+    toggle.dispatchEvent(new Event("change"));
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    const text = orphansCard!.textContent ?? "";
+    expect(text).toContain("0/1/99");
+  });
+
   it("Iter aiohttp-error-ZU9UA: Verwaiste GAs hat eigenen Inline-Top-N pro Spalte", async () => {
     // Mit Mock-Daten in beiden Orphans-Spalten.
     document.body.innerHTML = "";
