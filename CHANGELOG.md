@@ -7,6 +7,12 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 4)
+- **Iter 21 — Detector `SEND_CYCLE_DRIFT`.**
+  Trend-Detektor: Median(Δt) der letzten 24 h <= 50% des 7-Tage-
+  Medians -> Finding (severity info). Reine Funktion; nutzt die in
+  einer spaeteren Service-Iter zugespielten Pre-Aggregate aus der
+  bestehenden Trend-Vergleich-Infra (Iter 67/WR-I). Evidence
+  `{recent_median_dt, baseline_median_dt, ratio}`.
 - **Iter 20 — Detector `RECONNECT_STORM`.**
   Erkennt: nach >=60 s Stille auf einer `knx_source` folgt ein Burst
   (>=10x normaler 30-s-Schnitt) — typisch fuer Reconnect-Floods nach
