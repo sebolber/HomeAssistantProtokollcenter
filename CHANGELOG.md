@@ -6,6 +6,18 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.21.0] – 2026-05-03
+
+KNX-Konfigurations-Findings — Phase 4 + 5 (Iter 20-26) aus
+`docs/messagehub_knx_konfigurationsfehler_recherche.md` §9.9.
+
+Trend-Detektoren (RECONNECT_STORM, SEND_CYCLE_DRIFT,
+REPEAT_APPROXIMATION) + Projekt-Integration (ORPHAN_GA, STALE_GA) +
+"Nur Projekt-Befunde"-Filter im Konfigurations-Check-Tab.
+
+Tests: 901 → 952 Backend (+51), 170 → 182 Vitest (+12).
+Bundle: 382,79 KB → 387,18 KB.
+
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 5)
 - **Iter 26 — i18n Phase 5 + Filter "Nur Projekt-Befunde".**
   Translations fuer ORPHAN_GA + STALE_GA in allen 6 Sprachen +
