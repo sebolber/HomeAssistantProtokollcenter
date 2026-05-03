@@ -7,6 +7,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 6)
+- **Iter 29 — Markdown-Export (E15).**
+  Neue reine Funktion `format_findings_markdown(findings)` in
+  `processing/findings_markdown.py` rendert eine Tabellen-Markdown
+  (Code | GA | Severity | Source | Last-Seen | Evidence). Pipes
+  und Newlines werden HTML-entitaet-escaped, damit die Tabelle
+  nicht zerbricht. API-Endpoint `GET /api/messagehub/findings/export.md`
+  liefert `text/markdown` direkt zum Copy-Paste in die ETS-Notiz-
+  Spalte. Frontend: Button "MD-Export" im Header kopiert via
+  Clipboard API; Fallback Download als `findings.md`.
 - **Iter 28 — Prometheus-Counter pro Finding-Code.**
   Neue Metrik `messagehub_knx_finding_total{code="...",severity="..."}`
   in `format_prometheus_metrics`. Erlaubt Alerting auf "heute kam ein

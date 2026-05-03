@@ -284,7 +284,7 @@ oe.elementStyles = [], oe.shadowRootOptions = { mode: "open" }, oe[fe("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const be = globalThis, ot = (t) => t, Le = be.trustedTypes, lt = Le ? Le.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Ct = "$lit$", H = `lit$${Math.random().toFixed(9).slice(2)}$`, Nt = "?" + H, rs = `<${Nt}>`, Y = document, _e = () => Y.createComment(""), xe = (t) => t === null || typeof t != "object" && typeof t != "function", Xe = Array.isArray, is = (t) => Xe(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Ue = `[ 	
+const be = globalThis, ot = (t) => t, Le = be.trustedTypes, lt = Le ? Le.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Nt = "$lit$", H = `lit$${Math.random().toFixed(9).slice(2)}$`, Ct = "?" + H, rs = `<${Ct}>`, Y = document, _e = () => Y.createComment(""), xe = (t) => t === null || typeof t != "object" && typeof t != "function", Xe = Array.isArray, is = (t) => Xe(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Ue = `[ 	
 \f\r]`, me = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, dt = /-->/g, ht = />/g, W = RegExp(`>|${Ue}(?:([^\\s"'>=/]+)(${Ue}*=${Ue}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), ct = /'/g, pt = /"/g, Ft = /^(?:script|style|textarea|title)$/i, ns = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), n = ns(1), X = Symbol.for("lit-noChange"), h = Symbol.for("lit-nothing"), ut = /* @__PURE__ */ new WeakMap(), q = Y.createTreeWalker(Y, 129);
 function It(t, e) {
@@ -299,7 +299,7 @@ const os = (t, e) => {
     let m, g, u = -1, p = 0;
     for (; p < c.length && (o.lastIndex = p, g = o.exec(c), g !== null); ) p = o.lastIndex, o === me ? g[1] === "!--" ? o = dt : g[1] !== void 0 ? o = ht : g[2] !== void 0 ? (Ft.test(g[2]) && (a = RegExp("</" + g[2], "g")), o = W) : g[3] !== void 0 && (o = W) : o === W ? g[0] === ">" ? (o = a ?? me, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? W : g[3] === '"' ? pt : ct) : o === pt || o === ct ? o = W : o === dt || o === ht ? o = me : (o = W, a = void 0);
     const f = o === W && t[d + 1].startsWith("/>") ? " " : "";
-    i += o === me ? c + rs : u >= 0 ? (r.push(m), c.slice(0, u) + Ct + c.slice(u) + H + f) : c + H + (u === -2 ? d : f);
+    i += o === me ? c + rs : u >= 0 ? (r.push(m), c.slice(0, u) + Nt + c.slice(u) + H + f) : c + H + (u === -2 ? d : f);
   }
   return [It(t, i + (t[s] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), r];
 };
@@ -315,9 +315,9 @@ class we {
     }
     for (; (a = q.nextNode()) !== null && c.length < d; ) {
       if (a.nodeType === 1) {
-        if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Ct)) {
+        if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Nt)) {
           const p = g[o++], f = a.getAttribute(u).split(H), v = /([.?@])?(.*)/.exec(p);
-          c.push({ type: 1, index: i, name: v[2], strings: f, ctor: v[1] === "." ? ds : v[1] === "?" ? hs : v[1] === "@" ? cs : Ce }), a.removeAttribute(u);
+          c.push({ type: 1, index: i, name: v[2], strings: f, ctor: v[1] === "." ? ds : v[1] === "?" ? hs : v[1] === "@" ? cs : Ne }), a.removeAttribute(u);
         } else u.startsWith(H) && (c.push({ type: 6, index: i }), a.removeAttribute(u));
         if (Ft.test(a.tagName)) {
           const u = a.textContent.split(H), p = u.length - 1;
@@ -327,7 +327,7 @@ class we {
             a.append(u[p], _e());
           }
         }
-      } else if (a.nodeType === 8) if (a.data === Nt) c.push({ type: 2, index: i });
+      } else if (a.nodeType === 8) if (a.data === Ct) c.push({ type: 2, index: i });
       else {
         let u = -1;
         for (; (u = a.data.indexOf(H, u + 1)) !== -1; ) c.push({ type: 7, index: i }), u += H.length - 1;
@@ -438,7 +438,7 @@ class pe {
     this._$AM === void 0 && (this._$Cv = e, (s = this._$AP) == null || s.call(this, e));
   }
 }
-class Ce {
+class Ne {
   get tagName() {
     return this.element.tagName;
   }
@@ -463,7 +463,7 @@ class Ce {
     e === h ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
   }
 }
-class ds extends Ce {
+class ds extends Ne {
   constructor() {
     super(...arguments), this.type = 3;
   }
@@ -471,7 +471,7 @@ class ds extends Ce {
     this.element[this.name] = e === h ? void 0 : e;
   }
 }
-class hs extends Ce {
+class hs extends Ne {
   constructor() {
     super(...arguments), this.type = 4;
   }
@@ -479,7 +479,7 @@ class hs extends Ce {
     this.element.toggleAttribute(this.name, !!e && e !== h);
   }
 }
-class cs extends Ce {
+class cs extends Ne {
   constructor(e, s, r, a, i) {
     super(e, s, r, a, i), this.type = 5;
   }
@@ -1123,6 +1123,11 @@ class bs {
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
     return await r.json();
   }
+  async exportFindingsMarkdown() {
+    const e = `${this.baseUrl}/api/messagehub/findings/export.md`, s = await fetch(e, { headers: this.headers() });
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
+    return await s.text();
+  }
   async acknowledgeKnxBulk(e, s = {}) {
     const r = new URLSearchParams();
     s.from && r.set("from", s.from), s.to && r.set("to", s.to);
@@ -1297,7 +1302,7 @@ const z = y`
     padding: 4px 10px;
     font-size: var(--mh-text-xs);
   }
-`, Ne = y`
+`, Ce = y`
   .mh-input,
   .mh-select {
     padding: 8px 12px;
@@ -2004,10 +2009,10 @@ Ut([
 Oe = Ut([
   S("severity-filter")
 ], Oe);
-var Cs = Object.defineProperty, Ns = Object.getOwnPropertyDescriptor, Fe = (t, e, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Ns(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+var Ns = Object.defineProperty, Cs = Object.getOwnPropertyDescriptor, Fe = (t, e, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Cs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && Cs(e, s, a), a;
+  return r && a && Ns(e, s, a), a;
 };
 let de = class extends w {
   constructor() {
@@ -2116,7 +2121,7 @@ var Rs = Object.defineProperty, Ms = Object.getOwnPropertyDescriptor, G = (t, e,
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && Rs(e, s, a), a;
 };
-let N = class extends w {
+let C = class extends w {
   constructor() {
     super(...arguments), this._status = "new", this._tags = [], this._newTag = "", this._runbook = null, this._busy = !1;
   }
@@ -2290,7 +2295,7 @@ let N = class extends w {
     `;
   }
 };
-N.styles = y`
+C.styles = y`
     :host {
       position: fixed;
       top: 0;
@@ -2511,28 +2516,28 @@ N.styles = y`
   `;
 G([
   x({ attribute: !1 })
-], N.prototype, "msg", 2);
+], C.prototype, "msg", 2);
 G([
   x({ attribute: !1 })
-], N.prototype, "api", 2);
+], C.prototype, "api", 2);
 G([
   l()
-], N.prototype, "_status", 2);
+], C.prototype, "_status", 2);
 G([
   l()
-], N.prototype, "_tags", 2);
+], C.prototype, "_tags", 2);
 G([
   l()
-], N.prototype, "_newTag", 2);
+], C.prototype, "_newTag", 2);
 G([
   l()
-], N.prototype, "_runbook", 2);
+], C.prototype, "_runbook", 2);
 G([
   l()
-], N.prototype, "_busy", 2);
-N = G([
+], C.prototype, "_busy", 2);
+C = G([
   S("detail-pane")
-], N);
+], C);
 var Us = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, F = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? Bs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
@@ -3598,7 +3603,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
 $.styles = [
   z,
   se,
-  Ne,
+  Ce,
   ae,
   y`
       section {
@@ -5092,7 +5097,7 @@ function ra() {
   }
   return "webhooks";
 }
-let C = class extends w {
+let N = class extends w {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._showForm = !1, this._editing = null, this._toast = "", this._menuOpenId = null, this._activeTab = ra(), this._closeMenu = () => {
       this._menuOpenId !== null && (this._menuOpenId = null);
@@ -5321,7 +5326,7 @@ let C = class extends w {
     `;
   }
 };
-C.styles = [
+N.styles = [
   z,
   se,
   ke,
@@ -5678,31 +5683,31 @@ C.styles = [
 ];
 B([
   x({ attribute: !1 })
-], C.prototype, "api", 2);
+], N.prototype, "api", 2);
 B([
   l()
-], C.prototype, "_items", 2);
+], N.prototype, "_items", 2);
 B([
   l()
-], C.prototype, "_loading", 2);
+], N.prototype, "_loading", 2);
 B([
   l()
-], C.prototype, "_showForm", 2);
+], N.prototype, "_showForm", 2);
 B([
   l()
-], C.prototype, "_editing", 2);
+], N.prototype, "_editing", 2);
 B([
   l()
-], C.prototype, "_toast", 2);
+], N.prototype, "_toast", 2);
 B([
   l()
-], C.prototype, "_menuOpenId", 2);
+], N.prototype, "_menuOpenId", 2);
 B([
   l()
-], C.prototype, "_activeTab", 2);
-C = B([
+], N.prototype, "_activeTab", 2);
+N = B([
   S("settings-view")
-], C);
+], N);
 var ia = Object.defineProperty, na = Object.getOwnPropertyDescriptor, re = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? na(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
@@ -9667,7 +9672,7 @@ var La = Object.defineProperty, Oa = Object.getOwnPropertyDescriptor, Ae = (t, e
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && La(e, s, a), a;
 };
-const Ca = [
+const Na = [
   "debug",
   "info",
   "warning",
@@ -9754,7 +9759,7 @@ let te = class extends w {
             @change=${(a) => this._onSelectChange(a, t.code)}
           >
             <option value="_default">— Default —</option>
-            ${Ca.map(
+            ${Na.map(
       (a) => n`<option value=${a}>${a}</option>`
     )}
           </select>
@@ -9766,7 +9771,7 @@ let te = class extends w {
 te.styles = [
   z,
   se,
-  Ne,
+  Ce,
   ae,
   ke,
   y`
@@ -9821,10 +9826,10 @@ Ae([
 te = Ae([
   S("severity-override-form")
 ], te);
-var Na = Object.defineProperty, Fa = Object.getOwnPropertyDescriptor, I = (t, e, s, r) => {
+var Ca = Object.defineProperty, Fa = Object.getOwnPropertyDescriptor, I = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? Fa(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && Na(e, s, a), a;
+  return r && a && Ca(e, s, a), a;
 };
 const Ia = [
   { value: "", label: "Alle Severities" },
@@ -9878,6 +9883,20 @@ let O = class extends w {
     const e = this._itemKey(t);
     this._selectedKey = this._selectedKey === e ? null : e;
   }
+  async _exportMarkdown() {
+    if (this.api)
+      try {
+        const t = await this.api.exportFindingsMarkdown();
+        if (navigator.clipboard && typeof navigator.clipboard.writeText == "function")
+          await navigator.clipboard.writeText(t);
+        else {
+          const e = new Blob([t], { type: "text/markdown" }), s = document.createElement("a");
+          s.href = URL.createObjectURL(e), s.download = "findings.md", s.click(), URL.revokeObjectURL(s.href);
+        }
+      } catch (t) {
+        this._error = t.message ?? "Export fehlgeschlagen";
+      }
+  }
   async _ackSelected() {
     const t = this._currentSelection();
     if (!(!t || !this.api)) {
@@ -9907,14 +9926,25 @@ let O = class extends w {
         <header class="header" data-test="findings-header">
           <div class="header-row">
             <h2 class="mh-card__title">Konfigurations-Check</h2>
-            <button
-              type="button"
-              class="mh-btn mh-btn--ghost mh-btn--sm"
-              data-test="findings-show-overrides"
-              @click=${() => this._showOverrides = !this._showOverrides}
-            >
-              ${this._showOverrides ? "Severity-Defaults schliessen" : "Severity-Defaults"}
-            </button>
+            <div class="header-actions">
+              <button
+                type="button"
+                class="mh-btn mh-btn--ghost mh-btn--sm"
+                data-test="findings-export-md"
+                title="Markdown-Liste fuer ETS-Notiz in die Zwischenablage kopieren"
+                @click=${this._exportMarkdown}
+              >
+                MD-Export
+              </button>
+              <button
+                type="button"
+                class="mh-btn mh-btn--ghost mh-btn--sm"
+                data-test="findings-show-overrides"
+                @click=${() => this._showOverrides = !this._showOverrides}
+              >
+                ${this._showOverrides ? "Severity-Defaults schliessen" : "Severity-Defaults"}
+              </button>
+            </div>
           </div>
           <p class="subtitle">
             Erkannte KNX-Konfigurations-Anomalien aus dem Telegrammverkehr.
@@ -10094,7 +10124,7 @@ let O = class extends w {
 O.styles = [
   z,
   se,
-  Ne,
+  Ce,
   ae,
   ke,
   y`
@@ -10120,6 +10150,10 @@ O.styles = [
         align-items: center;
         justify-content: space-between;
         gap: var(--mh-space-3);
+      }
+      .header-actions {
+        display: flex;
+        gap: var(--mh-space-2);
       }
       .overrides-pane {
         margin-bottom: var(--mh-space-3);
@@ -10624,7 +10658,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
 U.styles = [
   z,
   se,
-  Ne,
+  Ce,
   ae,
   y`
       :host {

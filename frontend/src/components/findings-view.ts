@@ -104,6 +104,26 @@ export class FindingsView extends LitElement {
     this._selectedKey = this._selectedKey === key ? null : key;
   }
 
+  private async _exportMarkdown(): Promise<void> {
+    if (!this.api) return;
+    try {
+      const md = await this.api.exportFindingsMarkdown();
+      // Iter 29: Clipboard. Fallback: download als Datei.
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        await navigator.clipboard.writeText(md);
+      } else {
+        const blob = new Blob([md], { type: "text/markdown" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "findings.md";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    } catch (err) {
+      this._error = (err as Error).message ?? "Export fehlgeschlagen";
+    }
+  }
+
   private async _ackSelected(): Promise<void> {
     const selected = this._currentSelection();
     if (!selected || !this.api) return;
@@ -138,14 +158,25 @@ export class FindingsView extends LitElement {
         <header class="header" data-test="findings-header">
           <div class="header-row">
             <h2 class="mh-card__title">Konfigurations-Check</h2>
-            <button
-              type="button"
-              class="mh-btn mh-btn--ghost mh-btn--sm"
-              data-test="findings-show-overrides"
-              @click=${() => (this._showOverrides = !this._showOverrides)}
-            >
-              ${this._showOverrides ? "Severity-Defaults schliessen" : "Severity-Defaults"}
-            </button>
+            <div class="header-actions">
+              <button
+                type="button"
+                class="mh-btn mh-btn--ghost mh-btn--sm"
+                data-test="findings-export-md"
+                title="Markdown-Liste fuer ETS-Notiz in die Zwischenablage kopieren"
+                @click=${this._exportMarkdown}
+              >
+                MD-Export
+              </button>
+              <button
+                type="button"
+                class="mh-btn mh-btn--ghost mh-btn--sm"
+                data-test="findings-show-overrides"
+                @click=${() => (this._showOverrides = !this._showOverrides)}
+              >
+                ${this._showOverrides ? "Severity-Defaults schliessen" : "Severity-Defaults"}
+              </button>
+            </div>
           </div>
           <p class="subtitle">
             Erkannte KNX-Konfigurations-Anomalien aus dem Telegrammverkehr.
@@ -387,6 +418,10 @@ export class FindingsView extends LitElement {
         align-items: center;
         justify-content: space-between;
         gap: var(--mh-space-3);
+      }
+      .header-actions {
+        display: flex;
+        gap: var(--mh-space-2);
       }
       .overrides-pane {
         margin-bottom: var(--mh-space-3);

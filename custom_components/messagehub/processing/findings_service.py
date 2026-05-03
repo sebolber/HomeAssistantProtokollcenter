@@ -13,6 +13,7 @@ from typing import Any
 
 from ..const import KNX_FINDING_DEFAULT_SEVERITIES
 from .findings import FINDING_SEVERITIES, Finding, FindingSeverity
+from .findings_markdown import format_findings_markdown
 
 # Default- und Hard-Cap-Limits fuer die Pagination. UI darf ein
 # kleineres Limit setzen; Hard-Cap schuetzt vor versehentlichen
@@ -209,11 +210,22 @@ async def clear_severity_override_response(
     return {"code": code, "cleared": True}
 
 
+async def findings_markdown_response(repo: Any) -> str:
+    """Liefert eine Markdown-Tabelle aller aktuellen Findings (Iter 29).
+
+    Default-Limit 200 spiegelt die UI; das ist genug fuer eine ETS-
+    Notiz-Vorlage und schuetzt vor versehentlich grossen Exports.
+    """
+    findings: list[Finding] = await repo.list_findings(limit=200)
+    return format_findings_markdown(findings)
+
+
 __all__ = [
     "DEFAULT_LIMIT",
     "HARD_CAP_LIMIT",
     "ack_finding_response",
     "clear_severity_override_response",
+    "findings_markdown_response",
     "list_findings_response",
     "list_severity_overrides_response",
     "set_severity_override_response",

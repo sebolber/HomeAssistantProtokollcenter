@@ -1273,6 +1273,13 @@ export class ApiClient {
     return await res.json();
   }
 
+  async exportFindingsMarkdown(): Promise<string> {
+    const url = `${this.baseUrl}/api/messagehub/findings/export.md`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.text();
+  }
+
   async acknowledgeKnxBulk(
     devSource: string,
     payload: { note?: string; expiryDays?: number; from?: string; to?: string } = {}

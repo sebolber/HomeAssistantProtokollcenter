@@ -23,6 +23,7 @@ from ..processing.findings_service import (
     HARD_CAP_LIMIT,
     ack_finding_response,
     clear_severity_override_response,
+    findings_markdown_response,
     list_findings_response,
     list_severity_overrides_response,
     set_severity_override_response,
@@ -206,10 +207,28 @@ class FindingsSeverityOverrideDetailView(RequireAdminView):
         return self.json(payload)
 
 
+class FindingsMarkdownExportView(RequireAdminView):
+    """GET /api/messagehub/findings/export.md — Markdown-Vorlage fuer ETS-Notizen."""
+
+    url = "/api/messagehub/findings/export.md"
+    name = "api:messagehub:findings:export-markdown"
+
+    async def get(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        repo = _repo(request.app["hass"])
+        if repo is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        markdown = await findings_markdown_response(repo)
+        # text/markdown statt JSON, damit ein curl-Aufruf direkt ins
+        # Clipboard / in eine Datei umgeleitet werden kann.
+        return web.Response(text=markdown, content_type="text/markdown")
+
+
 __all__ = [
     "FindingsAckDetailView",
     "FindingsAckView",
     "FindingsListView",
+    "FindingsMarkdownExportView",
     "FindingsSeverityOverrideDetailView",
     "FindingsSeverityOverridesView",
 ]
