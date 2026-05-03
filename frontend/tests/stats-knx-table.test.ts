@@ -366,6 +366,40 @@ describe("stats-knx-view top table + detail pane", () => {
     expect(detailText).toContain("constant_value");
   });
 
+  it("Iter aiohttp-error-ZU9UA / UX-P3.3: 'Andere GAs des Geraets' hat Inline-TopN-Filter", async () => {
+    // Detail mit 30 sibling_gas — default TopN=25, also nur 25 sichtbar.
+    const siblings = Array.from({ length: 30 }, (_, i) => ({
+      ga: `1/2/${i}`,
+      label: `Sib ${i}`,
+      count: 100 - i,
+      rate_per_min: 1.0,
+    }));
+    const richApi = makeApi();
+    richApi.getKnxStatsGaDetail = vi.fn(async () => ({
+      ...DETAIL,
+      sibling_gas: siblings,
+    }));
+    const el = await mount(richApi);
+    const firstRow = el.shadowRoot!.querySelector("tbody tr") as HTMLElement;
+    firstRow.click();
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    const drawer = el.shadowRoot!.querySelector(".detail-pane");
+    expect(drawer).not.toBeNull();
+    // Inline-TopN-Selektor in der Siblings-Card-Header
+    const topnInSiblings = drawer!.querySelector(".siblings .inline-topn");
+    expect(topnInSiblings).not.toBeNull();
+    // Default 25 ist aktiv
+    const active = topnInSiblings!.querySelector(".inline-topn__btn.active");
+    expect(active?.textContent?.trim()).toBe("25");
+    // 25 Rows sichtbar (statt aller 30)
+    const rows = drawer!.querySelectorAll(".siblings ul li.sibling-row");
+    expect(rows.length).toBe(25);
+    // Hinweis "und N weitere"
+    expect(drawer!.textContent).toContain("und 5 weitere");
+  });
+
   it("schliesst Detail-Pane bei zweitem Click auf gleiche Zeile", async () => {
     const api = makeApi();
     const el = await mount(api);

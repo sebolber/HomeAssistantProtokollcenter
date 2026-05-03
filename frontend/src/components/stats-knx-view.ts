@@ -89,6 +89,7 @@ interface UiFilters {
   topNOrphansExtra: number; // "Verwaiste GAs" — geloggt, nicht im Projekt
   topNSilence: number; // "Stille-Alarme"
   topNBusHealth: number; // "Bus-Gesundheit (Wiederholrate)"
+  topNSiblings: number; // Detail-Pane "Andere GAs des Geraets"
   minRate: number;
   includeAck: boolean;
 }
@@ -105,6 +106,7 @@ const DEFAULT_FILTERS: UiFilters = {
   topNOrphansExtra: 25,
   topNSilence: 25,
   topNBusHealth: 25,
+  topNSiblings: 25,
   minRate: 1.0,
   includeAck: true,
 };
@@ -749,6 +751,12 @@ export class StatsKnxView extends LitElement {
 
   private _onTopNBusHealth(topNBusHealth: number): void {
     this._filters = { ...this._filters, topNBusHealth };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
+  private _onTopNSiblings(topNSiblings: number): void {
+    this._filters = { ...this._filters, topNSiblings };
     saveFilters(this._filters);
     this.requestUpdate();
   }
@@ -1703,11 +1711,21 @@ export class StatsKnxView extends LitElement {
   }
 
   private _renderSiblingGas(d: KnxStatsGaDetailDto): TemplateResult {
+    // Iter aiohttp-error-ZU9UA / UX-P3.3: Inline-TopN-Filter, persistent
+    // im localStorage. Vorher harte slice(0, 10) — bei Geraeten mit
+    // viel Trafic (Wetterstation, Heizungsregler) waren wertvolle
+    // Sibling-GAs unterhalb der 10er-Grenze nicht direkt sichtbar.
+    const limit = this._filters.topNSiblings;
     return html`
       <div class="siblings">
-        <strong>Andere GAs des Geräts <code>${d.dev_source}</code>:</strong>
+        <div class="siblings__head">
+          <strong>Andere GAs des Geräts <code>${d.dev_source}</code>:</strong>
+          ${this._renderInlineTopN(this._filters.topNSiblings, (n) =>
+            this._onTopNSiblings(n)
+          )}
+        </div>
         <ul>
-          ${d.sibling_gas.slice(0, 10).map(
+          ${d.sibling_gas.slice(0, limit).map(
             (s) => html`<li
               class="sibling-row"
               @click=${() => void this._onSelectGa(s.ga)}
@@ -1725,9 +1743,9 @@ export class StatsKnxView extends LitElement {
             </li>`
           )}
         </ul>
-        ${d.sibling_gas.length > 10
+        ${d.sibling_gas.length > limit
           ? html`<p class="muted small">
-              … und ${d.sibling_gas.length - 10} weitere
+              … und ${d.sibling_gas.length - limit} weitere
             </p>`
           : nothing}
       </div>
@@ -3495,6 +3513,15 @@ export class StatsKnxView extends LitElement {
       }
       .siblings {
         margin-top: var(--mh-space-3);
+      }
+      /* Iter aiohttp-error-ZU9UA / UX-P3.3: Header mit Titel links,
+         TopN-Selektor rechts. Wrappt bei schmalen Drawer-Breiten. */
+      .siblings__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--mh-space-2);
+        flex-wrap: wrap;
       }
       .siblings ul {
         list-style: none;

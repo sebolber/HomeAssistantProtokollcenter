@@ -6284,6 +6284,7 @@ const ha = 25, ca = 100, pa = 300, Me = [
   topNOrphansExtra: 25,
   topNSilence: 25,
   topNBusHealth: 25,
+  topNSiblings: 25,
   minRate: 1,
   includeAck: !0
 };
@@ -6686,6 +6687,9 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   }
   _onTopNBusHealth(t) {
     this._filters = { ...this._filters, topNBusHealth: t }, z(this._filters), this.requestUpdate();
+  }
+  _onTopNSiblings(t) {
+    this._filters = { ...this._filters, topNSiblings: t }, z(this._filters), this.requestUpdate();
   }
   _renderInlineTopN(t, e) {
     return n`
@@ -7467,30 +7471,37 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _renderSiblingGas(t) {
+    const e = this._filters.topNSiblings;
     return n`
       <div class="siblings">
-        <strong>Andere GAs des Geräts <code>${t.dev_source}</code>:</strong>
+        <div class="siblings__head">
+          <strong>Andere GAs des Geräts <code>${t.dev_source}</code>:</strong>
+          ${this._renderInlineTopN(
+      this._filters.topNSiblings,
+      (s) => this._onTopNSiblings(s)
+    )}
+        </div>
         <ul>
-          ${t.sibling_gas.slice(0, 10).map(
-      (e) => n`<li
+          ${t.sibling_gas.slice(0, e).map(
+      (s) => n`<li
               class="sibling-row"
-              @click=${() => void this._onSelectGa(e.ga)}
-              title="Detail-Pane für ${e.ga} öffnen"
+              @click=${() => void this._onSelectGa(s.ga)}
+              title="Detail-Pane für ${s.ga} öffnen"
             >
-              <code class="ga">${e.ga}</code>
-              <span class="muted">${e.label ?? "—"}</span>
+              <code class="ga">${s.ga}</code>
+              <span class="muted">${s.label ?? "—"}</span>
               <span class="num">
-                ${e.rate_per_min.toLocaleString("de-DE", {
+                ${s.rate_per_min.toLocaleString("de-DE", {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1
       })} Tel/Min
               </span>
-              <span class="num muted">${e.count}</span>
+              <span class="num muted">${s.count}</span>
             </li>`
     )}
         </ul>
-        ${t.sibling_gas.length > 10 ? n`<p class="muted small">
-              … und ${t.sibling_gas.length - 10} weitere
+        ${t.sibling_gas.length > e ? n`<p class="muted small">
+              … und ${t.sibling_gas.length - e} weitere
             </p>` : h}
       </div>
     `;
@@ -9079,6 +9090,15 @@ b.styles = [
       }
       .siblings {
         margin-top: var(--mh-space-3);
+      }
+      /* Iter aiohttp-error-ZU9UA / UX-P3.3: Header mit Titel links,
+         TopN-Selektor rechts. Wrappt bei schmalen Drawer-Breiten. */
+      .siblings__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--mh-space-2);
+        flex-wrap: wrap;
       }
       .siblings ul {
         list-style: none;
