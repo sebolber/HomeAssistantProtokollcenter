@@ -6,6 +6,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (Recommendation-Engine)
+- **Iter L1.0 / Sprint Recommendations — DPT-Recommendation-Tabelle.**
+  Neues Modul `processing/knx_dpt_recommendations.py` mit struktrierter
+  Empfehlung pro KNX-Datapoint-Type (Sende-Modus, Zyklus-Korridor,
+  Hysterese, Begruendung). Layer 1 der geplanten 4-Layer-
+  Recommendation-Engine — deterministisch, offline-faehig,
+  mypy-strict. ~20 DPTs gemappt (Schalten, Sensoren, Zaehler,
+  Szenen) plus Familien-Defaults `1.x`/`9.x`/`13.x`. 14 neue
+  Pytests. Konsistenz-Check zur bestehenden
+  `KNX_RECOMMENDED_RATES_PER_MIN`-Tabelle.
+
 ## [0.24.0] - 2026-05-03
 
 ### Hinzugefuegt (UX)
