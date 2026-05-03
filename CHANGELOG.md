@@ -6,6 +6,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 2)
+- **Iter 11 — Migration `knx_group_addresses.dpt_inferred`.**
+  Drei neue Spalten (`dpt_inferred`, `dpt_inferred_confidence`,
+  `dpt_inferred_at`) trennen das Soll (`dpt`) vom Ist (Auto-
+  Erkenner). Repo-Methoden `set_dpt_inferred(...)` / `get_dpt_inferred(...)`
+  legen idempotent persistierte Inferenz-Ergebnisse an. Confidence
+  ist auf [0.0, 1.0] validiert. Migration `0027_knx_dpt_inferred.sql`.
+
 ## [0.19.0] – 2026-05-03
 
 KNX-Konfigurations-Findings — Phase 0 + 1 (Iter 1-10) aus

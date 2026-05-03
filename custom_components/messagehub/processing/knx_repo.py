@@ -115,6 +115,61 @@ class KnxAddressRepository:
             ),
         )
 
+    # ------------------------------------------------------------------
+    # Iter 11 (knx-findings): DPT-Inferenz-Persistenz (siehe §9.2)
+    # ------------------------------------------------------------------
+
+    async def set_dpt_inferred(
+        self,
+        *,
+        address: str,
+        dpt_inferred: str,
+        confidence: float,
+        at: str,
+    ) -> None:
+        """Persistiert das Ist-Ergebnis des Auto-Erkenners.
+
+        Legt einen Row mit Default-Label an, wenn die GA noch nicht in
+        der Whitelist ist — der Auto-Erkenner sieht GAs aus
+        `knx_raw_telegrams`, die nicht zwingend in `knx_group_addresses`
+        gepflegt sind.
+        """
+        validate_address(address)
+        if not 0.0 <= confidence <= 1.0:
+            raise ValueError(
+                f"confidence must be in [0.0, 1.0], got {confidence!r}"
+            )
+        now = datetime.now(UTC).isoformat(timespec="seconds")
+        await self._db.execute(
+            "INSERT INTO knx_group_addresses "
+            "(address, label, created_at, updated_at, "
+            " dpt_inferred, dpt_inferred_confidence, dpt_inferred_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(address) DO UPDATE SET "
+            "dpt_inferred = excluded.dpt_inferred, "
+            "dpt_inferred_confidence = excluded.dpt_inferred_confidence, "
+            "dpt_inferred_at = excluded.dpt_inferred_at, "
+            "updated_at = excluded.updated_at",
+            (address, address, now, now, dpt_inferred, confidence, at),
+        )
+
+    async def get_dpt_inferred(
+        self, address: str
+    ) -> tuple[str, float, str] | None:
+        """Liefert (dpt_inferred, confidence, at) oder None."""
+        row = await self._db.fetch_one(
+            "SELECT dpt_inferred, dpt_inferred_confidence, dpt_inferred_at "
+            "FROM knx_group_addresses WHERE address = ?",
+            (address,),
+        )
+        if row is None or row["dpt_inferred"] is None:
+            return None
+        return (
+            str(row["dpt_inferred"]),
+            float(row["dpt_inferred_confidence"]),
+            str(row["dpt_inferred_at"]),
+        )
+
     async def delete(self, address: str) -> bool:
         cursor = await self._db.connection.execute(
             "DELETE FROM knx_group_addresses WHERE address = ?", (address,)
