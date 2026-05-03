@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 from aiohttp import web
 
 from ..const import DOMAIN, EVENT_MESSAGE_DELETED
-from .findings import FindingsListView
+from .findings import FindingsAckDetailView, FindingsAckView, FindingsListView
 from .knx import (
     KnxAddressBulkView,
     KnxAddressDetailView,
@@ -1390,6 +1390,8 @@ def async_register_views(hass: HomeAssistant) -> None:
         KnxStatsAcknowledgeBulkView,
         KnxStatsAcknowledgeDetailView,
         FindingsListView,
+        FindingsAckView,
+        FindingsAckDetailView,
     ):
         view = view_cls()
         # HA-internes Doppel-Register vermeiden

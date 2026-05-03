@@ -21,15 +21,23 @@ from ..processing.findings import FINDING_SEVERITIES
 from ..processing.findings_service import (
     DEFAULT_LIMIT,
     HARD_CAP_LIMIT,
+    ack_finding_response,
     list_findings_response,
+    unack_finding_response,
 )
 from ..storage.findings_repo import FindingsRepository
 from ._helpers import (
+    ERR_INVALID_JSON,
     ERR_NOT_INITIALISED,
     RequireAdminView,
+    actor,
     get_database,
     parse_int_param,
 )
+
+# Iter 7: Hard-Limit fuer User-Input im Note-Feld (Audit + DoS-Schutz),
+# spiegelt KnxStatsAcknowledgeView (siehe knx_stats.py).
+_HARD_NOTE_LENGTH = 1000
 
 
 def _repo(hass: Any) -> FindingsRepository | None:
@@ -81,4 +89,59 @@ def _parse_severity(raw: str | None) -> Any:
     return raw
 
 
-__all__ = ["FindingsListView"]
+class FindingsAckView(RequireAdminView):
+    """POST /api/messagehub/findings/ack — Ack setzen."""
+
+    url = "/api/messagehub/findings/ack"
+    name = "api:messagehub:findings:ack"
+
+    async def post(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        repo = _repo(request.app["hass"])
+        if repo is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        try:
+            body = await request.json()
+        except (ValueError, TypeError) as err:
+            raise web.HTTPBadRequest(reason=ERR_INVALID_JSON) from err
+        ga = str(body.get("ga", "")).strip()
+        code = str(body.get("code", "")).strip()
+        note = body.get("note")
+        if note is not None and len(str(note)) > _HARD_NOTE_LENGTH:
+            raise web.HTTPBadRequest(reason="note too long")
+        sticky = bool(body.get("sticky", False))
+        try:
+            payload = await ack_finding_response(
+                repo,
+                ga=ga,
+                code=code,
+                actor=actor(request),
+                note=str(note) if note else None,
+                sticky=sticky,
+            )
+        except ValueError as err:
+            raise web.HTTPBadRequest(reason=str(err)) from err
+        return self.json(payload)
+
+
+class FindingsAckDetailView(RequireAdminView):
+    """DELETE /api/messagehub/findings/ack/{ga}/{code} — Ack loeschen."""
+
+    url = "/api/messagehub/findings/ack/{ga}/{code}"
+    name = "api:messagehub:findings:ack-detail"
+
+    async def delete(self, request: web.Request, ga: str, code: str) -> web.Response:
+        self._check_admin(request)
+        repo = _repo(request.app["hass"])
+        if repo is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        try:
+            payload = await unack_finding_response(
+                repo, ga=ga, code=code, actor=actor(request),
+            )
+        except ValueError as err:
+            raise web.HTTPBadRequest(reason=str(err)) from err
+        return self.json(payload)
+
+
+__all__ = ["FindingsAckDetailView", "FindingsAckView", "FindingsListView"]

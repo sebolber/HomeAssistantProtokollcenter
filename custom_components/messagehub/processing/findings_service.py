@@ -7,8 +7,11 @@ einem HA-frei testbaren Modul gebuendelt.
 
 from __future__ import annotations
 
+import re
+from datetime import datetime
 from typing import Any
 
+from ..const import KNX_FINDING_DEFAULT_SEVERITIES
 from .findings import FINDING_SEVERITIES, Finding, FindingSeverity
 
 # Default- und Hard-Cap-Limits fuer die Pagination. UI darf ein
@@ -68,4 +71,87 @@ async def list_findings_response(
     }
 
 
-__all__ = ["DEFAULT_LIMIT", "HARD_CAP_LIMIT", "list_findings_response"]
+_GA_PATTERN = re.compile(r"^\d+/\d+/\d+$")
+
+
+def _validate_ga(ga: str) -> None:
+    """Akzeptiert nur das KNX-3-Ebenen-Format `M/L/G`."""
+    if not ga or not _GA_PATTERN.match(ga):
+        raise ValueError(f"Invalid ga {ga!r}; expected format M/L/G")
+
+
+def _validate_code(code: str) -> None:
+    """Code muss in `KNX_FINDING_DEFAULT_SEVERITIES` registriert sein.
+
+    Schuetzt vor Tippfehlern und vor Acks fuer "leere" Codes.
+    """
+    if code not in KNX_FINDING_DEFAULT_SEVERITIES:
+        raise ValueError(
+            f"Unknown finding code {code!r}; "
+            f"expected one of {sorted(KNX_FINDING_DEFAULT_SEVERITIES)}"
+        )
+
+
+async def ack_finding_response(
+    repo: Any,
+    *,
+    ga: str,
+    code: str,
+    actor: str,
+    note: str | None = None,
+    sticky: bool = False,
+    expires_at: datetime | None = None,
+) -> dict[str, Any]:
+    """Setzt einen Ack via Repo + liefert eine API-Response.
+
+    Validiert GA-Format + Code-Bekanntheit, ruft `repo.acknowledge` auf
+    (das schreibt den Audit-Log-Eintrag) und liefert eine schlanke
+    Bestaetigung.
+    """
+    _validate_ga(ga)
+    _validate_code(code)
+    await repo.acknowledge(
+        ga=ga,
+        code=code,
+        actor=actor,
+        note=note,
+        sticky=sticky,
+        expires_at=expires_at,
+    )
+    return {
+        "acknowledged": True,
+        "ga": ga,
+        "code": code,
+        "sticky": sticky,
+    }
+
+
+async def unack_finding_response(
+    repo: Any,
+    *,
+    ga: str,
+    code: str,
+    actor: str,
+) -> dict[str, Any]:
+    """Entfernt einen Ack via Repo + liefert eine API-Response.
+
+    Idempotent: kein Fehler, wenn der Ack nicht existiert (siehe
+    `FindingsRepository.unacknowledge`).
+    """
+    _validate_ga(ga)
+    _validate_code(code)
+    await repo.unacknowledge(ga=ga, code=code, actor=actor)
+    return {
+        "acknowledged": False,
+        "ga": ga,
+        "code": code,
+    }
+
+
+__all__ = [
+    "DEFAULT_LIMIT",
+    "HARD_CAP_LIMIT",
+    "ack_finding_response",
+    "list_findings_response",
+    "unack_finding_response",
+]

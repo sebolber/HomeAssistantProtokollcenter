@@ -24,6 +24,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   `list_findings(code, ga, severity, source, limit)` mit
   `last_seen DESC`-Sortierung. title/description sind nicht
   persistiert (UI rendert via translations/).
+- **Iter 7 — API `POST /findings/ack` + `DELETE /findings/ack/{ga}/{code}`.**
+  Service-Layer (`ack_finding_response` / `unack_finding_response`)
+  validiert GA-Format (`M/L/G`) und Code (muss in
+  `KNX_FINDING_DEFAULT_SEVERITIES` registriert sein, sonst Tippfehler).
+  Note-Length ist auf 1000 Bytes begrenzt (DoS- + Audit-Spam-Schutz).
+  Audit-Eintrag (`target_type='knx_finding_ack'`) wird vom Repo
+  geschrieben — der Service-Layer gibt nur eine schmale Bestaetigung
+  als Response zurueck.
 - **Iter 6 — API `GET /api/messagehub/findings`.**
   Filter (severity, code, ga, source) + Pagination (limit, offset).
   Service-Layer in `processing/findings_service.py`
