@@ -7,6 +7,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 2)
+- **Iter 13 — Detector `VALUE_OUT_OF_RANGE` + Wertbereich-Tabelle.**
+  Reine Funktion `detect_value_out_of_range(*, ga, dpt, value, now)`
+  in `processing/findings/value_range.py`. `KNX_DPT_VALUE_RANGES` in
+  `const.py` haelt die DPT-spezifischen Min/Max-Werte fuer 5.001
+  (Prozent), 5.003 (Winkel), 5.004 (Counter Pulses), 9.001
+  (Temperatur), 9.005 (Wind), 9.007 (Feuchte), 9.008 (CO2), 13.010
+  + 13.013 (Energie int32). Severity `error`, Evidence
+  `{value, dpt, range_min, range_max}`.
 - **Iter 12 — Detector `DPT_MISMATCH`.**
   Reine Funktion `detect_dpt_mismatch(*, ga, project_dpt, inferred_dpt,
   confidence, samples, now)` in
