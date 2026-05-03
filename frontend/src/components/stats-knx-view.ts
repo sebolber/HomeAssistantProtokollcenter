@@ -832,12 +832,13 @@ export class StatsKnxView extends LitElement {
         </label>
 
         <button
-          class="mh-btn mh-btn--sm mh-btn--primary"
+          class="mh-btn mh-btn--primary filter-refresh-btn"
           @click=${() => void this._load()}
           ?disabled=${this._loading}
           title="Alle Cards neu vom Backend laden"
         >
-          ${this._loading ? "lade…" : "↻ Aktualisieren"}
+          <span class=${this._loading ? "filter-refresh-btn__spin" : ""} aria-hidden="true">↻</span>
+          ${this._loading ? "lade…" : "Aktualisieren"}
         </button>
       </div>
     `;
@@ -2432,6 +2433,39 @@ export class StatsKnxView extends LitElement {
         border: 1px solid var(--mh-divider);
         border-radius: var(--mh-radius-md);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+      }
+      /* Iter aiohttp-error-ZU9UA / P2: Refresh-Button visuell
+         hervorheben — vorher wirkte er trotz mh-btn--primary grau,
+         weil HA-Themes manchmal --primary-color ueberschreiben.
+         Eigene Klasse mit garantiertem Farbkontrast + Schatten. */
+      .filter-refresh-btn {
+        font-weight: var(--mh-weight-semibold, 600);
+        padding: 8px 16px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        background: var(--mh-accent, var(--primary-color, #03a9f4));
+        color: var(--mh-accent-fg, var(--text-primary-color, #fff));
+      }
+      .filter-refresh-btn:hover:not(:disabled) {
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        transform: translateY(-1px);
+      }
+      .filter-refresh-btn:disabled {
+        /* Wenn lade-aktiv: weniger Opacity-Drop als Default-Disabled,
+           damit der Spinner-Glyph noch lesbar bleibt. */
+        opacity: 0.7;
+      }
+      .filter-refresh-btn__spin {
+        display: inline-block;
+        animation: mh-spin 800ms linear infinite;
+      }
+      @keyframes mh-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .filter-refresh-btn__spin {
+          animation: none;
+        }
       }
       .filter-group {
         display: flex;

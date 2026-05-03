@@ -442,6 +442,16 @@ describe("stats-knx-view filter bar", () => {
     expect(banner!.querySelector(".api-error-banner__details")).not.toBeNull();
   });
 
+  it("Iter aiohttp-error-ZU9UA: Aktualisieren-Button hat sichtbare Primary-Klasse + Spinner-Animation bei Loading", async () => {
+    const el = await mount();
+    const btn = el.shadowRoot!.querySelector(".filter-refresh-btn") as HTMLButtonElement | null;
+    expect(btn).not.toBeNull();
+    expect(btn!.classList.contains("mh-btn--primary")).toBe(true);
+    expect(btn!.textContent?.trim()).toContain("Aktualisieren");
+    // Spinner-Klasse ist im Initial-State (loading=false) NICHT da.
+    expect(btn!.querySelector(".filter-refresh-btn__spin")).toBeNull();
+  });
+
   it("Iter 49: Bus-Analyse-Toggle in der Filter-Bar", async () => {
     const el = await mount();
     // Toggle ist die zweite Checkbox (1. = "Bekannte ausblenden",

@@ -284,7 +284,7 @@ se.elementStyles = [], se.shadowRootOptions = { mode: "open" }, se[pe("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ue = globalThis, et = (t) => t, Ae = ue.trustedTypes, tt = Ae ? Ae.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Tt = "$lit$", H = `lit$${Math.random().toFixed(9).slice(2)}$`, At = "?" + H, Yt = `<${At}>`, q = document, me = () => q.createComment(""), ge = (t) => t === null || typeof t != "object" && typeof t != "function", Ke = Array.isArray, Xt = (t) => Ke(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Oe = `[ 	
+const ue = globalThis, et = (t) => t, Ae = ue.trustedTypes, tt = Ae ? Ae.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Tt = "$lit$", M = `lit$${Math.random().toFixed(9).slice(2)}$`, At = "?" + M, Yt = `<${At}>`, q = document, me = () => q.createComment(""), ge = (t) => t === null || typeof t != "object" && typeof t != "function", Ke = Array.isArray, Xt = (t) => Ke(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Oe = `[ 	
 \f\r]`, de = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, st = /-->/g, at = />/g, K = RegExp(`>|${Oe}(?:([^\\s"'>=/]+)(${Oe}*=${Oe}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), rt = /'/g, it = /"/g, Pt = /^(?:script|style|textarea|title)$/i, Zt = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), n = Zt(1), J = Symbol.for("lit-noChange"), d = Symbol.for("lit-nothing"), nt = /* @__PURE__ */ new WeakMap(), W = q.createTreeWalker(q, 129);
 function Et(t, e) {
@@ -299,7 +299,7 @@ const Qt = (t, e) => {
     let m, g, u = -1, p = 0;
     for (; p < c.length && (o.lastIndex = p, g = o.exec(c), g !== null); ) p = o.lastIndex, o === de ? g[1] === "!--" ? o = st : g[1] !== void 0 ? o = at : g[2] !== void 0 ? (Pt.test(g[2]) && (a = RegExp("</" + g[2], "g")), o = K) : g[3] !== void 0 && (o = K) : o === K ? g[0] === ">" ? (o = a ?? de, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? K : g[3] === '"' ? it : rt) : o === it || o === rt ? o = K : o === st || o === at ? o = de : (o = K, a = void 0);
     const f = o === K && t[h + 1].startsWith("/>") ? " " : "";
-    i += o === de ? c + Yt : u >= 0 ? (r.push(m), c.slice(0, u) + Tt + c.slice(u) + H + f) : c + H + (u === -2 ? h : f);
+    i += o === de ? c + Yt : u >= 0 ? (r.push(m), c.slice(0, u) + Tt + c.slice(u) + M + f) : c + M + (u === -2 ? h : f);
   }
   return [Et(t, i + (t[s] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), r];
 };
@@ -316,11 +316,11 @@ class ve {
     for (; (a = W.nextNode()) !== null && c.length < h; ) {
       if (a.nodeType === 1) {
         if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Tt)) {
-          const p = g[o++], f = a.getAttribute(u).split(H), v = /([.?@])?(.*)/.exec(p);
+          const p = g[o++], f = a.getAttribute(u).split(M), v = /([.?@])?(.*)/.exec(p);
           c.push({ type: 1, index: i, name: v[2], strings: f, ctor: v[1] === "." ? ts : v[1] === "?" ? ss : v[1] === "@" ? as : Ee }), a.removeAttribute(u);
-        } else u.startsWith(H) && (c.push({ type: 6, index: i }), a.removeAttribute(u));
+        } else u.startsWith(M) && (c.push({ type: 6, index: i }), a.removeAttribute(u));
         if (Pt.test(a.tagName)) {
-          const u = a.textContent.split(H), p = u.length - 1;
+          const u = a.textContent.split(M), p = u.length - 1;
           if (p > 0) {
             a.textContent = Ae ? Ae.emptyScript : "";
             for (let f = 0; f < p; f++) a.append(u[f], me()), W.nextNode(), c.push({ type: 2, index: ++i });
@@ -330,7 +330,7 @@ class ve {
       } else if (a.nodeType === 8) if (a.data === At) c.push({ type: 2, index: i });
       else {
         let u = -1;
-        for (; (u = a.data.indexOf(H, u + 1)) !== -1; ) c.push({ type: 7, index: i }), u += H.length - 1;
+        for (; (u = a.data.indexOf(M, u + 1)) !== -1; ) c.push({ type: 7, index: i }), u += M.length - 1;
       }
       i++;
     }
@@ -2842,8 +2842,8 @@ var Is = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, S = (t, e,
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && Is(e, s, a), a;
 };
-const Ms = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, Me = ["debug", "info", "warning", "error"], ut = [...Me, "auto"], Ot = "messagehub.knx-addresses.only-enabled";
-function Hs() {
+const Hs = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, He = ["debug", "info", "warning", "error"], ut = [...He, "auto"], Ot = "messagehub.knx-addresses.only-enabled";
+function Ms() {
   try {
     const t = localStorage.getItem(Ot);
     return t === null ? !0 : t === "1" || t === "true";
@@ -2854,7 +2854,7 @@ function Hs() {
 const Us = /^[\s\-_=]*$/, ce = 200;
 let y = class extends w {
   constructor() {
-    super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._onlyEnabled = Hs(), this._hidePlaceholders = !0, this._displayedCount = ce, this._selected = /* @__PURE__ */ new Set(), this._bulkSeverityValue = "warning", this._bulkActionRunning = !1, this._newAddr = "", this._newLabel = "", this._newDpt = "", this._sevPopoverFor = null, this._sevPopoverPos = null, this._discovery = [], this._discoveryStatus = "loading", this._editing = null, this._toast = "", this._error = "";
+    super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._onlyEnabled = Ms(), this._hidePlaceholders = !0, this._displayedCount = ce, this._selected = /* @__PURE__ */ new Set(), this._bulkSeverityValue = "warning", this._bulkActionRunning = !1, this._newAddr = "", this._newLabel = "", this._newDpt = "", this._sevPopoverFor = null, this._sevPopoverPos = null, this._discovery = [], this._discoveryStatus = "loading", this._editing = null, this._toast = "", this._error = "";
   }
   async firstUpdated() {
     await this._load(), await this._loadDiscovery();
@@ -2935,7 +2935,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
   async _add() {
     if (this._error = "", !this.api) return;
     const t = this._newAddr.trim();
-    if (!Ms.test(t)) {
+    if (!Hs.test(t)) {
       this._error = "Bitte Format N/N/N (z. B. 1/2/3)";
       return;
     }
@@ -3233,7 +3233,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
       severity_on_true: s.target.value
     })}
                         >
-                          ${Me.map(
+                          ${He.map(
       (s) => n`<option value=${s}>${s}</option>`
     )}
                         </select>
@@ -3246,7 +3246,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
       severity_on_false: s.target.value
     })}
                         >
-                          ${Me.map(
+                          ${He.map(
       (s) => n`<option value=${s}>${s}</option>`
     )}
                         </select>
@@ -5028,7 +5028,7 @@ P([
 F = P([
   T("remediation-view")
 ], F);
-var qs = Object.defineProperty, Js = Object.getOwnPropertyDescriptor, M = (t, e, s, r) => {
+var qs = Object.defineProperty, Js = Object.getOwnPropertyDescriptor, H = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? Js(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && qs(e, s, a), a;
@@ -5633,31 +5633,31 @@ L.styles = [
       }
     `
 ];
-M([
+H([
   x({ attribute: !1 })
 ], L.prototype, "api", 2);
-M([
+H([
   l()
 ], L.prototype, "_items", 2);
-M([
+H([
   l()
 ], L.prototype, "_loading", 2);
-M([
+H([
   l()
 ], L.prototype, "_showForm", 2);
-M([
+H([
   l()
 ], L.prototype, "_editing", 2);
-M([
+H([
   l()
 ], L.prototype, "_toast", 2);
-M([
+H([
   l()
 ], L.prototype, "_menuOpenId", 2);
-M([
+H([
   l()
 ], L.prototype, "_activeTab", 2);
-L = M([
+L = H([
   T("settings-view")
 ], L);
 var Xs = Object.defineProperty, Zs = Object.getOwnPropertyDescriptor, Q = (t, e, s, r) => {
@@ -6264,7 +6264,7 @@ function da(t, e) {
   const s = (e ?? "").trim();
   return !!(s === "" || la.test(s) || s === t);
 }
-const ha = 25, ca = 100, pa = 300, He = [
+const ha = 25, ca = 100, pa = 300, Me = [
   { id: "1h", label: "1 Std", days: 1 / 24 },
   { id: "6h", label: "6 Std", days: 0.25 },
   { id: "24h", label: "24 Std", days: 1 },
@@ -6305,7 +6305,7 @@ function z(t) {
   }
 }
 function bt(t) {
-  const e = He.find((a) => a.id === t) ?? He[2], s = /* @__PURE__ */ new Date();
+  const e = Me.find((a) => a.id === t) ?? Me[2], s = /* @__PURE__ */ new Date();
   return { from: new Date(s.getTime() - e.days * 864e5).toISOString(), to: s.toISOString() };
 }
 const va = 48;
@@ -6497,7 +6497,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         le,
         $e,
         Bt,
-        Mt
+        Ht
       ] = await Promise.all([
         this.api.getKnxStatsSummary(a),
         this.api.getKnxStatsTop(a),
@@ -6523,8 +6523,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           this.api.getKnxStatsHeatmap(a, 10, this._suggestHeatmapBucketMinutes())
         )
       ]);
-      this._summary = o, this._top = h.items, this._topBySource = c.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = f, this._health = v, this._longTerm = k, this._bursts = le, this._sensitiveLog = $e, this._trend = Bt, this._heatmap = Mt, this._apiErrors = t, this._apiErrorsDismissed = !1;
-      const Je = h.items.slice(0, 5).map((Ht) => Ht.ga);
+      this._summary = o, this._top = h.items, this._topBySource = c.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = f, this._health = v, this._longTerm = k, this._bursts = le, this._sensitiveLog = $e, this._trend = Bt, this._heatmap = Ht, this._apiErrors = t, this._apiErrorsDismissed = !1;
+      const Je = h.items.slice(0, 5).map((Mt) => Mt.ga);
       Je.length > 0 ? this._timeline = await this.api.getKnxStatsTimeline({
         ...a,
         gas: Je,
@@ -6710,7 +6710,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         <div class="filter-group">
           <span class="filter-label">Zeitraum</span>
           <div class="seg">
-            ${He.map(
+            ${Me.map(
       (t) => n`<button
                 class=${`seg-btn ${this._filters.periodId === t.id ? "active" : ""}`}
                 @click=${() => this._onPeriod(t.id)}
@@ -6753,12 +6753,13 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         </label>
 
         <button
-          class="mh-btn mh-btn--sm mh-btn--primary"
+          class="mh-btn mh-btn--primary filter-refresh-btn"
           @click=${() => void this._load()}
           ?disabled=${this._loading}
           title="Alle Cards neu vom Backend laden"
         >
-          ${this._loading ? "lade…" : "↻ Aktualisieren"}
+          <span class=${this._loading ? "filter-refresh-btn__spin" : ""} aria-hidden="true">↻</span>
+          ${this._loading ? "lade…" : "Aktualisieren"}
         </button>
       </div>
     `;
@@ -8030,6 +8031,39 @@ b.styles = [
         border: 1px solid var(--mh-divider);
         border-radius: var(--mh-radius-md);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+      }
+      /* Iter aiohttp-error-ZU9UA / P2: Refresh-Button visuell
+         hervorheben — vorher wirkte er trotz mh-btn--primary grau,
+         weil HA-Themes manchmal --primary-color ueberschreiben.
+         Eigene Klasse mit garantiertem Farbkontrast + Schatten. */
+      .filter-refresh-btn {
+        font-weight: var(--mh-weight-semibold, 600);
+        padding: 8px 16px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        background: var(--mh-accent, var(--primary-color, #03a9f4));
+        color: var(--mh-accent-fg, var(--text-primary-color, #fff));
+      }
+      .filter-refresh-btn:hover:not(:disabled) {
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        transform: translateY(-1px);
+      }
+      .filter-refresh-btn:disabled {
+        /* Wenn lade-aktiv: weniger Opacity-Drop als Default-Disabled,
+           damit der Spinner-Glyph noch lesbar bleibt. */
+        opacity: 0.7;
+      }
+      .filter-refresh-btn__spin {
+        display: inline-block;
+        animation: mh-spin 800ms linear infinite;
+      }
+      @keyframes mh-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .filter-refresh-btn__spin {
+          animation: none;
+        }
       }
       .filter-group {
         display: flex;
