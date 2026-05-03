@@ -10,11 +10,12 @@ import type { ApiClient } from "../api-client.js";
 import { tokens } from "../styles/tokens.js";
 import "./stats-live-view.js";
 import "./stats-knx-view.js";
+import "./findings-view.js";
 
-export type StatsSubTab = "live" | "knx";
+export type StatsSubTab = "live" | "knx" | "findings";
 
 const STORAGE_KEY = "messagehub.stats.subtab";
-const VALID_TABS: ReadonlySet<StatsSubTab> = new Set(["live", "knx"]);
+const VALID_TABS: ReadonlySet<StatsSubTab> = new Set(["live", "knx", "findings"]);
 
 @customElement("stats-view")
 export class StatsView extends LitElement {
@@ -45,6 +46,8 @@ export class StatsView extends LitElement {
     const tabs: Array<{ id: StatsSubTab; label: string }> = [
       { id: "live", label: "Live-Status" },
       { id: "knx", label: "KNX-Bus-Analyse" },
+      // Iter 9 (knx-findings): Konfigurations-Check als 3. Sub-Tab.
+      { id: "findings", label: "Konfigurations-Check" },
     ];
     return html`
       <div class="root">
@@ -66,6 +69,9 @@ export class StatsView extends LitElement {
             : nothing}
           ${this._tab === "knx"
             ? html`<stats-knx-view .api=${this.api}></stats-knx-view>`
+            : nothing}
+          ${this._tab === "findings"
+            ? html`<findings-view .api=${this.api}></findings-view>`
             : nothing}
         </div>
       </div>

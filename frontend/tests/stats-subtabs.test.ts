@@ -33,12 +33,17 @@ describe("stats-view sub-tabs", () => {
     }
   });
 
-  it("rendert zwei Sub-Tabs: Live-Status + KNX-Bus-Analyse", async () => {
+  it("rendert drei Sub-Tabs: Live-Status + KNX-Bus-Analyse + Konfigurations-Check", async () => {
+    // Iter 9 (knx-findings): "Konfigurations-Check" als 3. Sub-Tab.
     const el = await mount();
     const tabs = el.shadowRoot!.querySelectorAll("button.subtab");
-    expect(tabs.length).toBe(2);
+    expect(tabs.length).toBe(3);
     const labels = Array.from(tabs).map((t) => t.textContent?.trim());
-    expect(labels).toEqual(["Live-Status", "KNX-Bus-Analyse"]);
+    expect(labels).toEqual([
+      "Live-Status",
+      "KNX-Bus-Analyse",
+      "Konfigurations-Check",
+    ]);
   });
 
   it("startet im Live-Status-Sub-Tab", async () => {

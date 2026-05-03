@@ -24,6 +24,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   `list_findings(code, ga, severity, source, limit)` mit
   `last_seen DESC`-Sortierung. title/description sind nicht
   persistiert (UI rendert via translations/).
+- **Iter 9 — Frontend `findings-view` als 3. Sub-Tab.**
+  Neuer Konfigurations-Check-Tab im Statistik-Bereich (neben Live-
+  Status + KNX-Bus-Analyse). Iter 9 rendert nur den leeren Container
+  mit Severity-Filter, Total-Anzeige und Empty-State; Iter 10
+  verdrahtet Items + Ack-Action. `ApiClient` bekommt
+  `listFindings`, `acknowledgeFinding`, `unacknowledgeFinding`,
+  `listSeverityOverrides`, `setSeverityOverride`,
+  `clearSeverityOverride` plus Vertrags-Types (`FindingDto` etc.).
+  Bundle: 363,59 KB → 371,51 KB.
 - **Iter 8 — API CRUD fuer Severity-Overrides.**
   `GET /findings/severity-overrides` liefert Tabelle Code | Default |
   Override (alle bekannten Codes inkl. ohne Override-Eintrag — UI muss

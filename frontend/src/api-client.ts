@@ -414,6 +414,61 @@ export interface ListFilters {
   hideKnxRead?: boolean;
 }
 
+// Iter 6+ (knx-findings): Vertrag fuer den /findings-Endpoint.
+// Spiegel von Finding aus processing/findings.py — JSON-Form.
+export type FindingSeverity = "debug" | "info" | "warning" | "error";
+
+export interface FindingDto {
+  code: string;
+  schema_version: number;
+  severity: FindingSeverity;
+  ga: string | null;
+  source: string | null;
+  title: string;
+  description: string;
+  evidence: Record<string, unknown>;
+  first_seen: string;
+  last_seen: string;
+  occurrence_count: number;
+  detector_version: string;
+}
+
+export interface FindingsListResponse {
+  items: FindingDto[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface FindingsListFilters {
+  code?: string;
+  ga?: string;
+  severity?: FindingSeverity;
+  source?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface FindingsAckPayload {
+  ga: string;
+  code: string;
+  note?: string;
+  sticky?: boolean;
+}
+
+export interface SeverityOverrideItemDto {
+  code: string;
+  default_severity: FindingSeverity;
+  override_severity: FindingSeverity | null;
+  note: string | null;
+  updated_at: string | null;
+}
+
+export interface SeverityOverridesResponse {
+  items: SeverityOverrideItemDto[];
+  total: number;
+}
+
 export class ApiClient {
   private auth: { token: string } | null = null;
 
@@ -1149,6 +1204,73 @@ export class ApiClient {
     const url = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge/${encodeURIComponent(ga)}`;
     const res = await fetch(url, { method: "DELETE", headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
+  // ----- Iter 6/7/8 (knx-findings): Findings-Endpoints --------------------
+
+  async listFindings(
+    filters: FindingsListFilters = {}
+  ): Promise<FindingsListResponse> {
+    const params = new URLSearchParams();
+    if (filters.code) params.set("code", filters.code);
+    if (filters.ga) params.set("ga", filters.ga);
+    if (filters.severity) params.set("severity", filters.severity);
+    if (filters.source) params.set("source", filters.source);
+    if (filters.limit !== undefined) params.set("limit", String(filters.limit));
+    if (filters.offset !== undefined) params.set("offset", String(filters.offset));
+    const url = `${this.baseUrl}/api/messagehub/findings?${params.toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return (await res.json()) as FindingsListResponse;
+  }
+
+  async acknowledgeFinding(payload: FindingsAckPayload): Promise<unknown> {
+    const url = `${this.baseUrl}/api/messagehub/findings/ack`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return await res.json();
+  }
+
+  async unacknowledgeFinding(ga: string, code: string): Promise<unknown> {
+    const url = `${this.baseUrl}/api/messagehub/findings/ack/${encodeURIComponent(ga)}/${encodeURIComponent(code)}`;
+    const res = await fetch(url, { method: "DELETE", headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return await res.json();
+  }
+
+  async listSeverityOverrides(): Promise<SeverityOverridesResponse> {
+    const url = `${this.baseUrl}/api/messagehub/findings/severity-overrides`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return (await res.json()) as SeverityOverridesResponse;
+  }
+
+  async setSeverityOverride(
+    code: string,
+    severity: FindingSeverity,
+    note?: string
+  ): Promise<unknown> {
+    const url = `${this.baseUrl}/api/messagehub/findings/severity-overrides/${encodeURIComponent(code)}`;
+    const body: Record<string, unknown> = { severity };
+    if (note !== undefined) body["note"] = note;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: this.headers(),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return await res.json();
+  }
+
+  async clearSeverityOverride(code: string): Promise<unknown> {
+    const url = `${this.baseUrl}/api/messagehub/findings/severity-overrides/${encodeURIComponent(code)}`;
+    const res = await fetch(url, { method: "DELETE", headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return await res.json();
   }
 
   async acknowledgeKnxBulk(
