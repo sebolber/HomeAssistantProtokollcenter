@@ -725,11 +725,12 @@ class KnxStatsRepository:
         if not dev_source:
             return []
         rows = await self._db.fetch_all(
-            "SELECT r.destination AS ga, a.label AS label, COUNT(*) AS n "
+            "SELECT r.destination AS ga, a.label AS label, a.dpt AS dpt, "
+            "       COUNT(*) AS n, MAX(r.timestamp) AS last_seen "
             "FROM knx_raw_telegrams r "
             "LEFT JOIN knx_group_addresses a ON a.address = r.destination "
             "WHERE r.source = ? AND r.timestamp >= ? AND r.timestamp < ? "
-            "GROUP BY r.destination, a.label "
+            "GROUP BY r.destination, a.label, a.dpt "
             "ORDER BY n DESC "
             "LIMIT ?",
             (dev_source, from_iso, to_iso, max(1, min(limit, 100))),
@@ -738,10 +739,97 @@ class KnxStatsRepository:
             {
                 "ga": str(row["ga"]),
                 "label": row["label"],
+                "dpt": row["dpt"],
                 "count": int(row["n"]),
+                "last_seen": row["last_seen"],
             }
             for row in rows
         ]
+
+    async def last_seen_for_source(
+        self, dev_source: str
+    ) -> str | None:
+        """Liefert den ISO-Timestamp des letzten Telegramms einer Source.
+
+        Iter A (Detail-Panes-Konzept): Source-Detail braucht einen
+        last_seen-Wert, der UNABHAENGIG vom Auswertezeitraum ist —
+        sonst koennte die UI eine Source als "stumm seit 7 Tagen"
+        anzeigen, obwohl sie nur ausserhalb der gewaehlten Periode
+        gesendet hat. Daher KEIN from/to-Filter; greift auf den ganzen
+        knx_raw_telegrams-Retention-Zeitraum (Default 48 h) zu.
+
+        DoS-Schutz: Index `idx_knx_raw_source_ts` (siehe
+        0019_knx_raw_telegrams.sql) macht die Query O(log n) auch
+        bei 5 Mio Rows.
+        """
+        if not dev_source:
+            return None
+        row = await self._db.fetch_one(
+            "SELECT MAX(timestamp) AS last_seen "
+            "FROM knx_raw_telegrams WHERE source = ?",
+            (dev_source,),
+        )
+        if row is None:
+            return None
+        value = row["last_seen"]
+        return str(value) if value is not None else None
+
+    async def count_for_source(
+        self, dev_source: str, from_iso: str, to_iso: str
+    ) -> int:
+        """Telegramm-Anzahl einer Source im Zeitraum.
+
+        Iter A: Source-Detail liefert den Bus-Anteil als
+        count_for_source / summary.total_telegrams. Der Service
+        koennte das auch aus `gas_for_source` aufsummieren — eine
+        zusaetzliche Aggregat-Query bleibt aber in O(log n) und
+        liefert eine konsistente Zahl, auch wenn der gas_for_source-
+        limit-Hard-Cap (100) greift.
+        """
+        if not dev_source:
+            return 0
+        row = await self._db.fetch_one(
+            "SELECT COUNT(*) AS n FROM knx_raw_telegrams "
+            "WHERE source = ? AND timestamp >= ? AND timestamp < ?",
+            (dev_source, from_iso, to_iso),
+        )
+        if row is None:
+            return 0
+        value = row["n"]
+        return int(value) if value is not None else 0
+
+    async def repeat_ratio_for_source(
+        self, dev_source: str, from_iso: str, to_iso: str
+    ) -> dict[str, Any]:
+        """Wiederhol-Quote pro Source im Zeitraum.
+
+        Iter A: spiegelt `bus_health` (bus-weit), aber gefiltert auf
+        eine Source — fuer den Source-Detail-KPI "Wiederhol-Quote
+        dieses Geraets". Hilft bei "spinnt das ganze Geraet" vs.
+        "spinnt der Bus generell".
+
+        Liefert {total, repeated, ratio_pct}; ratio_pct=0.0 bei leerem
+        Period oder unbekannter Source.
+        """
+        if not dev_source:
+            return {"total": 0, "repeated": 0, "ratio_pct": 0.0}
+        row = await self._db.fetch_one(
+            "SELECT COUNT(*) AS total, "
+            "       SUM(CASE WHEN repeated = 1 THEN 1 ELSE 0 END) AS repeated_count "
+            "FROM knx_raw_telegrams "
+            "WHERE source = ? AND timestamp >= ? AND timestamp < ?",
+            (dev_source, from_iso, to_iso),
+        )
+        if row is None:
+            return {"total": 0, "repeated": 0, "ratio_pct": 0.0}
+        total = int(row["total"] or 0)
+        repeated = int(row["repeated_count"] or 0)
+        ratio = (repeated / total * 100.0) if total > 0 else 0.0
+        return {
+            "total": total,
+            "repeated": repeated,
+            "ratio_pct": round(ratio, 2),
+        }
 
     # --- Cleanup (Iter 24) --------------------------------------------------
 
