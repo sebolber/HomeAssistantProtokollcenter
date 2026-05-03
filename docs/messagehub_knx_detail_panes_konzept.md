@@ -192,25 +192,25 @@ Body:
    im Frontend (analog zum GA-Detail-Cache, der heute schon im
    `KnxStatsView`-State liegt).
 
-## Iter-Aufteilung (Vorschlag)
+## Iter-Aufteilung (Status: alle erledigt — v0.23.0)
 
-| Iter | Inhalt | Erwartet |
-|------|--------|----------|
-| **A** | Repo: `last_seen_per_source(dev_source)` + Test | <30 min |
-| **B** | Service: `compute_source_detail(...)` ohne Trend, ohne Findings — nur GAs + KPIs + last_seen | 60 min |
-| **C** | API-View `KnxStatsSourceDetailView` + DTO + Smoke-Test | 60 min |
-| **D** | Frontend: `_sourceDetail`-State + `_loadSourceDetail` + neuer Render-Body + Tests | 60 min |
-| **E** | Top-Geräte-Tabelle: Click-Handler + Selection-Highlight | <30 min |
-| **F** | Stille-Alarme: Click-Handler + Selection-Highlight | <30 min |
-| **G** | Trend-Liste: Click-Handler oeffnet GA-Detail | <30 min |
-| **H** | Source-Detail: Findings-Liste integrieren (`list_findings(source=)`) + Test | 30 min |
-| **I** | Source-Detail: Trend-Compare integrieren (Counter-basiert), wenn Periode >= 24h | 60 min |
-| **J** | Doku + CHANGELOG + Snapshot-Fixture optional | 30 min |
+| Iter | Inhalt | Status |
+|------|--------|--------|
+| **A** | Repo: `last_seen_per_source(dev_source)` + Test | erledigt |
+| **B** | Service: `compute_source_detail(...)` ohne Trend, ohne Findings — nur GAs + KPIs + last_seen | erledigt |
+| **C** | API-View `KnxStatsSourceDetailView` + DTO + Smoke-Test | erledigt |
+| **D** | Frontend: `_sourceDetail`-State + `_loadSourceDetail` + neuer Render-Body + Tests | erledigt (D.1 + D.2) |
+| **E** | Top-Geräte-Tabelle: Click-Handler + Selection-Highlight | erledigt |
+| **F** | Stille-Alarme: Click-Handler + Selection-Highlight | erledigt |
+| **G** | Trend-Liste: Click-Handler oeffnet GA-Detail | erledigt |
+| **H** | Source-Detail: Findings-Liste integrieren (`list_findings(source=)`) + Test | erledigt |
+| **I** | Source-Detail: Trend-Compare integrieren (Counter-basiert), wenn Periode >= 24h | erledigt |
+| **J** | Doku + CHANGELOG + Release v0.23.0 | erledigt |
 
-Iter A-G ergeben den Mindest-User-Wert (drei Widgets klickbar, Source-
-Detail laeuft). H-I sind separate Polish-Iter, die der User ueber den
-Findings-Tab heute schon parallel bekommt — wir koennen sie spaeter
-nachziehen, wenn das Source-Detail-MVP eingeschwungen ist.
+Iter A-G haben den Mindest-User-Wert geliefert (drei Widgets klickbar,
+Source-Detail laeuft). H-I haben Findings-Liste pro Source und einen
+Trend-Vergleich pro Source nachgezogen. Release v0.23.0 (Iter J)
+enthaelt das vollstaendige Feature.
 
 ## Out-of-Scope (bewusst)
 

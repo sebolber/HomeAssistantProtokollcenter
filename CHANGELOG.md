@@ -6,6 +6,71 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.23.0] – 2026-05-03
+
+### Hinzugefuegt (KNX-Detail-Panes fuer Top-Geraete / Stille-Alarme / Trend)
+- **Iter A — Source-Detail-Repo-Methoden.** Neue Aggregat-Queries in
+  `storage/knx_stats_repo.py`: `last_seen_for_source`,
+  `count_for_source`, `repeat_ratio_for_source` und
+  `gas_for_source(dev_source, from, to, limit)` (Hard-Cap-bewusst,
+  Order by count desc). Damit hat der Service alle Bausteine fuer
+  Source-Detail-KPIs + GA-Liste pro Geraet.
+- **Iter B — Source-Detail-Service.**
+  `processing/knx_stats_service.py:KnxStatsService.compute_source_detail`
+  baut die `SourceDetail`-Dataclass (Total/GA-Count/Bus-Anteil/
+  Stille-Status/Wiederhol-Quote/GA-Liste mit Severity). Hard-Cap 100
+  GAs pro Antwort schuetzt vor zentralen Logik-Modulen mit hunderten
+  GAs. JSON-Serializer `source_detail_to_dict`.
+- **Iter C — API-View `KnxStatsSourceDetailView`.** Neuer Endpoint
+  `GET /api/messagehub/knx-stats/source/{dev_source}?from=&to=` ueber
+  `RequireAdminView`, registriert in `api/messages.py`. Liefert die
+  Source-Detail-Sicht inkl. ETS-`device`/`manufacturer_hints`. 400 bei
+  ungueltiger Source/Period, 404 wenn die Source im Period kein
+  Telegramm gesendet hat.
+- **Iter D.1 — Frontend-API-Client.**
+  `KnxStatsSourceDetailDto` + `KnxStatsSourceGaSummaryDto` in
+  `frontend/src/api-client.ts`, neue Methode `getKnxStatsSourceDetail`.
+- **Iter D.2 — Source-Detail-Render-Body.**
+  `stats-knx-view.ts` rendert die Source-Detail-Sicht im selben
+  Drawer wie das GA-Detail (kein zweites Modal — Architektur-Entscheid
+  aus `docs/messagehub_knx_detail_panes_konzept.md`). KPI-Reihe,
+  Stille-Status, GA-Liste, Geraete-Info. Escape + Backdrop schliessen
+  beide Detail-Pane-Varianten.
+- **Iter E — Top-Geraete Click-Handler.** TR-Klick in der Top-Geraete-
+  Tabelle oeffnet das Source-Detail-Pane (`@click =>
+  _loadSourceDetail`). Selection-Highlight via `_selectedSource`,
+  Bulk-Ack-Button stoppt die Propagation.
+- **Iter F — Stille-Alarme Click-Handler.** LI-Klick in der
+  silence-list oeffnet das Source-Detail-Pane des stummen Geraets.
+- **Iter G — Trend-Liste Click-Handler.** LI-Klick in
+  `trend-list--up`/`trend-list--down` oeffnet das GA-Detail-Pane
+  (NICHT Source — Trend-Zeilen referenzieren GAs).
+- **Iter H — Findings-Liste in Source-Detail.**
+  `SourceDetail.findings` (Backend, optional via
+  `KnxStatsService(repo, findings_repo=...)`) + Frontend-Sektion mit
+  Severity-Pill + Code-Link. Klick auf den Code-Link setzt
+  `window.location.hash = "#findings?source=<dev_source>"`; `stats-view`
+  hoert auf `hashchange` und reicht den Source-Filter an `findings-view`
+  weiter, das `listFindings({source})` aufruft.
+- **Iter I — Trend-Compare per Source.**
+  `SourceTrendDelta` (count_now/count_prev/delta_abs/delta_pct) wird
+  bei Perioden >= 24h berechnet (`SOURCE_DETAIL_TREND_MIN_PERIOD_MINUTES`)
+  und im Source-Detail-Pane als Trend-Block mit Severity-Klasse (analog
+  zur globalen Trend-Card) gerendert. delta_pct=null wird als "neu"
+  ausgewiesen.
+
+### Tests
+- 18 neue Backend-Tests
+  (`test_knx_stats_service_source_detail.py` aus Iter B,
+  `test_knx_stats_api_source_detail.py` aus Iter C,
+  `test_knx_stats_service_source_findings.py` aus Iter H,
+  `test_knx_stats_service_source_trend.py` aus Iter I — 1027 unit-tests).
+- 22 neue Frontend-Tests
+  (`source-detail-render.test.ts`, `top-devices-click.test.ts`,
+  `silence-click.test.ts`, `trend-click.test.ts`,
+  `source-detail-findings.test.ts`, `source-detail-trend.test.ts` —
+  214 frontend-tests).
+
 ## [0.22.0] – 2026-05-03
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Wiring-Audit + Phase 6+7)

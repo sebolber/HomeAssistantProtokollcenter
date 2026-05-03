@@ -1,6 +1,6 @@
 # Messagehub-Backlog: KNX-Konfigurations-Findings
 
-Letzte Aktualisierung: 2026-05-03 (Release v0.22.0).
+Letzte Aktualisierung: 2026-05-03 (Release v0.23.0).
 
 ## Erledigt
 
@@ -46,8 +46,19 @@ Conventional Commit (`Iteration: N` im Footer); Releases in
 | 29c | Prometheus-Aggregation verdrahtet (`MetricsView` -> `finding_total`) | 0.22.0 |
 | 30 | Snapshot-Fixtures pro Detector (`tests/fixtures/knx_findings/`) | 0.22.0 |
 | 31 | Detector `SEND_TO_NOWHERE` (komplexer Letzter, severity=info) | 0.22.0 |
+| Detail-Pane A | Repo `last_seen_for_source` / `count_for_source` / `repeat_ratio_for_source` / `gas_for_source` | 0.23.0 |
+| Detail-Pane B | Service `compute_source_detail` + `SourceDetail`/`SourceGaSummary` + `source_detail_to_dict` | 0.23.0 |
+| Detail-Pane C | API-View `KnxStatsSourceDetailView` (`/knx-stats/source/{dev_source}`) | 0.23.0 |
+| Detail-Pane D.1 | Frontend-API-Client `getKnxStatsSourceDetail` + DTOs | 0.23.0 |
+| Detail-Pane D.2 | Source-Detail-Render-Body in `stats-knx-view` (KPI/Stille/GA-Liste/Geraete-Info) | 0.23.0 |
+| Detail-Pane E | Top-Geraete-Tabelle Click-Handler oeffnet Source-Detail | 0.23.0 |
+| Detail-Pane F | Stille-Alarme Click-Handler oeffnet Source-Detail | 0.23.0 |
+| Detail-Pane G | Trend-Liste Click-Handler oeffnet GA-Detail | 0.23.0 |
+| Detail-Pane H | Findings-Liste pro Source im Source-Detail (+ Hash-Navigation zum Findings-Tab) | 0.23.0 |
+| Detail-Pane I | Trend-Compare pro Source im Source-Detail (>= 24h) | 0.23.0 |
+| Detail-Pane J | CHANGELOG + Konzept-Status + Release v0.23.0 | 0.23.0 |
 
-## Offen / Out-of-scope (Stand v0.22.0)
+## Offen / Out-of-scope (Stand v0.23.0)
 
 Bewusst nicht in den 31 Iter, weil das Datenmaterial fehlt
 (siehe §3.1 + §9.9 in `docs/messagehub_knx_konfigurationsfehler_recherche.md`):
