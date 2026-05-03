@@ -6,6 +6,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 4)
+- **Iter 20 — Detector `RECONNECT_STORM`.**
+  Erkennt: nach >=60 s Stille auf einer `knx_source` folgt ein Burst
+  (>=10x normaler 30-s-Schnitt) — typisch fuer Reconnect-Floods nach
+  Bus-Spannungsausfall. Severity `warning` (Symptom, kann normal sein
+  nach Spannungsausfall). Evidence
+  `{silence_until, burst_count, normal_avg, factor}`.
+
 ## [0.20.0] – 2026-05-03
 
 KNX-Konfigurations-Findings — Phase 2 + 3 (Iter 11-19) aus
