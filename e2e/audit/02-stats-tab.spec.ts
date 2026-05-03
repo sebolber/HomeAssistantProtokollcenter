@@ -54,4 +54,29 @@ test.describe("Stats-Tab", () => {
     );
     expect(req).toBeTruthy();
   });
+
+  // F-010 / Iter +11: erweitertes Deep-Link-Routing.
+  test("F-010: #stats/knx oeffnet KNX-Bus-Analyse-Sub-Tab direkt", async ({ page }) => {
+    await page.goto("/messagehub#stats/knx");
+    await page.waitForFunction(() => !!document.querySelector("messagehub-panel"));
+    const stats = page.locator("messagehub-panel >> stats-view");
+    await expect(stats.locator("stats-knx-view")).toBeVisible();
+  });
+
+  test("F-010: #settings/mqtt oeffnet Settings-Tab + MQTT-Sub-Tab direkt", async ({ page }) => {
+    await page.goto("/messagehub#settings/mqtt");
+    await page.waitForFunction(() => !!document.querySelector("messagehub-panel"));
+    const settings = page.locator("messagehub-panel >> settings-view");
+    await expect(settings.locator("mqtt-topics-view")).toBeVisible();
+  });
+
+  test("F-010: Tab-Klick aktualisiert URL-Hash (Browser-History)", async ({ page }) => {
+    await page.goto("/messagehub");
+    await page.waitForFunction(() => !!document.querySelector("messagehub-panel"));
+    await page
+      .locator("messagehub-panel")
+      .locator('button[role="tab"]', { hasText: "Audit" })
+      .click();
+    await expect(page).toHaveURL(/#audit$/);
+  });
 });

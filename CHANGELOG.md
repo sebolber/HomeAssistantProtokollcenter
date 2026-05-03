@@ -6,6 +6,22 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (UX)
+- **Iter +11 / F-010 — Deep-Linking via URL-Hash.** Top- und Sub-Tabs
+  reagieren jetzt auf URL-Hash-Praefixe — alle Bereiche sind direkt
+  bookmarkbar:
+  * `#messages`, `#stats`, `#settings`, `#audit` -> Top-Tab
+  * `#stats/live`, `#stats/knx`, `#stats/findings` -> Sub-Tab
+  * `#stats/findings?source=1.1.42` -> Findings + Source-Filter
+  * `#settings/webhooks|knx|channels|mqtt|heartbeats|remediation` -> Sub-Tab
+  Tab-Klicks aktualisieren den Hash via `history.replaceState`, damit
+  Browser-Back/Forward funktioniert. Backwards-Compat: das alte
+  `#findings`-Schema (Iter H) bleibt ohne Praefix-Wechsel weiter
+  funktional — sowohl im stats-view-Hash-Handler als auch im
+  Top-Panel-Initial-Tab. `hashchange`-Listener im Panel + beiden
+  Sub-Views sorgen fuer Live-Update bei manuellen URL-Aenderungen.
+  11 neue Vitest decken alle Pfade ab. Behebt Audit-Finding F-010.
+
 ### Geaendert (Performance + Code-Hygiene)
 - **Iter +10 / F-011 — Typisierter KNX-GA-Export-URL-Helfer.**
   `stats-knx-view` baut die Download-URL fuer den Telegramm-Export nicht

@@ -33,6 +33,12 @@ describe("settings-view tabs", () => {
     } catch {
       // ignore
     }
+    // F-010 / Iter +11: Hash zuruecksetzen, damit Tests aus
+    // deep-linking.test.ts keinen Settings-Tab vorgeben.
+    if (typeof window !== "undefined") {
+      // Test-Sandbox: jsdom unterstuetzt history.replaceState ohne URL-Konflikt.
+      window.history.replaceState(null, "", "/");
+    }
   });
 
   it("rendert sechs Tabs in der Reihenfolge Webhooks/KNX/Channels/MQTT/Heartbeats/Remediation", async () => {

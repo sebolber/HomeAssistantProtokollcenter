@@ -28,6 +28,17 @@ const TABS: Array<{ id: SettingsTab; label: string }> = [
 const STORAGE_KEY_TAB = "messagehub.settings.tab";
 
 function loadInitialTab(): SettingsTab {
+  // F-010: URL-Hash hat Vorrang vor LocalStorage. Erlaubt Deep-Linking
+  // wie #settings/mqtt direkt aus Bookmarks oder Cross-Tab-Navigation.
+  if (typeof window !== "undefined" && window.location?.hash) {
+    const hash = window.location.hash.startsWith("#")
+      ? window.location.hash.slice(1)
+      : window.location.hash;
+    if (hash.startsWith("settings/")) {
+      const sub = hash.slice("settings/".length);
+      if (TABS.some((t) => t.id === sub)) return sub as SettingsTab;
+    }
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY_TAB);
     if (raw && TABS.some((t) => t.id === raw)) return raw as SettingsTab;
@@ -131,6 +142,40 @@ export class SettingsView extends LitElement {
     } catch {
       // ignore
     }
+    // F-010: Hash mitfuehren — erlaubt Browser-Back/Forward + Bookmark.
+    if (typeof window !== "undefined" && window.history) {
+      const newHash = `#settings/${tab}`;
+      if (window.location.hash !== newHash) {
+        window.history.replaceState(null, "", newHash);
+      }
+    }
+  }
+
+  // F-010: Reagiere auf hashchange-Events (Browser-Back, manuelles
+  // Editieren der URL, Cross-Tab-Navigation).
+  private _onHashChange = (): void => {
+    const hash = window.location.hash.startsWith("#")
+      ? window.location.hash.slice(1)
+      : window.location.hash;
+    if (!hash.startsWith("settings/")) return;
+    const sub = hash.slice("settings/".length);
+    if (TABS.some((t) => t.id === sub) && sub !== this._activeTab) {
+      this._activeTab = sub as SettingsTab;
+    }
+  };
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    if (typeof window !== "undefined") {
+      window.addEventListener("hashchange", this._onHashChange);
+    }
+  }
+
+  override disconnectedCallback(): void {
+    if (typeof window !== "undefined") {
+      window.removeEventListener("hashchange", this._onHashChange);
+    }
+    super.disconnectedCallback();
   }
 
   private _renderEmpty(): TemplateResult {
