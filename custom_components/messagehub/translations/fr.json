@@ -49,5 +49,19 @@
       "title": "Intégration MQTT indisponible",
       "description": "Message Hub a des abonnements aux topics MQTT configurés, mais l'intégration HA-MQTT n'est pas en cours d'exécution. Configurez l'intégration MQTT pour que les topics entrants apparaissent comme messages."
     }
+  },
+  "findings": {
+    "codes": {
+      "DPT_MISMATCH": {
+        "title": "Type de données détecté contredit le DPT du projet",
+        "description": "Le détecteur automatique a déduit {inferred_dpt} à partir de {samples} échantillons (confiance {confidence}). Le DPT du projet est {project_dpt}. Les valeurs sont probablement décodées de manière incorrecte — veuillez vérifier le projet ETS.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
+      },
+      "VALUE_OUT_OF_RANGE": {
+        "title": "Valeur hors de la plage autorisée du DPT",
+        "description": "La valeur {value} est en dehors de la plage autorisée [{range_min}, {range_max}] pour le DPT {dpt}. Probablement DPT incorrect ou capteur défectueux.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001133744-Datapoint-Type"
+      }
+    }
   }
 }

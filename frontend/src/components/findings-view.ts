@@ -15,6 +15,11 @@ import type {
 } from "../api-client.js";
 import { buttons, cards, forms, pills, tokens } from "../styles/tokens.js";
 import { customElement } from "../utils/custom-element.js";
+import {
+  getFindingDescription,
+  getFindingHelpUrl,
+  getFindingTitle,
+} from "../utils/findings-i18n.js";
 
 type SeverityFilter = "" | FindingSeverity;
 
@@ -171,6 +176,7 @@ export class FindingsView extends LitElement {
   private _renderItem(it: FindingDto): TemplateResult {
     const key = this._itemKey(it);
     const selected = this._selectedKey === key;
+    const title = getFindingTitle(it.code, this._lang()) || it.code;
     return html`
       <li
         class=${`item ${selected ? "item--selected" : ""}`}
@@ -183,7 +189,7 @@ export class FindingsView extends LitElement {
         >
           ${it.severity}
         </span>
-        <span class="code" data-test="item-code">${it.code}</span>
+        <span class="code" data-test="item-code" title=${it.code}>${title}</span>
         <span class="ga" data-test="item-ga">${it.ga ?? "(global)"}</span>
         <span class="source" data-test="item-source"
           >${it.source ?? ""}</span
@@ -198,16 +204,38 @@ export class FindingsView extends LitElement {
     `;
   }
 
+  private _lang(): string {
+    // Iter 14: Sprache via Browser. HA-Theme-Sprache wuerde via
+    // hass.locale.language kommen, aber das Panel hat aktuell keinen
+    // Hass-Bus-Hook fuer Locale — nehmen wir document.documentElement.lang
+    // (HA setzt das im html-Tag). Fallback: navigator.language.
+    if (typeof document !== "undefined" && document.documentElement.lang) {
+      return document.documentElement.lang;
+    }
+    if (typeof navigator !== "undefined" && navigator.language) {
+      return navigator.language;
+    }
+    return "en";
+  }
+
   private _renderDetailPane(): TemplateResult | typeof nothing {
     const selected = this._currentSelection();
     if (selected === null) return nothing;
+    const lang = this._lang();
+    const title = getFindingTitle(selected.code, lang) || selected.code;
+    const description = getFindingDescription(
+      selected.code,
+      lang,
+      selected.evidence
+    );
+    const helpUrl = getFindingHelpUrl(selected.code);
     return html`
       <aside class="detail mh-card" data-test="findings-detail">
         <header class="detail-header">
           <span class=${PILL_CLASS_FOR_SEVERITY[selected.severity]}>
             ${selected.severity}
           </span>
-          <span class="detail-code">${selected.code}</span>
+          <span class="detail-code" title=${selected.code}>${title}</span>
           <button
             class="mh-btn mh-btn--ghost mh-btn--icon"
             type="button"
@@ -217,7 +245,19 @@ export class FindingsView extends LitElement {
             ✕
           </button>
         </header>
+        ${description
+          ? html`<p class="detail-description" data-test="findings-detail-description">
+              ${description}
+            </p>`
+          : nothing}
+        ${helpUrl
+          ? html`<a class="detail-help" href=${helpUrl} target="_blank" rel="noopener"
+              >Hilfe / Doku ↗</a
+            >`
+          : nothing}
         <dl class="detail-evidence">
+          <dt>Code</dt>
+          <dd>${selected.code}</dd>
           <dt>GA</dt>
           <dd>${selected.ga ?? "(global)"}</dd>
           <dt>Source</dt>
@@ -397,6 +437,22 @@ export class FindingsView extends LitElement {
         font-family: var(--code-font-family, monospace);
         font-weight: var(--mh-weight-semibold);
         flex: 1;
+      }
+      .detail-description {
+        margin: 0 0 var(--mh-space-3);
+        color: var(--mh-fg);
+        line-height: 1.5;
+        font-size: var(--mh-text-sm);
+      }
+      .detail-help {
+        display: inline-block;
+        margin-bottom: var(--mh-space-3);
+        color: var(--mh-accent);
+        font-size: var(--mh-text-sm);
+        text-decoration: none;
+      }
+      .detail-help:hover {
+        text-decoration: underline;
       }
       .detail-evidence {
         display: grid;

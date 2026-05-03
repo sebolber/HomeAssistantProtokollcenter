@@ -7,6 +7,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 2)
+- **Iter 14 — i18n fuer Phase-2-Findings (DPT_MISMATCH, VALUE_OUT_OF_RANGE).**
+  Title, Description (mit Evidence-Platzhaltern wie
+  `{inferred_dpt}`/`{value}`) und Help-URL pro Code in allen sechs
+  Sprachen (`translations/de.json`, `en.json`, `es.json`, `fr.json`,
+  `it.json`, `nl.json`). Frontend-Helper
+  `frontend/src/utils/findings-i18n.ts` (DE+EN explizit, andere
+  Sprachen Fallback auf EN). `findings-view` rendert Title statt
+  rohem Code, Detail-Pane zeigt Description + Help-URL-Link.
 - **Iter 13 — Detector `VALUE_OUT_OF_RANGE` + Wertbereich-Tabelle.**
   Reine Funktion `detect_value_out_of_range(*, ga, dpt, value, now)`
   in `processing/findings/value_range.py`. `KNX_DPT_VALUE_RANGES` in
