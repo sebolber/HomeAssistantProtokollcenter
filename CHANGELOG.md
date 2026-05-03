@@ -24,6 +24,13 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   `list_findings(code, ga, severity, source, limit)` mit
   `last_seen DESC`-Sortierung. title/description sind nicht
   persistiert (UI rendert via translations/).
+- **Iter 6 — API `GET /api/messagehub/findings`.**
+  Filter (severity, code, ga, source) + Pagination (limit, offset).
+  Service-Layer in `processing/findings_service.py`
+  (`list_findings_response`) gebuendelt, View ist ein duenner aiohttp-
+  Wrapper in `api/findings.py`. Hard-Cap `limit=500` schuetzt vor
+  versehentlichen Riesen-Pages. Repo-Erweiterung: `count_findings`
+  fuer das `total`-Feld der Pagination.
 - **Iter 5 — Bestand auf neuen Vertrag gehoben.**
   Health-Findings (Bus-Health-Score) und Anti-Pattern-Findings (4
   Detektoren aus knx_stats.py) bekommen Lift-Funktionen

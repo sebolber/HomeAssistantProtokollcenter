@@ -107,20 +107,42 @@ class FindingsRepository:
         severity: FindingSeverity | None = None,
         source: str | None = None,
         limit: int = 200,
+        offset: int = 0,
     ) -> list[Finding]:
         """Liefert Findings, sortiert nach last_seen DESC.
 
         Filter sind alle optional und kombinieren AND-verknuepft.
+        Offset/Limit fuer API-Pagination (Iter 6).
         """
         if severity is not None and severity not in FINDING_SEVERITIES:
             raise ValueError(
                 f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}"
             )
         sql, params = _build_list_query(code=code, ga=ga, severity=severity, source=source)
-        sql += " ORDER BY last_seen DESC, id DESC LIMIT ?"
-        params = (*params, limit)
+        sql += " ORDER BY last_seen DESC, id DESC LIMIT ? OFFSET ?"
+        params = (*params, limit, offset)
         rows = await self._db.fetch_all(sql, params)
         return [_row_to_finding(dict(r)) for r in rows]
+
+    async def count_findings(
+        self,
+        *,
+        code: str | None = None,
+        ga: str | None = None,
+        severity: FindingSeverity | None = None,
+        source: str | None = None,
+    ) -> int:
+        """Gesamtzahl der Findings fuer einen Filter — fuer Pagination-UI."""
+        if severity is not None and severity not in FINDING_SEVERITIES:
+            raise ValueError(
+                f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}"
+            )
+        sql, params = _build_count_query(code=code, ga=ga, severity=severity, source=source)
+        row = await self._db.fetch_one(sql, params)
+        if row is None:
+            return 0
+        value = row["c"]
+        return int(value) if value is not None else 0
 
     # ------------------------------------------------------------------
     # Iter 3: Acknowledgements (siehe §9.4)
@@ -408,6 +430,23 @@ def _resolve_expires_at(
     return default_expires.isoformat(timespec="seconds")
 
 
+def _build_count_query(
+    *,
+    code: str | None,
+    ga: str | None,
+    severity: FindingSeverity | None,
+    source: str | None,
+) -> tuple[str, tuple[Any, ...]]:
+    """Baut die COUNT(*)-Variante des Filters fuer `count_findings`."""
+    where, params = _build_where_clause(
+        code=code, ga=ga, severity=severity, source=source
+    )
+    sql = "SELECT COUNT(*) AS c FROM knx_findings"
+    if where:
+        sql += " WHERE " + where
+    return sql, params
+
+
 def _build_list_query(
     *,
     code: str | None,
@@ -420,6 +459,28 @@ def _build_list_query(
     Helfer, weil die Bedingungen optional kombinierbar sind und sonst
     die `list_findings`-Methode kognitive Komplexitaet > 15 ueberschreitet.
     """
+    where, params = _build_where_clause(
+        code=code, ga=ga, severity=severity, source=source
+    )
+    sql = (
+        "SELECT id, code, schema_version, severity, ga, source, "
+        "       evidence_json, first_seen, last_seen, occurrence_count, "
+        "       detector_version "
+        "FROM knx_findings"
+    )
+    if where:
+        sql += " WHERE " + where
+    return sql, params
+
+
+def _build_where_clause(
+    *,
+    code: str | None,
+    ga: str | None,
+    severity: FindingSeverity | None,
+    source: str | None,
+) -> tuple[str, tuple[Any, ...]]:
+    """WHERE-Fragment fuer list_findings + count_findings."""
     where: list[str] = []
     params: list[Any] = []
     if code is not None:
@@ -434,15 +495,7 @@ def _build_list_query(
     if source is not None:
         where.append("source = ?")
         params.append(source)
-    sql = (
-        "SELECT id, code, schema_version, severity, ga, source, "
-        "       evidence_json, first_seen, last_seen, occurrence_count, "
-        "       detector_version "
-        "FROM knx_findings"
-    )
-    if where:
-        sql += " WHERE " + " AND ".join(where)
-    return sql, tuple(params)
+    return " AND ".join(where), tuple(params)
 
 
 def _row_to_finding(row: dict[str, Any]) -> Finding:
