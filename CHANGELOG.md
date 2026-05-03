@@ -6,6 +6,20 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.19.0] – 2026-05-03
+
+KNX-Konfigurations-Findings — Phase 0 + 1 (Iter 1-10) aus
+`docs/messagehub_knx_konfigurationsfehler_recherche.md` §9.9.
+Konfigurations-Check-Tab live mit Bestandsdetektoren (Bus-Health-
+Score + 4 Anti-Pattern-Detektoren) ueber den neuen Finding-Vertrag.
+
+Migrationen 0024 (knx_findings), 0025 (knx_finding_acknowledgements),
+0026 (knx_finding_severity_overrides). 6 neue API-Endpoints
+(`/api/messagehub/findings...`). Lit-Komponente `findings-view`.
+
+Tests: 717 → 801 Backend (+84), 141 → 155 Vitest (+14).
+Bundle: 363,59 KB → 376,94 KB (+13 KB).
+
 ### Hinzugefuegt (KNX-Konfigurations-Findings)
 - **Iter 1 — `Finding`-Dataclass + `FindingSeverity`-Enum.**
   Neuer Vertrag fuer KNX-Konfigurations-Detektoren in
