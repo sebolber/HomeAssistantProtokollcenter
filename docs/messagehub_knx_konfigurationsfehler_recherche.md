@@ -319,4 +319,276 @@ KNX_DPT_VALUE_RANGES: Final[dict[str, tuple[float, float]]] = {
 
 ---
 
+## 9. Empfehlungen für nachhaltige Umsetzung
+
+Nachfolgend die Antworten auf §8, unter der Prämisse *„Aufwand und Zeit
+sind egal, es soll gut sein"*. Leitidee: jede Entscheidung wird so
+gewählt, dass sie a) das Datenmodell stabil lässt, b) keine späteren
+Migrationen erzwingt, c) den Detector-Pool offen für weitere Findings
+hält und d) die UX einer wachsenden Findings-Liste skaliert.
+
+### 9.1 Reihenfolge: erst Schema + UI-Aggregation, dann Detektoren
+
+**Empfehlung:** **E13 (Findings-Aggregation-Tab) und das Finding-Schema
+zuerst, vor E1-E5.**
+
+Begründung: Wenn wir mit E1 starten, hängt das DPT-Mismatch-Finding am
+GA-Detail-Pane. Jeder weitere Detector wird dann durch denselben Pfad
+gezogen, und am Ende haben wir eine Folge von Ad-hoc-Anbauten ohne
+gemeinsamen Vertrag. Die richtige Reihenfolge ist:
+
+1. **Iter A** — Finding-Schema definieren (Dataclass, JSON-Shape,
+   DB-Tabelle). Code, Severity, GA, Source, First-Seen, Last-Seen,
+   Evidence-Payload, Schema-Version. Backend + Frontend teilen sich
+   genau diesen Vertrag. **Test-zuerst:** Round-Trip-Serialization.
+2. **Iter B** — Persistenz: Tabelle `knx_findings` als
+   Append-only-Log mit Dedup-Schlüssel `(ga, finding_code, evidence_hash)`.
+3. **Iter C** — UI-Tab „Konfigurations-Check" (E13): leere Liste,
+   Filter (Severity, Code, GA, Source), Sortierung, Akknowledge-
+   Action. Ein einziger bestehender Detector wird dort eingeblendet
+   (z. B. der schon vorhandene Konstant-Wert-Spam), damit der Pfad
+   end-to-end testbar ist.
+4. **Iter D-H** — E1-E5 Detektoren. Jeder neue Detector ist eine
+   Datei + ein Test, das Frontend ändert sich nicht mehr.
+
+Vorteil dieser Reihenfolge: ab Iter D ist die Schemafrage geklärt,
+Backwards-Compat-Risiken sind weg, und neue Detektoren kosten ~1 Iter
+statt ~3. Sustainability schlägt Time-to-First-Feature.
+
+### 9.2 Projekt-DPT-Quelle — verifiziert vorhanden, aber unvollständig
+
+**Befund:** `knx_group_addresses.dpt` existiert seit Migration
+`0016_knx_addresses.sql`. E1 ist also nicht blockiert.
+
+**Empfehlung für nachhaltige Umsetzung:** zwei orthogonale Felder
+sauber trennen, statt das eine `dpt`-Feld zu überladen:
+
+```sql
+-- Migration 00xx_knx_dpt_inferred.sql (Vorschlag)
+ALTER TABLE knx_group_addresses ADD COLUMN dpt_inferred TEXT;
+ALTER TABLE knx_group_addresses ADD COLUMN dpt_inferred_confidence REAL;
+ALTER TABLE knx_group_addresses ADD COLUMN dpt_inferred_at TEXT;
+```
+
+- `dpt` bleibt das **Soll** aus dem ETS-Projekt (User-gepflegt).
+- `dpt_inferred` ist das **Ist**, gefüllt vom Auto-Erkenner aus
+  Sample-Werten, mit Confidence + Timestamp.
+- E1 vergleicht beide, erzeugt das Finding nur, wenn Confidence über
+  einem Schwellwert liegt (z. B. 0.8).
+- Spätere Features wie *„Soll-DPT fehlt — willst du den erkannten
+  übernehmen?"* werden möglich, ohne das Schema nochmal anzufassen.
+
+Zusätzlich: jede Änderung an `knx_group_addresses.dpt` kommt als Eintrag
+in `audit_log` rein (Tabelle existiert, Migration `0013_audit.sql`).
+Damit lässt sich Monate später beantworten *„warum sind hier plötzlich
+zehn DPT-Mismatch-Findings entstanden?"* → meist *„weil das ETS-Projekt
+re-importiert wurde und ein DPT manuell falsch gesetzt war"*.
+
+### 9.3 Severity — kein Einheits-Default, sondern pro Finding-Code
+
+**Empfehlung:** Severity ist **Eigenschaft der Finding-Definition**,
+nicht des Aufrufers. Jeder Finding-Code bekommt in `const.py` einen
+Default, basierend auf zwei Achsen: **diagnostische Sicherheit** und
+**funktionaler Impact**.
+
+| Finding-Code | Default-Severity | Begründung |
+|---|---|---|
+| `DPT_MISMATCH` | **`error`** | Werte werden falsch dekodiert; nahezu nie absichtlich. |
+| `MULTI_RESPONDER` | **`warning`** | Kann beabsichtigt sein (z. B. parallele Aktoren). |
+| `READ_NO_RESPONSE` | **`warning`** | Empfänger könnte temporär offline sein. |
+| `TOGGLE_LOOP` | **`error`** | Schleifen sind nahezu nie gewollt und kosten Bus-Zeit. |
+| `VALUE_OUT_OF_RANGE` | **`error`** | Wert ausserhalb DPT-Spec ist eindeutig falsch. |
+| `RECONNECT_STORM` | **`warning`** | Symptom, kein Bug — kann normal nach Spannungsausfall sein. |
+| `MULTI_TIME_MASTER` | **`error`** | Doppelte Zeitquellen erzeugen Drift. |
+| `SEND_CYCLE_DRIFT` | **`info`** | Trend-Hinweis, nicht akut. |
+| `REPEAT_APPROXIMATION` | **`warning`** | Approximation, nicht Wahrheit — entsprechend mild. |
+| `ORPHAN_GA` | **`info`** | Aufräum-Hinweis, kein Bug. |
+| `STALE_GA` | **`info`** | Beobachtungs-Hinweis. |
+
+Ergänzend, weil eine Anlage individuell ist: **User-Override pro Code**
+in einer schmalen Tabelle. Damit kann jemand für seine Anlage sagen
+*„MULTI_RESPONDER ist bei mir Absicht — bitte nur `info`"*.
+
+```sql
+-- Migration 00xx_knx_finding_severity_overrides.sql
+CREATE TABLE IF NOT EXISTS knx_finding_severity_overrides (
+    finding_code TEXT PRIMARY KEY,
+    severity     TEXT NOT NULL CHECK (severity IN ('debug','info','warning','error')),
+    note         TEXT,
+    created_at   TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
+);
+```
+
+Vorteil: keine 0/1-Default-Diskussion und keine UI-Knöpfe für jedes
+einzelne Finding. Einmal pro Anlage einstellen, fertig. Default kommt
+aus dem Code, Override aus der DB.
+
+### 9.4 Whitelist-Granularität — `(GA, finding_code)` mit eigener Tabelle
+
+**Empfehlung:** **`(GA, finding_code)`-Granularität, in einer neuen
+Tabelle, getrennt von der bestehenden Rate-Acknowledge-Tabelle.**
+
+Begründung: `knx_ga_acknowledgements` hat heute eine klare Semantik
+*„diese GA ist überaktiv, weiß ich"* (taucht nicht mehr in der Top-
+Sender-Liste auf). Wenn wir denselben Schlüssel überladen, kollidieren
+die Use-Cases:
+- User akkceptiert *Multi-Responder* auf 8/1/1 (zwei Aktoren parallel,
+  beabsichtigt) → soll *DPT-Mismatch* auf derselben GA aber **weiterhin**
+  alarmieren.
+- `(GA, *)` würde beides stummschalten.
+
+Schema:
+
+```sql
+-- Migration 00xx_knx_finding_acknowledgements.sql
+CREATE TABLE IF NOT EXISTS knx_finding_acknowledgements (
+    ga              TEXT NOT NULL,
+    finding_code    TEXT NOT NULL,
+    acknowledged_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    expires_at      TEXT,            -- NULL = sticky, sonst Auto-Ablauf
+    note            TEXT,
+    schema_version  INTEGER NOT NULL DEFAULT 1,  -- s. §9.5
+    PRIMARY KEY (ga, finding_code)
+);
+
+CREATE INDEX IF NOT EXISTS idx_finding_acks_expires
+    ON knx_finding_acknowledgements (expires_at)
+    WHERE expires_at IS NOT NULL;
+```
+
+Zusätzlich:
+- **Default `expires_at = acknowledged_at + 90 days`** (UI-konfigurier-
+  bar). Damit verschwinden *„habe ich vor zwei Jahren mal weggeklickt"*-
+  Findings nicht stumm im Hintergrund. Wer wirklich permanent
+  unterdrücken will, setzt `expires_at = NULL` über einen
+  Sticky-Toggle.
+- **Audit-Log-Eintrag** bei jedem Ack/Un-Ack (`audit_log` existiert).
+  *„Warum wird Finding X auf GA Y unterdrückt?"* ist später
+  beantwortbar.
+- **Bestehende `knx_ga_acknowledgements` bleibt unangetastet** —
+  Rate-Acknowledge ist semantisch eine andere Achse („GA spammt
+  bewusst") und behält ihren bestehenden Pfad in der Top-Sender-Liste.
+
+### 9.5 Versionierung der Finding-Codes
+
+**Empfehlung:** Finding-Codes sind **Vertragsoberfläche** zwischen
+Detector, DB, UI und User-Acks. Die Heuristik dahinter wird sich
+verändern. Damit ein Re-Tuning eines Detectors keine alten Acks
+ungültig macht (oder schlimmer: stumm hält), gibt jeder Finding-Code
+eine **Schema-Version**:
+
+- Detector schreibt `code = "DPT_MISMATCH"`, `schema_version = 1`.
+- Wenn der Detector Bugs in v1 hat (z. B. False-Positives wegen
+  ungenauer Inferenz) und wir die Schwelle ändern, bumpen wir auf
+  `schema_version = 2`.
+- Beim Anzeigen filtern wir `acks` nach passender Version. Alte Acks
+  laufen aus oder bleiben für v1-Findings gültig — der User
+  entscheidet.
+
+Konkret heißt das, dass die Finding-Tabelle und die Ack-Tabelle die
+Spalte `schema_version` führen. Bei Detector-Tuning steigt die Zahl,
+und im CHANGELOG notieren wir es explizit.
+
+### 9.6 Vertrag der Findings — eine einzige Schema-Definition
+
+**Empfehlung:** ein einziger Pydantic/dataclass-Vertrag für Findings,
+gemeinsam mit dem Frontend. JSON-Shape wird im Backend definiert,
+TypeScript-Typen werden aus diesem Schema **generiert**, nicht von
+Hand geschrieben. Vorlage als Dataclass:
+
+```python
+# const.py / processing/findings.py
+@dataclass(frozen=True, slots=True)
+class Finding:
+    code: str                    # z. B. "DPT_MISMATCH"
+    schema_version: int          # 1, 2, ...
+    severity: KnxSeverity        # green/yellow/orange/red
+    ga: str | None               # None bei GA-übergreifenden Findings
+    source: str | None           # Phys-Adresse, optional
+    title: str                   # für UI-Header (durch translations/)
+    description: str             # ausführlich, durch translations/
+    evidence: dict[str, Any]     # was hat den Detector ausgelöst?
+    first_seen: datetime
+    last_seen: datetime
+    occurrence_count: int        # wie oft seit first_seen
+    detector_version: str        # z. B. "DPT_MISMATCH/v1"
+```
+
+`evidence` ist absichtlich frei strukturiert pro Code — z. B. für
+`DPT_MISMATCH`: `{"project_dpt": "9.001", "inferred_dpt": "1.001",
+"confidence": 0.94, "samples": 52}`. Das macht den Finding für den User
+nachvollziehbar (UI rendert die Evidence als kleine Liste) und für uns
+debugbar.
+
+### 9.7 Internationalisierung von Tag eins
+
+**Empfehlung:** keine deutschen Strings im Detector-Code. Detektoren
+liefern den **Code** und die **Evidence**, nie fertigen Text. UI lädt
+die lesbaren Strings aus `translations/de.json` etc. Das passt zur
+bestehenden Konvention (CLAUDE.md §Code-Stil Backend) und schützt
+Übersetzungsarbeit, wenn später mehr Sprachen dazukommen.
+
+### 9.8 Telemetrie und Reproduzierbarkeit
+
+**Empfehlung:** zwei Dinge mitnehmen, weil sie billig und nachhaltig
+sind:
+
+- **Prometheus-Counter pro Finding-Code** (`/metrics` ist seit Iter 69
+  da): `messagehub_knx_finding_total{code="DPT_MISMATCH",
+  severity="error"}`. Erlaubt Alerting auf *„heute kam ein neuer
+  Finding-Typ dazu"*.
+- **Snapshot-Fixtures** für Detector-Tests: ein realer Group-Monitor-
+  Auszug (anonymisiert) als CSV/SQL in `tests/fixtures/` pro
+  Anti-Pattern. Jeder Detector-Test lädt das Snapshot und prüft, ob
+  genau die erwarteten Findings entstehen. Bei Heuristik-Tuning sehen
+  wir Regressionen sofort.
+
+### 9.9 Zusammenfassung der nachhaltigen Reihenfolge
+
+```
+Iter A  Finding-Schema (Dataclass + Translations-Hook)
+Iter B  Tabelle knx_findings (Append-only) + Ack-Tabelle (GA, Code)
+Iter C  UI-Tab "Konfigurations-Check" mit einem Bestandsdetector
+Iter D  Migration: knx_group_addresses.dpt_inferred + audit-log-Hook
+Iter E  Detector E1: DPT_MISMATCH (severity=error)
+Iter F  Detector E5: VALUE_OUT_OF_RANGE (severity=error)
+Iter G  Detector E2: MULTI_RESPONDER (severity=warning)
+Iter H  Detector E3: READ_NO_RESPONSE (severity=warning)
+Iter I  Detector E4: TOGGLE_LOOP (severity=error)
+Iter J  Detector E7: MULTI_TIME_MASTER (severity=error)
+Iter K  Detector E6: RECONNECT_STORM (severity=warning)
+Iter L  Detector E8: SEND_CYCLE_DRIFT (severity=info)
+Iter M  Detector E9: REPEAT_APPROXIMATION (severity=warning)
+Iter N  Detector E10: ORPHAN_GA (severity=info)
+Iter O  Detector E11: STALE_GA (severity=info)
+Iter P  Severity-Override-Tabelle + UI
+Iter Q  Finding-Export als ETS-Notiz-Markdown (E15)
+Iter R  Detector-Snapshot-Fixtures konsolidieren
+Iter S  Detector E12: SEND_TO_NOWHERE (komplexester, zuletzt)
+```
+
+19 Iterationen, statt der 17 aus §5. Die zwei zusätzlichen sind
+genau die, die das Fundament tragfähig machen: Finding-Schema und
+DPT-Inferred-Spalte.
+
+### 9.10 Konsequenzen für das bestehende System
+
+Bestehender Code muss sich anpassen, aber nicht umkrempeln:
+
+- `processing/knx_stats.py:_run_detectors` liefert heute eine `list[Finding]`
+  mit `dict`-ähnlicher Struktur — der ist nahe genug am neuen
+  Vertrag, dass die Migration ein Refactor von ~50 Zeilen ist.
+- `_build_health_findings` produziert `HealthFinding` — das fügen wir
+  als Sub-Typ unter denselben Vertrag, mit `code = "HEALTH_*"`.
+- Frontend `stats-knx-view.ts` rendert Findings heute pro GA — wir
+  bauen den neuen Tab daneben, der bestehende Detail-Pane bleibt.
+
+Damit ist die Erweiterung **additiv**, nicht **disruptiv** — was
+genau dem CLAUDE.md-Prinzip *„Don't add features, refactor, or
+introduce abstractions beyond what the task requires"* entspricht,
+ohne zu kurz zu denken: das Finding-Schema ist nicht spekulativ,
+sondern wird ab Iter A von jedem nachfolgenden Detector benötigt.
+
+---
+
 **Ende der Recherche.**
