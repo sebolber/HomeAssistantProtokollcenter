@@ -543,33 +543,153 @@ sind:
   genau die erwarteten Findings entstehen. Bei Heuristik-Tuning sehen
   wir Regressionen sofort.
 
-### 9.9 Zusammenfassung der nachhaltigen Reihenfolge
+### 9.9 Konkrete Iterations-Reihenfolge (TDD, ≤60 Min/Iter)
+
+Die abstrakten 19 Schritte aus dem ersten Entwurf reichen nicht — bei
+genauer Betrachtung sprengen mehrere von ihnen die 60-Min-Grenze aus
+CLAUDE.md, sobald Tabellenmigration, Repository-Pfad, API-Endpoint,
+Frontend-Wiring und Übersetzung in einem Eintrag zusammengeworfen
+werden. Die folgende Aufteilung in **31 kleinere Iterationen** sortiert
+nach Abhängigkeit und nach „liefert in jedem Schritt etwas
+Lauffähiges". Pro Iter: das Test-zuerst-Artefakt nach Konvention
+`test_<verb>_<condition>_<expected>`, die berührten Dateien und das
+Exit-Kriterium.
+
+#### Phase 0 — Fundament (Iter 1-5)
+
+Nichts davon liefert sichtbare User-Funktion, aber alle nachfolgenden
+Iter bauen darauf auf. Ohne Phase 0 gibt es kein gemeinsames
+Finding-Vokabular.
+
+| Iter | Inhalt | Test-zuerst | Files | Exit |
+|---|---|---|---|---|
+| **1** | `Finding`-Dataclass + `FindingSeverity` Enum + `EvidencePayload` Typ | `test_finding_dataclass_round_trip_serializes_to_json` | `processing/findings.py` | Dataclass instantiierbar, JSON-Roundtrip stabil |
+| **2** | Tabelle `knx_findings` (Append-only, Dedup-Hash) + Repo-Insert/List | `test_findings_repo_insert_dedups_by_evidence_hash` | SQL `0019_knx_findings.sql`, `storage/findings_repo.py` | Insert + List + Dedup grün |
+| **3** | Tabelle `knx_finding_acknowledgements` mit `(ga, finding_code)`-PK + Auto-Expire | `test_finding_ack_filters_when_expires_at_in_past` | SQL `0020_knx_finding_acks.sql`, Repo-Erw. | Ack/Un-Ack mit Audit-Log-Eintrag |
+| **4** | Tabelle `knx_finding_severity_overrides` + Resolver-Funktion | `test_severity_override_takes_precedence_over_default` | SQL `0021_knx_finding_severity_overrides.sql`, Repo | Resolver liefert Default → Override → Ack-Suppression |
+| **5** | Bestand: `HealthFinding` + bestehende Anti-Pattern-Findings auf neuen Vertrag heben (Refactor) | bestehende Tests bleiben grün; `test_health_finding_emits_code_health_busload` | `processing/knx_stats.py:566+`, `_run_detectors` | Alle Bestandsdetektoren liefern `Finding` mit `code` + `evidence` |
+
+#### Phase 1 — UI-Backbone (Iter 6-10)
+
+Bevor neue Detektoren dazukommen, braucht es den Konfigurations-Check-
+Tab als Anzeigefläche. Sonst werden die Findings ad-hoc im
+GA-Detail-Pane verteilt und müssen später nochmal umgezogen werden.
+
+| Iter | Inhalt | Test-zuerst | Files | Exit |
+|---|---|---|---|---|
+| **6** | API-Endpoint `GET /findings` (Filter: severity, code, ga, source; Pagination) | `test_findings_endpoint_filters_by_severity_and_paginates` | `api/findings.py` | Endpoint liefert Liste + Total |
+| **7** | API-Endpoint `POST /findings/ack` + `DELETE /findings/ack/{ga}/{code}` | `test_ack_endpoint_persists_and_creates_audit_entry` | `api/findings.py` | Ack-Roundtrip funktioniert via API |
+| **8** | API-Endpoint `GET /findings/severity-overrides` + `PUT /findings/severity-overrides/{code}` | `test_severity_override_endpoint_creates_and_updates` | `api/findings.py` | Override-CRUD via API |
+| **9** | Frontend: leere Komponente `findings-view.ts` als 3. Sub-Tab neben Live-Status + KNX-Bus-Analyse | `frontend/tests/findings-view.test.ts` (Render leer) | `frontend/src/components/findings-view.ts`, `stats-view.ts` | Tab erscheint, leere Tabelle wird gerendert |
+| **10** | Frontend-Wiring: bestehende Health-/Anti-Pattern-Findings im neuen Tab anzeigen, mit Severity-Pill + Evidence-Detail-Pane + Ack-Action | `findings-view-actions.test.ts` (Ack-Flow) | `findings-view.ts`, `api-client.ts` | End-to-End: Konstant-Wert-Spam erscheint im neuen Tab, Ack funktioniert |
+
+**Meilenstein nach Iter 10:** der Konfigurations-Check-Tab ist
+funktional, mit den heute schon erkennbaren Mustern. Alle weiteren
+Iter sind reine Detector-Erweiterungen — keine UI-Änderungen mehr nötig.
+
+#### Phase 2 — DPT-Validierungs-Detektoren (Iter 11-14)
+
+Höchste diagnostische Sicherheit, höchster Impact — deshalb zuerst.
+
+| Iter | Inhalt | Test-zuerst | Files | Exit |
+|---|---|---|---|---|
+| **11** | Migration `knx_group_addresses.dpt_inferred` + `dpt_inferred_confidence` + `dpt_inferred_at` | `test_dpt_inferred_persists_with_confidence` | SQL `0022_knx_dpt_inferred.sql`, Repo-Update | Auto-Erkenner persistiert sein Ist-Ergebnis |
+| **12** | Detector `DPT_MISMATCH` (severity=error) — vergleicht `dpt` (Soll) mit `dpt_inferred` (Ist) ab Confidence-Schwelle | `test_dpt_mismatch_emits_finding_when_inferred_differs_above_threshold` | `processing/findings/dpt_mismatch.py`, Detector-Registry | Finding mit Evidence `{project_dpt, inferred_dpt, confidence, samples}` |
+| **13** | Wertbereich-Tabelle in `const.py` (DPT 5.001 0-100, 9.005 ≥0, 9.007 0-100, ...) + Detector `VALUE_OUT_OF_RANGE` | `test_value_out_of_range_emits_finding_for_dpt_5001_above_100` | `const.py`, `processing/findings/value_range.py` | Finding mit Evidence `{value, dpt, range_min, range_max}` |
+| **14** | i18n-Strings für Phase-2-Findings + Hilfe-Hyperlinks pro Code | `test_finding_translation_resolves_for_dpt_mismatch_de_and_en` | `translations/de.json`, `en.json`, weitere | UI rendert alle Phase-2-Findings in beiden Sprachen |
+
+#### Phase 3 — Konfigurations-Detektoren (Iter 15-19)
+
+Die Klassiker aus den Foren. Severity je nach Eindeutigkeit aus §9.3.
+
+| Iter | Inhalt | Test-zuerst | Files | Exit |
+|---|---|---|---|---|
+| **15** | Detector `MULTI_RESPONDER` (severity=warning) — pro Read mehrere unterschiedliche `knx_source`-Responses | `test_multi_responder_emits_finding_when_two_sources_respond_to_one_read` | `processing/findings/multi_responder.py` | Evidence enthält `{responding_sources: [...]}` |
+| **16** | Detector `READ_NO_RESPONSE` (severity=warning) — Read ohne Response binnen 3 s | `test_read_no_response_emits_finding_after_timeout_window` | `processing/findings/read_no_response.py` | Evidence `{read_at, expected_until}` |
+| **17** | Detector `TOGGLE_LOOP` (severity=error) — DPT 1.001 mit `0,1,0,1,...` und Δt < 2 s ≥ 4× | `test_toggle_loop_emits_finding_for_alternating_pattern` | `processing/findings/toggle_loop.py` | Evidence `{period_ms, cycles}` |
+| **18** | Detector `MULTI_TIME_MASTER` (severity=error) — ≥2 `knx_source` schreiben auf DPT 10.001/11.001/19.001 | `test_multi_time_master_emits_finding_for_two_sources_on_clock_dpt` | `processing/findings/multi_time_master.py` | Evidence `{sources, clock_dpt}` |
+| **19** | i18n-Strings für Phase-3-Findings | `test_finding_translation_resolves_all_phase3_codes` | `translations/*.json` | UI komplett in DE/EN |
+
+#### Phase 4 — Verhaltens-/Trend-Detektoren (Iter 20-23)
+
+Brauchen längere Datenbasis (≥7 Tage Logs). Deshalb nach den Direkt-
+Detektoren — Phase-3-Wert ist sofort sichtbar, Phase-4-Wert braucht
+Geschichte.
+
+| Iter | Inhalt | Test-zuerst | Files | Exit |
+|---|---|---|---|---|
+| **20** | Detector `RECONNECT_STORM` (severity=warning) — Spike auf `knx_source` ≥10× Mittel im 30-s-Fenster nach `silence_devices`-Lücke ≥60 s | `test_reconnect_storm_emits_finding_after_silence_followed_by_burst` | `processing/findings/reconnect_storm.py` | Evidence `{silence_until, burst_count, normal_avg}` |
+| **21** | Detector `SEND_CYCLE_DRIFT` (severity=info) — Median(Δt) heute vs. 7 Tage davor ≤50 % | `test_send_cycle_drift_emits_finding_when_median_dt_halved` | `processing/findings/send_cycle_drift.py` | Nutzt bestehende Trend-Vergleich-Infra (WR-I) |
+| **22** | Detector `REPEAT_APPROXIMATION` (severity=warning) — identisches Telegramm Δt < 100 ms auf gleicher GA | `test_repeat_approximation_counts_doubles_within_100ms_window` | `processing/findings/repeat_approximation.py` | Evidence `{repeats_per_day}` |
+| **23** | i18n-Strings für Phase-4-Findings | `test_finding_translation_resolves_all_phase4_codes` | `translations/*.json` | UI komplett |
+
+#### Phase 5 — Projekt-Integration (Iter 24-26)
+
+Braucht `knx_group_addresses` als Soll-Liste. Niedrigster Severity-
+Level, deshalb gegen Ende.
+
+| Iter | Inhalt | Test-zuerst | Files | Exit |
+|---|---|---|---|---|
+| **24** | Detector `ORPHAN_GA` (severity=info) — Whitelist-GA mit `count(messages) = 0` im Auswertezeitraum | `test_orphan_ga_emits_finding_for_silent_whitelist_entry` | `processing/findings/orphan_ga.py` | Evidence `{period_from, period_to}` |
+| **25** | Detector `STALE_GA` (severity=info) — GA war aktiv, ist seit X Tagen tot | `test_stale_ga_emits_finding_when_last_seen_older_than_threshold` | `processing/findings/stale_ga.py` | Evidence `{last_seen, days_silent}` |
+| **26** | i18n + UI-Polish (gemeinsamer Filter „nur Projekt-Befunde") | `test_findings_filter_excludes_runtime_only_findings` | `translations/*.json`, `findings-view.ts` | Filter-Toggle wirkt |
+
+#### Phase 6 — Polish + Telemetrie (Iter 27-29)
+
+Zwei Mini-Iter, die das System langfristig wartbar halten.
+
+| Iter | Inhalt | Test-zuerst | Files | Exit |
+|---|---|---|---|---|
+| **27** | Severity-Override-UI — Frontend-Form für `knx_finding_severity_overrides` | `severity-override-form.test.ts` (CRUD-Flow) | `findings-view.ts` Sub-View | Override per Klick einstellbar |
+| **28** | Prometheus-Counter `messagehub_knx_finding_total{code,severity}` | `test_prometheus_metric_increments_on_finding_emit` | `processing/prometheus.py` | Metrik unter `/metrics` sichtbar |
+| **29** | Markdown-Export der Findings (E15) — Copy-Paste-Vorlage für ETS-Notiz | `test_findings_markdown_export_renders_table_with_evidence` | `api/findings.py` | Endpoint liefert MD, UI-Button kopiert |
+
+#### Phase 7 — Snapshot-Konsolidierung + komplexer Letzter (Iter 30-31)
+
+| Iter | Inhalt | Test-zuerst | Files | Exit |
+|---|---|---|---|---|
+| **30** | Detector-Snapshot-Fixtures konsolidieren — pro Detector ein anonymisiertes SQL-Snapshot in `tests/fixtures/knx_findings/` + Doku | `test_snapshot_fixture_dpt_mismatch_yields_expected_finding_set` | `tests/fixtures/knx_findings/*.sql`, `tests/test_finding_snapshots.py` | Heuristik-Regressionen werden durch CI sichtbar |
+| **31** | Detector `SEND_TO_NOWHERE` (severity=info, komplex) — Korrelation Write → Status-Wechsel; ohne Status-Wechsel innerhalb erwartbarer Zeit Finding | `test_send_to_nowhere_emits_finding_when_no_status_follows_write` | `processing/findings/send_to_nowhere.py` | Evidence `{write_at, status_window_ms, status_received}` |
+
+#### Reihenfolge-Logik kompakt
 
 ```
-Iter A  Finding-Schema (Dataclass + Translations-Hook)
-Iter B  Tabelle knx_findings (Append-only) + Ack-Tabelle (GA, Code)
-Iter C  UI-Tab "Konfigurations-Check" mit einem Bestandsdetector
-Iter D  Migration: knx_group_addresses.dpt_inferred + audit-log-Hook
-Iter E  Detector E1: DPT_MISMATCH (severity=error)
-Iter F  Detector E5: VALUE_OUT_OF_RANGE (severity=error)
-Iter G  Detector E2: MULTI_RESPONDER (severity=warning)
-Iter H  Detector E3: READ_NO_RESPONSE (severity=warning)
-Iter I  Detector E4: TOGGLE_LOOP (severity=error)
-Iter J  Detector E7: MULTI_TIME_MASTER (severity=error)
-Iter K  Detector E6: RECONNECT_STORM (severity=warning)
-Iter L  Detector E8: SEND_CYCLE_DRIFT (severity=info)
-Iter M  Detector E9: REPEAT_APPROXIMATION (severity=warning)
-Iter N  Detector E10: ORPHAN_GA (severity=info)
-Iter O  Detector E11: STALE_GA (severity=info)
-Iter P  Severity-Override-Tabelle + UI
-Iter Q  Finding-Export als ETS-Notiz-Markdown (E15)
-Iter R  Detector-Snapshot-Fixtures konsolidieren
-Iter S  Detector E12: SEND_TO_NOWHERE (komplexester, zuletzt)
+Phase 0 (Iter 1–5)   ▌ Fundament — kein User-sichtbarer Effekt, aber Pflicht
+Phase 1 (Iter 6–10)  ▌ UI-Backbone — neuer Tab funktional mit Bestandsdetektoren
+Phase 2 (Iter 11–14) ▌ DPT-Validierung — höchster Impact, höchste Sicherheit
+Phase 3 (Iter 15–19) ▌ Konfigurations-Klassiker — die Foren-Top-3
+Phase 4 (Iter 20–23) ▌ Trend-Detektoren — brauchen Datenbasis
+Phase 5 (Iter 24–26) ▌ Projekt-Integration — Whitelist-Vergleich
+Phase 6 (Iter 27–29) ▌ Override-UI, Telemetrie, Export
+Phase 7 (Iter 30–31) ▌ Snapshot-Konsolidierung + komplexester Detector
 ```
 
-19 Iterationen, statt der 17 aus §5. Die zwei zusätzlichen sind
-genau die, die das Fundament tragfähig machen: Finding-Schema und
-DPT-Inferred-Spalte.
+#### Release-Sicht
+
+Sinnvoll: **Releases nach Phase-Ende**, nicht nach jeder Iter. Damit
+sind Versionsbumps inhaltlich selbsterklärend.
+
+| Release | Inhalt | manifest.json |
+|---|---|---|
+| 0.19.0 | Phase 0 + 1 (Iter 1-10) — Konfigurations-Check-Tab live, mit Bestandsdetektoren | `version: 0.19.0` |
+| 0.20.0 | Phase 2 + 3 (Iter 11-19) — DPT-Validierung + Foren-Top-3 | `version: 0.20.0` |
+| 0.21.0 | Phase 4 + 5 (Iter 20-26) — Trend + Projekt-Integration | `version: 0.21.0` |
+| 0.22.0 | Phase 6 + 7 (Iter 27-31) — Override-UI, Telemetrie, Snapshot, SEND_TO_NOWHERE | `version: 0.22.0` |
+
+Jeder Release entsteht durch `manifest.json:version`-Bump, `CHANGELOG.md`-
+Eintrag, Tag (`git tag -a vX.Y.Z`), Push. Der Release-Workflow
+(`release.yml`) übernimmt den Rest, wie heute schon.
+
+#### Nicht in der Liste, weil bewusst out-of-scope
+
+- **F4 echte Repeat/NACK/BUSY-Statistik** — bleibt blocked (BL-D), bis
+  xknx Layer-2-Frames durchreicht oder ein Sniffer-Side-Channel kommt.
+- **F9 Hop-Counter** — gleicher Grund.
+- **F10 Adresskonflikt** — braucht Programmiermodus-Frames.
+
+Diese sind in §3.1 erwähnt, aber nicht in den 31 Iter, weil das
+Datenmaterial fehlt. Sobald xknx das ergänzt, kommen sie als Phase 8
+nach.
 
 ### 9.10 Konsequenzen für das bestehende System
 
