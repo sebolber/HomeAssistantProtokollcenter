@@ -199,6 +199,26 @@ export class FindingsView extends LitElement {
     }
   }
 
+  // F-004: Ack zuruecknehmen — bisher fehlte die UI-Anbindung. ApiClient-
+  // Methode unacknowledgeFinding existierte ungenutzt, kein Knopf verband
+  // beides.
+  private async _unackSelected(): Promise<void> {
+    const selected = this._currentSelection();
+    if (!selected || !this.api) return;
+    if (selected.ga === null) return;
+    this._loading = true;
+    this._error = null;
+    try {
+      await this.api.unacknowledgeFinding(selected.ga, selected.code);
+      await this._load();
+      this._selectedKey = null;
+    } catch (err) {
+      this._error = (err as Error).message ?? "Unack fehlgeschlagen";
+    } finally {
+      this._loading = false;
+    }
+  }
+
   private _currentSelection(): FindingDto | null {
     if (this._selectedKey === null) return null;
     return this._items.find((it) => this._itemKey(it) === this._selectedKey) ?? null;
@@ -319,9 +339,10 @@ export class FindingsView extends LitElement {
     const key = this._itemKey(it);
     const selected = this._selectedKey === key;
     const title = getFindingTitle(it.code, this._lang()) || it.code;
+    const acked = it.acknowledged === true;
     return html`
       <li
-        class=${`item ${selected ? "item--selected" : ""}`}
+        class=${`item ${selected ? "item--selected" : ""} ${acked ? "item--acked" : ""}`}
         data-test="findings-item"
         @click=${() => this._onSelect(it)}
       >
@@ -342,6 +363,14 @@ export class FindingsView extends LitElement {
         <span class="count" data-test="item-count" title="Occurrence count"
           >×${it.occurrence_count}</span
         >
+        ${acked
+          ? html`<span
+              class="acked-marker"
+              data-test="item-acked-marker"
+              title="Bereits acknowledged"
+              >✓ acked</span
+            >`
+          : nothing}
       </li>
     `;
   }
@@ -415,15 +444,26 @@ export class FindingsView extends LitElement {
           ${this._renderEvidenceEntries(selected.evidence)}
         </dl>
         <div class="detail-actions">
-          <button
-            class="mh-btn mh-btn--primary"
-            type="button"
-            data-test="findings-ack-btn"
-            ?disabled=${selected.ga === null || this._loading}
-            @click=${this._ackSelected}
-          >
-            Ack
-          </button>
+          ${selected.acknowledged
+            ? html`<button
+                class="mh-btn mh-btn--ghost"
+                type="button"
+                data-test="findings-unack-btn"
+                ?disabled=${selected.ga === null || this._loading}
+                title="Akzeptanz zurueckziehen — Finding erscheint wieder als ungesehen."
+                @click=${this._unackSelected}
+              >
+                Ack zuruecknehmen
+              </button>`
+            : html`<button
+                class="mh-btn mh-btn--primary"
+                type="button"
+                data-test="findings-ack-btn"
+                ?disabled=${selected.ga === null || this._loading}
+                @click=${this._ackSelected}
+              >
+                Ack
+              </button>`}
         </div>
       </aside>
     `;
@@ -562,6 +602,15 @@ export class FindingsView extends LitElement {
       .item--selected {
         border-color: var(--mh-accent);
         background: var(--mh-accent-soft);
+      }
+      .item--acked {
+        opacity: 0.7;
+      }
+      .acked-marker {
+        font-size: var(--mh-text-xs);
+        color: var(--mh-success, var(--mh-fg-muted));
+        font-weight: var(--mh-weight-semibold);
+        padding-left: var(--mh-space-2);
       }
       .code {
         font-family: var(--code-font-family, monospace);

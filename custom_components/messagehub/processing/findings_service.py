@@ -38,8 +38,12 @@ async def list_findings_response(
     - severity gegen FINDING_SEVERITIES
     - limit/offset >= 0, limit <= HARD_CAP_LIMIT
 
+    F-004: Pro Item wird ein `acknowledged: bool`-Feld eingefuegt, damit
+    die UI einen Unack-Button rendern kann. Implementation als O(1)-
+    Lookup ueber ein Set aller `(ga, code)`-Acks — vermeidet N+1-Queries.
+
     Liefert ein dict mit:
-        items: list[dict] — serialisierte Findings
+        items: list[dict] — serialisierte Findings (inkl. `acknowledged`)
         total: int        — Gesamtzahl unter dem Filter
         limit: int        — angewandtes Limit (ggf. geclamped)
         offset: int       — angewandtes Offset
@@ -64,12 +68,37 @@ async def list_findings_response(
         severity=severity,
         source=source,
     )
+    # F-004: Single-Query Ack-Lookup. Set-Membership ist O(1) pro Item.
+    acked_pairs: set[tuple[str, str]] = await _fetch_acked_pairs(repo)
+    serialized: list[dict[str, Any]] = []
+    for item in items:
+        item_dict = item.to_dict()
+        # Bus-weite Findings (ga=None) haben keine eindeutige (ga,code)-
+        # Identitaet im Ack-Schema; wir melden sie konsistent als nicht-acked.
+        item_dict["acknowledged"] = bool(
+            item.ga is not None and (item.ga, item.code) in acked_pairs
+        )
+        serialized.append(item_dict)
     return {
-        "items": [item.to_dict() for item in items],
+        "items": serialized,
         "total": total,
         "limit": capped_limit,
         "offset": safe_offset,
     }
+
+
+async def _fetch_acked_pairs(repo: Any) -> set[tuple[str, str]]:
+    """Liefert Set aller aktuell gueltigen (ga, code)-Acks.
+
+    F-004: Defensiv gegen aeltere Repos, die `list_acknowledgements`
+    noch nicht haben — wir geben in dem Fall ein leeres Set zurueck,
+    sodass der Endpoint nicht hart abbricht (acknowledged=False fuer
+    alle Items, keine Regression).
+    """
+    if not hasattr(repo, "list_acknowledgements"):
+        return set()
+    rows = await repo.list_acknowledgements()
+    return {(str(r["ga"]), str(r["finding_code"])) for r in rows}
 
 
 _GA_PATTERN = re.compile(r"^\d+/\d+/\d+$")

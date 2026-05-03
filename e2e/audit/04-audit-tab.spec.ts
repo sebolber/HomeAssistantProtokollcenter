@@ -30,14 +30,14 @@ test.describe("Findings-Tab — Unack-Luecke", () => {
     await page.waitForFunction(() => !!document.querySelector("messagehub-panel"));
   });
 
-  // F-004 — Findings-Unack-Knopf fehlt im UI (ApiClient-Methode existiert ungenutzt).
-  test.fixme("F-004: Akzeptierte Findings haben 'Ack zuruecknehmen'-Knopf", async ({ page }) => {
+  // F-004 — Findings-Unack in Iter +3 hinzugefuegt.
+  test("F-004: Akzeptierte Findings haben 'Ack zuruecknehmen'-Knopf im Detail-Pane", async ({ page }) => {
     const findings = page.locator("messagehub-panel >> stats-view >> findings-view");
-    const ackedItem = findings.locator('[data-acked="true"]').first();
+    // Zuerst ein acked Item finden (data-test='item-acked-marker' an der Zeile)
+    const ackedItem = findings.locator("li.item--acked").first();
     if ((await ackedItem.count()) === 0) test.skip(true, "Keine acked Findings — Test ueberspringen");
-    const unackBtn = ackedItem.locator(
-      'button:has-text("Unack"), button:has-text("Ack zur"), button:has-text("Ack entfernen")',
-    );
+    await ackedItem.click();
+    const unackBtn = findings.locator('[data-test="findings-unack-btn"]');
     await expect(unackBtn).toBeVisible({ timeout: 3000 });
     const reqPromise = page.waitForRequest(
       (r) => r.method() === "DELETE" && r.url().includes("/findings/ack/"),
