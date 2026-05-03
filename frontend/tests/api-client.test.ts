@@ -153,4 +153,33 @@ describe("ApiClient", () => {
     const client = new ApiClient();
     await expect(client.deleteHeartbeat("ghost")).rejects.toThrow("HTTP 404");
   });
+
+  // F-011: KNX-GA-Export-URL-Helfer.
+  it("knxStatsGaExportUrl encodiert die GA korrekt (Slashes!)", async () => {
+    const client = new ApiClient();
+    const url = client.knxStatsGaExportUrl("1/2/3", "csv", {
+      from: "2026-05-01T00:00:00Z",
+      to: "2026-05-03T23:59:59Z",
+    });
+    // 1/2/3 muss als 1%2F2%2F3 erscheinen, sonst trifft der Router falsch.
+    expect(url).toContain("/api/messagehub/knx-stats/ga/1%2F2%2F3/export");
+    expect(url).toContain("format=csv");
+    expect(url).toMatch(/from=2026-05-01T00%3A00%3A00Z/);
+    expect(url).toMatch(/to=2026-05-03T23%3A59%3A59Z/);
+  });
+
+  it("knxStatsGaExportUrl ohne from/to baut nur format-Param", async () => {
+    const client = new ApiClient();
+    const url = client.knxStatsGaExportUrl("0/0/1", "json");
+    expect(url).toContain("/api/messagehub/knx-stats/ga/0%2F0%2F1/export");
+    expect(url).toContain("format=json");
+    expect(url).not.toContain("from=");
+    expect(url).not.toContain("to=");
+  });
+
+  it("knxStatsGaExportUrl mit baseUrl-Prefix", async () => {
+    const client = new ApiClient("https://ha.local:8123");
+    const url = client.knxStatsGaExportUrl("1/2/3", "csv");
+    expect(url.startsWith("https://ha.local:8123/api/messagehub/knx-stats/ga/")).toBe(true);
+  });
 });

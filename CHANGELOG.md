@@ -7,6 +7,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Geaendert (Performance + Code-Hygiene)
+- **Iter +10 / F-011 — Typisierter KNX-GA-Export-URL-Helfer.**
+  `stats-knx-view` baut die Download-URL fuer den Telegramm-Export nicht
+  mehr inline zusammen, sondern ueber den neuen typisierten
+  `ApiClient.knxStatsGaExportUrl(ga, format, range)`. Der Helper
+  encodiert die GA-Adresse korrekt (Slashes -> `%2F`), sodass GA-
+  Adressen wie `1/2/3` nicht zu 404 fuehren. 3 Vitest decken Encoding,
+  optionale Filter, baseUrl-Prefix ab. Behebt Audit-Finding F-011
+  (Test-Coverage + Code-Hygiene).
 - **Iter +8 / F-008 — Gezielter Refresh nach Status-Wechsel.** Wenn der
   User im Detail-Pane „Bestaetigen" / „Geloest" / „Neu oeffnen" klickt,
   feuerte der Pane bisher ein `status-change`-Event, woraufhin das

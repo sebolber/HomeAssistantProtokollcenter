@@ -1003,6 +1003,28 @@ export class ApiClient {
     return (await res.json()) as { imported: number; skipped: number; errors: number };
   }
 
+  /**
+   * F-011: Typisierter URL-Helfer fuer KNX-GA-Telegramm-Export.
+   * Vorher hat stats-knx-view die URL inline zusammengebaut, was bei
+   * GA-Adressen mit Slashes (1/2/3) ohne URL-Encoding einen 404
+   * produziert haette. Diese Methode kapselt das encodeURIComponent
+   * sicher und ist Vitest-getestet.
+   */
+  knxStatsGaExportUrl(
+    ga: string,
+    format: "csv" | "json",
+    range: { from?: string; to?: string } = {}
+  ): string {
+    const params = new URLSearchParams();
+    if (range.from) params.set("from", range.from);
+    if (range.to) params.set("to", range.to);
+    params.set("format", format);
+    return (
+      `${this.baseUrl}/api/messagehub/knx-stats/ga/${encodeURIComponent(ga)}/export` +
+      `?${params.toString()}`
+    );
+  }
+
   exportUrl(filters: ListFilters & { format?: "jsonl" | "csv" }): string {
     const params = new URLSearchParams();
     if (filters.severity?.length) params.set("severity", filters.severity.join(","));

@@ -194,6 +194,11 @@ function makeApi(): MockApi {
     api.sourceDetailCalls!.push({ devSource });
     throw new Error("trend should never call source detail");
   });
+  // F-011: Helper-Stub fuer GA-Detail-Pane.
+  api.knxStatsGaExportUrl = vi.fn(
+    (ga: string, format: string) =>
+      `/api/messagehub/knx-stats/ga/${encodeURIComponent(ga)}/export?format=${format}`
+  );
   return api as MockApi;
 }
 
