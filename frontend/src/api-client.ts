@@ -307,6 +307,36 @@ export interface KnxStatsSourceRecommendationDto {
   to?: string;
 }
 
+// =============================================================================
+// Iter L2.x — Geraete-Profile (manufacturer/model/notes) fuer Layer-2-Override
+// =============================================================================
+
+export interface KnxDeviceDto {
+  dev_source: string;
+  manufacturer: string | null;
+  model: string | null;
+  notes: string | null;
+  last_seen: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  inferred?: {
+    manufacturer: string | null;
+    confidence: "high" | "medium" | "low";
+    rationale: string;
+  } | null;
+}
+
+export interface KnxDeviceListDto {
+  items: KnxDeviceDto[];
+  count: number;
+}
+
+export interface KnxDevicePutBody {
+  manufacturer?: string | null;
+  model?: string | null;
+  notes?: string | null;
+}
+
 export interface KnxStatsSourceDetailDto {
   dev_source: string;
   total_count: number;
@@ -1253,6 +1283,36 @@ export class ApiClient {
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxStatsSourceRecommendationDto;
+  }
+
+  /** Iter L2.4: Geraete-Profil pflegen. */
+  async getKnxDevice(devSource: string): Promise<KnxDeviceDto> {
+    const url = `${this.baseUrl}/api/messagehub/knx-devices/${encodeURIComponent(devSource)}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxDeviceDto;
+  }
+
+  async putKnxDevice(
+    devSource: string,
+    body: KnxDevicePutBody,
+  ): Promise<KnxDeviceDto> {
+    const url = `${this.baseUrl}/api/messagehub/knx-devices/${encodeURIComponent(devSource)}`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { ...this.headers(), "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxDeviceDto;
+  }
+
+  async deleteKnxDevice(devSource: string): Promise<void> {
+    const url = `${this.baseUrl}/api/messagehub/knx-devices/${encodeURIComponent(devSource)}`;
+    const res = await fetch(url, { method: "DELETE", headers: this.headers() });
+    if (!res.ok && res.status !== 404) {
+      throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    }
   }
 
   async getKnxStatsTimeline(

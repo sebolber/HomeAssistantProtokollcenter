@@ -20,6 +20,8 @@ import type {
   KnxStatsOrphansDto,
   KnxStatsSensitiveLogDto,
   KnxStatsSilenceDto,
+  KnxDeviceDto,
+  KnxDevicePutBody,
   KnxStatsSourceDetailDto,
   KnxStatsSourceRecommendationDto,
   KnxStatsSourceGaSummaryDto,
@@ -362,6 +364,12 @@ export class StatsKnxView extends LitElement {
   @state() private _recommendationLoading = false;
   @state() private _recommendationError = "";
   @state() private _recommendationExpanded = false;
+  // Iter L2.4: Inline-Editor fuer Geraete-Profil.
+  @state() private _device: KnxDeviceDto | null = null;
+  @state() private _deviceEditing = false;
+  @state() private _deviceSaving = false;
+  @state() private _deviceError = "";
+  @state() private _deviceDraft: KnxDevicePutBody = {};
   @state() private _loading = false;
   @state() private _error = "";
   @state() private _toast = "";
@@ -413,6 +421,12 @@ export class StatsKnxView extends LitElement {
     this._recommendationLoading = false;
     this._recommendationError = "";
     this._recommendationExpanded = false;
+    // Iter L2.4: Geraete-Profil-State auch reset.
+    this._device = null;
+    this._deviceEditing = false;
+    this._deviceSaving = false;
+    this._deviceError = "";
+    this._deviceDraft = {};
   }
 
   private async _loadBusAnalysisState(): Promise<void> {
@@ -785,6 +799,12 @@ export class StatsKnxView extends LitElement {
     this._recommendationLoading = false;
     this._recommendationError = "";
     this._recommendationExpanded = false;
+    // Iter L2.4: Geraete-Profil mit-resetten.
+    this._device = null;
+    this._deviceEditing = false;
+    this._deviceSaving = false;
+    this._deviceError = "";
+    this._deviceDraft = {};
     try {
       const f = this._apiFilters();
       this._sourceDetail = await this.api.getKnxStatsSourceDetail(
@@ -835,7 +855,67 @@ export class StatsKnxView extends LitElement {
       && this._recommendationError === ""
     ) {
       void this._loadRecommendation(this._selectedSource);
+      // Geraete-Profil parallel laden (kleines, schnelles Endpoint —
+      // braucht keinen eigenen Lazy-Toggle).
+      void this._loadDevice(this._selectedSource);
     }
+  }
+
+  // Iter L2.4: Geraete-Profil laden + Inline-Edit.
+  private async _loadDevice(devSource: string): Promise<void> {
+    if (!this.api) return;
+    try {
+      this._device = await this.api.getKnxDevice(devSource);
+    } catch (err) {
+      this._device = null;
+      this._deviceError = (err as Error).message;
+    }
+  }
+
+  private _startEditDevice(): void {
+    this._deviceEditing = true;
+    this._deviceError = "";
+    this._deviceDraft = {
+      manufacturer: this._device?.manufacturer ?? "",
+      model: this._device?.model ?? "",
+      notes: this._device?.notes ?? "",
+    };
+  }
+
+  private _cancelEditDevice(): void {
+    this._deviceEditing = false;
+    this._deviceError = "";
+    this._deviceDraft = {};
+  }
+
+  private async _saveDevice(): Promise<void> {
+    if (!this.api || !this._selectedSource) return;
+    this._deviceSaving = true;
+    this._deviceError = "";
+    try {
+      this._device = await this.api.putKnxDevice(
+        this._selectedSource,
+        this._deviceDraft,
+      );
+      this._deviceEditing = false;
+      this._deviceDraft = {};
+      // Recommendation neu laden, weil Layer-2-Override ggf. greift
+      this._recommendation = null;
+      if (this._recommendationExpanded) {
+        void this._loadRecommendation(this._selectedSource);
+      }
+    } catch (err) {
+      this._deviceError = (err as Error).message;
+    } finally {
+      this._deviceSaving = false;
+    }
+  }
+
+  private _onDeviceDraftChange(
+    field: keyof KnxDevicePutBody,
+    value: string,
+  ): void {
+    this._deviceDraft = { ...this._deviceDraft, [field]: value };
   }
 
   private async _onSelectGa(ga: string): Promise<void> {
@@ -2175,11 +2255,116 @@ export class StatsKnxView extends LitElement {
             </ul>
           </details>`
         : nothing}
+      ${this._renderDeviceProfileEditor()}
       ${this._renderRecommendationGaTable(reco)}
       <p class="muted small recommendation-card__footer">
         Berechnet am ${reco.generated_at} fuer Geraet
         <code>${reco.dev_source}</code>.
       </p>
+    `;
+  }
+
+  // Iter L2.4: Inline-Editor fuer das Geraete-Profil (manufacturer +
+  // model + notes). Default: read-only-Anzeige; Bearbeiten-Klick
+  // zeigt Form. Speichern triggert PUT + Recommendation-Reload.
+  private _renderDeviceProfileEditor(): TemplateResult {
+    const dev = this._device;
+    if (this._deviceEditing) {
+      return this._renderDeviceProfileForm();
+    }
+    return html`
+      <div class="recommendation-card__device-profile">
+        <strong>Geraete-Profil:</strong>
+        ${dev !== null && (dev.manufacturer || dev.model)
+          ? html`
+              <span>${dev.manufacturer ?? "—"}
+                ${dev.model ? html`/ ${dev.model}` : nothing}</span>
+              ${dev.notes
+                ? html`<span class="muted small">${dev.notes}</span>`
+                : nothing}`
+          : html`<span class="muted">noch nicht gepflegt</span>
+              ${dev?.inferred?.manufacturer
+                ? html`<span class="muted small">
+                    Vorschlag aus GA-Labels: ${dev.inferred.manufacturer}
+                  </span>`
+                : nothing}`}
+        <button
+          type="button"
+          class="mh-button mh-button--ghost"
+          @click=${() => this._startEditDevice()}
+        >
+          ${dev !== null && (dev.manufacturer || dev.model)
+            ? "Bearbeiten"
+            : "Pflegen"}
+        </button>
+      </div>
+    `;
+  }
+
+  private _renderDeviceProfileForm(): TemplateResult {
+    return html`
+      <div class="recommendation-card__device-form">
+        <label>
+          <span class="muted small">Hersteller</span>
+          <input
+            type="text"
+            .value=${this._deviceDraft.manufacturer ?? ""}
+            ?disabled=${this._deviceSaving}
+            @input=${(e: InputEvent) =>
+              this._onDeviceDraftChange(
+                "manufacturer",
+                (e.target as HTMLInputElement).value,
+              )}
+          />
+        </label>
+        <label>
+          <span class="muted small">Modell</span>
+          <input
+            type="text"
+            .value=${this._deviceDraft.model ?? ""}
+            ?disabled=${this._deviceSaving}
+            @input=${(e: InputEvent) =>
+              this._onDeviceDraftChange(
+                "model",
+                (e.target as HTMLInputElement).value,
+              )}
+          />
+        </label>
+        <label>
+          <span class="muted small">Notiz (optional)</span>
+          <input
+            type="text"
+            .value=${this._deviceDraft.notes ?? ""}
+            ?disabled=${this._deviceSaving}
+            @input=${(e: InputEvent) =>
+              this._onDeviceDraftChange(
+                "notes",
+                (e.target as HTMLInputElement).value,
+              )}
+          />
+        </label>
+        ${this._deviceError
+          ? html`<p class="mh-error">${this._deviceError}</p>`
+          : nothing}
+        <div class="recommendation-card__device-form-actions">
+          <button
+            type="button"
+            class="mh-button"
+            ?disabled=${this._deviceSaving}
+            @click=${() => void this._saveDevice()}
+          >
+            ${this._deviceSaving ? "Speichere..." : "Speichern"}
+          </button>
+          <button
+            type="button"
+            class="mh-button mh-button--ghost"
+            ?disabled=${this._deviceSaving}
+            @click=${() => this._cancelEditDevice()}
+          >
+            Abbrechen
+          </button>
+        </div>
+      </div>
     `;
   }
 
@@ -4134,6 +4319,42 @@ export class StatsKnxView extends LitElement {
       }
       .recommendation-card__footer {
         margin-top: var(--mh-space-3);
+      }
+      /* Iter L2.4 — Geraete-Profil-Editor */
+      .recommendation-card__device-profile {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--mh-space-2);
+        margin: var(--mh-space-2) 0;
+        padding: var(--mh-space-2);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm, 4px);
+      }
+      .recommendation-card__device-form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-2);
+        margin: var(--mh-space-2) 0;
+        padding: var(--mh-space-2);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm, 4px);
+      }
+      .recommendation-card__device-form label {
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-1);
+      }
+      .recommendation-card__device-form input {
+        padding: var(--mh-space-1) var(--mh-space-2);
+        border: 1px solid var(--mh-divider);
+        border-radius: var(--mh-radius-sm, 4px);
+        background: var(--mh-surface-2);
+        color: var(--mh-fg-default);
+      }
+      .recommendation-card__device-form-actions {
+        display: flex;
+        gap: var(--mh-space-2);
       }
       /* Iter 67 / WR-I: Trend-Card. Color-Border je nach Total-Severity. */
       .trend {

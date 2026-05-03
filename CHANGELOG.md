@@ -7,6 +7,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L2.4 / Sprint Recommendations — Frontend-Geraete-Editor + E2E.**
+  Inline-Editor fuer Hersteller/Modell/Notiz in der Recommendation-
+  Card. Default: Read-only-Block mit "noch nicht gepflegt" oder
+  Profil-Anzeige. Bearbeiten-Klick zeigt Form, Speichern triggert
+  PUT + Recommendation-Reload (damit Layer-2-Override sofort
+  greift). Inferenz-Vorschlag wird unterhalb des leeren Profils
+  rendered. **Phase L2 abgeschlossen.** API-Client um
+  `getKnxDevice`, `putKnxDevice`, `deleteKnxDevice` + DTOs erweitert.
+  5 neue Vitest.
 - **Iter L2.3 / Sprint Recommendations — Devices-Pflege-API + Auto-Inferenz.**
   Neue Endpoints:
   * `GET /api/messagehub/knx-devices` (Liste aller Profile)
