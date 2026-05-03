@@ -180,6 +180,58 @@ class TestFindingsListResponse:
         assert item["evidence"]["a"] == 1
 
 
+class TestFindingsAcknowledgedFlag:
+    """F-004: list_findings_response liefert pro Item ein `acknowledged`-Flag,
+    damit die UI einen Unack-Button rendern kann.
+    """
+
+    @pytest.mark.asyncio
+    async def test_acknowledged_false_for_unacked_finding(self, db: Database) -> None:
+        repo = FindingsRepository(db)
+        await repo.record(_f(ga="1/2/3"))
+
+        resp = await list_findings_response(repo)
+
+        assert resp["items"][0]["acknowledged"] is False
+
+    @pytest.mark.asyncio
+    async def test_acknowledged_true_after_ack(self, db: Database) -> None:
+        repo = FindingsRepository(db)
+        await repo.record(_f(ga="1/2/3", code="DPT_MISMATCH"))
+        await repo.acknowledge(ga="1/2/3", code="DPT_MISMATCH", actor="audit-test")
+
+        resp = await list_findings_response(repo)
+
+        assert resp["items"][0]["acknowledged"] is True
+
+    @pytest.mark.asyncio
+    async def test_per_item_ack_independent(self, db: Database) -> None:
+        repo = FindingsRepository(db)
+        await repo.record(_f(ga="1/2/3", code="DPT_MISMATCH"))
+        await repo.record(_f(ga="1/2/4", code="DPT_MISMATCH"))
+        # Nur 1/2/3 acken
+        await repo.acknowledge(ga="1/2/3", code="DPT_MISMATCH", actor="audit-test")
+
+        resp = await list_findings_response(repo)
+        items = {it["ga"]: it for it in resp["items"]}
+
+        assert items["1/2/3"]["acknowledged"] is True
+        assert items["1/2/4"]["acknowledged"] is False
+
+    @pytest.mark.asyncio
+    async def test_global_finding_without_ga_is_never_acked(self, db: Database) -> None:
+        """Bus-weite Findings (ga=None) koennen aktuell nicht acked werden —
+        das DTO muss `acknowledged=False` melden, damit die UI keinen
+        Unack-Knopf rendert."""
+        repo = FindingsRepository(db)
+        await repo.record(_f(ga=None, code="RECONNECT_STORM", severity="warning"))
+
+        resp = await list_findings_response(repo)
+
+        assert resp["items"][0]["ga"] is None
+        assert resp["items"][0]["acknowledged"] is False
+
+
 class TestFindingsApiViewRegistered:
     """Iter 6: FindingsListView muss in messages.async_register_views auftauchen.
 

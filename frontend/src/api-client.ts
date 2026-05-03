@@ -494,6 +494,14 @@ export interface FindingDto {
   last_seen: string;
   occurrence_count: number;
   detector_version: string;
+  /**
+   * F-004: Liefert das Backend (`list_findings_response`) seit Iter +3
+   * mit. `true`, wenn fuer diese (ga, code) ein gueltiger Ack existiert.
+   * Bei bus-weiten Findings (`ga=null`) immer `false`. Optional, weil
+   * aeltere Backends das Feld noch nicht senden — UI defaultet auf
+   * `false`.
+   */
+  acknowledged?: boolean;
 }
 
 export interface FindingsListResponse {

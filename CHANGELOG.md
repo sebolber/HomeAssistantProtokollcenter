@@ -7,6 +7,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Anbindungs-Audit Sprint 1)
+- **Iter +3 / F-004 — Findings-Ack zuruecknehmen.** Akzeptierte
+  KNX-Konfigurations-Findings haben jetzt einen „Ack zuruecknehmen"-
+  Knopf im Detail-Pane des Konfigurations-Check-Tabs. Akkzeptierte
+  Items werden in der Liste mit einem ✓-Marker („acked") und reduzierter
+  Opazitaet markiert. Backend-Service `list_findings_response` liefert
+  pro Item ein neues `acknowledged: bool`-Feld via Single-Set-Lookup
+  (O(1) pro Item, eine zusaetzliche SQL-Query — vermeidet N+1).
+  Bus-weite Findings (ga=null) bleiben weiterhin nicht-ackable, der
+  Unack-Button erscheint nicht. ApiClient-Methode `unacknowledgeFinding`
+  war seit langem ungenutzt — jetzt verbunden. Audit-Eintrag
+  `unack-finding` pro Aufruf. Behebt Audit-Finding F-004.
 - **Iter +2 / F-002 — MQTT-Topic-Edit.** MQTT-Topic-Zeilen im
   Settings-Tab haben einen „Bearbeiten"-Knopf. Klick wechselt die
   Zeile in Inline-Edit-Modus (Pattern, Source, Severity, Aktiv-
