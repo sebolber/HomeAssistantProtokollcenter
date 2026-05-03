@@ -7,6 +7,12 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 3)
+- **Iter 17 — Detector `TOGGLE_LOOP`.**
+  Erkennt DPT-1.001-Schaltschleifen: alternierende Werte 0/1 mit Δt
+  < 2 s ueber mindestens 4 Wertwechsel. Severity `error` (Schleifen
+  sind nahezu nie gewollt; sie kosten Bus-Zeit). Evidence
+  `{period_ms, cycles}` — Periode = 2 × Median(Δt) (zwei Transitionen
+  pro Zyklus).
 - **Iter 16 — Detector `READ_NO_RESPONSE`.**
   Pro unbeantwortetem GroupValueRead ein Finding (severity warning).
   Timeout 3 s aus KNX-Spec (3-fache Wiederholung ohne ACK -> verworfen,
