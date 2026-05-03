@@ -7,6 +7,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 2)
+- **Iter 12 — Detector `DPT_MISMATCH`.**
+  Reine Funktion `detect_dpt_mismatch(*, ga, project_dpt, inferred_dpt,
+  confidence, samples, now)` in
+  `processing/findings/dpt_mismatch.py`. Liefert ein Finding mit
+  Severity `error` + Evidence
+  `{project_dpt, inferred_dpt, confidence, samples}`, wenn
+  Confidence >= 0.85 (Decision: 0.85 statt 0.80, weil 9.x mit < 50
+  Samples haeufig False-Positives generiert). Whitelist:
+  generischer 9.x-Inferenz-Treffer kollidiert nicht mit konkretem
+  9.001/9.005/etc. im Projekt — der Auto-Erkenner kann den Subtyp
+  ohne Sensor-Kontext nicht erraten.
 - **Iter 11 — Migration `knx_group_addresses.dpt_inferred`.**
   Drei neue Spalten (`dpt_inferred`, `dpt_inferred_confidence`,
   `dpt_inferred_at`) trennen das Soll (`dpt`) vom Ist (Auto-
