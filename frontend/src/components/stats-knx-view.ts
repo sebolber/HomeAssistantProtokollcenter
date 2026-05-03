@@ -295,6 +295,32 @@ export class StatsKnxView extends LitElement {
     await Promise.all([this._loadBusAnalysisState(), this._load()]);
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback();
+    // Iter aiohttp-error-ZU9UA / P1: Escape schliesst das Detail-Drawer.
+    // window-Level statt document-Level, damit der Listener immer feuert,
+    // auch wenn Fokus woanders im Shadow-DOM liegt. CLAUDE.md: position-
+    // fixed-Popovers + Backdrop, kein document.click-Pattern.
+    window.addEventListener("keydown", this._onWindowKeyDown);
+  }
+
+  override disconnectedCallback(): void {
+    window.removeEventListener("keydown", this._onWindowKeyDown);
+    super.disconnectedCallback();
+  }
+
+  private _onWindowKeyDown = (e: KeyboardEvent): void => {
+    if (e.key === "Escape" && (this._detail !== null || this._detailLoading)) {
+      this._closeDetail();
+    }
+  };
+
+  private _closeDetail(): void {
+    this._selectedGa = null;
+    this._detail = null;
+    this._detailLoading = false;
+  }
+
   private async _loadBusAnalysisState(): Promise<void> {
     if (!this.api) return;
     try {
@@ -586,21 +612,15 @@ export class StatsKnxView extends LitElement {
 
   private async _onSelectGa(ga: string): Promise<void> {
     if (this._selectedGa === ga) {
-      this._selectedGa = null;
-      this._detail = null;
+      this._closeDetail();
       return;
     }
     this._selectedGa = ga;
+    // Iter aiohttp-error-ZU9UA / P1: Detail-Pane ist jetzt ein
+    // Side-Drawer (fixed-position, rechts). Kein scrollIntoView mehr —
+    // der Drawer ist immer sichtbar, sobald _detail / _detailLoading
+    // gesetzt ist.
     await this._loadDetail(ga);
-    // Iter aiohttp-error-ZU9UA: Detail-Pane scrollt sich selbst in den
-    // Viewport, sonst muesste der User raten, dass etwas passiert ist
-    // und dann die ganze Seite runter scrollen. Guarded, weil jsdom in
-    // Tests scrollIntoView nicht implementiert.
-    await this.updateComplete;
-    const pane = this.shadowRoot?.querySelector(".detail-pane");
-    if (pane && typeof (pane as HTMLElement).scrollIntoView === "function") {
-      (pane as HTMLElement).scrollIntoView({ behavior: "smooth", block: "start" });
-    }
   }
 
   private async _ackGa(ga: string): Promise<void> {
@@ -1427,36 +1447,59 @@ export class StatsKnxView extends LitElement {
     `;
   }
 
+  // Iter aiohttp-error-ZU9UA / P1: Detail-Pane als Side-Drawer.
+  // Vorher inline am Tabellenende (User musste runterscrollen, Tabelle
+  // war beim Lesen weg). Jetzt: position: fixed rechts, Backdrop links,
+  // Tabelle bleibt sichtbar — User kann zwischen Detail und Tabelle
+  // springen. Schliessen via X / Backdrop-Klick / Escape.
   private _renderDetailPane(): TemplateResult {
-    if (this._detailLoading && this._detail === null) {
-      return html`<section class="mh-card detail-pane">
-        <p class="muted">lade Details…</p>
-      </section>`;
-    }
-    if (this._detail === null) return html``;
-    const d = this._detail;
-    const rec = d.recommendation;
+    const inner: TemplateResult = this._detailLoading && this._detail === null
+      ? html`<p class="muted">lade Details…</p>`
+      : this._detail === null
+        ? html``
+        : this._renderDetailBody(this._detail);
     return html`
-      <section class="mh-card detail-pane">
-        <header class="card-head">
-          <div class="detail-head-text">
-            <h3>${d.ga} — ${d.label ?? "Detail"}</h3>
-            <span class="muted small">
-              Gerät:
-              <code>${d.dev_source || "?"}</code>
-              ${d.dpt ? html` • DPT <code>${d.dpt}</code>` : nothing}
-            </span>
-          </div>
+      <div
+        class="detail-backdrop"
+        @click=${() => this._closeDetail()}
+        aria-hidden="true"
+      ></div>
+      <aside
+        class="mh-card detail-pane"
+        role="dialog"
+        aria-modal="true"
+        aria-label=${this._detail
+          ? `Detail ${this._detail.ga} — ${this._detail.label ?? ""}`
+          : "Detail laedt"}
+      >
+        <header class="card-head detail-head">
+          ${this._detail !== null
+            ? html`<div class="detail-head-text">
+                <h3>${this._detail.ga} — ${this._detail.label ?? "Detail"}</h3>
+                <span class="muted small">
+                  Gerät:
+                  <code>${this._detail.dev_source || "?"}</code>
+                  ${this._detail.dpt ? html` • DPT <code>${this._detail.dpt}</code>` : nothing}
+                </span>
+              </div>`
+            : html`<div class="detail-head-text"><h3>Detail</h3></div>`}
           <button
-            class="mh-btn mh-btn--sm mh-btn--ghost"
-            @click=${() => {
-              this._selectedGa = null;
-              this._detail = null;
-            }}
+            class="mh-btn mh-btn--sm mh-btn--ghost detail-close"
+            title="Schliessen (Escape)"
+            aria-label="Detail schliessen"
+            @click=${() => this._closeDetail()}
           >
             ✕ Schliessen
           </button>
         </header>
+        <div class="detail-body">${inner}</div>
+      </aside>
+    `;
+  }
+
+  private _renderDetailBody(d: KnxStatsGaDetailDto): TemplateResult {
+    const rec = d.recommendation;
+    return html`
 
         <div class="detail-stats">
           <div class="detail-stat">
@@ -1527,7 +1570,6 @@ export class StatsKnxView extends LitElement {
           : nothing}
 
         ${this._renderHaKnxLinks(d)}
-      </section>
     `;
   }
 
@@ -3129,9 +3171,68 @@ export class StatsKnxView extends LitElement {
         white-space: nowrap;
       }
 
-      /* Detail-Pane */
+      /* Iter aiohttp-error-ZU9UA / P1: Detail-Pane als Side-Drawer.
+         Vorher inline am Tabellenende. Backdrop dimmt den restlichen
+         Inhalt subtil (rgba 0,0,0,0.25), Drawer-Card slidet von rechts. */
+      .detail-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.25);
+        z-index: 100;
+        animation: mh-detail-backdrop-in 160ms ease-out;
+      }
       .detail-pane {
-        border: 1px solid var(--mh-accent-soft);
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: clamp(360px, 42vw, 640px);
+        z-index: 101;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        border-left: 1px solid var(--mh-divider);
+        box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: mh-detail-drawer-in 200ms ease-out;
+      }
+      .detail-head {
+        flex: 0 0 auto;
+        position: sticky;
+        top: 0;
+        background: var(--mh-surface);
+        border-bottom: 1px solid var(--mh-divider);
+        padding: var(--mh-space-3);
+        z-index: 1;
+      }
+      .detail-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: var(--mh-space-3);
+      }
+      .detail-close {
+        flex-shrink: 0;
+      }
+      @media (max-width: 720px) {
+        .detail-pane {
+          width: 100vw;
+        }
+      }
+      @keyframes mh-detail-backdrop-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes mh-detail-drawer-in {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .detail-backdrop,
+        .detail-pane {
+          animation: none;
+        }
       }
       .detail-stats {
         display: grid;

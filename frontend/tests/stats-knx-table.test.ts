@@ -325,6 +325,53 @@ describe("stats-knx-view top table + detail pane", () => {
     expect(el.shadowRoot!.querySelector(".detail-pane")).toBeNull();
   });
 
+  it("Iter aiohttp-error-ZU9UA: Detail-Pane wird als Side-Drawer mit Backdrop gerendert", async () => {
+    const api = makeApi();
+    const el = await mount(api);
+    const firstRow = el.shadowRoot!.querySelector("tbody tr") as HTMLElement;
+    firstRow.click();
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    // Drawer ist <aside role="dialog">
+    const drawer = el.shadowRoot!.querySelector("aside.detail-pane");
+    expect(drawer).not.toBeNull();
+    expect(drawer!.getAttribute("role")).toBe("dialog");
+    expect(drawer!.getAttribute("aria-modal")).toBe("true");
+    // Backdrop ist eigenes Element
+    const backdrop = el.shadowRoot!.querySelector(".detail-backdrop");
+    expect(backdrop).not.toBeNull();
+  });
+
+  it("Iter aiohttp-error-ZU9UA: Klick auf Backdrop schliesst den Drawer", async () => {
+    const api = makeApi();
+    const el = await mount(api);
+    const firstRow = el.shadowRoot!.querySelector("tbody tr") as HTMLElement;
+    firstRow.click();
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    const backdrop = el.shadowRoot!.querySelector(".detail-backdrop") as HTMLElement;
+    backdrop.click();
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    expect(el.shadowRoot!.querySelector(".detail-pane")).toBeNull();
+    expect(el.shadowRoot!.querySelector(".detail-backdrop")).toBeNull();
+  });
+
+  it("Iter aiohttp-error-ZU9UA: Escape-Taste schliesst den Drawer", async () => {
+    const api = makeApi();
+    const el = await mount(api);
+    const firstRow = el.shadowRoot!.querySelector("tbody tr") as HTMLElement;
+    firstRow.click();
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    expect(el.shadowRoot!.querySelector(".detail-pane")).not.toBeNull();
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    expect(el.shadowRoot!.querySelector(".detail-pane")).toBeNull();
+  });
+
   it("ruft acknowledgeKnxGa beim Klick auf Bekannt-Button", async () => {
     const api = makeApi();
     // window.prompt mocken

@@ -45,7 +45,7 @@ const Ut = (t) => new St(typeof t == "string" ? t : t + "", void 0, Re), $ = (t,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: jt, defineProperty: Kt, getOwnPropertyDescriptor: Gt, getOwnPropertyNames: Wt, getOwnPropertySymbols: Vt, getPrototypeOf: qt } = Object, U = globalThis, Qe = U.trustedTypes, Jt = Qe ? Qe.emptyScript : "", Ne = U.reactiveElementPolyfillSupport, pe = (t, e) => t, Te = { toAttribute(t, e) {
+const { is: jt, defineProperty: Kt, getOwnPropertyDescriptor: Gt, getOwnPropertyNames: Wt, getOwnPropertySymbols: Vt, getPrototypeOf: qt } = Object, U = globalThis, Ze = U.trustedTypes, Jt = Ze ? Ze.emptyScript : "", Ne = U.reactiveElementPolyfillSupport, pe = (t, e) => t, Te = { toAttribute(t, e) {
   switch (e) {
     case Boolean:
       t = t ? Jt : null;
@@ -73,7 +73,7 @@ const { is: jt, defineProperty: Kt, getOwnPropertyDescriptor: Gt, getOwnProperty
       }
   }
   return s;
-} }, je = (t, e) => !jt(t, e), Ze = { attribute: !0, type: String, converter: Te, reflect: !1, useDefault: !1, hasChanged: je };
+} }, je = (t, e) => !jt(t, e), Qe = { attribute: !0, type: String, converter: Te, reflect: !1, useDefault: !1, hasChanged: je };
 Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), U.litPropertyMetadata ?? (U.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
 let se = class extends HTMLElement {
   static addInitializer(e) {
@@ -82,7 +82,7 @@ let se = class extends HTMLElement {
   static get observedAttributes() {
     return this.finalize(), this._$Eh && [...this._$Eh.keys()];
   }
-  static createProperty(e, s = Ze) {
+  static createProperty(e, s = Qe) {
     if (s.state && (s.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((s = Object.create(s)).wrapped = !0), this.elementProperties.set(e, s), !s.noAccessor) {
       const r = Symbol(), a = this.getPropertyDescriptor(e, r, s);
       a !== void 0 && Kt(this.prototype, e, a);
@@ -100,7 +100,7 @@ let se = class extends HTMLElement {
     }, configurable: !0, enumerable: !0 };
   }
   static getPropertyOptions(e) {
-    return this.elementProperties.get(e) ?? Ze;
+    return this.elementProperties.get(e) ?? Qe;
   }
   static _$Ei() {
     if (this.hasOwnProperty(pe("elementProperties"))) return;
@@ -286,12 +286,12 @@ se.elementStyles = [], se.shadowRootOptions = { mode: "open" }, se[pe("elementPr
  */
 const ue = globalThis, et = (t) => t, Ae = ue.trustedTypes, tt = Ae ? Ae.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Tt = "$lit$", B = `lit$${Math.random().toFixed(9).slice(2)}$`, At = "?" + B, Yt = `<${At}>`, q = document, me = () => q.createComment(""), ge = (t) => t === null || typeof t != "object" && typeof t != "function", Ke = Array.isArray, Xt = (t) => Ke(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Oe = `[ 	
 \f\r]`, de = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, st = /-->/g, at = />/g, K = RegExp(`>|${Oe}(?:([^\\s"'>=/]+)(${Oe}*=${Oe}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), rt = /'/g, it = /"/g, Pt = /^(?:script|style|textarea|title)$/i, Qt = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), n = Qt(1), J = Symbol.for("lit-noChange"), d = Symbol.for("lit-nothing"), nt = /* @__PURE__ */ new WeakMap(), W = q.createTreeWalker(q, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), rt = /'/g, it = /"/g, Pt = /^(?:script|style|textarea|title)$/i, Zt = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), n = Zt(1), J = Symbol.for("lit-noChange"), d = Symbol.for("lit-nothing"), nt = /* @__PURE__ */ new WeakMap(), W = q.createTreeWalker(q, 129);
 function Et(t, e) {
   if (!Ke(t) || !t.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return tt !== void 0 ? tt.createHTML(e) : e;
 }
-const Zt = (t, e) => {
+const Qt = (t, e) => {
   const s = t.length - 1, r = [];
   let a, i = e === 2 ? "<svg>" : e === 3 ? "<math>" : "", o = de;
   for (let h = 0; h < s; h++) {
@@ -308,7 +308,7 @@ class ve {
     let a;
     this.parts = [];
     let i = 0, o = 0;
-    const h = e.length - 1, c = this.parts, [m, g] = Zt(e, s);
+    const h = e.length - 1, c = this.parts, [m, g] = Qt(e, s);
     if (this.el = ve.createElement(m, r), W.currentNode = this.el.content, s === 2 || s === 3) {
       const u = this.el.content.firstChild;
       u.replaceWith(...u.childNodes);
@@ -4828,7 +4828,7 @@ P([
 R = P([
   T("mqtt-topics-view")
 ], R);
-let Q = class extends w {
+let Z = class extends w {
   constructor() {
     super(...arguments), this._items = [], this._newSource = "", this._newInterval = 3600;
   }
@@ -4894,22 +4894,22 @@ let Q = class extends w {
     `;
   }
 };
-Q.styles = Ve;
+Z.styles = Ve;
 P([
   x({ attribute: !1 })
-], Q.prototype, "api", 2);
+], Z.prototype, "api", 2);
 P([
   l()
-], Q.prototype, "_items", 2);
+], Z.prototype, "_items", 2);
 P([
   l()
-], Q.prototype, "_newSource", 2);
+], Z.prototype, "_newSource", 2);
 P([
   l()
-], Q.prototype, "_newInterval", 2);
-Q = P([
+], Z.prototype, "_newInterval", 2);
+Z = P([
   T("heartbeats-view")
-], Q);
+], Z);
 let F = class extends w {
   constructor() {
     super(...arguments), this._items = [], this._newName = "", this._newSource = "", this._newAutomation = "", this._newAuto = !1;
@@ -5660,8 +5660,8 @@ H([
 L = H([
   T("settings-view")
 ], L);
-var Xs = Object.defineProperty, Qs = Object.getOwnPropertyDescriptor, Z = (t, e, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Qs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+var Xs = Object.defineProperty, Zs = Object.getOwnPropertyDescriptor, Q = (t, e, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Zs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && Xs(e, s, a), a;
 };
@@ -5675,7 +5675,7 @@ const mt = {
   warning: "var(--mh-warning)",
   info: "var(--mh-info)",
   debug: "var(--mh-debug)"
-}, vt = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], Zs = [1, 2, 3, 4, 5, 6, 0];
+}, vt = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], Qs = [1, 2, 3, 4, 5, 6, 0];
 let I = class extends w {
   constructor() {
     super(...arguments), this._stats = null, this._sources = [], this._heatmap = [], this._topSources = [], this._loading = !1;
@@ -5713,7 +5713,7 @@ let I = class extends w {
       (s, r) => n`<span class="hour-label">${r % 3 === 0 ? r : ""}</span>`
     )}
           </div>
-          ${Zs.map((s, r) => {
+          ${Qs.map((s, r) => {
       const a = t[s];
       return n`
               <div class="heatmap-row">
@@ -5949,25 +5949,25 @@ I.styles = [
       .status { color: var(--mh-fg-muted); padding: var(--mh-space-2) 0; margin: 0; }
     `
 ];
-Z([
+Q([
   x({ attribute: !1 })
 ], I.prototype, "api", 2);
-Z([
+Q([
   l()
 ], I.prototype, "_stats", 2);
-Z([
+Q([
   l()
 ], I.prototype, "_sources", 2);
-Z([
+Q([
   l()
 ], I.prototype, "_heatmap", 2);
-Z([
+Q([
   l()
 ], I.prototype, "_topSources", 2);
-Z([
+Q([
   l()
 ], I.prototype, "_loading", 2);
-I = Z([
+I = Q([
   T("stats-live-view")
 ], I);
 var ea = Object.defineProperty, ta = Object.getOwnPropertyDescriptor, De = (t, e, s, r) => {
@@ -6363,10 +6363,21 @@ function ba(t, e, s) {
 }
 let b = class extends w {
   constructor() {
-    super(...arguments), this._filters = ga(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._heatmap = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansHidePlaceholders = !0, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._loading = !1, this._error = "", this._toast = "";
+    super(...arguments), this._filters = ga(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._heatmap = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansHidePlaceholders = !0, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._loading = !1, this._error = "", this._toast = "", this._onWindowKeyDown = (t) => {
+      t.key === "Escape" && (this._detail !== null || this._detailLoading) && this._closeDetail();
+    };
   }
   async firstUpdated() {
     await Promise.all([this._loadBusAnalysisState(), this._load()]);
+  }
+  connectedCallback() {
+    super.connectedCallback(), window.addEventListener("keydown", this._onWindowKeyDown);
+  }
+  disconnectedCallback() {
+    window.removeEventListener("keydown", this._onWindowKeyDown), super.disconnectedCallback();
+  }
+  _closeDetail() {
+    this._selectedGa = null, this._detail = null, this._detailLoading = !1;
   }
   async _loadBusAnalysisState() {
     if (this.api)
@@ -6584,14 +6595,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     }
   }
   async _onSelectGa(t) {
-    var s;
     if (this._selectedGa === t) {
-      this._selectedGa = null, this._detail = null;
+      this._closeDetail();
       return;
     }
-    this._selectedGa = t, await this._loadDetail(t), await this.updateComplete;
-    const e = (s = this.shadowRoot) == null ? void 0 : s.querySelector(".detail-pane");
-    e && typeof e.scrollIntoView == "function" && e.scrollIntoView({ behavior: "smooth", block: "start" });
+    this._selectedGa = t, await this._loadDetail(t);
   }
   async _ackGa(t) {
     if (!this.api) return;
@@ -7249,33 +7257,50 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       </div>
     `;
   }
+  // Iter aiohttp-error-ZU9UA / P1: Detail-Pane als Side-Drawer.
+  // Vorher inline am Tabellenende (User musste runterscrollen, Tabelle
+  // war beim Lesen weg). Jetzt: position: fixed rechts, Backdrop links,
+  // Tabelle bleibt sichtbar — User kann zwischen Detail und Tabelle
+  // springen. Schliessen via X / Backdrop-Klick / Escape.
   _renderDetailPane() {
-    if (this._detailLoading && this._detail === null)
-      return n`<section class="mh-card detail-pane">
-        <p class="muted">lade Details…</p>
-      </section>`;
-    if (this._detail === null) return n``;
-    const t = this._detail, e = t.recommendation;
+    const t = this._detailLoading && this._detail === null ? n`<p class="muted">lade Details…</p>` : this._detail === null ? n`` : this._renderDetailBody(this._detail);
     return n`
-      <section class="mh-card detail-pane">
-        <header class="card-head">
-          <div class="detail-head-text">
-            <h3>${t.ga} — ${t.label ?? "Detail"}</h3>
-            <span class="muted small">
-              Gerät:
-              <code>${t.dev_source || "?"}</code>
-              ${t.dpt ? n` • DPT <code>${t.dpt}</code>` : d}
-            </span>
-          </div>
+      <div
+        class="detail-backdrop"
+        @click=${() => this._closeDetail()}
+        aria-hidden="true"
+      ></div>
+      <aside
+        class="mh-card detail-pane"
+        role="dialog"
+        aria-modal="true"
+        aria-label=${this._detail ? `Detail ${this._detail.ga} — ${this._detail.label ?? ""}` : "Detail laedt"}
+      >
+        <header class="card-head detail-head">
+          ${this._detail !== null ? n`<div class="detail-head-text">
+                <h3>${this._detail.ga} — ${this._detail.label ?? "Detail"}</h3>
+                <span class="muted small">
+                  Gerät:
+                  <code>${this._detail.dev_source || "?"}</code>
+                  ${this._detail.dpt ? n` • DPT <code>${this._detail.dpt}</code>` : d}
+                </span>
+              </div>` : n`<div class="detail-head-text"><h3>Detail</h3></div>`}
           <button
-            class="mh-btn mh-btn--sm mh-btn--ghost"
-            @click=${() => {
-      this._selectedGa = null, this._detail = null;
-    }}
+            class="mh-btn mh-btn--sm mh-btn--ghost detail-close"
+            title="Schliessen (Escape)"
+            aria-label="Detail schliessen"
+            @click=${() => this._closeDetail()}
           >
             ✕ Schliessen
           </button>
         </header>
+        <div class="detail-body">${t}</div>
+      </aside>
+    `;
+  }
+  _renderDetailBody(t) {
+    const e = t.recommendation;
+    return n`
 
         <div class="detail-stats">
           <div class="detail-stat">
@@ -7332,7 +7357,6 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         ${t.sibling_gas.length > 0 ? this._renderSiblingGas(t) : d}
 
         ${this._renderHaKnxLinks(t)}
-      </section>
     `;
   }
   /**
@@ -8759,9 +8783,68 @@ b.styles = [
         white-space: nowrap;
       }
 
-      /* Detail-Pane */
+      /* Iter aiohttp-error-ZU9UA / P1: Detail-Pane als Side-Drawer.
+         Vorher inline am Tabellenende. Backdrop dimmt den restlichen
+         Inhalt subtil (rgba 0,0,0,0.25), Drawer-Card slidet von rechts. */
+      .detail-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.25);
+        z-index: 100;
+        animation: mh-detail-backdrop-in 160ms ease-out;
+      }
       .detail-pane {
-        border: 1px solid var(--mh-accent-soft);
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: clamp(360px, 42vw, 640px);
+        z-index: 101;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        border-left: 1px solid var(--mh-divider);
+        box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: mh-detail-drawer-in 200ms ease-out;
+      }
+      .detail-head {
+        flex: 0 0 auto;
+        position: sticky;
+        top: 0;
+        background: var(--mh-surface);
+        border-bottom: 1px solid var(--mh-divider);
+        padding: var(--mh-space-3);
+        z-index: 1;
+      }
+      .detail-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: var(--mh-space-3);
+      }
+      .detail-close {
+        flex-shrink: 0;
+      }
+      @media (max-width: 720px) {
+        .detail-pane {
+          width: 100vw;
+        }
+      }
+      @keyframes mh-detail-backdrop-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes mh-detail-drawer-in {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .detail-backdrop,
+        .detail-pane {
+          animation: none;
+        }
       }
       .detail-stats {
         display: grid;
