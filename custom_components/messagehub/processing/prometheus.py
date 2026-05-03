@@ -24,6 +24,7 @@ def format_prometheus_metrics(
     knx_total: int = 0,
     webhook_total: int = 0,
     audit_failure_total: int = 0,
+    finding_total: Mapping[tuple[str, str], int] | None = None,
 ) -> str:
     """Erzeugt einen Prometheus-Text-Format-String.
 
@@ -80,5 +81,21 @@ def format_prometheus_metrics(
     )
     lines.append("# TYPE messagehub_audit_failures_total counter")
     lines.append(f"messagehub_audit_failures_total {audit_failure_total}")
+
+    # Iter 28 (knx-findings): Counter pro Finding-Code + Severity.
+    # Erlaubt Alerting auf "heute kam ein neuer Finding-Typ dazu" oder
+    # "Anzahl error-Findings ist sprunghaft gestiegen". Sortiert fuer
+    # reproduzierbaren Scrape (siehe §9.8).
+    lines.append(
+        "# HELP messagehub_knx_finding_total KNX configuration findings"
+        " by code and severity"
+    )
+    lines.append("# TYPE messagehub_knx_finding_total counter")
+    if finding_total:
+        for (code, severity), count in sorted(finding_total.items()):
+            lines.append(
+                f'messagehub_knx_finding_total{{code="{code}",'
+                f'severity="{severity}"}} {int(count)}'
+            )
 
     return "\n".join(lines) + "\n"

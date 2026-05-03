@@ -7,6 +7,12 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 6)
+- **Iter 28 — Prometheus-Counter pro Finding-Code.**
+  Neue Metrik `messagehub_knx_finding_total{code="...",severity="..."}`
+  in `format_prometheus_metrics`. Erlaubt Alerting auf "heute kam ein
+  neuer Finding-Typ dazu" oder "Anzahl error-Findings sprunghaft
+  gestiegen". Reihenfolge im Output ist sortiert -> reproduzierbarer
+  Scrape (Diff-frei).
 - **Iter 27 — Severity-Override-UI.**
   Neue Lit-Komponente `severity-override-form.ts` rendert die Tabelle
   Code | Default | Override fuer alle bekannten Codes mit Inline-
