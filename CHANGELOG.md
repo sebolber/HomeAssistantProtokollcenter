@@ -7,6 +7,20 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Wiring-Audit + Phase 6+7)
+- **Iter 30 — Snapshot-Fixtures pro Detector.**
+  Neue Fixtures in `tests/fixtures/knx_findings/<code>.sql` plus Test-
+  Suite `tests/test_finding_snapshots.py` laden anonymisierte SQL-
+  Snapshots in eine frische DB, rufen den passenden Runner auf
+  (per-GA oder bus-wide) und pruefen den erwarteten Finding-Code.
+  Damit werden Heuristik-Regressionen sichtbar — wenn ein Detector
+  seine Schwelle so verschiebt, dass das Snapshot nicht mehr triggert,
+  faellt der Test um. Insgesamt 12 Snapshots: ein Eintrag pro
+  Detector-Code (DPT_MISMATCH, VALUE_OUT_OF_RANGE, MULTI_RESPONDER,
+  READ_NO_RESPONSE, TOGGLE_LOOP, REPEAT_APPROXIMATION,
+  MULTI_TIME_MASTER, ORPHAN_GA, STALE_GA, HEALTH_BUSLOAD,
+  RECONNECT_STORM, SEND_CYCLE_DRIFT). Nebenbei: Runner normalisiert
+  jetzt naive/aware-Datetimes, damit SQLite-`datetime(...)`-Strings
+  und Python-`datetime.now(UTC)` konsistent vergleichbar sind.
 - **Iter 29c — Prometheus-Aggregation verdrahtet.**
   Schliesst die letzte Wiring-Audit-Luecke aus Iter 28: der Param
   `finding_total` von `format_prometheus_metrics` blieb im Produktiv-

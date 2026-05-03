@@ -99,6 +99,11 @@ async def run_per_ga_detectors(
        Iter-4-Luecke.
     7. `record(...)` — schliesst Iter-2-Luecke.
     """
+    # Vergleichs-`now` muss zur Zeitstempel-Repraesentation der Samples
+    # passen; `_samples_from_raw` liefert naive UTC, weil SQLite-`datetime`-
+    # Stringe keine TZ liefern. Aufrufer schickt typischerweise `datetime.
+    # now(UTC)` — wir strippen das tzinfo vor dem Vergleichen.
+    now = _now_naive(now)
     samples_raw = await stats_repo.ga_samples(ga, period_from, period_to)
     samples = _samples_from_raw(samples_raw)
     address = await address_repo.get(ga)
@@ -166,15 +171,18 @@ def _samples_from_raw(rows: list[dict[str, Any]]) -> list[TelegramSample]:
     Defensiv gegenueber kaputten ts-Strings: Rows mit invalidem ts
     werden uebersprungen, damit der Runner an einer einzelnen
     fehlerhaften Zeile nicht stehen bleibt.
+
+    Timestamps werden als naive UTC normalisiert (tzinfo abgestreift),
+    weil SQLite-`datetime(...)` keine Zonen mitliefert und ein Mix aus
+    aware/naive in `sorted(...)` einen TypeError werfen wuerde.
     """
     out: list[TelegramSample] = []
     for row in rows:
         ts_raw = row.get("ts")
         if not ts_raw:
             continue
-        try:
-            ts = datetime.fromisoformat(str(ts_raw))
-        except ValueError:
+        ts = _parse_naive_utc(str(ts_raw))
+        if ts is None:
             _LOGGER.debug("ga_samples row mit invalidem ts %r uebersprungen", ts_raw)
             continue
         out.append(
@@ -186,6 +194,22 @@ def _samples_from_raw(rows: list[dict[str, Any]]) -> list[TelegramSample]:
             )
         )
     return out
+
+
+def _parse_naive_utc(value: str) -> datetime | None:
+    """Parst ISO-String zu naivem UTC-Datetime; None bei Fehler."""
+    try:
+        ts = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    if ts.tzinfo is not None:
+        ts = ts.replace(tzinfo=None)
+    return ts
+
+
+def _now_naive(now: datetime) -> datetime:
+    """Strippt tzinfo vom Vergleichs-`now`, damit Mischvergleich klappt."""
+    return now.replace(tzinfo=None) if now.tzinfo is not None else now
 
 
 def _per_sample_findings(
@@ -370,6 +394,7 @@ async def run_bus_wide_detectors(
 
     Returns: Anzahl persistierter Findings.
     """
+    now = _now_naive(now)
     findings: list[Finding] = []
     findings.extend(await _build_health_findings(stats_repo, period_from, period_to, now))
     addresses = await address_repo.list_all()
@@ -403,10 +428,18 @@ async def _build_health_findings(
     bus_h = await stats_repo.bus_health(period_from, period_to)
     busload = await stats_repo.busload_timeseries(period_from, period_to)
     busload_max = max((b["busload_pct"] for b in busload), default=0.0)
+    # `silence_detect` parst now_iso -> last_seen_str und vergleicht beide.
+    # Damit der Vergleich klappt, muss die TZ-Form zu der in der DB
+    # gespeicherten `timestamp`-Spalte passen — die Tests/Snapshots nutzen
+    # `+00:00`, also liefern wir den UTC-aware-String.
+    from datetime import UTC as _UTC  # noqa: PLC0415
+    now_for_silence = (
+        now if now.tzinfo is not None else now.replace(tzinfo=_UTC)
+    )
     silence = await stats_repo.silence_detect(
         period_from,
         period_to,
-        now_iso=now.isoformat(timespec="seconds"),
+        now_iso=now_for_silence.isoformat(timespec="seconds"),
         max_silence_minutes=_DEFAULT_MAX_SILENCE_MINUTES,
     )
     silent_devices = sum(1 for r in silence if r["alarm"])
@@ -438,9 +471,8 @@ async def _build_per_source_findings(
         ts_str = row.get("ts")
         if not ts_str:
             continue
-        try:
-            ts = datetime.fromisoformat(str(ts_str))
-        except ValueError:
+        ts = _parse_naive_utc(str(ts_str))
+        if ts is None:
             continue
         sample = TelegramSample(
             ts=ts,
@@ -559,10 +591,7 @@ async def _build_silent_ga_findings(
         last_seen_str = last_seen_map.get(addr.address)
         last_seen_dt: datetime | None = None
         if last_seen_str:
-            try:
-                last_seen_dt = datetime.fromisoformat(last_seen_str)
-            except ValueError:
-                last_seen_dt = None
+            last_seen_dt = _parse_naive_utc(last_seen_str)
         stale = detect_stale_ga(ga=addr.address, last_seen=last_seen_dt, now=now)
         if stale is not None:
             out.append(stale)
