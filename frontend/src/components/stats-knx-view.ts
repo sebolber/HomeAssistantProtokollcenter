@@ -55,23 +55,40 @@ const PERIOD_PRESETS: ReadonlyArray<{ id: string; label: string; days: number }>
 // Periode-IDs, die Long-Term-Modus aktivieren (Counter-Tabelle statt Raw).
 const LONG_TERM_PERIOD_IDS: ReadonlySet<string> = new Set(["7d", "30d", "365d"]);
 
-const TOP_N_OPTIONS = [10, 25, 50, 100] as const;
-// Iter 45 (N6): zwei separate Top-N-Einstellungen, eine fuer die
-// Adress-Tabelle und eine fuer die Geraete-Tabelle. Werden im
-// localStorage persistiert wie alle anderen Filter.
+const TOP_N_OPTIONS = [10, 25, 50, 100, 200] as const;
+// Iter 45 (N6) / Iter aiohttp-error-ZU9UA: pro Tabelle ein Top-N
+// im localStorage. Default 25 fuer alle — passt auf einen Bildschirm
+// und vermeidet den scroll-heavy 50/100-Default. User kann pro Card
+// hochdrehen, wo er mehr braucht.
 
 interface UiFilters {
   periodId: string; // einer der PERIOD_PRESETS.id oder "custom"
-  topN: number; // Anzahl GAs in "Top-Sender (Gruppenadressen)"
-  topNDevices: number; // Anzahl Geraete in "Top-Geraete (Source-Adressen)"
+  topN: number; // "Top-Sender (Gruppenadressen)"
+  topNDevices: number; // "Top-Geraete (Source-Adressen)"
+  topNAudit: number; // "Sicherheits-Audit" Telegramme
+  topNBursts: number; // "Telegrammfluten (Bursts)"
+  topNLongTerm: number; // "Long-Term-Sicht" Top-GAs
+  topNTrend: number; // "Trend gegenueber Vorperiode" Up/Down
+  topNOrphansMissing: number; // "Verwaiste GAs" — im Projekt, nie gesehen
+  topNOrphansExtra: number; // "Verwaiste GAs" — geloggt, nicht im Projekt
+  topNSilence: number; // "Stille-Alarme"
+  topNBusHealth: number; // "Bus-Gesundheit (Wiederholrate)"
   minRate: number;
   includeAck: boolean;
 }
 
 const DEFAULT_FILTERS: UiFilters = {
   periodId: "24h",
-  topN: 50,
+  topN: 25,
   topNDevices: 25,
+  topNAudit: 25,
+  topNBursts: 25,
+  topNLongTerm: 25,
+  topNTrend: 25,
+  topNOrphansMissing: 25,
+  topNOrphansExtra: 25,
+  topNSilence: 25,
+  topNBusHealth: 25,
   minRate: 1.0,
   includeAck: true,
 };
@@ -224,13 +241,12 @@ export class StatsKnxView extends LitElement {
   // Tel/Min desc (= heutige Reihenfolge vom Backend).
   @state() private _topSortKey: TopSenderSortKey = "rate_per_min";
   @state() private _topSortDir: "asc" | "desc" = "desc";
-  // Iter 61 / U3: Verwaiste-GAs-Card mit Suche + Pagination. Vorher
-  // hartes Cap auf 15 mit "und N weitere" — bei 3000+ Eintraegen
-  // unhandlich. Default-Page = 50.
+  // Iter 61 / U3 + Iter aiohttp-error-ZU9UA: Verwaiste-GAs-Card mit
+  // Suche; Anzahl-Begrenzung jetzt ueber inline-topn (UiFilters.
+  // topNOrphansMissing / topNOrphansExtra), persistent im localStorage
+  // wie alle anderen Top-N-Filter.
   @state() private _orphansMissingFilter = "";
   @state() private _orphansExtraFilter = "";
-  @state() private _orphansMissingShow = 50;
-  @state() private _orphansExtraShow = 50;
   // Iter 51: Sichtbarkeit fuer einzeln gefailte Endpunkte. Vorher hat
   // .catch(() => null) Fehler stillschweigend geschluckt — und der User
   // sah leere Cards, ohne zu wissen warum. Jetzt: Banner mit Liste der
@@ -611,6 +627,59 @@ export class StatsKnxView extends LitElement {
     void this._load();
   }
 
+  // Iter aiohttp-error-ZU9UA: Anzahl-Filter pro Card. Ein gemeinsamer
+  // Setter-Helfer waere DRYer, aber jeder Filter hat einen eigenen
+  // Schluessel — dafuer pro Card eine 4-Zeilen-Methode, klar lesbar.
+  // Diese Setter loesen kein _load() aus, weil die Daten fuer kleinere
+  // Tabellen schon im Speicher liegen — wir slicen nur anders.
+  private _onTopNAudit(topNAudit: number): void {
+    this._filters = { ...this._filters, topNAudit };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
+  private _onTopNBursts(topNBursts: number): void {
+    this._filters = { ...this._filters, topNBursts };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
+  private _onTopNLongTerm(topNLongTerm: number): void {
+    this._filters = { ...this._filters, topNLongTerm };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
+  private _onTopNTrend(topNTrend: number): void {
+    this._filters = { ...this._filters, topNTrend };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
+  private _onTopNOrphansMissing(topNOrphansMissing: number): void {
+    this._filters = { ...this._filters, topNOrphansMissing };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
+  private _onTopNOrphansExtra(topNOrphansExtra: number): void {
+    this._filters = { ...this._filters, topNOrphansExtra };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
+  private _onTopNSilence(topNSilence: number): void {
+    this._filters = { ...this._filters, topNSilence };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
+  private _onTopNBusHealth(topNBusHealth: number): void {
+    this._filters = { ...this._filters, topNBusHealth };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
   private _renderInlineTopN(
     current: number,
     onChange: (n: number) => void
@@ -860,6 +929,8 @@ export class StatsKnxView extends LitElement {
   private _renderSensitiveLog(): TemplateResult {
     const log = this._sensitiveLog!;
     const fmtTs = (ts: string) => this._formatTs(ts);
+    const limit = this._filters.topNAudit;
+    const telegramsShown = log.telegrams.slice(0, limit);
     return html`
       <section class="mh-card sensitive">
         <header class="card-head">
@@ -867,6 +938,7 @@ export class StatsKnxView extends LitElement {
           <span class="muted small">
             ${log.addresses.length} markierte GAs · ${log.telegrams.length} Telegramme im Zeitraum
           </span>
+          ${this._renderInlineTopN(this._filters.topNAudit, (n) => this._onTopNAudit(n))}
         </header>
         <div class="sensitive__addresses">
           <h4>Sensitive GAs</h4>
@@ -895,7 +967,7 @@ export class StatsKnxView extends LitElement {
                     </tr>
                   </thead>
                   <tbody>
-                    ${log.telegrams.slice(0, 50).map(
+                    ${telegramsShown.map(
                       (t) => html`<tr>
                         <td class="bursts__ts">${fmtTs(t.ts)}</td>
                         <td>
@@ -909,8 +981,8 @@ export class StatsKnxView extends LitElement {
                   </tbody>
                 </table>
               </div>
-              ${log.telegrams.length > 50
-                ? html`<p class="muted small">… und ${log.telegrams.length - 50} weitere</p>`
+              ${log.telegrams.length > limit
+                ? html`<p class="muted small">… und ${log.telegrams.length - limit} weitere</p>`
                 : nothing}`}
         </div>
       </section>
@@ -924,6 +996,8 @@ export class StatsKnxView extends LitElement {
     const fmtNum = (n: number) => n.toLocaleString("de-DE");
     const fmtPct = (n: number) =>
       n.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const limit = this._filters.topNBursts;
+    const burstsShown = b.bursts.slice(0, limit);
     return html`
       <section class="mh-card bursts">
         <header class="card-head">
@@ -932,6 +1006,7 @@ export class StatsKnxView extends LitElement {
             ${b.bursts.length} Spitzen über ${fmtPct(b.threshold_pct)} % Buslast
             (${b.window_seconds}s-Fenster)
           </span>
+          ${this._renderInlineTopN(this._filters.topNBursts, (n) => this._onTopNBursts(n))}
         </header>
         <div class="bursts__intro">
           <p class="muted small">
@@ -953,7 +1028,7 @@ export class StatsKnxView extends LitElement {
               </tr>
             </thead>
             <tbody>
-              ${b.bursts.slice(0, 20).map(
+              ${burstsShown.map(
                 (burst) => html`<tr>
                   <td class="bursts__ts">${this._formatTs(burst.bucket)}</td>
                   <td class="num">${fmtNum(burst.telegrams)}</td>
@@ -965,8 +1040,8 @@ export class StatsKnxView extends LitElement {
             </tbody>
           </table>
         </div>
-        ${b.bursts.length > 20
-          ? html`<p class="muted small">… und ${b.bursts.length - 20} weitere</p>`
+        ${b.bursts.length > limit
+          ? html`<p class="muted small">… und ${b.bursts.length - limit} weitere</p>`
           : nothing}
       </section>
     `;
@@ -994,6 +1069,7 @@ export class StatsKnxView extends LitElement {
     const lt = this._longTerm!;
     const maxCount = Math.max(1, ...lt.series.map((b) => b.count));
     const fmtNum = (n: number) => n.toLocaleString("de-DE");
+    const limit = this._filters.topNLongTerm;
     return html`
       <section class="mh-card long-term">
         <header class="card-head">
@@ -1001,6 +1077,9 @@ export class StatsKnxView extends LitElement {
           <span class="muted small">
             ${fmtNum(lt.total)} Telegramme · ${lt.bucket === "day" ? "Tages-Buckets" : "Stunden-Buckets"}
           </span>
+          ${this._renderInlineTopN(this._filters.topNLongTerm, (n) =>
+            this._onTopNLongTerm(n)
+          )}
         </header>
         <div class="long-term__body">
           <div class="long-term__chart">
@@ -1021,7 +1100,7 @@ export class StatsKnxView extends LitElement {
             ${lt.top_gas.length === 0
               ? html`<p class="muted small">Keine GAs aktiv.</p>`
               : html`<ol class="long-term__top-list">
-                  ${lt.top_gas.slice(0, 10).map(
+                  ${lt.top_gas.slice(0, limit).map(
                     (g) => html`<li>
                       <code>${g.ga}</code>
                       ${g.label ? html`<span class="muted small">${g.label}</span>` : nothing}
@@ -1758,6 +1837,7 @@ export class StatsKnxView extends LitElement {
       })} %`;
     };
     const totalSeverity = this._classifyTrendSeverity(t.total_delta_pct);
+    const limit = this._filters.topNTrend;
     return html`
       <section class=${`mh-card trend trend--${totalSeverity}`}>
         <header class="card-head">
@@ -1767,6 +1847,7 @@ export class StatsKnxView extends LitElement {
             zuvor ${t.total_prev.toLocaleString("de-DE")} ·
             <strong>${totalDelta}</strong>
           </span>
+          ${this._renderInlineTopN(this._filters.topNTrend, (n) => this._onTopNTrend(n))}
         </header>
         <div class="trend-grid">
           <div class="trend-col">
@@ -1774,7 +1855,7 @@ export class StatsKnxView extends LitElement {
             ${t.top_increase.length === 0
               ? html`<p class="muted small">Keine signifikanten Anstiege.</p>`
               : html`<ul class="trend-list trend-list--up">
-                  ${t.top_increase.slice(0, 5).map(
+                  ${t.top_increase.slice(0, limit).map(
                     (row) => html`<li>
                       <code class="ga">${row.ga}</code>
                       <span class="trend-label muted"
@@ -1793,7 +1874,7 @@ export class StatsKnxView extends LitElement {
             ${t.top_decrease.length === 0
               ? html`<p class="muted small">Keine signifikanten Rückgänge.</p>`
               : html`<ul class="trend-list trend-list--down">
-                  ${t.top_decrease.slice(0, 5).map(
+                  ${t.top_decrease.slice(0, limit).map(
                     (row) => html`<li>
                       <code class="ga">${row.ga}</code>
                       <span class="trend-label muted"
@@ -1901,8 +1982,10 @@ export class StatsKnxView extends LitElement {
     const extraFiltered = o.extra_in_log.filter((e) =>
       this._matchesOrphanFilter(this._orphansExtraFilter, [e.address, e.label]),
     );
-    const missingShown = missingFiltered.slice(0, this._orphansMissingShow);
-    const extraShown = extraFiltered.slice(0, this._orphansExtraShow);
+    const missingLimit = this._filters.topNOrphansMissing;
+    const extraLimit = this._filters.topNOrphansExtra;
+    const missingShown = missingFiltered.slice(0, missingLimit);
+    const extraShown = extraFiltered.slice(0, extraLimit);
     return html`
       <section class="mh-card">
         <header class="card-head">
@@ -1914,11 +1997,17 @@ export class StatsKnxView extends LitElement {
         <div class="orphans-grid">
           ${o.missing_in_log.length > 0
             ? html`<div>
-                <strong
-                  >Im Projekt, nie gesehen (${missingFiltered.length}${
-                    this._orphansMissingFilter ? ` von ${o.missing_in_log.length}` : ""
-                  })</strong
-                >
+                <div class="orphans-col-head">
+                  <strong
+                    >Im Projekt, nie gesehen (${missingFiltered.length}${
+                      this._orphansMissingFilter ? ` von ${o.missing_in_log.length}` : ""
+                    })</strong
+                  >
+                  ${this._renderInlineTopN(
+                    this._filters.topNOrphansMissing,
+                    (n) => this._onTopNOrphansMissing(n)
+                  )}
+                </div>
                 <input
                   class="mh-input orphans-search"
                   type="search"
@@ -1926,7 +2015,6 @@ export class StatsKnxView extends LitElement {
                   .value=${this._orphansMissingFilter}
                   @input=${(e: Event) => {
                     this._orphansMissingFilter = (e.target as HTMLInputElement).value;
-                    this._orphansMissingShow = 50;
                   }}
                 />
                 <ul class="orphans-list muted-list">
@@ -1940,35 +2028,26 @@ export class StatsKnxView extends LitElement {
                     </li>`
                   )}
                 </ul>
-                ${missingFiltered.length > this._orphansMissingShow
-                  ? html`<div class="orphans-pager">
-                      <button
-                        class="mh-btn mh-btn--sm"
-                        @click=${() => {
-                          this._orphansMissingShow += 50;
-                        }}
-                      >
-                        Mehr laden (${missingFiltered.length - this._orphansMissingShow} übrig)
-                      </button>
-                      <button
-                        class="mh-btn mh-btn--sm mh-btn--ghost"
-                        @click=${() => {
-                          this._orphansMissingShow = missingFiltered.length;
-                        }}
-                      >
-                        Alle ${missingFiltered.length} zeigen
-                      </button>
-                    </div>`
+                ${missingFiltered.length > missingLimit
+                  ? html`<p class="muted small">
+                      … und ${missingFiltered.length - missingLimit} weitere
+                    </p>`
                   : nothing}
               </div>`
             : nothing}
           ${o.extra_in_log.length > 0
             ? html`<div>
-                <strong
-                  >Geloggt, nicht im Projekt (${extraFiltered.length}${
-                    this._orphansExtraFilter ? ` von ${o.extra_in_log.length}` : ""
-                  })</strong
-                >
+                <div class="orphans-col-head">
+                  <strong
+                    >Geloggt, nicht im Projekt (${extraFiltered.length}${
+                      this._orphansExtraFilter ? ` von ${o.extra_in_log.length}` : ""
+                    })</strong
+                  >
+                  ${this._renderInlineTopN(
+                    this._filters.topNOrphansExtra,
+                    (n) => this._onTopNOrphansExtra(n)
+                  )}
+                </div>
                 <input
                   class="mh-input orphans-search"
                   type="search"
@@ -1976,7 +2055,6 @@ export class StatsKnxView extends LitElement {
                   .value=${this._orphansExtraFilter}
                   @input=${(e: Event) => {
                     this._orphansExtraFilter = (e.target as HTMLInputElement).value;
-                    this._orphansExtraShow = 50;
                   }}
                 />
                 <ul class="orphans-list extra-list">
@@ -1988,25 +2066,10 @@ export class StatsKnxView extends LitElement {
                     </li>`
                   )}
                 </ul>
-                ${extraFiltered.length > this._orphansExtraShow
-                  ? html`<div class="orphans-pager">
-                      <button
-                        class="mh-btn mh-btn--sm"
-                        @click=${() => {
-                          this._orphansExtraShow += 50;
-                        }}
-                      >
-                        Mehr laden (${extraFiltered.length - this._orphansExtraShow} übrig)
-                      </button>
-                      <button
-                        class="mh-btn mh-btn--sm mh-btn--ghost"
-                        @click=${() => {
-                          this._orphansExtraShow = extraFiltered.length;
-                        }}
-                      >
-                        Alle ${extraFiltered.length} zeigen
-                      </button>
-                    </div>`
+                ${extraFiltered.length > extraLimit
+                  ? html`<p class="muted small">
+                      … und ${extraFiltered.length - extraLimit} weitere
+                    </p>`
                   : nothing}
               </div>`
             : nothing}
@@ -2019,6 +2082,7 @@ export class StatsKnxView extends LitElement {
     const s = this._silence!;
     const alarms = s.items.filter((i) => i.alarm);
     if (alarms.length === 0) return html``;
+    const limit = this._filters.topNSilence;
     return html`
       <section class="mh-card silence-card">
         <header class="card-head">
@@ -2026,9 +2090,10 @@ export class StatsKnxView extends LitElement {
           <span class="muted small">
             Schwelle: &gt; ${s.max_silence_minutes} Min ohne Telegramm
           </span>
+          ${this._renderInlineTopN(this._filters.topNSilence, (n) => this._onTopNSilence(n))}
         </header>
         <ul class="silence-list">
-          ${alarms.slice(0, 10).map(
+          ${alarms.slice(0, limit).map(
             (a) => html`<li>
               <code>${a.dev_source}</code>
               <span class="muted">
@@ -2038,9 +2103,9 @@ export class StatsKnxView extends LitElement {
             </li>`
           )}
         </ul>
-        ${s.alarm_count > 10
+        ${alarms.length > limit
           ? html`<p class="muted small">
-              … und ${s.alarm_count - 10} weitere
+              … und ${alarms.length - limit} weitere
             </p>`
           : nothing}
       </section>
@@ -2072,6 +2137,7 @@ export class StatsKnxView extends LitElement {
           : ratio > 0
             ? "elevated"
             : "ok";
+    const limit = this._filters.topNBusHealth;
     return html`
       <section class="mh-card">
         <header class="card-head">
@@ -2079,6 +2145,12 @@ export class StatsKnxView extends LitElement {
           <span class="muted small">
             xknx-Repeated-Flag — hoher Wert deutet auf Verkabelung/EMV
           </span>
+          ${h.per_ga.length > 0
+            ? this._renderInlineTopN(
+                this._filters.topNBusHealth,
+                (n) => this._onTopNBusHealth(n)
+              )
+            : nothing}
         </header>
         <div class="kpis">
           <div class=${`kpi busload busload--${cls}`}>
@@ -2102,7 +2174,7 @@ export class StatsKnxView extends LitElement {
           ? html`<div class="bus-health-list">
               <strong>Top-GAs mit Wiederholungen:</strong>
               <ul>
-                ${h.per_ga.slice(0, 5).map(
+                ${h.per_ga.slice(0, limit).map(
                   (g) => html`<li>
                     <code>${g.ga}</code>
                     <span class="muted">${g.label ?? "—"}</span>
@@ -2114,6 +2186,11 @@ export class StatsKnxView extends LitElement {
                   </li>`
                 )}
               </ul>
+              ${h.per_ga.length > limit
+                ? html`<p class="muted small">
+                    … und ${h.per_ga.length - limit} weitere
+                  </p>`
+                : nothing}
             </div>`
           : nothing}
       </section>
@@ -3159,17 +3236,19 @@ export class StatsKnxView extends LitElement {
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: var(--mh-space-4);
       }
-      /* Iter 61 / U3: Such-Input + Pager fuer paginierte Orphans-Liste. */
+      /* Iter 61 / U3 + Iter aiohttp-error-ZU9UA: Such-Input + Inline-
+         TopN im Spalten-Header. Pager wurde durch inline-topn ersetzt. */
+      .orphans-col-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--mh-space-2);
+        flex-wrap: wrap;
+      }
       .orphans-search {
         margin: var(--mh-space-2) 0;
         width: 100%;
         max-width: 320px;
-      }
-      .orphans-pager {
-        display: flex;
-        gap: var(--mh-space-2);
-        margin-top: var(--mh-space-2);
-        flex-wrap: wrap;
       }
       .orphans-list {
         list-style: none;

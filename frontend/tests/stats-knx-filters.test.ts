@@ -200,14 +200,66 @@ describe("stats-knx-view filter bar", () => {
     expect(ackToggle).not.toBeNull();
   });
 
-  it("Iter 45: Inline-Top-N im Header der Top-Sender-Card", async () => {
+  it("Iter aiohttp-error-ZU9UA: Inline-Top-N hat 5 Optionen (10/25/50/100/200)", async () => {
     const el = await mount();
     const inlineTopns = el.shadowRoot!.querySelectorAll(".inline-topn");
-    // Mind. eine fuer Top-Sender (Top-Geraete-Card erscheint nur, wenn
-    // topBySource Items hat — Mock liefert leeres Array)
+    // Mind. eine fuer Top-Sender (weitere Cards je nach Daten).
     expect(inlineTopns.length).toBeGreaterThanOrEqual(1);
     const buttons = inlineTopns[0].querySelectorAll(".inline-topn__btn");
-    expect(buttons.length).toBe(4); // 10 / 25 / 50 / 100
+    expect(buttons.length).toBe(5); // 10 / 25 / 50 / 100 / 200
+    const labels = Array.from(buttons).map((b) => b.textContent?.trim());
+    expect(labels).toEqual(["10", "25", "50", "100", "200"]);
+  });
+
+  it("Iter aiohttp-error-ZU9UA: Default-Top-N fuer alle Cards ist 25", async () => {
+    const el = await mount();
+    // Top-Sender-Card hat default topN=25 → Button "25" ist aktiv.
+    const inlineTopns = el.shadowRoot!.querySelectorAll(".inline-topn");
+    expect(inlineTopns.length).toBeGreaterThanOrEqual(1);
+    for (const wrap of Array.from(inlineTopns)) {
+      const active = wrap.querySelector(".inline-topn__btn.active");
+      expect(active?.textContent?.trim()).toBe("25");
+    }
+  });
+
+  it("Iter aiohttp-error-ZU9UA: Verwaiste GAs hat eigenen Inline-Top-N pro Spalte", async () => {
+    // Mit Mock-Daten in beiden Orphans-Spalten.
+    document.body.innerHTML = "";
+    const el = document.createElement("stats-knx-view") as HTMLElement & {
+      api?: ApiClient;
+      updateComplete: Promise<unknown>;
+    };
+    const baseApi = makeApi();
+    const apiWithOrphans = {
+      ...baseApi,
+      getKnxStatsOrphans: vi.fn(async () => ({
+        from: SUMMARY.from,
+        to: SUMMARY.to,
+        missing_in_log: [
+          { address: "1/0/1", name: "Heizung", dpt: "1.005" },
+          { address: "1/0/2", name: "Licht", dpt: "1.001" },
+        ],
+        extra_in_log: [
+          { address: "9/9/9", label: "unbekannt", count: 42 },
+        ],
+        project_total: 2,
+        log_total: 1,
+        discovery_status: "ok",
+      })),
+    } as unknown as ApiClient;
+    el.api = apiWithOrphans;
+    document.body.appendChild(el);
+    for (let i = 0; i < 5; i++) {
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    // In der Verwaisten-Card MUSS pro Spalte ein inline-topn vorhanden sein.
+    const orphansCard = Array.from(
+      el.shadowRoot!.querySelectorAll(".mh-card")
+    ).find((c) => c.textContent?.includes("Verwaiste GAs"));
+    expect(orphansCard).toBeDefined();
+    const colInlines = orphansCard!.querySelectorAll(".orphans-col-head .inline-topn");
+    expect(colInlines.length).toBe(2);
   });
 
   it("rendert KPI-Karten aus dem Summary-Result", async () => {
