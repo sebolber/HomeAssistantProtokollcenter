@@ -30,6 +30,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   Loeschung. Behebt Audit-Finding F-007 (dokumentierte Beibehaltung).
 
 ### Entfernt (Code-Hygiene)
+- **Iter +9 / F-009 — `websocket_api`-Dependency aus Manifest entfernt.**
+  `manifest.json` deklarierte `websocket_api` als Dependency, aber kein
+  Code nutzte sie (keine `@websocket_api.websocket_command`-Decorator,
+  kein `async_register_command`). HA laedt Dependencies eager —
+  ungenutzte vergeuden Setup-Zeit + Speicher. Test
+  (`test_manifest_dependencies.py`) verhindert versehentliche
+  Wiedereinfuehrung, solange kein Code WS-Commands registriert.
+  Behebt Audit-Finding F-009 (Manifest-Hygiene).
 - **Iter +6 / F-003 — `MttrView` und `/api/messagehub/mttr` entfernt.**
   Dedizierter MTTR-Endpoint hatte keinen Frontend-Caller — `mttr_per_source`
   ist Teil von `/api/messagehub/stats-extended` (`StatsExtendedView`),

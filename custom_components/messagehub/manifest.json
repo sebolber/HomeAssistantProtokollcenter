@@ -4,7 +4,7 @@
   "after_dependencies": ["mqtt"],
   "codeowners": ["@sebolber"],
   "config_flow": true,
-  "dependencies": ["http", "frontend", "websocket_api", "webhook"],
+  "dependencies": ["http", "frontend", "webhook"],
   "documentation": "https://github.com/sebolber/HomeAssistantProtokollcenter",
   "integration_type": "service",
   "iot_class": "local_push",
