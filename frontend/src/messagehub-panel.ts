@@ -69,7 +69,7 @@ export class MessageHubPanel extends LitElement {
   @property({ type: Boolean }) narrow = false;
   @property({ attribute: false }) panel?: unknown;
 
-  @state() private _tab: "messages" | "settings" | "stats" | "audit" = "messages";
+  @state() private _tab: "messages" | "settings" | "stats" | "audit" = this._initialTabFromHash();
   @state() private _items: MessageDto[] = [];
   @state() private _total = 0;
   @state() private _loading = false;
@@ -93,9 +93,52 @@ export class MessageHubPanel extends LitElement {
     void this._loadSavedFilters();
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback();
+    if (typeof window !== "undefined") {
+      window.addEventListener("hashchange", this._onHashChange);
+    }
+  }
+
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     this._unsubLive?.();
+    if (typeof window !== "undefined") {
+      window.removeEventListener("hashchange", this._onHashChange);
+    }
+  }
+
+  // F-010: Mappt einen URL-Hash-Path auf einen der 4 Top-Tabs.
+  // Akzeptierte Praefixe: messages | stats | settings | audit. Der
+  // Sub-Path (z. B. settings/mqtt) wird von der jeweiligen Sub-View
+  // selbst geparst — wir aendern hier nur den Top-Tab.
+  private _initialTabFromHash(): "messages" | "settings" | "stats" | "audit" {
+    if (typeof window === "undefined" || !window.location?.hash) return "messages";
+    const hash = window.location.hash.startsWith("#")
+      ? window.location.hash.slice(1)
+      : window.location.hash;
+    if (hash.startsWith("messages")) return "messages";
+    if (hash.startsWith("stats") || hash === "findings" || hash.startsWith("findings?")) return "stats";
+    if (hash.startsWith("settings")) return "settings";
+    if (hash.startsWith("audit")) return "audit";
+    return "messages";
+  }
+
+  private _onHashChange = (): void => {
+    const next = this._initialTabFromHash();
+    if (next !== this._tab) this._tab = next;
+  };
+
+  // F-010: Tab-Klick aktualisiert den URL-Hash, damit Browser-Back/
+  // Forward funktioniert und Bookmarks gezielt sind.
+  private _switchTab(tab: "messages" | "settings" | "stats" | "audit"): void {
+    this._tab = tab;
+    if (typeof window !== "undefined" && window.history) {
+      const newHash = `#${tab}`;
+      if (window.location.hash !== newHash) {
+        window.history.replaceState(null, "", newHash);
+      }
+    }
   }
 
   private async _subscribeLive(): Promise<void> {
@@ -663,7 +706,7 @@ export class MessageHubPanel extends LitElement {
                 role="tab"
                 aria-selected=${this._tab === t.id}
                 class=${`tab ${this._tab === t.id ? "active" : ""}`}
-                @click=${() => (this._tab = t.id)}
+                @click=${() => this._switchTab(t.id)}
               >
                 ${t.label}
               </button>`

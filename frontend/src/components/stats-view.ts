@@ -64,24 +64,45 @@ export class StatsView extends LitElement {
     this._handleHash(window.location.hash);
   };
 
-  // Iter H (knx-detail-panes): Hash-basierte Tab-Navigation. Format:
-  //   #findings              -> Findings-Tab, kein Filter
-  //   #findings?source=X.Y.Z -> Findings-Tab, Source-Filter X.Y.Z
-  // Andere Hashes bleiben unbeachtet — kein Hijack der Browser-URL.
+  // F-010: Hash-basierte Tab-Navigation (Iter H + Iter +11).
+  // Akzeptierte Formate:
+  //   #findings              -> Findings-Tab (Backwards-Compat)
+  //   #findings?source=X     -> Findings-Tab, Source-Filter
+  //   #stats/live            -> Live-Status-Tab
+  //   #stats/knx             -> KNX-Bus-Analyse-Tab
+  //   #stats/findings        -> Findings-Tab
+  //   #stats/findings?source=X.Y.Z  -> Findings + Source-Filter
+  // Andere Hashes bleiben unbeachtet (#settings/... gehoert zu
+  // settings-view, nicht zu uns).
   private _handleHash(rawHash: string): void {
     const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
-    if (!hash.startsWith("findings")) {
-      return;
-    }
-    this._setTab("findings");
+    let tabPart = "";
+    let queryPart = "";
+
+    // Hash splitten: foo/bar?baz -> path="foo/bar", query="baz"
     const queryStart = hash.indexOf("?");
-    if (queryStart === -1) {
-      this._findingsSourceFilter = null;
+    const pathPart = queryStart === -1 ? hash : hash.slice(0, queryStart);
+    queryPart = queryStart === -1 ? "" : hash.slice(queryStart + 1);
+
+    if (pathPart === "findings") {
+      // Backwards-Compat: #findings (Iter H)
+      tabPart = "findings";
+    } else if (pathPart.startsWith("stats/")) {
+      tabPart = pathPart.slice("stats/".length);
+    } else {
       return;
     }
-    const params = new URLSearchParams(hash.slice(queryStart + 1));
-    const source = params.get("source");
-    this._findingsSourceFilter = source && source.length > 0 ? source : null;
+
+    if (tabPart === "live" || tabPart === "knx" || tabPart === "findings") {
+      this._setTab(tabPart);
+    }
+    if (tabPart === "findings") {
+      const params = new URLSearchParams(queryPart);
+      const source = params.get("source");
+      this._findingsSourceFilter = source && source.length > 0 ? source : null;
+    } else {
+      this._findingsSourceFilter = null;
+    }
   }
 
   override render(): TemplateResult {
