@@ -210,6 +210,36 @@ export interface KnxStatsGaDetailDto {
   manufacturer_hints?: KnxStatsManufacturerHints | null;
 }
 
+// Iter D (knx-detail-panes): Source-Detail-DTO.
+export interface KnxStatsSourceGaSummaryDto {
+  ga: string;
+  label: string | null;
+  dpt: string | null;
+  count: number;
+  rate_per_min: number;
+  recommended_rate: number;
+  ratio: number;
+  severity: "green" | "yellow" | "orange" | "red";
+  acknowledged: boolean;
+  last_seen: string | null;
+}
+
+export interface KnxStatsSourceDetailDto {
+  dev_source: string;
+  total_count: number;
+  ga_count: number;
+  share_pct: number;
+  last_seen: string | null;
+  silent_minutes: number | null;
+  silent_alarm: boolean;
+  repeat_ratio_pct: number;
+  gas: KnxStatsSourceGaSummaryDto[];
+  from?: string;
+  to?: string;
+  device?: KnxStatsDeviceInfo | null;
+  manufacturer_hints?: KnxStatsManufacturerHints | null;
+}
+
 export interface KnxStatsTimelineDto {
   from: string;
   to: string;
@@ -1004,6 +1034,18 @@ export class ApiClient {
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxStatsGaDetailDto;
+  }
+
+  async getKnxStatsSourceDetail(
+    devSource: string,
+    f: KnxStatsFilters
+  ): Promise<KnxStatsSourceDetailDto> {
+    // Iter D (knx-detail-panes): Source-Detail-Endpoint fuer
+    // Top-Geraete + Stille-Alarme.
+    const url = `${this.baseUrl}/api/messagehub/knx-stats/source/${encodeURIComponent(devSource)}?${this._knxStatsParams(f).toString()}`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxStatsSourceDetailDto;
   }
 
   async getKnxStatsTimeline(
