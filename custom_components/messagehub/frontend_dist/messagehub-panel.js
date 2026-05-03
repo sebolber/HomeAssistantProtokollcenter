@@ -1398,7 +1398,7 @@ const L = y`
     padding: 4px 10px;
     font-size: var(--mh-text-xs);
   }
-`, Ie = y`
+`, Ne = y`
   .mh-input,
   .mh-select {
     padding: 8px 12px;
@@ -1643,7 +1643,7 @@ const _t = {
   warning: "Warn",
   info: "Info",
   debug: "Debug"
-}, Is = ["error", "warning", "info", "debug"];
+}, Ns = ["error", "warning", "info", "debug"];
 let Q = class extends x {
   constructor() {
     super(...arguments), this.items = [], this._now = /* @__PURE__ */ new Date(), this._editSeverityFor = null, this._popoverPos = null, this._onClick = (e) => {
@@ -1695,7 +1695,7 @@ let Q = class extends x {
         style=${`top: ${this._popoverPos.top}px; left: ${this._popoverPos.left}px`}
         @click=${(a) => a.stopPropagation()}
       >
-        ${Is.map(
+        ${Ns.map(
       (a) => i`<button
             role="menuitemradio"
             aria-checked=${a === t}
@@ -1984,10 +1984,10 @@ Te([
 Q = Te([
   T("message-table")
 ], Q);
-var Ns = Object.defineProperty, Rs = Object.getOwnPropertyDescriptor, Wt = (e, t, s, a) => {
+var Is = Object.defineProperty, Rs = Object.getOwnPropertyDescriptor, Wt = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Rs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Ns(t, s, r), r;
+  return a && r && Is(t, s, r), r;
 };
 const xt = ["error", "warning", "info", "debug"];
 let Oe = class extends x {
@@ -2105,7 +2105,7 @@ Wt([
 Oe = Wt([
   T("severity-filter")
 ], Oe);
-var Hs = Object.defineProperty, Us = Object.getOwnPropertyDescriptor, Ne = (e, t, s, a) => {
+var Hs = Object.defineProperty, Us = Object.getOwnPropertyDescriptor, Ie = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Us(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && Hs(t, s, r), r;
@@ -2150,16 +2150,16 @@ de.styles = y`
       color: inherit;
     }
   `;
-Ne([
+Ie([
   w({ attribute: !1 })
 ], de.prototype, "api", 2);
-Ne([
+Ie([
   w({ attribute: !1 })
 ], de.prototype, "selected", 2);
-Ne([
+Ie([
   l()
 ], de.prototype, "_sources", 2);
-de = Ne([
+de = Ie([
   T("source-filter")
 ], de);
 var Ms = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, tt = (e, t, s, a) => {
@@ -2217,7 +2217,7 @@ var js = Object.defineProperty, Gs = Object.getOwnPropertyDescriptor, W = (e, t,
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && js(t, s, r), r;
 };
-let N = class extends x {
+let I = class extends x {
   constructor() {
     super(...arguments), this._status = "new", this._tags = [], this._newTag = "", this._runbook = null, this._busy = !1;
   }
@@ -2410,7 +2410,7 @@ let N = class extends x {
     `;
   }
 };
-N.styles = y`
+I.styles = y`
     :host {
       position: fixed;
       top: 0;
@@ -2631,28 +2631,28 @@ N.styles = y`
   `;
 W([
   w({ attribute: !1 })
-], N.prototype, "msg", 2);
+], I.prototype, "msg", 2);
 W([
   w({ attribute: !1 })
-], N.prototype, "api", 2);
+], I.prototype, "api", 2);
 W([
   l()
-], N.prototype, "_status", 2);
+], I.prototype, "_status", 2);
 W([
   l()
-], N.prototype, "_tags", 2);
+], I.prototype, "_tags", 2);
 W([
   l()
-], N.prototype, "_newTag", 2);
+], I.prototype, "_newTag", 2);
 W([
   l()
-], N.prototype, "_runbook", 2);
+], I.prototype, "_runbook", 2);
 W([
   l()
-], N.prototype, "_busy", 2);
-N = W([
+], I.prototype, "_busy", 2);
+I = W([
   T("detail-pane")
-], N);
+], I);
 var Ks = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, H = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ws(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
@@ -3718,7 +3718,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
 $.styles = [
   L,
   se,
-  Ie,
+  Ne,
   ae,
   y`
       section {
@@ -6915,7 +6915,12 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         this.api.getKnxStatsSummary(r),
         this.api.getKnxStatsTop(r),
         this.api.getKnxStatsTopBySource(n),
-        this.api.getKnxStatsBusHealth(r),
+        // Iter topn-3: topNBusHealth durchreichen — Backend liest jetzt
+        // limit aus der Query (Default 20, Max 500). Vorher hardcoded 20.
+        this.api.getKnxStatsBusHealth({
+          ...r,
+          limit: this._filters.topNBusHealth
+        }),
         this.api.getKnxStatsSilence({
           ...r,
           maxSilenceMinutes: this._suggestSilenceMinutes()
@@ -10505,10 +10510,10 @@ function Ca(e, t, s) {
 function Fa(e, t) {
   return e.replace(/\{(\w+)\}/g, (s, a) => a in t ? String(t[a]) : s);
 }
-var Ia = Object.defineProperty, Na = Object.getOwnPropertyDescriptor, Ae = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Na(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Na = Object.defineProperty, Ia = Object.getOwnPropertyDescriptor, Ae = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ia(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Ia(t, s, r), r;
+  return a && r && Na(t, s, r), r;
 };
 const Ra = [
   "debug",
@@ -10609,7 +10614,7 @@ let te = class extends x {
 te.styles = [
   L,
   se,
-  Ie,
+  Ne,
   ae,
   Se,
   y`
@@ -10664,7 +10669,7 @@ Ae([
 te = Ae([
   T("severity-override-form")
 ], te);
-var Ha = Object.defineProperty, Ua = Object.getOwnPropertyDescriptor, I = (e, t, s, a) => {
+var Ha = Object.defineProperty, Ua = Object.getOwnPropertyDescriptor, N = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ua(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && Ha(t, s, r), r;
@@ -11029,7 +11034,7 @@ let z = class extends x {
 z.styles = [
   L,
   se,
-  Ie,
+  Ne,
   ae,
   Se,
   y`
@@ -11221,37 +11226,37 @@ z.styles = [
       }
     `
 ];
-I([
+N([
   w({ attribute: !1 })
 ], z.prototype, "api", 2);
-I([
+N([
   w({ attribute: !1 })
 ], z.prototype, "sourceFilter", 2);
-I([
+N([
   l()
 ], z.prototype, "_items", 2);
-I([
+N([
   l()
 ], z.prototype, "_total", 2);
-I([
+N([
   l()
 ], z.prototype, "_loading", 2);
-I([
+N([
   l()
 ], z.prototype, "_error", 2);
-I([
+N([
   l()
 ], z.prototype, "_severityFilter", 2);
-I([
+N([
   l()
 ], z.prototype, "_projectOnly", 2);
-I([
+N([
   l()
 ], z.prototype, "_selectedKey", 2);
-I([
+N([
   l()
 ], z.prototype, "_showOverrides", 2);
-z = I([
+z = N([
   T("findings-view")
 ], z);
 var Ba = Object.defineProperty, ja = Object.getOwnPropertyDescriptor, Ue = (e, t, s, a) => {
@@ -11423,7 +11428,7 @@ function Va(e) {
   const t = e.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), s = new Set(t), a = (...r) => r.some((n) => s.has(n));
   return a("delete", "remove", "removed", "deleted") ? "delete" : a("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : a("update", "updated", "edit", "edited", "set") ? "update" : a("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
 }
-const It = 60;
+const Nt = 60;
 function qa(e) {
   if (!e || typeof e != "object" || Array.isArray(e))
     return "";
@@ -11434,7 +11439,7 @@ function qa(e) {
   if (s.length === 1) {
     const [r, n] = s[0];
     if (typeof n == "string" || typeof n == "number" || typeof n == "boolean") {
-      const o = String(n), d = o.length > It ? `${o.slice(0, It)}…` : o;
+      const o = String(n), d = o.length > Nt ? `${o.slice(0, Nt)}…` : o;
       return `${r}: ${d}`;
     }
     return `{${r}}`;
@@ -11615,7 +11620,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
 M.styles = [
   L,
   se,
-  Ie,
+  Ne,
   ae,
   y`
       :host {
@@ -11887,7 +11892,7 @@ var Ja = Object.defineProperty, Ya = Object.getOwnPropertyDescriptor, P = (e, t,
 function Za(e) {
   return e.source === "knx-bus" && e.text.includes("(GroupValueRead)");
 }
-const Nt = "messagehub.filters", ne = {
+const It = "messagehub.filters", ne = {
   severity: ["error", "warning", "info"],
   source: "",
   search: "",
@@ -11979,7 +11984,7 @@ let E = class extends x {
   }
   _loadFilters() {
     try {
-      const e = localStorage.getItem(Nt);
+      const e = localStorage.getItem(It);
       if (e) return { ...ne, ...JSON.parse(e) };
     } catch {
     }
@@ -11987,7 +11992,7 @@ let E = class extends x {
   }
   _persistFilters() {
     try {
-      localStorage.setItem(Nt, JSON.stringify(this._filters));
+      localStorage.setItem(It, JSON.stringify(this._filters));
     } catch {
     }
   }

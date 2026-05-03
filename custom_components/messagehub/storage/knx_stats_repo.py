@@ -513,9 +513,14 @@ class KnxStatsRepository:
     async def bus_health_per_ga(
         self, from_iso: str, to_iso: str, *, limit: int = 20
     ) -> list[dict[str, Any]]:
-        """Top-GAs mit der hoechsten Wiederhol-Quote (absolut + relativ)."""
+        """Top-GAs mit der hoechsten Wiederhol-Quote (absolut + relativ).
+
+        Iter topn-3: internes Cap von 100 → 500 angehoben, damit der
+        UI-Card-Selektor (max 200) durchschlagen kann. View validiert
+        zusaetzlich auf max_value=_HARD_TOP_LIMIT (= 500).
+        """
         rows = await self._db.fetch_all(
-            _BUS_HEALTH_PER_GA_SQL, (from_iso, to_iso, max(1, min(limit, 100)))
+            _BUS_HEALTH_PER_GA_SQL, (from_iso, to_iso, max(1, min(limit, 500)))
         )
         out: list[dict[str, Any]] = []
         for row in rows:

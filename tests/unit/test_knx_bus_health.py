@@ -87,3 +87,25 @@ class TestBusHealthPerGa:
         assert rows[0]["repeated"] == 3
         assert rows[0]["total"] == 4
         assert rows[0]["ratio_pct"] == 75.0
+
+    @pytest.mark.asyncio
+    async def test_limit_above_100_returns_more_than_100_gas(
+        self, db: Database
+    ) -> None:
+        """Iter topn-3: Repo-Cap muss limit > 100 zulassen.
+
+        Vorher: bus_health_per_ga cappte limit intern via min(limit, 100)
+        — damit konnte der UI-Card-Selektor (max 200) nie mehr als 100
+        GAs anzeigen, selbst wenn der View limit=200 schickte. Jetzt:
+        Cap bei 500 (konsistent mit _HARD_TOP_LIMIT der anderen
+        Top-N-Endpunkte).
+        """
+        for ga_idx in range(150):
+            ga = f"1/{ga_idx // 8}/{ga_idx % 8}"
+            await _insert(db, ts=_ts(ga_idx * 0.1), ga=ga, repeated=False)
+            await _insert(db, ts=_ts(ga_idx * 0.1 + 0.05), ga=ga, repeated=True)
+        repo = KnxStatsRepository(db)
+        rows = await repo.bus_health_per_ga(_ts(0), _ts(60), limit=150)
+        assert len(rows) == 150, (
+            f"Repo-Cap blockiert limit > 100 — erwartet 150 GAs, bekam {len(rows)}"
+        )

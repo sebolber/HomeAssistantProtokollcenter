@@ -29,6 +29,7 @@ interface MockApi extends ApiClient {
   burstCalls: Array<{ limit?: number }>;
   sensitiveCalls: Array<{ limit?: number }>;
   longTermCalls: Array<{ limit?: number }>;
+  busHealthCalls: Array<{ limit?: number }>;
 }
 
 function makeApi(): MockApi {
@@ -52,12 +53,9 @@ function makeApi(): MockApi {
       bucket_minutes: 60,
       items: [],
     })),
-    getKnxStatsBusHealth: vi.fn(async () => ({
-      from: SUMMARY.from,
-      to: SUMMARY.to,
-      summary: { total: 0, repeated: 0, ratio_pct: 0 },
-      per_ga: [],
-    })),
+    // Iter topn-3: Bus-Health-Mock mit Aufruf-Logging fuer den
+    // 4. Card-Test im selben File.
+    getKnxStatsBusHealth: undefined,
     getKnxStatsSilence: vi.fn(async () => ({
       from: SUMMARY.from,
       to: SUMMARY.to,
@@ -134,7 +132,17 @@ function makeApi(): MockApi {
     burstCalls: [],
     sensitiveCalls: [],
     longTermCalls: [],
+    busHealthCalls: [],
   };
+  api.getKnxStatsBusHealth = vi.fn(async (f: KnxStatsFilters) => {
+    api.busHealthCalls!.push({ limit: f.limit });
+    return {
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      summary: { total: 0, repeated: 0, ratio_pct: 0 },
+      per_ga: [],
+    };
+  });
   api.getKnxStatsBursts = vi.fn(async (f: KnxStatsFilters) => {
     api.burstCalls!.push({ limit: f.limit });
     return {
@@ -248,6 +256,20 @@ describe("stats-knx-view card-topn limits (Iter topn-2)", () => {
     expect(api.longTermCalls.length).toBeGreaterThanOrEqual(1);
     for (const call of api.longTermCalls) {
       expect(call.limit).toBe(200);
+    }
+  });
+
+  // Iter topn-3 (Sprint A) — Bus-Health-Card: gleiches Pattern wie
+  // die anderen 3 Cards. Backend liest jetzt `limit` aus der Query
+  // (default 20, max 500); Frontend reicht topNBusHealth durch.
+  it("Bus-Health-Card: getKnxStatsBusHealth wird mit topNBusHealth als limit aufgerufen", async () => {
+    setStoredFilters({ topNBusHealth: 100 });
+    const api = makeApi();
+    await mount(api);
+
+    expect(api.busHealthCalls.length).toBeGreaterThanOrEqual(1);
+    for (const call of api.busHealthCalls) {
+      expect(call.limit).toBe(100);
     }
   });
 });

@@ -7,6 +7,27 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Behoben (UX)
+- **Iter topn-3 / Sprint A — Bus-Health-Card respektiert UI-Top-N.**
+  Die Card "Bus-Gesundheit (Wiederhol-Quote)" hatte einen UI-Selektor
+  topNBusHealth, aber der Backend-View `KnxStatsBusHealthView` rief
+  den Repo mit hardcoded `limit=20` auf — der Card-Selektor blieb
+  wirkungslos. Zusaetzlich cappte `bus_health_per_ga` intern auf 100,
+  sodass selbst bei View-Wechsel der maximal anzeigbare Wert
+  beschraenkt geblieben waere. Jetzt:
+  * View liest `limit` per `parse_int_param` aus der Query
+    (Default 20 fuer Backwards-Compat, max `_HARD_TOP_LIMIT` = 500)
+  * Repo-Cap von 100 → 500 angehoben (konsistent mit
+    Bursts/LongTerm/TopBySource)
+  * Frontend reicht `topNBusHealth` durch:
+    `getKnxStatsBusHealth({...fRaw, limit: topNBusHealth})`
+  Tests: 4 neue pytests (View-AST + Repo-Cap > 100), 1 neue Vitest
+  (4. Card-Test in card-topn-limits). Phase 8 / Sprint A — TopN-Bug 3/4.
+
+### Geaendert (Backend-API)
+- **`GET /api/messagehub/knx-stats/bus-health` akzeptiert jetzt einen
+  `limit`-Query-Parameter** (1..500, default 20). Backwards-kompatibel:
+  Konsumenten ohne `limit` bekommen weiterhin 20 GAs.
+
 - **Iter topn-2 / Sprint A — Card-spezifisches Limit fuer 3 Top-N-Cards.**
   Die Cards "Telegrammfluten (Bursts)", "Long-Term-Sicht" und
   "Sicherheits-Audit" hatten je einen eigenen Top-N-Selektor — der

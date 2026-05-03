@@ -546,7 +546,12 @@ export class StatsKnxView extends LitElement {
         this.api.getKnxStatsSummary(fRaw),
         this.api.getKnxStatsTop(fRaw),
         this.api.getKnxStatsTopBySource(fRawDevices),
-        this.api.getKnxStatsBusHealth(fRaw),
+        // Iter topn-3: topNBusHealth durchreichen — Backend liest jetzt
+        // limit aus der Query (Default 20, Max 500). Vorher hardcoded 20.
+        this.api.getKnxStatsBusHealth({
+          ...fRaw,
+          limit: this._filters.topNBusHealth,
+        }),
         this.api.getKnxStatsSilence({
           ...fRaw,
           maxSilenceMinutes: this._suggestSilenceMinutes(),

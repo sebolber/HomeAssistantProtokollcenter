@@ -926,7 +926,13 @@ class KnxStatsBusloadView(RequireAdminView):
 
 
 class KnxStatsBusHealthView(RequireAdminView):
-    """Iter 12 (QS-a): Wiederhol-Quote ueber den Zeitraum + Top-GAs."""
+    """Iter 12 (QS-a): Wiederhol-Quote ueber den Zeitraum + Top-GAs.
+
+    Iter topn-3: liest `limit` aus der Query (Default 20 fuer Backwards-
+    Compat, Max 500 wie die anderen Top-N-Endpunkte) und reicht ihn an
+    `bus_health_per_ga` durch — vorher hardcoded 20, sodass der UI-
+    Card-Selektor topNBusHealth keinen Effekt hatte.
+    """
 
     url = "/api/messagehub/knx-stats/bus-health"
     name = "api:messagehub:knx-stats:bus-health"
@@ -939,9 +945,12 @@ class KnxStatsBusHealthView(RequireAdminView):
         from_iso, to_iso = parse_iso_period(
             request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
         )
+        limit = parse_int_param(
+            request.query, "limit", 20, min_value=1, max_value=_HARD_TOP_LIMIT
+        )
         repo = KnxStatsRepository(db)
         summary = await repo.bus_health(from_iso, to_iso)
-        per_ga = await repo.bus_health_per_ga(from_iso, to_iso, limit=20)
+        per_ga = await repo.bus_health_per_ga(from_iso, to_iso, limit=limit)
         return self.json(
             {
                 "from": from_iso,
