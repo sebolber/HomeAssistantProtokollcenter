@@ -6,6 +6,28 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Geaendert (Datenqualitaet)
+- **Iter K / Sprint B — Counter-basierter Source-Aggregat-Pfad.**
+  Source-Detail-Pane (`/knx-stats/source/{dev_source}`) las bisher
+  alle Aggregate aus `knx_raw_telegrams` (48 h Retention). Bei
+  Periode > 48 h zeigte das Pane drastisch unter-erfasste Counts —
+  typisch nur die letzten 48 h, statt der vollen 7-Tage-Auswertung.
+  Iter K wechselt bei `period >= 48h` (= Raw-Retention) auf den
+  Counter-Pfad: `knx_telegram_counters` (365 d Retention) liefert
+  Per-GA-Counts, `counter_total` liefert das Period-Total.
+  * Neu: `KnxStatsRepository.counter_totals_for_gas(gas, from, to)`
+    — batch-aggregiert Counter-Counts pro GA-Liste.
+  * Service: `compute_source_detail` faehrt im Long-Term-Modus
+    `gas_for_source` (Live-48h) → GA-Liste, dann Counter-Sum pro GA;
+    `share_pct` rechnet konsistent gegen `counter_total`.
+  * Approximation (dokumentiert): GA-Liste basiert auf Live-48h —
+    ein Geraet, das vor Tagen still wurde, taucht nicht mehr auf.
+    Saubere Loesung waere ein `dev_source`-Counter-Schema
+    (Iter L+, nicht Phase 8).
+  Tests: 6 neue pytests (3 Repo-Cases fuer `counter_totals_for_gas`
+  + 3 Service-Cases fuer Long-Term/Short-Term-Branch). Phase 8 /
+  Sprint B — Iter K.
+
 ### Behoben (UX)
 - **Iter topn-3 / Sprint A — Bus-Health-Card respektiert UI-Top-N.**
   Die Card "Bus-Gesundheit (Wiederhol-Quote)" hatte einen UI-Selektor

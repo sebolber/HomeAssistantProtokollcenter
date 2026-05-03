@@ -949,6 +949,35 @@ class KnxStatsRepository:
             return 0
         return int(row["n"] or 0)
 
+    async def counter_totals_for_gas(
+        self, gas: list[str], from_iso: str, to_iso: str
+    ) -> dict[str, int]:
+        """Iter K (knx-detail-panes-Phase-8): Counter-Sum pro GA fuer eine
+        Liste von GAs in einem Stunden-Bucket-Bereich.
+
+        Wird vom Source-Detail-Service genutzt, um bei Perioden > 48 h
+        die Per-GA-Counts aus dem Counter (365 d Retention) statt aus
+        knx_raw_telegrams (48 h Retention) zu beziehen — sonst wuerde
+        die Source-Detail-Sicht bei langen Perioden dramatisch unter-
+        erfasst aussehen.
+
+        Liefert ein dict {ga: count}; GAs ohne Counter-Buckets im
+        Bereich fehlen im Result (kein 0-Eintrag, damit Caller
+        explizit zwischen "keine Daten" und "exakt 0" unterscheiden
+        koennen, falls noetig).
+        """
+        if not gas:
+            return {}
+        placeholders = ",".join("?" * len(gas))
+        rows = await self._db.fetch_all(
+            "SELECT ga, SUM(count) AS n FROM knx_telegram_counters "
+            f"WHERE ga IN ({placeholders}) "
+            "  AND hour_bucket >= ? AND hour_bucket < ? "
+            "GROUP BY ga",
+            (*gas, from_iso, to_iso),
+        )
+        return {str(row["ga"]): int(row["n"] or 0) for row in rows}
+
     # --- Long-Term-Sicht (Iter 38, Feature B+J) -----------------------------
     #
     # Counter-Tabelle deckt bis zu 365 Tage ab — Raw-Tabelle nur 48h.

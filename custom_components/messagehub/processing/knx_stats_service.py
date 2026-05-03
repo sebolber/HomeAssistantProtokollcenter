@@ -62,6 +62,17 @@ _TP1_BITRATE: float = float(KNX_TP_BAUDRATE_BPS)
 # Perioden, prev_period max 12h zurueck = sicher in Retention).
 _TREND_COUNTER_THRESHOLD_MIN: int = 1440
 
+# Iter K (Sprint B / Phase 8): Schwellwert in Minuten, ab dem
+# compute_source_detail die Counter-Tabelle statt knx_raw_telegrams
+# fuer Per-GA-Counts und Period-Total nutzt.
+#
+# Bewusst 2880 (48h) — exakt die Raw-Retention. Im Gegensatz zu
+# compute_trend gibt es hier keine Vorperioden-Probleme, also kann
+# der Live-Pfad bis ans Retention-Limit benutzt werden. >= 48h
+# heisst: Periode reicht ueber Raw-Retention hinaus, Counter ist
+# zwingend.
+_SOURCE_DETAIL_COUNTER_THRESHOLD_MIN: int = 2880
+
 
 def _hour_align_period(from_iso: str, to_iso: str) -> tuple[str, str]:
     """Rundet Periodengrenzen auf Stunden-Buckets, kompatibel zum
@@ -618,14 +629,35 @@ class KnxStatsService:
         to_dt = datetime.fromisoformat(to_iso)
         minutes = _period_minutes(from_dt, to_dt)
         last_seen = await self._repo.last_seen_for_source(dev_source)
-        total_count = await self._repo.count_for_source(
-            dev_source, from_iso, to_iso,
-        )
+        # Iter K (Phase 8): bei Perioden >= Raw-Retention (48h) auf den
+        # Counter-Pfad wechseln — knx_raw_telegrams fuehrt sonst zu
+        # dramatisch unter-erfassten Counts. GA-Liste bleibt aus Live
+        # (Counter-Tabelle hat keine dev_source-Spalte; Approximation:
+        # nur GAs, die in den letzten 48h von der Source aktiv waren,
+        # sind in der Liste).
+        long_term = minutes >= _SOURCE_DETAIL_COUNTER_THRESHOLD_MIN
+        if long_term:
+            hour_floor, hour_ceil = _hour_align_period(from_iso, to_iso)
+            ga_addresses = [str(row["ga"]) for row in ga_rows]
+            counter_totals = await self._repo.counter_totals_for_gas(
+                ga_addresses, hour_floor, hour_ceil,
+            )
+            for row in ga_rows:
+                row["count"] = counter_totals.get(str(row["ga"]), 0)
+            total_count = sum(int(row["count"]) for row in ga_rows)
+            period_total = await self._repo.counter_total(hour_floor, hour_ceil)
+        else:
+            total_count = await self._repo.count_for_source(
+                dev_source, from_iso, to_iso,
+            )
+            period_summary = await self._repo.summary(from_iso, to_iso)
+            period_total = int(period_summary.get("total_telegrams", 0))
+        # repeat_ratio bleibt aus Raw — Counter hat keine Repeat-Info.
+        # Bei >48h-Perioden zeigt das die Quote der letzten 48h des
+        # Geraets, was praktisch dem "aktuellen Zustand" entspricht.
         repeat_ratio = await self._repo.repeat_ratio_for_source(
             dev_source, from_iso, to_iso,
         )
-        period_summary = await self._repo.summary(from_iso, to_iso)
-        period_total = int(period_summary.get("total_telegrams", 0))
         ack_set = await self._repo.ack_active_set()
 
         gas = [
