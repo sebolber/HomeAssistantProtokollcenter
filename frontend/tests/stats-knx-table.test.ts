@@ -254,12 +254,64 @@ describe("stats-knx-view top table + detail pane", () => {
     expect(text).toContain("142,3");
   });
 
-  it("markiert acknowledged Zeilen mit '✓ bekannt'-Badge", async () => {
+  it("markiert acknowledged Zeilen mit '✓ Bekannt'-Badge", async () => {
     const api = makeApi();
     const el = await mount(api);
     const ackPill = el.shadowRoot!.querySelector(".ack-pill");
     expect(ackPill).not.toBeNull();
-    expect(ackPill!.textContent).toContain("bekannt");
+    // Iter aiohttp-error-ZU9UA / P2: case-insensitive match,
+    // konsolidierte Status-Spalte schreibt "Bekannt" gross.
+    expect(ackPill!.textContent?.toLowerCase()).toContain("bekannt");
+  });
+
+  it("Iter aiohttp-error-ZU9UA: Status-Spalte hat genau einen Pill pro Zeile", async () => {
+    const api = makeApi();
+    const el = await mount(api);
+    // Top-Sender ist die erste Tabelle. Status-Spalte ist die 7. Zelle
+    // (Index 6): #, GA, Label, DPT, Tel/Min, Soll, Status, Aktionen.
+    const firstTable = el.shadowRoot!.querySelector(".table-wrap table");
+    const rows = firstTable!.querySelectorAll("tbody tr");
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of Array.from(rows)) {
+      const statusCell = row.children[6] as HTMLElement;
+      const pills = statusCell.querySelectorAll(".mh-pill");
+      // Genau ein Pill pro Zeile (vorher waren es bis zu 3).
+      expect(pills.length).toBe(1);
+    }
+  });
+
+  it("Iter aiohttp-error-ZU9UA: green + has_findings escaliert auf yellow mit Warnung", async () => {
+    // Top-Mock-Row: severity=green + has_findings=true.
+    const api = makeApi();
+    api.getKnxStatsTop = vi.fn(async () => ({
+      from: "2026-04-25T00:00:00Z",
+      to: "2026-05-02T00:00:00Z",
+      items: [
+        {
+          ga: "1/0/9",
+          label: "x",
+          dpt: null,
+          dev_source: "1.1.5",
+          count: 100,
+          rate_per_min: 1,
+          recommended_rate: 5,
+          ratio: 0.2,
+          severity: "green" as const,
+          has_findings: true,
+          acknowledged: false,
+        },
+      ],
+      total: 1,
+    }));
+    const el = await mount(api);
+    const statusPill = el.shadowRoot!.querySelector("tbody tr .mh-pill");
+    expect(statusPill).not.toBeNull();
+    // Caution-Variante (yellow) statt success (green)
+    expect(statusPill!.classList.contains("mh-pill--caution")).toBe(true);
+    expect(statusPill!.classList.contains("mh-pill--success")).toBe(false);
+    // Warnglyph drin
+    expect(statusPill!.textContent).toContain("⚠");
+    expect(statusPill!.textContent).toContain("auffällig");
   });
 
   it("Iter 57: Top-Geraete-Tabelle hat sortierbare Header", async () => {

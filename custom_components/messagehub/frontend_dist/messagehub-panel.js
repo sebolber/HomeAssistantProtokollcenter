@@ -7239,18 +7239,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 </td>
                 <td class="num strong">${r.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
                 <td class="num muted">${r.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
-                <td>
-                  <span class=${`mh-pill ${this._severityPillClass(r.severity)}`}>
-                    <span class="mh-pill__dot"></span>
-                    ${this._severityLabel(r.severity)}
-                  </span>
-                  ${r.has_findings ? n`<span
-                        class="finding-badge"
-                        title="Anti-Pattern erkannt — Detail-Pane zeigt mehr (z. B. Konstant-Wert-Spam, Read-Burst, Heartbeat)"
-                        >⚠ auffällig</span
-                      >` : d}
-                  ${r.acknowledged ? n`<span class="ack-pill" title="acknowledged">✓ bekannt</span>` : d}
-                </td>
+                <td>${this._renderTopRowStatus(r)}</td>
                 <td class="actions">
                   ${r.acknowledged ? n`<button
                         class="mh-btn mh-btn--sm mh-btn--ghost"
@@ -7962,6 +7951,32 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   }
   _severityPillClass(t) {
     return _t(t);
+  }
+  /**
+   * Iter aiohttp-error-ZU9UA / P2: konsolidierte Status-Spalte fuer
+   * Top-Sender. Vorher 3 separate Pills uebereinander (Severity, ⚠
+   * auffaellig, ✓ bekannt) — wirkten wie 3 Spalten und konnten sich
+   * widersprechen ("OK" + "⚠ auffaellig"). Jetzt EIN Pill, der die
+   * effektive Severity zeigt:
+   *   - acknowledged ueberschreibt alles → "✓ Bekannt"
+   *   - has_findings + green → escaliert auf yellow ("auffaellig")
+   *     mit Findings-Icon
+   *   - sonst Severity-Label wie gehabt
+   */
+  _renderTopRowStatus(t) {
+    if (t.acknowledged)
+      return n`<span class="mh-pill mh-pill--neutral ack-pill" title="acknowledged">
+        ✓ Bekannt
+      </span>`;
+    const e = t.severity, s = t.has_findings && e === "green" ? "yellow" : e, r = t.has_findings && e === "green" ? "auffällig" : this._severityLabel(s);
+    return n`<span
+      class=${`mh-pill ${this._severityPillClass(s)}`}
+      title=${t.has_findings ? "Anti-Pattern erkannt — Detail-Pane zeigt mehr (Konstant-Wert-Spam, Read-Burst, Heartbeat)" : ""}
+    >
+      <span class="mh-pill__dot"></span>
+      ${t.has_findings ? n`<span aria-hidden="true">⚠</span> ` : d}
+      ${r}
+    </span>`;
   }
 };
 b.styles = [

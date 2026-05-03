@@ -1421,22 +1421,7 @@ export class StatsKnxView extends LitElement {
                 </td>
                 <td class="num strong">${row.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
                 <td class="num muted">${row.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
-                <td>
-                  <span class=${`mh-pill ${this._severityPillClass(row.severity)}`}>
-                    <span class="mh-pill__dot"></span>
-                    ${this._severityLabel(row.severity)}
-                  </span>
-                  ${row.has_findings
-                    ? html`<span
-                        class="finding-badge"
-                        title="Anti-Pattern erkannt — Detail-Pane zeigt mehr (z. B. Konstant-Wert-Spam, Read-Burst, Heartbeat)"
-                        >⚠ auffällig</span
-                      >`
-                    : nothing}
-                  ${row.acknowledged
-                    ? html`<span class="ack-pill" title="acknowledged">✓ bekannt</span>`
-                    : nothing}
-                </td>
+                <td>${this._renderTopRowStatus(row)}</td>
                 <td class="actions">
                   ${row.acknowledged
                     ? html`<button
@@ -2355,6 +2340,40 @@ export class StatsKnxView extends LitElement {
     sev: "green" | "yellow" | "orange" | "red"
   ): string {
     return severityPillClass(sev);
+  }
+
+  /**
+   * Iter aiohttp-error-ZU9UA / P2: konsolidierte Status-Spalte fuer
+   * Top-Sender. Vorher 3 separate Pills uebereinander (Severity, ⚠
+   * auffaellig, ✓ bekannt) — wirkten wie 3 Spalten und konnten sich
+   * widersprechen ("OK" + "⚠ auffaellig"). Jetzt EIN Pill, der die
+   * effektive Severity zeigt:
+   *   - acknowledged ueberschreibt alles → "✓ Bekannt"
+   *   - has_findings + green → escaliert auf yellow ("auffaellig")
+   *     mit Findings-Icon
+   *   - sonst Severity-Label wie gehabt
+   */
+  private _renderTopRowStatus(row: KnxStatsTopRowDto): TemplateResult {
+    if (row.acknowledged) {
+      return html`<span class="mh-pill mh-pill--neutral ack-pill" title="acknowledged">
+        ✓ Bekannt
+      </span>`;
+    }
+    const baseSev = row.severity;
+    const escalated = row.has_findings && baseSev === "green" ? "yellow" : baseSev;
+    const label = row.has_findings && baseSev === "green"
+      ? "auffällig"
+      : this._severityLabel(escalated);
+    return html`<span
+      class=${`mh-pill ${this._severityPillClass(escalated)}`}
+      title=${row.has_findings
+        ? "Anti-Pattern erkannt — Detail-Pane zeigt mehr (Konstant-Wert-Spam, Read-Burst, Heartbeat)"
+        : ""}
+    >
+      <span class="mh-pill__dot"></span>
+      ${row.has_findings ? html`<span aria-hidden="true">⚠</span> ` : nothing}
+      ${label}
+    </span>`;
   }
 
   static override styles = [
