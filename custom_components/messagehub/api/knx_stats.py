@@ -212,7 +212,7 @@ class KnxStatsGaDetailView(RequireAdminView):
     url = "/api/messagehub/knx-stats/ga/{ga}"
     name = "api:messagehub:knx-stats:ga-detail"
 
-    async def get(self, request: web.Request) -> web.Response:
+    async def get(self, request: web.Request, ga: str) -> web.Response:
         from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
         from ..processing.knx_manufacturer import (  # noqa: PLC0415
             lookup_manufacturer_hints,
@@ -222,7 +222,7 @@ class KnxStatsGaDetailView(RequireAdminView):
         svc = _service(request.app["hass"])
         if svc is None:
             return self.json_message(ERR_NOT_INITIALISED, status_code=503)
-        ga = validate_knx_ga(request.match_info["ga"])
+        ga = validate_knx_ga(ga)
         from_iso, to_iso = parse_iso_period(
             request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
         )
@@ -288,7 +288,7 @@ class KnxStatsGaExportView(RequireAdminView):
     url = "/api/messagehub/knx-stats/ga/{ga}/export"
     name = "api:messagehub:knx-stats:ga-export"
 
-    async def get(self, request: web.Request) -> web.Response:
+    async def get(self, request: web.Request, ga: str) -> web.Response:
         # Iter 70 / CR-32: Encoding-Logik in pure Helpers ausgelagert
         # (processing/knx_stats_export.py), damit Hard-Cap + CSV-Quoting
         # + JSON-Wrapper unit-getestet werden koennen.
@@ -303,7 +303,7 @@ class KnxStatsGaExportView(RequireAdminView):
         db = get_database(request.app["hass"])
         if db is None:
             return self.json_message(ERR_NOT_INITIALISED, status_code=503)
-        ga = validate_knx_ga(request.match_info["ga"])
+        ga = validate_knx_ga(ga)
         from_iso, to_iso = parse_iso_period(
             request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
         )
@@ -615,18 +615,18 @@ class KnxStatsSensitiveSetView(RequireAdminView):
     url = "/api/messagehub/knx-stats/sensitive/{ga}"
     name = "api:messagehub:knx-stats:sensitive-set"
 
-    async def post(self, request: web.Request) -> web.Response:
-        return await self._toggle(request, sensitive=True)
+    async def post(self, request: web.Request, ga: str) -> web.Response:
+        return await self._toggle(request, ga, sensitive=True)
 
-    async def delete(self, request: web.Request) -> web.Response:
-        return await self._toggle(request, sensitive=False)
+    async def delete(self, request: web.Request, ga: str) -> web.Response:
+        return await self._toggle(request, ga, sensitive=False)
 
-    async def _toggle(self, request: web.Request, *, sensitive: bool) -> web.Response:
+    async def _toggle(self, request: web.Request, ga: str, *, sensitive: bool) -> web.Response:
         self._check_admin(request)
         db = get_database(request.app["hass"])
         if db is None:
             return self.json_message(ERR_NOT_INITIALISED, status_code=503)
-        ga = validate_knx_ga(request.match_info["ga"])
+        ga = validate_knx_ga(ga)
         repo = KnxStatsRepository(db)
         await repo.set_sensitive(ga, sensitive=sensitive)
         await audit(
@@ -982,12 +982,12 @@ class KnxStatsAcknowledgeDetailView(RequireAdminView):
     url = "/api/messagehub/knx-stats/acknowledge/{ga}"
     name = "api:messagehub:knx-stats:acknowledge-detail"
 
-    async def delete(self, request: web.Request) -> web.Response:
+    async def delete(self, request: web.Request, ga: str) -> web.Response:
         self._check_admin(request)
         db = get_database(request.app["hass"])
         if db is None:
             return self.json_message(ERR_NOT_INITIALISED, status_code=503)
-        ga = validate_knx_ga(request.match_info["ga"])
+        ga = validate_knx_ga(ga)
         deleted = await KnxStatsRepository(db).ack_clear(ga)
         if not deleted:
             return self.json_message(ERR_NOT_FOUND, status_code=404)
