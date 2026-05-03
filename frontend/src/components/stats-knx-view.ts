@@ -1947,6 +1947,14 @@ export class StatsKnxView extends LitElement {
     const totalSeverity = this._classifyTrendSeverity(t.total_delta_pct);
     const limit = this._filters.topNTrend;
     const isShort = this._isShortTrendPeriod();
+    // Iter aiohttp-error-ZU9UA / Trend-Fix A: Bei langen Perioden
+    // (≥ 48h) ist die Vorperiode komplett ausserhalb der 48h-Raw-
+    // Retention, total_prev ist immer 0 — der Vergleich waere
+    // irrefuehrend. Wir zeigen statt leerer Listen einen klaren
+    // Hinweis. Iter 2 (Backend) wird das durch Counter-Tabellen-
+    // Lookup ersetzen, sobald implementiert.
+    const isLongRetentionGap =
+      this._isLongRetentionGapPeriod() && t.total_prev === 0;
     return html`
       <section class=${`mh-card trend trend--${totalSeverity}`}>
         <header class="card-head">
@@ -1956,17 +1964,30 @@ export class StatsKnxView extends LitElement {
             zuvor ${t.total_prev.toLocaleString("de-DE")} ·
             <strong>${totalDelta}</strong>
           </span>
-          ${this._renderInlineTopN(this._filters.topNTrend, (n) => this._onTopNTrend(n))}
+          ${isLongRetentionGap
+            ? nothing
+            : this._renderInlineTopN(this._filters.topNTrend, (n) =>
+                this._onTopNTrend(n)
+              )}
         </header>
-        ${isShort
-          ? html`<p class="trend-short-hint muted small">
-              Hinweis: Bei kurzen Perioden vergleicht sich z. B. 04–05 Uhr mit
-              03–04 Uhr — Tag/Nacht-Übergaenge und Automation-Trigger lassen
-              die %-Werte oft 4-stellig wirken. Fuer aussagekraeftige Trends
-              mind. 24 Std waehlen.
+        ${isLongRetentionGap
+          ? html`<p class="trend-retention-hint muted small">
+              Vergleich nicht verfuegbar fuer diese Periode — Raw-Telegramme
+              werden nur 48 Stunden vorgehalten, die Vorperiode liegt
+              ausserhalb. Fuer aussagekraeftige Trends 1 Std / 6 Std / 24 Std
+              waehlen.
             </p>`
-          : nothing}
-        <div class="trend-grid">
+          : isShort
+            ? html`<p class="trend-short-hint muted small">
+                Hinweis: Bei kurzen Perioden vergleicht sich z. B. 04–05 Uhr mit
+                03–04 Uhr — Tag/Nacht-Übergaenge und Automation-Trigger lassen
+                die %-Werte oft 4-stellig wirken. Fuer aussagekraeftige Trends
+                mind. 24 Std waehlen.
+              </p>`
+            : nothing}
+        ${isLongRetentionGap
+          ? nothing
+          : html`<div class="trend-grid">
           <div class="trend-col">
             <strong>Größte Anstiege</strong>
             ${t.top_increase.length === 0
@@ -2005,7 +2026,7 @@ export class StatsKnxView extends LitElement {
                   )}
                 </ul>`}
           </div>
-        </div>
+        </div>`}
       </section>
     `;
   }
@@ -2034,6 +2055,22 @@ export class StatsKnxView extends LitElement {
 
   private _isShortTrendPeriod(): boolean {
     return this._filters.periodId === "1h" || this._filters.periodId === "6h";
+  }
+
+  /**
+   * Iter aiohttp-error-ZU9UA / Trend-Fix A: Periode, deren Vorperiode
+   * komplett ausserhalb der 48h-Raw-Retention liegt. compute_trend
+   * liest aus knx_raw_telegrams (48h Cap), also ist total_prev fuer
+   * diese Perioden zwangslaeufig 0 — der Vergleich ist sinnlos.
+   *
+   * 48h: Vorperiode 48-96h zurueck → ausserhalb
+   * 7d / 30d / 365d: Vorperiode noch viel weiter zurueck → ausserhalb
+   *
+   * 24h ist Grenzfall (Vorperiode 24-48h, am Rand der Retention) — wir
+   * lassen es noch durch und vertrauen auf die echten Daten.
+   */
+  private _isLongRetentionGapPeriod(): boolean {
+    return ["48h", "7d", "30d", "365d"].includes(this._filters.periodId);
   }
 
   /**
@@ -3192,14 +3229,20 @@ export class StatsKnxView extends LitElement {
       .trend--red {
         border-left-color: var(--mh-error);
       }
-      /* Iter aiohttp-error-ZU9UA / P1: Hinweistext bei kurzen Perioden,
-         um den +1.300%-Look in den Kontext zu setzen. */
-      .trend-short-hint {
+      /* Iter aiohttp-error-ZU9UA / P1 + Trend-Fix A: Hinweistexte in
+         der Trend-Card. -short-hint bei kurzen Perioden (1h/6h),
+         -retention-hint bei langen Perioden (48h+) wo Vorperiode
+         ausserhalb der Raw-Retention liegt. */
+      .trend-short-hint,
+      .trend-retention-hint {
         margin: var(--mh-space-2) 0 var(--mh-space-3) 0;
         padding: var(--mh-space-2) var(--mh-space-3);
         background: var(--mh-surface-soft, var(--mh-surface));
         border-left: 3px solid var(--mh-info, var(--mh-divider));
         border-radius: var(--mh-radius-sm);
+      }
+      .trend-retention-hint {
+        border-left-color: var(--mh-warning, var(--mh-divider));
       }
       .trend-grid {
         display: grid;

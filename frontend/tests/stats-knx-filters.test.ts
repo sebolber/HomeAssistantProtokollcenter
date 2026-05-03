@@ -614,6 +614,84 @@ describe("stats-knx-view filter bar", () => {
     expect(hint!.textContent).toContain("kurze");
   });
 
+  it("Iter aiohttp-error-ZU9UA / Trend-Fix A: bei 48h+ und total_prev=0 zeigt Retention-Hinweis statt leerer Lists", async () => {
+    localStorage.setItem(
+      "messagehub.knx-stats.filters",
+      JSON.stringify({ periodId: "48h", topN: 25, minRate: 1, includeAck: true }),
+    );
+    const trendSpy = vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      prev_from: SUMMARY.from,
+      prev_to: SUMMARY.from,
+      period_minutes: 2880,
+      total_now: 50000,
+      total_prev: 0, // ausserhalb der 48h-Retention
+      total_delta_abs: 50000,
+      total_delta_pct: null,
+      top_increase: [],
+      top_decrease: [],
+    }));
+    const api = { ...makeApi(), getKnxStatsTrend: trendSpy } as unknown as ApiClient;
+    const el = document.createElement("stats-knx-view") as HTMLElement & {
+      api?: ApiClient;
+      updateComplete: Promise<unknown>;
+    };
+    el.api = api;
+    document.body.appendChild(el);
+    for (let i = 0; i < 5; i++) {
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    const trendCard = el.shadowRoot!.querySelector(".trend") as HTMLElement | null;
+    expect(trendCard).not.toBeNull();
+    // Retention-Hinweis ist sichtbar
+    const hint = trendCard!.querySelector(".trend-retention-hint");
+    expect(hint).not.toBeNull();
+    expect(hint!.textContent).toContain("Raw-Telegramme");
+    expect(hint!.textContent).toContain("48");
+    // Lists und Top-N-Selektor sind versteckt
+    expect(trendCard!.querySelector(".trend-grid")).toBeNull();
+    expect(trendCard!.querySelector(".inline-topn")).toBeNull();
+  });
+
+  it("Iter aiohttp-error-ZU9UA / Trend-Fix A: bei 48h MIT prev-Daten zeigt KEIN Retention-Hinweis", async () => {
+    // Falls Backend (Iter 2) sich aendert und doch Daten liefert,
+    // soll der Hinweis nicht erscheinen.
+    localStorage.setItem(
+      "messagehub.knx-stats.filters",
+      JSON.stringify({ periodId: "48h", topN: 25, minRate: 1, includeAck: true }),
+    );
+    const trendSpy = vi.fn(async () => ({
+      from: SUMMARY.from,
+      to: SUMMARY.to,
+      prev_from: SUMMARY.from,
+      prev_to: SUMMARY.from,
+      period_minutes: 2880,
+      total_now: 50000,
+      total_prev: 45000,
+      total_delta_abs: 5000,
+      total_delta_pct: 11.1,
+      top_increase: [],
+      top_decrease: [],
+    }));
+    const api = { ...makeApi(), getKnxStatsTrend: trendSpy } as unknown as ApiClient;
+    const el = document.createElement("stats-knx-view") as HTMLElement & {
+      api?: ApiClient;
+      updateComplete: Promise<unknown>;
+    };
+    el.api = api;
+    document.body.appendChild(el);
+    for (let i = 0; i < 5; i++) {
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    const trendCard = el.shadowRoot!.querySelector(".trend");
+    expect(trendCard).not.toBeNull();
+    expect(trendCard!.querySelector(".trend-retention-hint")).toBeNull();
+    expect(trendCard!.querySelector(".trend-grid")).not.toBeNull();
+  });
+
   it("Iter aiohttp-error-ZU9UA: Trend-Card bei 24h-Periode mit grossem Delta ist rot", async () => {
     localStorage.setItem(
       "messagehub.knx-stats.filters",
