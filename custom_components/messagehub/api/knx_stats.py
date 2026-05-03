@@ -34,6 +34,11 @@ from ..const import (
     KNX_BUSLOAD_MIN_BUCKET_SECONDS,
     SETTINGS_KEY_KNX_BUS_ANALYSIS,
 )
+from ..processing.knx_recommend_service import (
+    compute_device_recommendation,
+    device_recommendation_to_dict,
+)
+from ..processing.recommendation_cache import RecommendationCache
 from ..processing.knx_stats_service import (
     KnxStatsService,
     ga_detail_to_dict,
@@ -1085,6 +1090,84 @@ class KnxStatsAcknowledgeDetailView(RequireAdminView):
         return self.json({"ok": True, "ga": ga})
 
 
+# =============================================================================
+# Iter L1.3 — Recommendation-Endpoint
+# =============================================================================
+#
+# Eigener Endpoint statt Embedding ins Source-Detail, damit:
+# - Source-Detail-Latency unbeeinflusst bleibt (Recommendation rechnet
+#   ggf. mehrere zusaetzliche Repo-Queries pro GA, und der Drawer-Open
+#   soll nicht warten);
+# - Frontend lazy laden kann (Card kollabiert by default);
+# - eigenes In-Memory-Caching pro (dev_source, period_hash) moeglich
+#   ist, ohne den Source-Detail-Cache anzufassen.
+#
+# Sicherheit:
+# - RequireAdminView, _check_admin, validate_knx_individual_address
+# - parse_iso_period mit max_days=DEFAULT_KNX_COUNTER_RETENTION_DAYS (Counter
+#   reicht weit zurueck — wir wollen Long-Term-Periodizitaet erlauben)
+# - TokenBucketLimiter pro dev_source (capacity 10, refill 10/min) —
+#   schuetzt vor Drawer-Open-Loops und parallelen Browser-Tabs.
+#
+# KEIN Audit-Log: Read-only-Compute ohne externe Folgen. Layer-4-LLM-
+# Aufrufe in zukuenftigen Iter werden separat audit-geloggt.
+
+_recommendation_limiter = TokenBucketLimiter(capacity=10.0, refill_per_minute=10.0)
+_recommendation_cache = RecommendationCache()
+
+
+class KnxStatsSourceRecommendationView(RequireAdminView):
+    """Iter L1.3 (Sprint Recommendations): Geraete-Empfehlung.
+
+    URL: /api/messagehub/knx-stats/source/{dev_source}/recommendation
+         ?from=ISO&to=ISO
+
+    Antworten:
+    - 200: vollstaendige DeviceRecommendation (siehe
+      ``device_recommendation_to_dict``)
+    - 400: ungueltige dev_source oder Period
+    - 404: Geraet hat im Zeitraum keine Telegramme (analog Source-Detail)
+    - 429: Rate-Limit ueberschritten
+    - 503: Service nicht initialisiert (DB fehlt)
+    """
+
+    url = "/api/messagehub/knx-stats/source/{dev_source}/recommendation"
+    name = "api:messagehub:knx-stats:source-recommendation"
+
+    async def get(self, request: web.Request, dev_source: str) -> web.Response:
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        dev_source = validate_knx_individual_address(dev_source)
+        from_iso, to_iso = parse_iso_period(
+            request.query,
+            default_days=DEFAULT_KNX_STATS_PERIOD_DAYS,
+            max_days=DEFAULT_KNX_COUNTER_RETENTION_DAYS,
+        )
+        if not _recommendation_limiter.allow(f"reco:{dev_source}"):
+            return web.json_response(
+                {"message": "rate limit exceeded — bitte etwas warten"},
+                status=429,
+                headers={"Retry-After": "10"},
+            )
+        cache_key = f"{dev_source}:{from_iso}:{to_iso}"
+        cached = _recommendation_cache.get(cache_key)
+        if cached is not None:
+            return self.json(cached)
+        repo = KnxStatsRepository(db)
+        reco = await compute_device_recommendation(
+            repo, dev_source, from_iso, to_iso,
+        )
+        if reco is None:
+            return self.json_message(ERR_NOT_FOUND, status_code=404)
+        result = device_recommendation_to_dict(reco)
+        result["from"] = from_iso
+        result["to"] = to_iso
+        _recommendation_cache.set(cache_key, result)
+        return self.json(result)
+
+
 def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsSummaryView())
     hass.http.register_view(KnxStatsTopView())
@@ -1105,3 +1188,4 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxStatsAcknowledgeView())
     hass.http.register_view(KnxStatsAcknowledgeBulkView())
     hass.http.register_view(KnxStatsAcknowledgeDetailView())
+    hass.http.register_view(KnxStatsSourceRecommendationView())

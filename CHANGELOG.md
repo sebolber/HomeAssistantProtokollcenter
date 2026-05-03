@@ -7,6 +7,16 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L1.3 / Sprint Recommendations — API-Endpoint + Caching.**
+  Neuer Endpoint `GET /api/messagehub/knx-stats/source/{dev_source}/recommendation`
+  mit `RequireAdminView`, `validate_knx_individual_address`, `parse_iso_period`
+  (max_days = `_KNX_COUNTER_RETENTION_DAYS` = 365), TokenBucketLimiter
+  (capacity 10, refill 10/min) pro `dev_source`. In-Memory-TTL-Cache
+  (5 Min, 200 Eintraege max) verhindert Re-Compute bei Drawer-Refresh.
+  Cache-Klasse `RecommendationCache` HA-frei in eigenem Modul, damit
+  Tests ohne HA-Stack laufen. Read-only-Compute → kein Audit-Log
+  (Layer-4-LLM-Calls werden separat audit-geloggt). 20 Pytests
+  (12 AST-Tests fuer View-Vertrag, 8 Verhaltens-Tests fuer Cache).
 - **Iter L1.2 / Sprint Recommendations — DeviceRecommendationService.**
   Neuer Service `compute_device_recommendation(repo, dev_source,
   from, to)`, der pro GA klassifiziert (L1.1) + DPT-Empfehlung (L1.0)
