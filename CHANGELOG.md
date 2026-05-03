@@ -21,6 +21,20 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   abgeschlossen). 2 neue Vitest (Aufruf-Parameter + DOM-Selektor-
   Buttons). Phase 8 / Sprint A — TopN-Bug 4/4.
 
+### Geaendert (Performance)
+- **Iter Idx / Sprint B — Index `idx_knx_findings_source`.**
+  Source-Detail-Pane filtert die Findings via
+  `list_findings(source=dev_source, limit=200)`. Die bestehenden
+  Indizes auf `knx_findings` (`last_seen_desc`,
+  `(severity, last_seen)`, `(ga, last_seen)`) deckten den
+  Source-Filter nicht ab — bei einer Anlage mit > 100 k Findings
+  war das ein Full-Table-Scan. Neue Migration
+  `0028_knx_findings_source_index.sql` legt einen dedizierten Index
+  auf `source` an. Idempotent (`CREATE INDEX IF NOT EXISTS`),
+  Speicher-Overhead vernachlaessigbar (~1-2 % der Tabelle). 2 neue
+  Pytests (Existenz + Spaltenabdeckung). Phase 8 / Sprint B —
+  letzte optionale Iter.
+
 ### Geaendert (Datenqualitaet)
 - **Iter K / Sprint B — Counter-basierter Source-Aggregat-Pfad.**
   Source-Detail-Pane (`/knx-stats/source/{dev_source}`) las bisher
