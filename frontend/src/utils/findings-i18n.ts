@@ -105,6 +105,23 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
       help_url:
         "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung",
     },
+    ORPHAN_GA: {
+      title: "GA in Projekt-Whitelist, aber stumm",
+      description:
+        "Im Auswertezeitraum {period_from} bis {period_to} kein einziges " +
+        "Telegramm gesehen. ETS-Projekt enthaelt diese GA — entweder " +
+        "loeschen oder Empfaenger pruefen.",
+      help_url:
+        "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check",
+    },
+    STALE_GA: {
+      title: "GA seit Tagen tot",
+      description:
+        "Letztes Telegramm am {last_seen}, seit {days_silent} Tagen keine " +
+        "weitere Aktivitaet. Sensorik defekt oder Linie unterbrochen?",
+      help_url:
+        "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check",
+    },
   },
   en: {
     DPT_MISMATCH: {
@@ -181,8 +198,39 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
       help_url:
         "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung",
     },
+    ORPHAN_GA: {
+      title: "GA in project whitelist but silent",
+      description:
+        "No telegrams observed in the period from {period_from} to " +
+        "{period_to}. The ETS project lists this GA — remove it or check " +
+        "the receiver.",
+      help_url:
+        "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check",
+    },
+    STALE_GA: {
+      title: "GA gone silent",
+      description:
+        "Last telegram at {last_seen}, no activity for {days_silent} " +
+        "days. Sensor faulty or line interrupted?",
+      help_url:
+        "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check",
+    },
   },
 };
+
+// Iter 26: Codes mit Projekt-Bezug (Filter "Nur Projekt-Befunde").
+// DPT_MISMATCH braucht das Soll-DPT aus dem Projekt; ORPHAN_GA und
+// STALE_GA listen Whitelist-Eintraege. Andere Findings sind reine
+// Laufzeit-Befunde aus dem Telegrammverkehr.
+export const PROJECT_RELATED_CODES: ReadonlySet<string> = new Set([
+  "DPT_MISMATCH",
+  "ORPHAN_GA",
+  "STALE_GA",
+]);
+
+export function isProjectRelated(code: string): boolean {
+  return PROJECT_RELATED_CODES.has(code);
+}
 
 function _resolveLang(lang: FallbackLang): Lang {
   // Iter 14: nur DE/EN explizit gepflegt. Andere Sprachen fallen auf

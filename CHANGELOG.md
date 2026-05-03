@@ -7,6 +7,14 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 5)
+- **Iter 26 — i18n Phase 5 + Filter "Nur Projekt-Befunde".**
+  Translations fuer ORPHAN_GA + STALE_GA in allen 6 Sprachen +
+  `findings_view.filter_project_only`-Label. Frontend-Helper
+  `isProjectRelated(code)` + `PROJECT_RELATED_CODES`-Set
+  (DPT_MISMATCH, ORPHAN_GA, STALE_GA). Filter-Toggle in `findings-view`
+  blendet Laufzeit-Findings aus; Total-Anzeige zeigt
+  "gefiltert / total". Filter laeuft Frontend-only — keine
+  Server-Round-Trip.
 - **Iter 25 — Detector `STALE_GA`.**
   Erkennt: GA war frueher aktiv, ist seit >= `threshold_days` (Default
   30) tot. Severity `info`, Evidence `{last_seen, days_silent}`.

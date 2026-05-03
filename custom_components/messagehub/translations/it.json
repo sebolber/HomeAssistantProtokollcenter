@@ -96,7 +96,21 @@
         "title": "Sospette ripetizioni di telegramma",
         "description": "{total_repeats} telegrammi consecutivi identici con Δt < 100 ms su {period_days} giorni (~ {repeats_per_day}/giorno). Approssimazione del bit di ripetizione — confermare tramite tracer xknx (BL-D) quando disponibile.",
         "help_url": "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung"
+      },
+      "ORPHAN_GA": {
+        "title": "GA nella whitelist del progetto ma silenziosa",
+        "description": "Nessun telegramma osservato nel periodo {period_from} - {period_to}. Il progetto ETS contiene questa GA — rimuovila o verifica il ricevitore.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
+      },
+      "STALE_GA": {
+        "title": "GA inattiva da giorni",
+        "description": "Ultimo telegramma il {last_seen}, nessuna attività da {days_silent} giorni. Sensore difettoso o linea interrotta?",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
       }
     }
+  },
+  "findings_view": {
+    "filter_project_only": "Solo risultati del progetto",
+    "filter_project_only_help": "Nasconde i risultati di runtime, mostra solo quelli relativi al progetto (DPT mismatch, GA orfana, GA inattiva)."
   }
 }

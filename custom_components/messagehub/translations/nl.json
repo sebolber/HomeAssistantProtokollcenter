@@ -96,7 +96,21 @@
         "title": "Vermoedelijke telegram-herhalingen",
         "description": "{total_repeats} identieke opeenvolgende telegrammen met Δt < 100 ms over {period_days} dagen (~ {repeats_per_day}/dag). Benadering van de repeat-bit — bevestig via xknx-tracer (BL-D) indien beschikbaar.",
         "help_url": "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung"
+      },
+      "ORPHAN_GA": {
+        "title": "GA in projectlijst maar stil",
+        "description": "Geen telegrammen waargenomen in de periode {period_from} tot {period_to}. Het ETS-project bevat deze GA — verwijder hem of controleer de ontvanger.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
+      },
+      "STALE_GA": {
+        "title": "GA al dagen stil",
+        "description": "Laatste telegram op {last_seen}, geen activiteit sinds {days_silent} dagen. Sensor defect of lijn onderbroken?",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
       }
     }
+  },
+  "findings_view": {
+    "filter_project_only": "Alleen projectbevindingen",
+    "filter_project_only_help": "Verbergt runtime-bevindingen, toont alleen project-gerelateerde (DPT mismatch, weespunten, stille GA's)."
   }
 }

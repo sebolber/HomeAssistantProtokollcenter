@@ -19,6 +19,7 @@ import {
   getFindingDescription,
   getFindingHelpUrl,
   getFindingTitle,
+  isProjectRelated,
 } from "../utils/findings-i18n.js";
 
 type SeverityFilter = "" | FindingSeverity;
@@ -49,6 +50,7 @@ export class FindingsView extends LitElement {
   @state() private _loading = false;
   @state() private _error: string | null = null;
   @state() private _severityFilter: SeverityFilter = "";
+  @state() private _projectOnly = false;
   @state() private _selectedKey: string | null = null;
 
   override async firstUpdated(): Promise<void> {
@@ -76,6 +78,19 @@ export class FindingsView extends LitElement {
     const target = ev.target as HTMLSelectElement;
     this._severityFilter = target.value as SeverityFilter;
     void this._load();
+  }
+
+  private _onProjectOnlyChange(ev: Event): void {
+    // Iter 26: Filter "Nur Projekt-Befunde" (DPT_MISMATCH/ORPHAN_GA/
+    // STALE_GA). Server liefert die volle Liste, Filter laeuft im
+    // Frontend — keine zusaetzliche Round-Trip-Latenz.
+    const target = ev.target as HTMLInputElement;
+    this._projectOnly = target.checked;
+  }
+
+  private _filteredItems(): FindingDto[] {
+    if (!this._projectOnly) return this._items;
+    return this._items.filter((it) => isProjectRelated(it.code));
   }
 
   private _itemKey(it: FindingDto): string {
@@ -139,8 +154,17 @@ export class FindingsView extends LitElement {
               )}
             </select>
           </label>
+          <label class="filter-label" data-test="findings-project-only-label">
+            <input
+              type="checkbox"
+              data-test="findings-project-only-toggle"
+              .checked=${this._projectOnly}
+              @change=${this._onProjectOnlyChange}
+            />
+            Nur Projekt-Befunde
+          </label>
           <span class="total" data-test="findings-total"
-            >${this._total} Findings</span
+            >${this._filteredItems().length} / ${this._total} Findings</span
           >
         </div>
 
@@ -162,14 +186,15 @@ export class FindingsView extends LitElement {
     if (this._loading) {
       return html`<div class="empty">Wird geladen…</div>`;
     }
-    if (this._items.length === 0) {
+    const filtered = this._filteredItems();
+    if (filtered.length === 0) {
       return html`<div class="empty" data-test="findings-empty">
         Keine Findings im aktuellen Filter — die Konfiguration sieht
         unauffaellig aus.
       </div>`;
     }
     return html`<ul class="items" data-test="findings-items">
-      ${this._items.map((it) => this._renderItem(it))}
+      ${filtered.map((it) => this._renderItem(it))}
     </ul>`;
   }
 

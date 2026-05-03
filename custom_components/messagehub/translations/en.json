@@ -96,7 +96,21 @@
         "title": "Suspected telegram repeats",
         "description": "{total_repeats} identical follow-up telegrams with Δt < 100 ms across {period_days} days (~ {repeats_per_day}/day). Approximation of the repeat bit — confirm via xknx tracer (BL-D) when available.",
         "help_url": "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung"
+      },
+      "ORPHAN_GA": {
+        "title": "GA in project whitelist but silent",
+        "description": "No telegrams observed in the period from {period_from} to {period_to}. The ETS project lists this GA — remove it or check the receiver.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
+      },
+      "STALE_GA": {
+        "title": "GA gone silent",
+        "description": "Last telegram at {last_seen}, no activity for {days_silent} days. Sensor faulty or line interrupted?",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
       }
     }
+  },
+  "findings_view": {
+    "filter_project_only": "Project findings only",
+    "filter_project_only_help": "Hides runtime findings, shows only project-related ones (DPT mismatch, orphan GA, stale GA)."
   }
 }

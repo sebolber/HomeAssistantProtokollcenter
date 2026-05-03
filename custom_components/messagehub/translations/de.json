@@ -96,7 +96,21 @@
         "title": "Vermutete Telegrammwiederholungen",
         "description": "{total_repeats} identische Folge-Telegramme mit Δt < 100 ms ueber {period_days} Tage (~ {repeats_per_day}/Tag). Approximation des Repeat-Bits — bestaetigen via xknx-Tracer (BL-D), wenn verfuegbar.",
         "help_url": "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung"
+      },
+      "ORPHAN_GA": {
+        "title": "GA in Projekt-Whitelist, aber stumm",
+        "description": "Im Auswertezeitraum {period_from} bis {period_to} kein einziges Telegramm gesehen. ETS-Projekt enthaelt diese GA — entweder loeschen oder Empfaenger pruefen.",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
+      },
+      "STALE_GA": {
+        "title": "GA seit Tagen tot",
+        "description": "Letztes Telegramm am {last_seen}, seit {days_silent} Tagen keine weitere Aktivitaet. Sensorik defekt oder Linie unterbrochen?",
+        "help_url": "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
       }
     }
+  },
+  "findings_view": {
+    "filter_project_only": "Nur Projekt-Befunde",
+    "filter_project_only_help": "Blendet Laufzeit-Findings aus, zeigt nur Hinweise mit Projekt-Bezug (DPT-Mismatch, Orphan-GA, Stale-GA)."
   }
 }

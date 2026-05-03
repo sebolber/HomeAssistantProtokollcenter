@@ -45,7 +45,7 @@ const Vt = (t) => new zt(typeof t == "string" ? t : t + "", void 0, Ge), $ = (t,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: Jt, defineProperty: Yt, getOwnPropertyDescriptor: Xt, getOwnPropertyNames: Zt, getOwnPropertySymbols: Qt, getPrototypeOf: es } = Object, H = globalThis, st = H.trustedTypes, ts = st ? st.emptyScript : "", Fe = H.reactiveElementPolyfillSupport, ve = (t, e) => t, Pe = { toAttribute(t, e) {
+const { is: Jt, defineProperty: Yt, getOwnPropertyDescriptor: Xt, getOwnPropertyNames: Zt, getOwnPropertySymbols: Qt, getPrototypeOf: es } = Object, j = globalThis, st = j.trustedTypes, ts = st ? st.emptyScript : "", Fe = j.reactiveElementPolyfillSupport, ve = (t, e) => t, Pe = { toAttribute(t, e) {
   switch (e) {
     case Boolean:
       t = t ? ts : null;
@@ -74,7 +74,7 @@ const { is: Jt, defineProperty: Yt, getOwnPropertyDescriptor: Xt, getOwnProperty
   }
   return s;
 } }, We = (t, e) => !Jt(t, e), at = { attribute: !0, type: String, converter: Pe, reflect: !1, useDefault: !1, hasChanged: We };
-Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), H.litPropertyMetadata ?? (H.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
+Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), j.litPropertyMetadata ?? (j.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
 let re = class extends HTMLElement {
   static addInitializer(e) {
     this._$Ei(), (this.l ?? (this.l = [])).push(e);
@@ -278,13 +278,13 @@ let re = class extends HTMLElement {
   firstUpdated(e) {
   }
 };
-re.elementStyles = [], re.shadowRootOptions = { mode: "open" }, re[ve("elementProperties")] = /* @__PURE__ */ new Map(), re[ve("finalized")] = /* @__PURE__ */ new Map(), Fe == null || Fe({ ReactiveElement: re }), (H.reactiveElementVersions ?? (H.reactiveElementVersions = [])).push("2.1.2");
+re.elementStyles = [], re.shadowRootOptions = { mode: "open" }, re[ve("elementProperties")] = /* @__PURE__ */ new Map(), re[ve("finalized")] = /* @__PURE__ */ new Map(), Fe == null || Fe({ ReactiveElement: re }), (j.reactiveElementVersions ?? (j.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const fe = globalThis, rt = (t) => t, Ee = fe.trustedTypes, it = Ee ? Ee.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Lt = "$lit$", U = `lit$${Math.random().toFixed(9).slice(2)}$`, Ot = "?" + U, ss = `<${Ot}>`, Y = document, be = () => Y.createComment(""), _e = (t) => t === null || typeof t != "object" && typeof t != "function", Ve = Array.isArray, as = (t) => Ve(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Ie = `[ 	
+const fe = globalThis, rt = (t) => t, Ee = fe.trustedTypes, it = Ee ? Ee.createPolicy("lit-html", { createHTML: (t) => t }) : void 0, Lt = "$lit$", H = `lit$${Math.random().toFixed(9).slice(2)}$`, Ot = "?" + H, ss = `<${Ot}>`, Y = document, be = () => Y.createComment(""), _e = (t) => t === null || typeof t != "object" && typeof t != "function", Ve = Array.isArray, as = (t) => Ve(t) || typeof (t == null ? void 0 : t[Symbol.iterator]) == "function", Ie = `[ 	
 \f\r]`, ue = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, nt = /-->/g, ot = />/g, W = RegExp(`>|${Ie}(?:([^\\s"'>=/]+)(${Ie}*=${Ie}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), lt = /'/g, dt = /"/g, Nt = /^(?:script|style|textarea|title)$/i, rs = (t) => (e, ...s) => ({ _$litType$: t, strings: e, values: s }), n = rs(1), X = Symbol.for("lit-noChange"), h = Symbol.for("lit-nothing"), ht = /* @__PURE__ */ new WeakMap(), q = Y.createTreeWalker(Y, 129);
 function Ct(t, e) {
@@ -299,7 +299,7 @@ const is = (t, e) => {
     let m, g, u = -1, p = 0;
     for (; p < c.length && (o.lastIndex = p, g = o.exec(c), g !== null); ) p = o.lastIndex, o === ue ? g[1] === "!--" ? o = nt : g[1] !== void 0 ? o = ot : g[2] !== void 0 ? (Nt.test(g[2]) && (a = RegExp("</" + g[2], "g")), o = W) : g[3] !== void 0 && (o = W) : o === W ? g[0] === ">" ? (o = a ?? ue, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? W : g[3] === '"' ? dt : lt) : o === dt || o === lt ? o = W : o === nt || o === ot ? o = ue : (o = W, a = void 0);
     const f = o === W && t[d + 1].startsWith("/>") ? " " : "";
-    i += o === ue ? c + ss : u >= 0 ? (r.push(m), c.slice(0, u) + Lt + c.slice(u) + U + f) : c + U + (u === -2 ? d : f);
+    i += o === ue ? c + ss : u >= 0 ? (r.push(m), c.slice(0, u) + Lt + c.slice(u) + H + f) : c + H + (u === -2 ? d : f);
   }
   return [Ct(t, i + (t[s] || "<?>") + (e === 2 ? "</svg>" : e === 3 ? "</math>" : "")), r];
 };
@@ -316,11 +316,11 @@ class xe {
     for (; (a = q.nextNode()) !== null && c.length < d; ) {
       if (a.nodeType === 1) {
         if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Lt)) {
-          const p = g[o++], f = a.getAttribute(u).split(U), v = /([.?@])?(.*)/.exec(p);
+          const p = g[o++], f = a.getAttribute(u).split(H), v = /([.?@])?(.*)/.exec(p);
           c.push({ type: 1, index: i, name: v[2], strings: f, ctor: v[1] === "." ? os : v[1] === "?" ? ls : v[1] === "@" ? ds : ze }), a.removeAttribute(u);
-        } else u.startsWith(U) && (c.push({ type: 6, index: i }), a.removeAttribute(u));
+        } else u.startsWith(H) && (c.push({ type: 6, index: i }), a.removeAttribute(u));
         if (Nt.test(a.tagName)) {
-          const u = a.textContent.split(U), p = u.length - 1;
+          const u = a.textContent.split(H), p = u.length - 1;
           if (p > 0) {
             a.textContent = Ee ? Ee.emptyScript : "";
             for (let f = 0; f < p; f++) a.append(u[f], be()), q.nextNode(), c.push({ type: 2, index: ++i });
@@ -330,7 +330,7 @@ class xe {
       } else if (a.nodeType === 8) if (a.data === Ot) c.push({ type: 2, index: i });
       else {
         let u = -1;
-        for (; (u = a.data.indexOf(U, u + 1)) !== -1; ) c.push({ type: 7, index: i }), u += U.length - 1;
+        for (; (u = a.data.indexOf(H, u + 1)) !== -1; ) c.push({ type: 7, index: i }), u += H.length - 1;
       }
       i++;
     }
@@ -504,8 +504,8 @@ class hs {
     ie(this, e);
   }
 }
-const cs = { I: de }, Me = fe.litHtmlPolyfillSupport;
-Me == null || Me(xe, de), (fe.litHtmlVersions ?? (fe.litHtmlVersions = [])).push("3.3.2");
+const cs = { I: de }, Re = fe.litHtmlPolyfillSupport;
+Re == null || Re(xe, de), (fe.litHtmlVersions ?? (fe.litHtmlVersions = [])).push("3.3.2");
 const ps = (t, e, s) => {
   const r = (s == null ? void 0 : s.renderBefore) ?? e;
   let a = r._$litPart$;
@@ -548,8 +548,8 @@ let w = class extends re {
 };
 var Dt;
 w._$litElement$ = !0, w.finalized = !0, (Dt = J.litElementHydrateSupport) == null || Dt.call(J, { LitElement: w });
-const Re = J.litElementPolyfillSupport;
-Re == null || Re({ LitElement: w });
+const Me = J.litElementPolyfillSupport;
+Me == null || Me({ LitElement: w });
 (J.litElementVersions ?? (J.litElementVersions = [])).push("4.2.2");
 /**
  * @license
@@ -1883,7 +1883,7 @@ $e([
 Z = $e([
   T("message-table")
 ], Z);
-var Ds = Object.defineProperty, zs = Object.getOwnPropertyDescriptor, Mt = (t, e, s, r) => {
+var Ds = Object.defineProperty, zs = Object.getOwnPropertyDescriptor, Rt = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? zs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && Ds(e, s, a), a;
@@ -1998,10 +1998,10 @@ De.styles = [
       }
     `
 ];
-Mt([
+Rt([
   x({ attribute: !1 })
 ], De.prototype, "selected", 2);
-De = Mt([
+De = Rt([
   T("severity-filter")
 ], De);
 var Ls = Object.defineProperty, Os = Object.getOwnPropertyDescriptor, Oe = (t, e, s, r) => {
@@ -2111,12 +2111,12 @@ Je([
 we = Je([
   T("time-range-filter")
 ], we);
-var Fs = Object.defineProperty, Is = Object.getOwnPropertyDescriptor, K = (t, e, s, r) => {
+var Fs = Object.defineProperty, Is = Object.getOwnPropertyDescriptor, G = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? Is(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && Fs(e, s, a), a;
 };
-let N = class extends w {
+let C = class extends w {
   constructor() {
     super(...arguments), this._status = "new", this._tags = [], this._newTag = "", this._runbook = null, this._busy = !1;
   }
@@ -2290,7 +2290,7 @@ let N = class extends w {
     `;
   }
 };
-N.styles = $`
+C.styles = $`
     :host {
       position: fixed;
       top: 0;
@@ -2509,34 +2509,34 @@ N.styles = $`
       cursor: pointer;
     }
   `;
-K([
+G([
   x({ attribute: !1 })
-], N.prototype, "msg", 2);
-K([
+], C.prototype, "msg", 2);
+G([
   x({ attribute: !1 })
-], N.prototype, "api", 2);
-K([
+], C.prototype, "api", 2);
+G([
   l()
-], N.prototype, "_status", 2);
-K([
+], C.prototype, "_status", 2);
+G([
   l()
-], N.prototype, "_tags", 2);
-K([
+], C.prototype, "_tags", 2);
+G([
   l()
-], N.prototype, "_newTag", 2);
-K([
+], C.prototype, "_newTag", 2);
+G([
   l()
-], N.prototype, "_runbook", 2);
-K([
+], C.prototype, "_runbook", 2);
+G([
   l()
-], N.prototype, "_busy", 2);
-N = K([
+], C.prototype, "_busy", 2);
+C = G([
   T("detail-pane")
-], N);
-var Ms = Object.defineProperty, Rs = Object.getOwnPropertyDescriptor, F = (t, e, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Rs(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+], C);
+var Rs = Object.defineProperty, Ms = Object.getOwnPropertyDescriptor, F = (t, e, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Ms(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && Ms(e, s, a), a;
+  return r && a && Rs(e, s, a), a;
 };
 const Bs = ["debug", "info", "warning", "error"], Us = JSON.stringify(
   {
@@ -2885,10 +2885,10 @@ var js = Object.defineProperty, Ks = Object.getOwnPropertyDescriptor, S = (t, e,
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
   return r && a && js(e, s, a), a;
 };
-const Gs = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, He = ["debug", "info", "warning", "error"], ft = [...He, "auto"], Rt = "messagehub.knx-addresses.only-enabled";
+const Gs = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, He = ["debug", "info", "warning", "error"], ft = [...He, "auto"], Mt = "messagehub.knx-addresses.only-enabled";
 function Ws() {
   try {
-    const t = localStorage.getItem(Rt);
+    const t = localStorage.getItem(Mt);
     return t === null ? !0 : t === "1" || t === "true";
   } catch {
     return !0;
@@ -3421,7 +3421,7 @@ ${e.keep} unveränderte Einträge bleiben bestehen.`;
       this._onlyEnabled = a.target.checked, this._displayedCount = ge;
       try {
         localStorage.setItem(
-          Rt,
+          Mt,
           this._onlyEnabled ? "1" : "0"
         );
       } catch {
@@ -4764,7 +4764,7 @@ const Ye = $`
     color: var(--secondary-text-color, #666);
   }
 `;
-let j = class extends w {
+let K = class extends w {
   constructor() {
     super(...arguments), this._items = [], this._newPattern = "", this._newSource = "", this._newSeverity = "info";
   }
@@ -4852,25 +4852,25 @@ let j = class extends w {
     `;
   }
 };
-j.styles = Ye;
+K.styles = Ye;
 P([
   x({ attribute: !1 })
-], j.prototype, "api", 2);
+], K.prototype, "api", 2);
 P([
   l()
-], j.prototype, "_items", 2);
+], K.prototype, "_items", 2);
 P([
   l()
-], j.prototype, "_newPattern", 2);
+], K.prototype, "_newPattern", 2);
 P([
   l()
-], j.prototype, "_newSource", 2);
+], K.prototype, "_newSource", 2);
 P([
   l()
-], j.prototype, "_newSeverity", 2);
-j = P([
+], K.prototype, "_newSeverity", 2);
+K = P([
   T("mqtt-topics-view")
-], j);
+], K);
 let ee = class extends w {
   constructor() {
     super(...arguments), this._items = [], this._newSource = "", this._newInterval = 3600;
@@ -5719,7 +5719,7 @@ const bt = {
   info: "var(--mh-info)",
   debug: "var(--mh-debug)"
 }, xt = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], ia = [1, 2, 3, 4, 5, 6, 0];
-let M = class extends w {
+let R = class extends w {
   constructor() {
     super(...arguments), this._stats = null, this._sources = [], this._heatmap = [], this._topSources = [], this._loading = !1;
   }
@@ -5924,7 +5924,7 @@ let M = class extends w {
     `;
   }
 };
-M.styles = [
+R.styles = [
   L,
   Le,
   ce,
@@ -5994,25 +5994,25 @@ M.styles = [
 ];
 te([
   x({ attribute: !1 })
-], M.prototype, "api", 2);
+], R.prototype, "api", 2);
 te([
   l()
-], M.prototype, "_stats", 2);
+], R.prototype, "_stats", 2);
 te([
   l()
-], M.prototype, "_sources", 2);
+], R.prototype, "_sources", 2);
 te([
   l()
-], M.prototype, "_heatmap", 2);
+], R.prototype, "_heatmap", 2);
 te([
   l()
-], M.prototype, "_topSources", 2);
+], R.prototype, "_topSources", 2);
 te([
   l()
-], M.prototype, "_loading", 2);
-M = te([
+], R.prototype, "_loading", 2);
+R = te([
   T("stats-live-view")
-], M);
+], R);
 var na = Object.defineProperty, oa = Object.getOwnPropertyDescriptor, Ne = (t, e, s, r) => {
   for (var a = r > 1 ? void 0 : r ? oa(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
@@ -9567,6 +9567,16 @@ const Xe = {
       title: "Vermutete Telegrammwiederholungen",
       description: "{total_repeats} identische Folge-Telegramme mit Δt < 100 ms ueber {period_days} Tage (~ {repeats_per_day}/Tag). Approximation des Repeat-Bits — bestaetigen via xknx-Tracer (BL-D), wenn verfuegbar.",
       help_url: "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung"
+    },
+    ORPHAN_GA: {
+      title: "GA in Projekt-Whitelist, aber stumm",
+      description: "Im Auswertezeitraum {period_from} bis {period_to} kein einziges Telegramm gesehen. ETS-Projekt enthaelt diese GA — entweder loeschen oder Empfaenger pruefen.",
+      help_url: "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
+    },
+    STALE_GA: {
+      title: "GA seit Tagen tot",
+      description: "Letztes Telegramm am {last_seen}, seit {days_silent} Tagen keine weitere Aktivitaet. Sensorik defekt oder Linie unterbrochen?",
+      help_url: "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
     }
   },
   en: {
@@ -9614,9 +9624,26 @@ const Xe = {
       title: "Suspected telegram repeats",
       description: "{total_repeats} identical follow-up telegrams with Δt < 100 ms across {period_days} days (~ {repeats_per_day}/day). Approximation of the repeat bit — confirm via xknx tracer (BL-D) when available.",
       help_url: "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung"
+    },
+    ORPHAN_GA: {
+      title: "GA in project whitelist but silent",
+      description: "No telegrams observed in the period from {period_from} to {period_to}. The ETS project lists this GA — remove it or check the receiver.",
+      help_url: "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
+    },
+    STALE_GA: {
+      title: "GA gone silent",
+      description: "Last telegram at {last_seen}, no activity for {days_silent} days. Sensor faulty or line interrupted?",
+      help_url: "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check"
     }
   }
-};
+}, Sa = /* @__PURE__ */ new Set([
+  "DPT_MISMATCH",
+  "ORPHAN_GA",
+  "STALE_GA"
+]);
+function Ta(t) {
+  return Sa.has(t);
+}
 function jt(t) {
   return t.startsWith("de") ? "de" : "en";
 }
@@ -9624,23 +9651,23 @@ function St(t, e) {
   const s = Xe[jt(e)][t];
   return (s == null ? void 0 : s.title) ?? "";
 }
-function Sa(t) {
+function Aa(t) {
   var e;
   return ((e = Xe.en[t]) == null ? void 0 : e.help_url) ?? "";
 }
-function Ta(t, e, s) {
+function Pa(t, e, s) {
   const r = Xe[jt(e)][t];
-  return r === void 0 ? "" : Aa(r.description, s);
+  return r === void 0 ? "" : Ea(r.description, s);
 }
-function Aa(t, e) {
+function Ea(t, e) {
   return t.replace(/\{(\w+)\}/g, (s, r) => r in e ? String(e[r]) : s);
 }
-var Pa = Object.defineProperty, Ea = Object.getOwnPropertyDescriptor, G = (t, e, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Ea(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+var Da = Object.defineProperty, za = Object.getOwnPropertyDescriptor, U = (t, e, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? za(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && Pa(e, s, a), a;
+  return r && a && Da(e, s, a), a;
 };
-const Da = [
+const La = [
   { value: "", label: "Alle Severities" },
   { value: "error", label: "Error" },
   { value: "warning", label: "Warning" },
@@ -9652,9 +9679,9 @@ const Da = [
   info: "mh-pill mh-pill--info",
   debug: "mh-pill mh-pill--debug"
 };
-let C = class extends w {
+let N = class extends w {
   constructor() {
-    super(...arguments), this._items = [], this._total = 0, this._loading = !1, this._error = null, this._severityFilter = "", this._selectedKey = null;
+    super(...arguments), this._items = [], this._total = 0, this._loading = !1, this._error = null, this._severityFilter = "", this._projectOnly = !1, this._selectedKey = null;
   }
   async firstUpdated() {
     await this._load();
@@ -9677,6 +9704,13 @@ let C = class extends w {
   _onSeverityChange(t) {
     const e = t.target;
     this._severityFilter = e.value, this._load();
+  }
+  _onProjectOnlyChange(t) {
+    const e = t.target;
+    this._projectOnly = e.checked;
+  }
+  _filteredItems() {
+    return this._projectOnly ? this._items.filter((t) => Ta(t.code)) : this._items;
   }
   _itemKey(t) {
     return `${t.code}::${t.ga ?? ""}::${t.last_seen}`;
@@ -9727,13 +9761,22 @@ let C = class extends w {
               .value=${this._severityFilter}
               @change=${this._onSeverityChange}
             >
-              ${Da.map(
+              ${La.map(
       (t) => n`<option value=${t.value}>${t.label}</option>`
     )}
             </select>
           </label>
+          <label class="filter-label" data-test="findings-project-only-label">
+            <input
+              type="checkbox"
+              data-test="findings-project-only-toggle"
+              .checked=${this._projectOnly}
+              @change=${this._onProjectOnlyChange}
+            />
+            Nur Projekt-Befunde
+          </label>
           <span class="total" data-test="findings-total"
-            >${this._total} Findings</span
+            >${this._filteredItems().length} / ${this._total} Findings</span
           >
         </div>
 
@@ -9746,13 +9789,18 @@ let C = class extends w {
     `;
   }
   _renderBody() {
-    return this._error ? n`<div class="empty error" data-test="findings-error">
+    if (this._error)
+      return n`<div class="empty error" data-test="findings-error">
         Fehler: ${this._error}
-      </div>` : this._loading ? n`<div class="empty">Wird geladen…</div>` : this._items.length === 0 ? n`<div class="empty" data-test="findings-empty">
+      </div>`;
+    if (this._loading)
+      return n`<div class="empty">Wird geladen…</div>`;
+    const t = this._filteredItems();
+    return t.length === 0 ? n`<div class="empty" data-test="findings-empty">
         Keine Findings im aktuellen Filter — die Konfiguration sieht
         unauffaellig aus.
       </div>` : n`<ul class="items" data-test="findings-items">
-      ${this._items.map((t) => this._renderItem(t))}
+      ${t.map((e) => this._renderItem(e))}
     </ul>`;
   }
   _renderItem(t) {
@@ -9789,11 +9837,11 @@ let C = class extends w {
   _renderDetailPane() {
     const t = this._currentSelection();
     if (t === null) return h;
-    const e = this._lang(), s = St(t.code, e) || t.code, r = Ta(
+    const e = this._lang(), s = St(t.code, e) || t.code, r = Pa(
       t.code,
       e,
       t.evidence
-    ), a = Sa(t.code);
+    ), a = Aa(t.code);
     return n`
       <aside class="detail mh-card" data-test="findings-detail">
         <header class="detail-header">
@@ -9864,7 +9912,7 @@ let C = class extends w {
     }
   }
 };
-C.styles = [
+N.styles = [
   L,
   he,
   qe,
@@ -10032,36 +10080,39 @@ C.styles = [
       }
     `
 ];
-G([
+U([
   x({ attribute: !1 })
-], C.prototype, "api", 2);
-G([
+], N.prototype, "api", 2);
+U([
   l()
-], C.prototype, "_items", 2);
-G([
+], N.prototype, "_items", 2);
+U([
   l()
-], C.prototype, "_total", 2);
-G([
+], N.prototype, "_total", 2);
+U([
   l()
-], C.prototype, "_loading", 2);
-G([
+], N.prototype, "_loading", 2);
+U([
   l()
-], C.prototype, "_error", 2);
-G([
+], N.prototype, "_error", 2);
+U([
   l()
-], C.prototype, "_severityFilter", 2);
-G([
+], N.prototype, "_severityFilter", 2);
+U([
   l()
-], C.prototype, "_selectedKey", 2);
-C = G([
+], N.prototype, "_projectOnly", 2);
+U([
+  l()
+], N.prototype, "_selectedKey", 2);
+N = U([
   T("findings-view")
-], C);
-var za = Object.defineProperty, La = Object.getOwnPropertyDescriptor, Ze = (t, e, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? La(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+], N);
+var Oa = Object.defineProperty, Na = Object.getOwnPropertyDescriptor, Ze = (t, e, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Na(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && za(e, s, a), a;
+  return r && a && Oa(e, s, a), a;
 };
-const At = "messagehub.stats.subtab", Oa = /* @__PURE__ */ new Set(["live", "knx", "findings"]);
+const At = "messagehub.stats.subtab", Ca = /* @__PURE__ */ new Set(["live", "knx", "findings"]);
 let ye = class extends w {
   constructor() {
     super(...arguments), this._tab = this._loadTab();
@@ -10069,7 +10120,7 @@ let ye = class extends w {
   _loadTab() {
     try {
       const t = localStorage.getItem(At);
-      if (t && Oa.has(t)) return t;
+      if (t && Ca.has(t)) return t;
     } catch {
     }
     return "live";
@@ -10176,17 +10227,17 @@ Ze([
 ye = Ze([
   T("stats-view")
 ], ye);
-var Na = Object.defineProperty, Ca = Object.getOwnPropertyDescriptor, se = (t, e, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Ca(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+var Fa = Object.defineProperty, Ia = Object.getOwnPropertyDescriptor, se = (t, e, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Ia(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && Na(e, s, a), a;
+  return r && a && Fa(e, s, a), a;
 };
-function Fa(t) {
+function Ra(t) {
   const e = t.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), s = new Set(e), r = (...a) => a.some((i) => s.has(i));
   return r("delete", "remove", "removed", "deleted") ? "delete" : r("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : r("update", "updated", "edit", "edited", "set") ? "update" : r("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
 }
 const Pt = 60;
-function Ia(t) {
+function Ma(t) {
   if (!t || typeof t != "object" || Array.isArray(t))
     return "";
   const e = t;
@@ -10203,7 +10254,7 @@ function Ia(t) {
   }
   return `{${s.slice(0, 3).map(([a]) => a).join(", ")}${s.length > 3 ? ", …" : ""}}`;
 }
-let R = class extends w {
+let M = class extends w {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._expanded = /* @__PURE__ */ new Set(), this._now = /* @__PURE__ */ new Date();
   }
@@ -10259,7 +10310,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     }) : this._items;
   }
   _renderActionPill(t) {
-    const e = Fa(t);
+    const e = Ra(t);
     return n`<span class=${`action-pill action-${e}`} title=${t}>${t}</span>`;
   }
   _renderDetails(t) {
@@ -10280,7 +10331,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     return n`<code>${String(t)}</code>`;
   }
   _renderDetailsSummary(t) {
-    const e = Ia(t);
+    const e = Ma(t);
     if (e === "") return n`<span class="muted">—</span>`;
     const s = typeof t == "object" && t !== null && (t.label !== void 0 || t.name !== void 0);
     return n`<span class=${`summary ${s ? "" : "muted"}`}
@@ -10374,7 +10425,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     `;
   }
 };
-R.styles = [
+M.styles = [
   L,
   he,
   qe,
@@ -10622,31 +10673,31 @@ R.styles = [
 ];
 se([
   x({ attribute: !1 })
-], R.prototype, "api", 2);
+], M.prototype, "api", 2);
 se([
   l()
-], R.prototype, "_items", 2);
+], M.prototype, "_items", 2);
 se([
   l()
-], R.prototype, "_loading", 2);
+], M.prototype, "_loading", 2);
 se([
   l()
-], R.prototype, "_filter", 2);
+], M.prototype, "_filter", 2);
 se([
   l()
-], R.prototype, "_expanded", 2);
+], M.prototype, "_expanded", 2);
 se([
   l()
-], R.prototype, "_now", 2);
-R = se([
+], M.prototype, "_now", 2);
+M = se([
   T("audit-view")
-], R);
-var Ma = Object.defineProperty, Ra = Object.getOwnPropertyDescriptor, E = (t, e, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Ra(e, s) : e, i = t.length - 1, o; i >= 0; i--)
+], M);
+var Ba = Object.defineProperty, Ua = Object.getOwnPropertyDescriptor, E = (t, e, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Ua(e, s) : e, i = t.length - 1, o; i >= 0; i--)
     (o = t[i]) && (a = (r ? o(e, s, a) : o(a)) || a);
-  return r && a && Ma(e, s, a), a;
+  return r && a && Ba(e, s, a), a;
 };
-function Ba(t) {
+function Ha(t) {
   return t.source === "knx-bus" && t.text.includes("(GroupValueRead)");
 }
 const Et = "messagehub.filters", ae = {
@@ -10709,7 +10760,7 @@ let A = class extends w {
     }, "messagehub_message_added"));
   }
   _matchesFilters(t) {
-    return !(this._filters.severity.length && !this._filters.severity.includes(t.severity) || this._filters.source && t.source !== this._filters.source || this._filters.search && !t.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && Ba(t));
+    return !(this._filters.severity.length && !this._filters.severity.includes(t.severity) || this._filters.source && t.source !== this._filters.source || this._filters.search && !t.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && Ha(t));
   }
   _loadFilters() {
     try {
@@ -11527,5 +11578,5 @@ A = E([
 ], A);
 export {
   A as MessageHubPanel,
-  Ba as isKnxReadMessage
+  Ha as isKnxReadMessage
 };
