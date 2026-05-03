@@ -7,6 +7,11 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 3)
+- **Iter 16 — Detector `READ_NO_RESPONSE`.**
+  Pro unbeantwortetem GroupValueRead ein Finding (severity warning).
+  Timeout 3 s aus KNX-Spec (3-fache Wiederholung ohne ACK -> verworfen,
+  siehe §3.1 F8). Evidence
+  `{read_at, expected_until, timeout_sec}`.
 - **Iter 15 — Detector `MULTI_RESPONDER`.**
   Erkennt >=2 unterschiedliche `knx_source` antworten innerhalb 1 s
   auf dieselbe GA. Severity `warning` (kann beabsichtigt sein bei
