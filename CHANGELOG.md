@@ -6,6 +6,16 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (KNX-Konfigurations-Findings)
+- **Iter 1 — `Finding`-Dataclass + `FindingSeverity`-Enum.**
+  Neuer Vertrag fuer KNX-Konfigurations-Detektoren in
+  `processing/findings.py`. `Finding` ist frozen+slotted mit Code,
+  Schema-Version, Severity (debug/info/warning/error), GA, Source,
+  Title, Description, Evidence-Dict, First-/Last-Seen, Occurrence-
+  Count, Detector-Version. Stabiler JSON-Round-Trip via
+  `to_json`/`from_json`. Vorbereitung fuer Iter 2-31 aus
+  `docs/messagehub_knx_konfigurationsfehler_recherche.md` §9.9.
+
 ## [0.18.0] – 2026-05-03
 
 UX + Stability Release. 23 Commits seit 0.14.0 — drei kritische
