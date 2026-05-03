@@ -15,11 +15,24 @@ Pure Funktionen ohne aiohttp-Abhaengigkeit, daher in tests/unit testbar.
 from __future__ import annotations
 
 import json as _json
+import logging
 from pathlib import Path as _Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+
+_LOGGER = logging.getLogger(__name__)
+
+# Iter aiohttp-error-ZU9UA: xknx-Projekt-Objekte koennen — wenn keine
+# Projektdatei geladen ist — bei Property-Zugriffen oder bool()-Checks
+# beliebige Exceptions werfen (RuntimeError, TypeError, ...). `getattr`
+# mit Default faengt nur AttributeError; alle anderen Exception-Typen
+# wuerden HTTP 500 ausloesen. Dieses Tuple wird in den Discovery-
+# Helfern als breites Exception-Filter genutzt — `Exception` schliesst
+# bewusst auch unerwartete xknx-Fehler ein, ohne KeyboardInterrupt /
+# SystemExit zu schlucken.
+_DISCOVERY_SAFE_EXCEPTIONS: tuple[type[BaseException], ...] = (Exception,)
 
 
 _KNX_STATE_KEYS = ("knx", "xknx", "knx_module")
@@ -54,16 +67,37 @@ def find_knx_state(hass: HomeAssistant) -> Any:
     return None
 
 
+def _safe_getattr(obj: Any, name: str) -> Any:
+    """getattr mit None-Default, aber faengt zusaetzlich beliebige
+    nicht-AttributeError-Exceptions, die xknx aus Property-Gettern
+    werfen kann, wenn das Projekt nicht geladen ist.
+    """
+    try:
+        return getattr(obj, name, None)
+    except _DISCOVERY_SAFE_EXCEPTIONS:
+        return None
+
+
+def _safe_truthy(value: Any) -> bool:
+    """bool(value), tolerant gegen __bool__/__len__-Implementierungen,
+    die im Lazy-Load-Fall raisen.
+    """
+    try:
+        return bool(value)
+    except _DISCOVERY_SAFE_EXCEPTIONS:
+        return False
+
+
 def find_project(knx_state: Any) -> Any:
     """Holt das Projekt-Object aus knx_state — Attribute, xknx-Sub-Object oder dict."""
     for attr in _PROJECT_ATTRS:
-        candidate = getattr(knx_state, attr, None)
+        candidate = _safe_getattr(knx_state, attr)
         if candidate is not None:
             return candidate
-    xknx_obj = getattr(knx_state, "xknx", None)
+    xknx_obj = _safe_getattr(knx_state, "xknx")
     if xknx_obj is not None:
         for attr in _PROJECT_ATTRS:
-            candidate = getattr(xknx_obj, attr, None)
+            candidate = _safe_getattr(xknx_obj, attr)
             if candidate is not None:
                 return candidate
     if isinstance(knx_state, dict):
@@ -74,13 +108,13 @@ def find_project(knx_state: Any) -> Any:
 def find_raw_groups(project: Any) -> Any:
     """Holt das group_addresses-Mapping aus dem Projekt — Attribute oder dict-keys."""
     for attr in _GROUP_ATTRS:
-        candidate = getattr(project, attr, None)
-        if candidate:
+        candidate = _safe_getattr(project, attr)
+        if _safe_truthy(candidate):
             return candidate
     if isinstance(project, dict):
         for key in _GROUP_DICT_KEYS:
             candidate = project.get(key)
-            if candidate:
+            if _safe_truthy(candidate):
                 return candidate
     return None
 
@@ -88,16 +122,25 @@ def find_raw_groups(project: Any) -> Any:
 def extract_items_from_groups(raw_groups: Any) -> list[dict[str, Any]]:
     """Wandelt verschiedene raw_groups-Formen (dict, list-of-dicts) in DTO-Liste."""
     items: list[dict[str, Any]] = []
-    if isinstance(raw_groups, dict):
-        for addr, data in raw_groups.items():
-            items.append(extract_group_address_entry(addr, data))
-    elif isinstance(raw_groups, list):
-        for entry in raw_groups:
-            if not isinstance(entry, dict):
-                continue
-            addr = next((entry.get(k) for k in _GROUP_ENTRY_ADDR_KEYS if entry.get(k)), None)
-            if addr:
-                items.append(extract_group_address_entry(addr, entry))
+    try:
+        if isinstance(raw_groups, dict):
+            for addr, data in raw_groups.items():
+                items.append(extract_group_address_entry(addr, data))
+        elif isinstance(raw_groups, list):
+            for entry in raw_groups:
+                if not isinstance(entry, dict):
+                    continue
+                addr = next(
+                    (entry.get(k) for k in _GROUP_ENTRY_ADDR_KEYS if entry.get(k)),
+                    None,
+                )
+                if addr:
+                    items.append(extract_group_address_entry(addr, entry))
+    except _DISCOVERY_SAFE_EXCEPTIONS as err:
+        # xknx-Lazy-Load-Proxy raised waehrend der Iteration — lieber
+        # bisheriges Teilergebnis verwerfen als 500.
+        _LOGGER.debug("knx group iteration failed, returning empty list: %s", err)
+        return []
     return [it for it in items if it["address"]]
 
 
@@ -159,13 +202,13 @@ def ga_sort_key(ga: str) -> tuple[int, int, int]:
 def find_raw_devices(project: Any) -> Any:
     """Iter 34: Holt das devices-Mapping aus dem ETS-Projekt."""
     for attr in _DEVICE_ATTRS:
-        candidate = getattr(project, attr, None)
-        if candidate:
+        candidate = _safe_getattr(project, attr)
+        if _safe_truthy(candidate):
             return candidate
     if isinstance(project, dict):
         for key in _DEVICE_DICT_KEYS:
             candidate = project.get(key)
-            if candidate:
+            if _safe_truthy(candidate):
                 return candidate
     return None
 
@@ -204,16 +247,20 @@ def extract_device_entry(addr: Any, data: Any) -> dict[str, Any] | None:
 def extract_devices(raw_devices: Any) -> list[dict[str, Any]]:
     """Wandelt das devices-Mapping in eine Liste von DTOs."""
     items: list[dict[str, Any]] = []
-    if isinstance(raw_devices, dict):
-        for addr, data in raw_devices.items():
-            entry = extract_device_entry(addr, data)
-            if entry is not None:
-                items.append(entry)
-    elif isinstance(raw_devices, list):
-        for entry in raw_devices:
-            converted = extract_device_entry(None, entry)
-            if converted is not None:
-                items.append(converted)
+    try:
+        if isinstance(raw_devices, dict):
+            for addr, data in raw_devices.items():
+                entry = extract_device_entry(addr, data)
+                if entry is not None:
+                    items.append(entry)
+        elif isinstance(raw_devices, list):
+            for entry in raw_devices:
+                converted = extract_device_entry(None, entry)
+                if converted is not None:
+                    items.append(converted)
+    except _DISCOVERY_SAFE_EXCEPTIONS as err:
+        _LOGGER.debug("knx devices iteration failed, returning empty list: %s", err)
+        return []
     return items
 
 
@@ -248,6 +295,11 @@ async def discover_knx_devices(hass: HomeAssistant) -> dict[str, dict[str, Any]]
     Source-Adressen zu annotieren.
 
     Iter 79 / CR-11: TTL-Cache (5 min) auf hass-Identitaet als Key.
+
+    Iter aiohttp-error-ZU9UA: Top-Level-Safety-Net — wenn xknx beim
+    Property-Zugriff intern raised (z. B. weil noch keine Projektdatei
+    geladen ist), wird das geloggt und es gibt einen leeren Default
+    statt HTTP 500.
     """
     cache_key = id(hass)
     cached = _knx_devices_cache.get(cache_key)
@@ -255,22 +307,21 @@ async def discover_knx_devices(hass: HomeAssistant) -> dict[str, dict[str, Any]]
     if cached is not None and now - cached[0] < _KNX_DEVICES_CACHE_TTL_SEC:
         return cached[1]
 
-    knx_state = find_knx_state(hass)
-    if knx_state is None:
-        result: dict[str, dict[str, Any]] = {}
-    else:
-        project = find_project(knx_state)
-        if project is None:
-            result = {}
-        else:
-            raw = find_raw_devices(project)
-            if not raw:
-                result = {}
-            else:
-                result = {
-                    entry["individual_address"]: entry
-                    for entry in extract_devices(raw)
-                }
+    result: dict[str, dict[str, Any]] = {}
+    try:
+        knx_state = find_knx_state(hass)
+        if knx_state is not None:
+            project = find_project(knx_state)
+            if project is not None:
+                raw = find_raw_devices(project)
+                if _safe_truthy(raw):
+                    result = {
+                        entry["individual_address"]: entry
+                        for entry in extract_devices(raw)
+                    }
+    except _DISCOVERY_SAFE_EXCEPTIONS as err:
+        _LOGGER.debug("knx device discovery failed, returning empty: %s", err)
+        result = {}
     _knx_devices_cache[cache_key] = (now, result)
     return result
 
@@ -281,20 +332,28 @@ async def discover_knx_project(hass: HomeAssistant) -> tuple[list[dict[str, Any]
     Status-Werte: "ok" / "no_knx_integration" / "no_project_loaded" / "project_empty".
     Faellt bei jedem Schritt auf den Storage-Datei-Reader zurueck — damit
     funktioniert das auch, wenn die KNX-Integration noch nicht voll geladen ist.
+
+    Iter aiohttp-error-ZU9UA: Top-Level-Safety-Net — unerwartete xknx-
+    Exceptions (z. B. RuntimeError aus einer Property bei nicht
+    geladener Projektdatei) werden in den Storage-Fallback uebersetzt.
     """
     knx_state = find_knx_state(hass)
     if knx_state is None:
         return await _fallback_storage(hass, "no_knx_integration")
 
-    project = find_project(knx_state)
-    if project is None:
+    try:
+        project = find_project(knx_state)
+        if project is None:
+            return await _fallback_storage(hass, "no_project_loaded")
+
+        raw_groups = find_raw_groups(project)
+        if not _safe_truthy(raw_groups):
+            return await _fallback_storage(hass, "project_empty")
+
+        items = extract_items_from_groups(raw_groups)
+    except _DISCOVERY_SAFE_EXCEPTIONS as err:
+        _LOGGER.debug("knx project discovery failed, falling back to storage: %s", err)
         return await _fallback_storage(hass, "no_project_loaded")
-
-    raw_groups = find_raw_groups(project)
-    if not raw_groups:
-        return await _fallback_storage(hass, "project_empty")
-
-    items = extract_items_from_groups(raw_groups)
     items.sort(key=lambda x: ga_sort_key(x["address"]))
     return items, "ok" if items else "project_empty"
 
