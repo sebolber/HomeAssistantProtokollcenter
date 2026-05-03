@@ -7,6 +7,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L1.5 / Sprint Recommendations — End-to-End-Verifikation L1.**
+  Schema-Contract-Test zwischen Python-DTO
+  (`device_recommendation_to_dict`) und Frontend-Interface
+  (`KnxStatsSourceRecommendationDto`): regex-Parser zieht TS-
+  Interface-Felder, Backend-Live-Test mit echter SQLite produziert
+  ein DTO, beide Felder-Sets werden verglichen — Drift wird sofort
+  rot. Plus Bundle-Hygiene-Smoke: das gebaute
+  `frontend_dist/messagehub-panel.js` enthaelt die Card-CSS-Klasse
+  und den API-Endpoint-Pfad (verhindert versehentliches Tree-Shaking).
+  6 neue Pytests. **Phase L1 abgeschlossen — User-MVP ist vollstaendig
+  nutzbar.**
 - **Iter L1.4 / Sprint Recommendations — Frontend Recommendation-Card.**
   Neue Sub-Card im Source-Detail-Pane, default `collapsed`. Klick auf
   den Toggle laedt lazily die Empfehlung via neue API-Methode
