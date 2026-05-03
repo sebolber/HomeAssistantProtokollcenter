@@ -6,6 +6,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Dokumentation (Code-Hygiene)
+- **Iter +7 / F-007 — `WebhookDetailView.GET` bewusst beibehalten.**
+  Audit-Befund: Frontend nutzt aktuell keinen Single-Get fuer Webhooks.
+  Entscheidung: Endpoint bleibt fuer externe Skripte/curl-User und
+  kuenftige Drilldown-UI (z. B. „Webhook-Logs pro Webhook"). Der
+  Doc-String der View dokumentiert die Entscheidung mit F-007-Verweis,
+  ein Test (`test_webhook_detail_get_kept.py`) verhindert versehentliche
+  Loeschung. Behebt Audit-Finding F-007 (dokumentierte Beibehaltung).
+
 ### Entfernt (Code-Hygiene)
 - **Iter +6 / F-003 — `MttrView` und `/api/messagehub/mttr` entfernt.**
   Dedizierter MTTR-Endpoint hatte keinen Frontend-Caller — `mttr_per_source`

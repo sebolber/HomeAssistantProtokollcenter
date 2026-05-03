@@ -284,6 +284,23 @@ class WebhooksView(_RequireAdminView):
 
 
 class WebhookDetailView(_RequireAdminView):
+    """CRUD fuer einzelne Webhook-Configs.
+
+    Methoden:
+    - GET: liefert die volle Webhook-Config inkl. JSONPath-`field_map`.
+      **F-007 / Audit-Hinweis**: Frontend nutzt aktuell nur die Liste
+      (`WebhooksView.get`) und arbeitet auf der gefetched Liste; ein
+      gezielter Single-Get-Request kommt aus dem UI nicht. Wir behalten
+      den Endpoint trotzdem, weil:
+      * `wh_to_dict(cfg)` voll dokumentierter Vertrag ist und externe
+        Skripte/Curl-User damit eine stabile Detail-Sicht haben,
+      * eine kuenftige Drilldown-Ansicht in der UI (z. B. „Webhook-Logs
+        pro Webhook") ohne Breaking-Change-Endpoint angesetzt werden
+        kann.
+    - PUT: ID-stabiles Update (alle Felder optional).
+    - DELETE: harte Loeschung.
+    """
+
     url = "/api/messagehub/webhooks/{webhook_id}"
     name = "api:messagehub:webhook-detail"
 
