@@ -20,6 +20,8 @@ import type {
   KnxStatsOrphansDto,
   KnxStatsSensitiveLogDto,
   KnxStatsSilenceDto,
+  KnxStatsSourceDetailDto,
+  KnxStatsSourceGaSummaryDto,
   KnxStatsSummaryDto,
   KnxStatsHeatmapDto,
   KnxStatsTimelineDto,
@@ -289,6 +291,13 @@ export class StatsKnxView extends LitElement {
   @state() private _selectedGa: string | null = null;
   @state() private _detail: KnxStatsGaDetailDto | null = null;
   @state() private _detailLoading = false;
+  // Iter D.2 (knx-detail-panes): Source-Detail-Drawer. Wird in Iter
+  // E (Top-Geraete-Klick), F (Stille-Alarm-Klick) befuellt; GA-Klick
+  // im Source-Detail wechselt auf das GA-Detail-Pane (kein zweites
+  // Modal — Architektur-Entscheid aus knx_detail_panes_konzept.md).
+  @state() private _selectedSource: string | null = null;
+  @state() private _sourceDetail: KnxStatsSourceDetailDto | null = null;
+  @state() private _sourceDetailLoading = false;
   @state() private _loading = false;
   @state() private _error = "";
   @state() private _toast = "";
@@ -312,8 +321,13 @@ export class StatsKnxView extends LitElement {
   }
 
   private _onWindowKeyDown = (e: KeyboardEvent): void => {
-    if (e.key === "Escape" && (this._detail !== null || this._detailLoading)) {
+    if (e.key !== "Escape") return;
+    if (this._detail !== null || this._detailLoading) {
       this._closeDetail();
+      return;
+    }
+    if (this._sourceDetail !== null || this._sourceDetailLoading) {
+      this._closeSourceDetail();
     }
   };
 
@@ -321,6 +335,14 @@ export class StatsKnxView extends LitElement {
     this._selectedGa = null;
     this._detail = null;
     this._detailLoading = false;
+  }
+
+  // Iter D.2 (knx-detail-panes): pendant zu _closeDetail fuer das
+  // Source-Detail-Pane.
+  private _closeSourceDetail(): void {
+    this._selectedSource = null;
+    this._sourceDetail = null;
+    this._sourceDetailLoading = false;
   }
 
   private async _loadBusAnalysisState(): Promise<void> {
@@ -634,6 +656,31 @@ export class StatsKnxView extends LitElement {
       this._showToast(`Detail laden fehlgeschlagen: ${(err as Error).message}`);
     } finally {
       this._detailLoading = false;
+    }
+  }
+
+  // Iter D.2 (knx-detail-panes): Source-Detail laden. Schliesst ein
+  // offenes GA-Detail (Toggle zwischen den beiden Drawer-Inhalten),
+  // analog _loadDetail.
+  private async _loadSourceDetail(devSource: string): Promise<void> {
+    if (!this.api) return;
+    // Wenn ein GA-Detail offen ist, schliessen wir es — der Drawer
+    // zeigt entweder GA- oder Source-Sicht, nie beides gleichzeitig.
+    this._closeDetail();
+    this._selectedSource = devSource;
+    this._sourceDetailLoading = true;
+    this._sourceDetail = null;
+    try {
+      const f = this._apiFilters();
+      this._sourceDetail = await this.api.getKnxStatsSourceDetail(
+        devSource, f,
+      );
+    } catch (err) {
+      this._showToast(
+        `Source-Detail laden fehlgeschlagen: ${(err as Error).message}`,
+      );
+    } finally {
+      this._sourceDetailLoading = false;
     }
   }
 
@@ -1323,7 +1370,10 @@ export class StatsKnxView extends LitElement {
             </section>`
           : nothing}
 
-        ${this._detail !== null || this._detailLoading
+        ${this._detail !== null
+        || this._detailLoading
+        || this._sourceDetail !== null
+        || this._sourceDetailLoading
           ? this._renderDetailPane()
           : nothing}
 
@@ -1497,48 +1547,110 @@ export class StatsKnxView extends LitElement {
   // Tabelle bleibt sichtbar — User kann zwischen Detail und Tabelle
   // springen. Schliessen via X / Backdrop-Klick / Escape.
   private _renderDetailPane(): TemplateResult {
-    const inner: TemplateResult = this._detailLoading && this._detail === null
-      ? html`<p class="muted">lade Details…</p>`
-      : this._detail === null
-        ? html``
-        : this._renderDetailBody(this._detail);
+    // Iter D.2 (knx-detail-panes): zwei Inhalte teilen sich den Drawer
+    // — entweder GA-Detail oder Source-Detail. GA-Detail hat Vorrang,
+    // wenn beide gesetzt sind (defensive — passiert nicht, weil
+    // _loadSourceDetail vorher _closeDetail() ruft).
+    const showGa = this._detail !== null || this._detailLoading;
+    const close = (): void =>
+      showGa ? this._closeDetail() : this._closeSourceDetail();
     return html`
       <div
         class="detail-backdrop"
-        @click=${() => this._closeDetail()}
+        @click=${close}
         aria-hidden="true"
       ></div>
       <aside
         class="mh-card detail-pane"
         role="dialog"
         aria-modal="true"
-        aria-label=${this._detail
-          ? `Detail ${this._detail.ga} — ${this._detail.label ?? ""}`
-          : "Detail laedt"}
+        aria-label=${this._detailPaneAriaLabel()}
       >
         <header class="card-head detail-head">
-          ${this._detail !== null
-            ? html`<div class="detail-head-text">
-                <h3>${this._detail.ga} — ${this._detail.label ?? "Detail"}</h3>
-                <span class="muted small">
-                  Gerät:
-                  <code>${this._detail.dev_source || "?"}</code>
-                  ${this._detail.dpt ? html` • DPT <code>${this._detail.dpt}</code>` : nothing}
-                </span>
-              </div>`
-            : html`<div class="detail-head-text"><h3>Detail</h3></div>`}
+          ${this._renderDetailHead()}
           <button
             class="mh-btn mh-btn--sm mh-btn--ghost detail-close"
             title="Schliessen (Escape)"
             aria-label="Detail schliessen"
-            @click=${() => this._closeDetail()}
+            @click=${close}
           >
             ✕ Schliessen
           </button>
         </header>
-        <div class="detail-body">${inner}</div>
+        <div class="detail-body">${this._renderDetailInner()}</div>
       </aside>
     `;
+  }
+
+  private _detailPaneAriaLabel(): string {
+    if (this._detail !== null) {
+      return `Detail ${this._detail.ga} — ${this._detail.label ?? ""}`;
+    }
+    if (this._sourceDetail !== null) {
+      return `Geraete-Detail ${this._sourceDetail.dev_source}`;
+    }
+    return "Detail laedt";
+  }
+
+  private _renderDetailHead(): TemplateResult {
+    if (this._detail !== null) {
+      return html`<div class="detail-head-text">
+        <h3>${this._detail.ga} — ${this._detail.label ?? "Detail"}</h3>
+        <span class="muted small">
+          Gerät:
+          <code>${this._detail.dev_source || "?"}</code>
+          ${this._detail.dpt
+            ? html` • DPT <code>${this._detail.dpt}</code>`
+            : nothing}
+        </span>
+      </div>`;
+    }
+    if (this._sourceDetail !== null) {
+      const sd = this._sourceDetail;
+      // Iter D.2: Refresh-Aktion ermoeglicht User, die Source-Detail-
+      // Werte nach einer Aenderung ohne Drawer-Schliessen neu zu laden.
+      // Ankerpunkt fuer _loadSourceDetail im Class-Body (waere sonst
+      // bis Iter E ohne Class-internen Caller).
+      const reload = (): void => {
+        if (this._selectedSource !== null) {
+          void this._loadSourceDetail(this._selectedSource);
+        }
+      };
+      return html`<div class="detail-head-text">
+        <h3>
+          Gerät <code>${sd.dev_source}</code>
+          <button
+            class="mh-btn mh-btn--sm mh-btn--ghost source-detail-reload"
+            title="Geraete-Detail neu laden"
+            aria-label="Geraete-Detail neu laden"
+            @click=${reload}
+          >
+            ⟳
+          </button>
+        </h3>
+        <span class="muted small">
+          ${sd.total_count.toLocaleString("de-DE")} Telegramme ·
+          ${sd.ga_count} GAs
+        </span>
+      </div>`;
+    }
+    return html`<div class="detail-head-text"><h3>Detail</h3></div>`;
+  }
+
+  private _renderDetailInner(): TemplateResult {
+    if (this._detail !== null) {
+      return this._renderDetailBody(this._detail);
+    }
+    if (this._detailLoading) {
+      return html`<p class="muted">lade Details…</p>`;
+    }
+    if (this._sourceDetail !== null) {
+      return this._renderSourceDetailBody(this._sourceDetail);
+    }
+    if (this._sourceDetailLoading) {
+      return html`<p class="muted">lade Geräte-Details…</p>`;
+    }
+    return html``;
   }
 
   private _renderDetailBody(d: KnxStatsGaDetailDto): TemplateResult {
@@ -1685,7 +1797,9 @@ export class StatsKnxView extends LitElement {
     `;
   }
 
-  private _renderDeviceInfo(d: KnxStatsGaDetailDto): TemplateResult {
+  private _renderDeviceInfo(
+    d: Pick<KnxStatsGaDetailDto, "device" | "manufacturer_hints">,
+  ): TemplateResult {
     const dev = d.device;
     const hints = d.manufacturer_hints;
     return html`
@@ -1714,6 +1828,166 @@ export class StatsKnxView extends LitElement {
           : nothing}
       </div>
     `;
+  }
+
+  // ===================================================================
+  // Iter D.2 (knx-detail-panes): Source-Detail-Body.
+  // ===================================================================
+  //
+  // Aufbau analog zum GA-Detail-Body (siehe `_renderDetailBody`):
+  // - KPI-Reihe (Total / GAs / Bus-Anteil / Wiederhol-Quote)
+  // - Stille-Status (prominent wenn silent_alarm)
+  // - GA-Liste sortiert nach count desc, jede Zeile klickbar -> oeffnet
+  //   GA-Detail (kein zweites Modal, Architektur-Entscheid aus
+  //   knx_detail_panes_konzept.md)
+  // - Geraete-Info (device + manufacturer_hints) wie im GA-Detail
+  //
+  // Zukuenftige Erweiterungen: Findings-Liste (Iter H), Trend-Compare
+  // (Iter I) als zusaetzliche Sektionen.
+  private _renderSourceDetailBody(
+    d: KnxStatsSourceDetailDto,
+  ): TemplateResult {
+    return html`
+      <div class="source-detail-kpis">
+        ${this._renderSourceDetailKpi(
+          "Telegramme gesamt",
+          d.total_count.toLocaleString("de-DE"),
+        )}
+        ${this._renderSourceDetailKpi(
+          "Aktive GAs",
+          String(d.ga_count),
+        )}
+        ${this._renderSourceDetailKpi(
+          "Bus-Anteil",
+          `${d.share_pct.toLocaleString("de-DE", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+          })} %`,
+        )}
+        ${this._renderSourceDetailKpi(
+          "Wiederhol-Quote",
+          `${d.repeat_ratio_pct.toLocaleString("de-DE", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+          })} %`,
+        )}
+      </div>
+
+      ${this._renderSourceDetailSilent(d)}
+
+      ${this._renderSourceDetailGas(d)}
+
+      ${d.device || d.manufacturer_hints
+        ? this._renderDeviceInfo({
+            device: d.device,
+            manufacturer_hints: d.manufacturer_hints,
+          })
+        : nothing}
+    `;
+  }
+
+  private _renderSourceDetailKpi(
+    label: string,
+    value: string,
+  ): TemplateResult {
+    return html`<div class="source-detail-kpi">
+      <span class="muted small">${label}</span>
+      <strong>${value}</strong>
+    </div>`;
+  }
+
+  private _renderSourceDetailSilent(
+    d: KnxStatsSourceDetailDto,
+  ): TemplateResult {
+    if (d.silent_alarm) {
+      const minutes = d.silent_minutes ?? 0;
+      return html`<div
+        class="source-detail-silent-alarm"
+        role="status"
+        aria-live="polite"
+      >
+        <strong>⚠ Gerät ist stumm</strong>
+        <p class="muted small">
+          Letzter Trafik vor ${this._formatSilence(minutes)} —
+          ueberschreitet die konfigurierte Stille-Schwelle.
+        </p>
+      </div>`;
+    }
+    if (d.silent_minutes !== null) {
+      return html`<p class="source-detail-silent muted small">
+        Letzter Trafik vor ${this._formatSilence(d.silent_minutes)}.
+      </p>`;
+    }
+    return html``;
+  }
+
+  private _renderSourceDetailGas(
+    d: KnxStatsSourceDetailDto,
+  ): TemplateResult {
+    if (d.gas.length === 0) {
+      return html`<p class="muted small">Keine GAs in diesem Zeitraum.</p>`;
+    }
+    return html`<div class="source-detail-ga-list">
+      <strong>GAs dieses Geräts (${d.ga_count}):</strong>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>GA</th>
+              <th>Label</th>
+              <th>DPT</th>
+              <th class="num">Tel/Min</th>
+              <th class="num">Soll</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${d.gas.map((g) => this._renderSourceDetailGaRow(g))}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }
+
+  private _renderSourceDetailGaRow(
+    g: KnxStatsSourceGaSummaryDto,
+  ): TemplateResult {
+    const pillClass = g.acknowledged
+      ? "mh-pill--neutral"
+      : this._severityPillClass(g.severity);
+    const pillLabel = g.acknowledged
+      ? "✓ Bekannt"
+      : this._severityLabel(g.severity);
+    return html`<tr
+      class=${`source-ga-row row-${g.severity} ${
+        g.acknowledged ? "ack" : ""
+      }`}
+      @click=${() => void this._onSelectGa(g.ga)}
+      title="GA-Detail oeffnen"
+    >
+      <td><code class="ga">${g.ga}</code></td>
+      <td>${g.label ?? html`<span class="muted">—</span>`}</td>
+      <td>
+        ${g.dpt
+          ? html`<code class="dpt">${g.dpt}</code>`
+          : html`<span class="muted">—</span>`}
+      </td>
+      <td class="num strong">
+        ${g.rate_per_min.toLocaleString("de-DE", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })}
+      </td>
+      <td class="num muted">
+        ${g.recommended_rate.toLocaleString("de-DE", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })}
+      </td>
+      <td>
+        <span class=${`mh-pill ${pillClass}`}>${pillLabel}</span>
+      </td>
+    </tr>`;
   }
 
   private _renderSiblingGas(d: KnxStatsGaDetailDto): TemplateResult {
@@ -3779,6 +4053,51 @@ export class StatsKnxView extends LitElement {
         font-family: var(--ha-font-family-code, ui-monospace, monospace);
         font-size: var(--mh-text-xs);
         font-weight: var(--mh-weight-semibold);
+      }
+
+      /* Iter D.2 (knx-detail-panes): Source-Detail-Pane.
+         KPI-Reihe analog detail-stats, Stille-Alarm prominent rot,
+         GA-Liste klickbar mit Cursor-Pointer. */
+      .source-detail-kpis {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--mh-space-4);
+        margin-bottom: var(--mh-space-3);
+      }
+      .source-detail-kpi {
+        display: flex;
+        flex-direction: column;
+        min-width: 100px;
+      }
+      .source-detail-kpi strong {
+        font-size: var(--mh-text-md);
+      }
+      .source-detail-silent-alarm {
+        margin: var(--mh-space-2) 0 var(--mh-space-3) 0;
+        padding: var(--mh-space-3);
+        background: var(--mh-error-soft);
+        border-left: 4px solid var(--mh-error);
+        border-radius: var(--mh-radius-sm);
+      }
+      .source-detail-silent-alarm strong {
+        color: var(--mh-error);
+        display: block;
+        margin-bottom: var(--mh-space-1);
+      }
+      .source-detail-silent {
+        margin: var(--mh-space-2) 0;
+      }
+      .source-detail-ga-list {
+        margin: var(--mh-space-3) 0;
+      }
+      .source-detail-ga-list table {
+        margin-top: var(--mh-space-2);
+      }
+      .source-ga-row {
+        cursor: pointer;
+      }
+      .source-ga-row:hover {
+        background: var(--mh-bg-hover, rgba(0, 0, 0, 0.04));
       }
 
       /* Toast */

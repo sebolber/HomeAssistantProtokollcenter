@@ -16,8 +16,8 @@ from pathlib import Path
 import pytest
 
 from custom_components.messagehub.processing.knx_stats_service import (
-    KnxStatsService,
     SOURCE_DETAIL_DEFAULT_SILENCE_MINUTES,
+    KnxStatsService,
     source_detail_to_dict,
 )
 from custom_components.messagehub.storage.database import Database
