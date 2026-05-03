@@ -7,6 +7,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L4.3 / Sprint Recommendations — Settings-UI fuer LLM-Config.**
+  Neuer Settings-Sub-Tab "KI-Empfehlungen" mit vollstaendigem
+  Konfigurations-Dialog: Master-Toggle, Base-URL, Modell, API-Key
+  (`type=password`, "Aendern"-Knopf um den bestehenden Schluessel
+  unangetastet zu lassen), Timeout, Max-Tokens, System-Prompt-Override.
+  4 Voreinstellungen (OpenAI, Azure, Ollama, Groq) per Klick. Cost-
+  Warnung wenn der Toggle aktiv ist. Frontend-DTO + 2 neue API-Client-
+  Methoden (`get/putKnxRecommendLlmSettings`). 8 neue Vitest. Settings-
+  Tabs-Test auf 7 Tabs erweitert.
 - **Iter L4.2 / Sprint Recommendations — OpenAI-kompatibler LLM-Provider.**
   Neues Modul `processing/openai_chat_provider.py` mit Provider, der
   das OpenAI-Chat-Completions-Schema spricht — kompatibel mit OpenAI,

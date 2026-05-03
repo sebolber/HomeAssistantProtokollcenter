@@ -337,6 +337,28 @@ export interface KnxDevicePutBody {
   notes?: string | null;
 }
 
+// Iter L4.3 — LLM-Settings (Layer 4 / KI-Empfehlungen)
+export interface KnxRecommendLlmSettingsDto {
+  enabled: boolean;
+  base_url: string;
+  model: string;
+  api_key_set: boolean;
+  timeout_s: number;
+  max_tokens: number;
+  system_prompt_override: string;
+}
+
+export interface KnxRecommendLlmSettingsPutBody {
+  enabled: boolean;
+  base_url: string;
+  model: string;
+  /** ``undefined`` lasst den bestehenden Key unberuehrt; Empty-String loescht. */
+  api_key?: string;
+  timeout_s?: number;
+  max_tokens?: number;
+  system_prompt_override?: string;
+}
+
 export interface KnxStatsSourceDetailDto {
   dev_source: string;
   total_count: number;
@@ -1313,6 +1335,28 @@ export class ApiClient {
     if (!res.ok && res.status !== 404) {
       throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     }
+  }
+
+  /** Iter L4.3: LLM-Settings lesen. */
+  async getKnxRecommendLlmSettings(): Promise<KnxRecommendLlmSettingsDto> {
+    const url = `${this.baseUrl}/api/messagehub/knx-recommend/llm-settings`;
+    const res = await fetch(url, { headers: this.headers() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxRecommendLlmSettingsDto;
+  }
+
+  /** Iter L4.3: LLM-Settings speichern. */
+  async putKnxRecommendLlmSettings(
+    body: KnxRecommendLlmSettingsPutBody,
+  ): Promise<KnxRecommendLlmSettingsDto> {
+    const url = `${this.baseUrl}/api/messagehub/knx-recommend/llm-settings`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { ...this.headers(), "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxRecommendLlmSettingsDto;
   }
 
   async getKnxStatsTimeline(

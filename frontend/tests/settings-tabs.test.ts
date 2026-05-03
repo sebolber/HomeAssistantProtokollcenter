@@ -41,10 +41,10 @@ describe("settings-view tabs", () => {
     }
   });
 
-  it("rendert sechs Tabs in der Reihenfolge Webhooks/KNX/Channels/MQTT/Heartbeats/Remediation", async () => {
+  it("rendert sieben Tabs (inkl. Iter L4.3 KI-Empfehlungen)", async () => {
     const el = await mount();
     const tabs = el.shadowRoot!.querySelectorAll("button.tab");
-    expect(tabs.length).toBe(6);
+    expect(tabs.length).toBe(7);
     const labels = Array.from(tabs).map((t) =>
       t.querySelector("span:not(.tab-icon)")!.textContent?.trim()
     );
@@ -55,6 +55,7 @@ describe("settings-view tabs", () => {
       "MQTT",
       "Heartbeats",
       "Auto-Remediation",
+      "KI-Empfehlungen",
     ]);
   });
 

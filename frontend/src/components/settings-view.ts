@@ -9,10 +9,18 @@ import type { ApiClient, WebhookDto } from "../api-client.js";
 import { tokens, buttons, cards } from "../styles/tokens.js";
 import "./webhook-form.js";
 import "./knx-addresses-view.js";
+import "./knx-recommend-llm-view.js";
 import "./channels-view.js";
 import "./simple-list-view.js";
 
-type SettingsTab = "webhooks" | "knx" | "channels" | "mqtt" | "heartbeats" | "remediation";
+type SettingsTab =
+  | "webhooks"
+  | "knx"
+  | "channels"
+  | "mqtt"
+  | "heartbeats"
+  | "remediation"
+  | "recommend-llm";
 
 // Iter 44 (N3): Tabs ohne Icons — User-Feedback "Settings-Tableiste
 // soll keine Icons verwenden". Reine Text-Buttons bleiben.
@@ -23,6 +31,7 @@ const TABS: Array<{ id: SettingsTab; label: string }> = [
   { id: "mqtt", label: "MQTT" },
   { id: "heartbeats", label: "Heartbeats" },
   { id: "remediation", label: "Auto-Remediation" },
+  { id: "recommend-llm", label: "KI-Empfehlungen" },
 ];
 
 const STORAGE_KEY_TAB = "messagehub.settings.tab";
@@ -329,6 +338,8 @@ export class SettingsView extends LitElement {
         return html`<heartbeats-view .api=${this.api}></heartbeats-view>`;
       case "remediation":
         return html`<remediation-view .api=${this.api}></remediation-view>`;
+      case "recommend-llm":
+        return html`<knx-recommend-llm-view .api=${this.api}></knx-recommend-llm-view>`;
     }
   }
 
