@@ -37,6 +37,7 @@ from ..const import (
 from ..processing.knx_stats_service import (
     KnxStatsService,
     ga_detail_to_dict,
+    source_detail_to_dict,
     top_row_to_dict,
 )
 from ..processing.rate_limit import TokenBucketLimiter
@@ -241,6 +242,66 @@ class KnxStatsGaDetailView(RequireAdminView):
                 manufacturer_hints = lookup_manufacturer_hints(device.get("manufacturer", ""))
         result["device"] = device_info
         result["manufacturer_hints"] = manufacturer_hints
+        return self.json(result)
+
+
+class KnxStatsSourceDetailView(RequireAdminView):
+    """Iter C (knx-detail-panes): Source-Detail-Endpoint.
+
+    URL: /api/messagehub/knx-stats/source/{dev_source}
+         ?from=ISO&to=ISO[&max_silence_min=N]
+
+    Liefert die Source-Detail-Sicht (KPIs + GA-Liste + Status). 404
+    wenn die Source im Period kein einziges Telegramm gesendet hat;
+    400 bei ungueltiger Source-Adresse oder Period.
+    Auth: HA-Admin (RequireAdminView).
+    """
+
+    url = "/api/messagehub/knx-stats/source/{dev_source}"
+    name = "api:messagehub:knx-stats:source-detail"
+
+    async def get(self, request: web.Request, dev_source: str) -> web.Response:
+        from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
+        from ..processing.knx_manufacturer import (  # noqa: PLC0415
+            lookup_manufacturer_hints,
+        )
+
+        self._check_admin(request)
+        svc = _service(request.app["hass"])
+        if svc is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        dev_source = validate_knx_individual_address(dev_source)
+        from_iso, to_iso = parse_iso_period(
+            request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
+        )
+        # max_silence_min ueber Query-Param uebersteuerbar; Hard-Cap 1
+        # bis 90 Tage damit kein Verstoss gegen MAX_PERIOD_DAYS
+        # entsteht und kein 0/Negativer-Wert die Logik bricht.
+        max_silence = parse_int_param(
+            request.query,
+            "max_silence_min",
+            1440,
+            min_value=1,
+            max_value=129600,  # 90 Tage in Minuten
+        )
+        detail = await svc.compute_source_detail(
+            dev_source, from_iso, to_iso,
+            max_silence_minutes=max_silence,
+        )
+        if detail is None:
+            return self.json_message(ERR_NOT_FOUND, status_code=404)
+        result = source_detail_to_dict(detail)
+        result["from"] = from_iso
+        result["to"] = to_iso
+        # Geraete-Info aus ETS-Projekt anhaengen (analog GA-Detail).
+        devices = await discover_knx_devices(request.app["hass"])
+        device = devices.get(dev_source)
+        result["device"] = device
+        result["manufacturer_hints"] = (
+            lookup_manufacturer_hints(device.get("manufacturer", ""))
+            if device is not None
+            else None
+        )
         return self.json(result)
 
 
