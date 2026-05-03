@@ -204,6 +204,11 @@ function makeApi(): MockApi {
     api.sourceDetailCalls!.push({ devSource });
     return SOURCE_DETAIL;
   });
+  // F-011: Helper-Stub fuer GA-Detail-Pane.
+  api.knxStatsGaExportUrl = vi.fn(
+    (ga: string, format: string) =>
+      `/api/messagehub/knx-stats/ga/${encodeURIComponent(ga)}/export?format=${format}`
+  );
   return api as MockApi;
 }
 

@@ -1796,15 +1796,12 @@ export class StatsKnxView extends LitElement {
     // Export denselben Zeitraum wie das Detail-Pane abdeckt. KnxStatsFilters
     // kann from/to undefined enthalten (Vorwaert-Kompatibilitaet) — wir
     // kappen leere Strings ab, der Endpoint nutzt dann den Default.
+    // F-011: URL-Bauer ueber typisierten ApiClient.knxStatsGaExportUrl,
+    // damit GA-Adressen mit Slashes korrekt encoded werden.
     const f = this._apiFilters();
-    const exportParams = new URLSearchParams();
-    if (f.from) exportParams.set("from", f.from);
-    if (f.to) exportParams.set("to", f.to);
-    const exportBase = `/api/messagehub/knx-stats/ga/${encodeURIComponent(
-      d.ga,
-    )}/export?${exportParams.toString()}`;
-    const csvUrl = `${exportBase}&format=csv`;
-    const jsonUrl = `${exportBase}&format=json`;
+    const range = { from: f.from, to: f.to };
+    const csvUrl = this.api?.knxStatsGaExportUrl(d.ga, "csv", range) ?? "";
+    const jsonUrl = this.api?.knxStatsGaExportUrl(d.ga, "json", range) ?? "";
     return html`
       <div class="ha-links">
         <strong>Schnell-Aktionen:</strong>

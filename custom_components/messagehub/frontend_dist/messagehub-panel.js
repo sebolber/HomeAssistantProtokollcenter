@@ -943,6 +943,17 @@ class $s {
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
     return await s.json();
   }
+  /**
+   * F-011: Typisierter URL-Helfer fuer KNX-GA-Telegramm-Export.
+   * Vorher hat stats-knx-view die URL inline zusammengebaut, was bei
+   * GA-Adressen mit Slashes (1/2/3) ohne URL-Encoding einen 404
+   * produziert haette. Diese Methode kapselt das encodeURIComponent
+   * sicher und ist Vitest-getestet.
+   */
+  knxStatsGaExportUrl(t, s, a = {}) {
+    const r = new URLSearchParams();
+    return a.from && r.set("from", a.from), a.to && r.set("to", a.to), r.set("format", s), `${this.baseUrl}/api/messagehub/knx-stats/ga/${encodeURIComponent(t)}/export?${r.toString()}`;
+  }
   exportUrl(t) {
     var a;
     const s = new URLSearchParams();
@@ -7839,13 +7850,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
    * waere als der Mehrwert. User kann den GA-Code copy-pasten.
    */
   _renderHaKnxLinks(e) {
+    var o, d;
     const t = `https://knx-user-forum.de/forum/search?searchword=${encodeURIComponent(
       e.ga
-    )}`, s = this._apiFilters(), a = new URLSearchParams();
-    s.from && a.set("from", s.from), s.to && a.set("to", s.to);
-    const r = `/api/messagehub/knx-stats/ga/${encodeURIComponent(
-      e.ga
-    )}/export?${a.toString()}`, n = `${r}&format=csv`, o = `${r}&format=json`;
+    )}`, s = this._apiFilters(), a = { from: s.from, to: s.to }, r = ((o = this.api) == null ? void 0 : o.knxStatsGaExportUrl(e.ga, "csv", a)) ?? "", n = ((d = this.api) == null ? void 0 : d.knxStatsGaExportUrl(e.ga, "json", a)) ?? "";
     return i`
       <div class="ha-links">
         <strong>Schnell-Aktionen:</strong>
@@ -7869,7 +7877,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </li>
           <li>
             <a
-              href=${n}
+              href=${r}
               download
               title="Werteverlauf als CSV-Datei herunterladen (max 50.000 Samples)"
               >⤓ CSV-Export</a
@@ -7877,7 +7885,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </li>
           <li>
             <a
-              href=${o}
+              href=${n}
               download
               title="Werteverlauf als JSON-Datei herunterladen (max 50.000 Samples)"
               >⤓ JSON-Export</a

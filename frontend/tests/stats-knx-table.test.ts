@@ -210,6 +210,12 @@ function makeApi(): MockApi {
     unacknowledgeKnxGa: vi.fn(async (ga: string) => {
       api.unackCall = { ga };
     }),
+    // F-011: Helper liefert die Anchor-URL — Tests rufen ihn nicht
+    // direkt auf, aber die View ruft ihn beim Render des GA-Detail-Panes.
+    knxStatsGaExportUrl: vi.fn(
+      (ga: string, format: string) =>
+        `/api/messagehub/knx-stats/ga/${encodeURIComponent(ga)}/export?format=${format}`
+    ),
     ackCall: {},
     unackCall: {},
   };
