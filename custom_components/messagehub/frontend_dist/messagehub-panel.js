@@ -1128,6 +1128,15 @@ class bs {
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
     return await s.text();
   }
+  async refreshFindings(e, s = 7) {
+    const r = `${this.baseUrl}/api/messagehub/findings/refresh`, a = await fetch(r, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ ga: e, period_days: s })
+    });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
+  }
   async acknowledgeKnxBulk(e, s = {}) {
     const r = new URLSearchParams();
     s.from && r.set("from", s.from), s.to && r.set("to", s.to);
@@ -9897,6 +9906,28 @@ let O = class extends w {
         this._error = t.message ?? "Export fehlgeschlagen";
       }
   }
+  async _refreshAll() {
+    if (!this.api) return;
+    const t = Array.from(
+      new Set(
+        this._items.map((e) => e.ga).filter((e) => typeof e == "string" && e.length > 0)
+      )
+    );
+    if (t.length === 0) {
+      this._error = "Keine GA mit Findings im aktuellen Filter — der Per-GA-Lauf braucht eine Auswahl.";
+      return;
+    }
+    this._loading = !0, this._error = null;
+    try {
+      for (const e of t)
+        await this.api.refreshFindings(e);
+      await this._load();
+    } catch (e) {
+      this._error = e.message ?? "Refresh fehlgeschlagen";
+    } finally {
+      this._loading = !1;
+    }
+  }
   async _ackSelected() {
     const t = this._currentSelection();
     if (!(!t || !this.api)) {
@@ -9927,6 +9958,16 @@ let O = class extends w {
           <div class="header-row">
             <h2 class="mh-card__title">Konfigurations-Check</h2>
             <div class="header-actions">
+              <button
+                type="button"
+                class="mh-btn mh-btn--primary mh-btn--sm"
+                data-test="findings-refresh-btn"
+                title="Per-GA-Detector-Runner manuell ausloesen (DPT_MISMATCH, VALUE_OUT_OF_RANGE, MULTI_RESPONDER, READ_NO_RESPONSE, TOGGLE_LOOP, REPEAT_APPROXIMATION, PATTERN_*)"
+                ?disabled=${this._loading}
+                @click=${this._refreshAll}
+              >
+                Aktualisieren
+              </button>
               <button
                 type="button"
                 class="mh-btn mh-btn--ghost mh-btn--sm"

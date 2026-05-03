@@ -124,6 +124,39 @@ export class FindingsView extends LitElement {
     }
   }
 
+  private async _refreshAll(): Promise<void> {
+    // Iter 29a: User triggert per-GA-Runner fuer alle GAs aus dem
+    // aktuellen Filter; danach neu laden, damit neue Findings sichtbar
+    // werden. Bus-weite Findings (HEALTH_*/RECONNECT_STORM/ORPHAN_GA/
+    // STALE_GA) laufen ueber den periodischen Job (Iter 29b), nicht
+    // ueber diesen Button.
+    if (!this.api) return;
+    const gas = Array.from(
+      new Set(
+        this._items
+          .map((it) => it.ga)
+          .filter((ga): ga is string => typeof ga === "string" && ga.length > 0)
+      )
+    );
+    if (gas.length === 0) {
+      this._error =
+        "Keine GA mit Findings im aktuellen Filter — der Per-GA-Lauf braucht eine Auswahl.";
+      return;
+    }
+    this._loading = true;
+    this._error = null;
+    try {
+      for (const ga of gas) {
+        await this.api.refreshFindings(ga);
+      }
+      await this._load();
+    } catch (err) {
+      this._error = (err as Error).message ?? "Refresh fehlgeschlagen";
+    } finally {
+      this._loading = false;
+    }
+  }
+
   private async _ackSelected(): Promise<void> {
     const selected = this._currentSelection();
     if (!selected || !this.api) return;
@@ -159,6 +192,16 @@ export class FindingsView extends LitElement {
           <div class="header-row">
             <h2 class="mh-card__title">Konfigurations-Check</h2>
             <div class="header-actions">
+              <button
+                type="button"
+                class="mh-btn mh-btn--primary mh-btn--sm"
+                data-test="findings-refresh-btn"
+                title="Per-GA-Detector-Runner manuell ausloesen (DPT_MISMATCH, VALUE_OUT_OF_RANGE, MULTI_RESPONDER, READ_NO_RESPONSE, TOGGLE_LOOP, REPEAT_APPROXIMATION, PATTERN_*)"
+                ?disabled=${this._loading}
+                @click=${this._refreshAll}
+              >
+                Aktualisieren
+              </button>
               <button
                 type="button"
                 class="mh-btn mh-btn--ghost mh-btn--sm"

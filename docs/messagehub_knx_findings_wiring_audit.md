@@ -53,7 +53,7 @@ strikt produktiv-relevant nur fuer Iter 9/10/26/27.
 | 28 | `processing/prometheus.py:format_prometheus_metrics(finding_total=...)` | `api/messages.py:MetricsView.get` ruft `format_prometheus_metrics` OHNE `finding_total`-Parameter auf — die Aggregation `(code, severity) -> count` aus `knx_findings` wird NIE ueber den /metrics-Endpoint exponiert. | **orphan (finding_total Param)** |
 | 29 | `processing/findings_markdown.py:format_findings_markdown` + `findings_markdown_response`; `api/findings.py:FindingsMarkdownExportView`; ApiClient-`fetchFindingsMarkdown` + UI-Button "MD-Export" | View registriert via `async_register_views`; Frontend-Button im findings-view-Header | wired |
 
-## Bilanz
+## Bilanz (vor Folge-Iter 29a-29x)
 
 - **wired:** Iter 3, 6, 7, 8, 9, 10, 14, 19, 23, 26, 27, 29 (12 Iter)
 - **partial wired:** Iter 1, 2, 4, 28 (4 Iter — Hauptpfad da, aber
@@ -61,6 +61,33 @@ strikt produktiv-relevant nur fuer Iter 9/10/26/27.
 - **orphan:** Iter 5, 11, 12, 13, 15, 16, 17, 18, 20, 21, 22, 24, 25
   (13 Iter — alle 11 neuen Detektoren plus `lift_health_findings` /
   `lift_pattern_findings` plus `set_dpt_inferred`)
+
+## Status nach Iter 29a (Per-GA-Detector-Runner on-demand)
+
+Geschlossen durch `processing/findings_runner.py:run_per_ga_detectors`,
+gerufen aus `processing/findings_service.py:refresh_findings_response`,
+gerufen aus `api/findings.py:FindingsRefreshView` (`POST
+/api/messagehub/findings/refresh`), gerufen aus dem Frontend-Button
+`Aktualisieren` in `findings-view.ts`.
+
+| Iter | Symbol | Caller jetzt |
+|------|--------|--------------|
+| 2 | `FindingsRepository.record` | `_record_with_severity_override` im Runner |
+| 4 | `resolve_severity` | `_record_with_severity_override` im Runner |
+| 5 | `lift_pattern_findings` | `_legacy_pattern_findings` im Runner |
+| 11 | `KnxAddressRepository.set_dpt_inferred` | `_persist_inferred_dpt` im Runner |
+| 12 | `detect_dpt_mismatch` | `_per_ga_findings` im Runner |
+| 13 | `detect_value_out_of_range` | `_per_sample_findings` im Runner |
+| 15 | `detect_multi_responder` | `_per_ga_findings` im Runner |
+| 16 | `detect_read_no_response` | `_per_ga_findings` im Runner |
+| 17 | `detect_toggle_loop` | `_per_ga_findings` im Runner |
+| 22 | `detect_repeat_approximation` | `_per_ga_findings` im Runner |
+
+Verbleibend orphan: `lift_health_findings` (5), `detect_multi_time_master`
+(18), `detect_reconnect_storm` (20), `detect_send_cycle_drift` (21),
+`detect_orphan_ga` (24), `detect_stale_ga` (25), `format_prometheus_metrics(finding_total=)` (28).
+Alle bus-weit (oder `MULTI_TIME_MASTER` als pseudo-bus-weit) und werden
+in Iter 29b / 29c verdrahtet.
 
 ## Konsequenz: Was sieht der User HEUTE im laufenden System?
 

@@ -19,6 +19,7 @@ from .findings import (
     FindingsAckView,
     FindingsListView,
     FindingsMarkdownExportView,
+    FindingsRefreshView,
     FindingsSeverityOverrideDetailView,
     FindingsSeverityOverridesView,
 )
@@ -1402,6 +1403,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         FindingsSeverityOverridesView,
         FindingsSeverityOverrideDetailView,
         FindingsMarkdownExportView,
+        FindingsRefreshView,
     ):
         view = view_cls()
         # HA-internes Doppel-Register vermeiden

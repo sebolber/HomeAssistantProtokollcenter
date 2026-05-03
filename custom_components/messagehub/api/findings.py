@@ -8,11 +8,15 @@ Endpunkte (Phase 1 — Iter 6/7/8):
 - PUT    /api/messagehub/findings/severity-overrides/{code}
 - DELETE /api/messagehub/findings/severity-overrides/{code}
 
+Iter 29a (Wiring): POST /api/messagehub/findings/refresh — Per-GA-
+Detector-Runner on-demand (User-Trigger aus dem findings-view).
+
 Auth: alle Endpunkte ueber RequireAdminView.
 """
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
 
 from aiohttp import web
@@ -20,16 +24,20 @@ from aiohttp import web
 from ..processing.findings import FINDING_SEVERITIES
 from ..processing.findings_service import (
     DEFAULT_LIMIT,
+    DEFAULT_REFRESH_PERIOD_DAYS,
     HARD_CAP_LIMIT,
     ack_finding_response,
     clear_severity_override_response,
     findings_markdown_response,
     list_findings_response,
     list_severity_overrides_response,
+    refresh_findings_response,
     set_severity_override_response,
     unack_finding_response,
 )
+from ..processing.knx_repo import KnxAddressRepository
 from ..storage.findings_repo import FindingsRepository
+from ..storage.knx_stats_repo import KnxStatsRepository
 from ._helpers import (
     ERR_INVALID_JSON,
     ERR_NOT_INITIALISED,
@@ -224,11 +232,48 @@ class FindingsMarkdownExportView(RequireAdminView):
         return web.Response(text=markdown, content_type="text/markdown")
 
 
+class FindingsRefreshView(RequireAdminView):
+    """POST /api/messagehub/findings/refresh — Iter 29a Per-GA-Runner."""
+
+    url = "/api/messagehub/findings/refresh"
+    name = "api:messagehub:findings:refresh"
+
+    async def post(self, request: web.Request) -> web.Response:
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = get_database(hass)
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+        try:
+            body = await request.json()
+        except (ValueError, TypeError) as err:
+            raise web.HTTPBadRequest(reason=ERR_INVALID_JSON) from err
+        ga = str(body.get("ga", "")).strip()
+        period_days = body.get("period_days", DEFAULT_REFRESH_PERIOD_DAYS)
+        try:
+            period_days_int = int(period_days)
+        except (TypeError, ValueError) as err:
+            raise web.HTTPBadRequest(reason="period_days must be int") from err
+        try:
+            payload = await refresh_findings_response(
+                FindingsRepository(db),
+                ga=ga,
+                period_days=period_days_int,
+                address_repo=KnxAddressRepository(db),
+                stats_repo=KnxStatsRepository(db),
+                now=datetime.now(UTC),
+            )
+        except ValueError as err:
+            raise web.HTTPBadRequest(reason=str(err)) from err
+        return self.json(payload)
+
+
 __all__ = [
     "FindingsAckDetailView",
     "FindingsAckView",
     "FindingsListView",
     "FindingsMarkdownExportView",
+    "FindingsRefreshView",
     "FindingsSeverityOverrideDetailView",
     "FindingsSeverityOverridesView",
 ]

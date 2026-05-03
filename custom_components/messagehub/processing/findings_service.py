@@ -220,14 +220,66 @@ async def findings_markdown_response(repo: Any) -> str:
     return format_findings_markdown(findings)
 
 
+# Iter 29a: Refresh-Endpoint fuer per-GA-Detector-Runner (on-demand).
+DEFAULT_REFRESH_PERIOD_DAYS: int = 7
+MIN_REFRESH_PERIOD_DAYS: int = 1
+MAX_REFRESH_PERIOD_DAYS: int = 30
+
+
+async def refresh_findings_response(
+    repo: Any,
+    *,
+    ga: str,
+    period_days: int = DEFAULT_REFRESH_PERIOD_DAYS,
+    address_repo: Any,
+    stats_repo: Any,
+    now: datetime,
+) -> dict[str, Any]:
+    """Triggert `run_per_ga_detectors` fuer eine GA und liefert die Anzahl.
+
+    Validiert GA-Format + Period; ruft den Runner auf, der die elf
+    GA-bezogenen Detektoren ausfuehrt und Findings ueber `record(...)`
+    persistiert. UI ruft das ueber den 'Aktualisieren'-Button auf.
+
+    Lazy-Import: `findings_runner` zieht die Detektor-Module nach;
+    wenn der Service ohne Runner gebraucht wird (Tests), bleibt das
+    leichtgewichtig.
+    """
+    from .findings_runner import run_per_ga_detectors  # noqa: PLC0415
+
+    _validate_ga(ga)
+    days = max(MIN_REFRESH_PERIOD_DAYS, min(int(period_days), MAX_REFRESH_PERIOD_DAYS))
+    from datetime import timedelta as _td  # noqa: PLC0415
+    period_to_dt = now
+    period_from_dt = now - _td(days=days)
+    count = await run_per_ga_detectors(
+        ga=ga,
+        findings_repo=repo,
+        address_repo=address_repo,
+        stats_repo=stats_repo,
+        period_from=period_from_dt.isoformat(timespec="seconds"),
+        period_to=period_to_dt.isoformat(timespec="seconds"),
+        now=now,
+    )
+    return {
+        "ga": ga,
+        "period_days": days,
+        "findings_recorded": count,
+    }
+
+
 __all__ = [
     "DEFAULT_LIMIT",
+    "DEFAULT_REFRESH_PERIOD_DAYS",
     "HARD_CAP_LIMIT",
+    "MAX_REFRESH_PERIOD_DAYS",
+    "MIN_REFRESH_PERIOD_DAYS",
     "ack_finding_response",
     "clear_severity_override_response",
     "findings_markdown_response",
     "list_findings_response",
     "list_severity_overrides_response",
+    "refresh_findings_response",
     "set_severity_override_response",
     "unack_finding_response",
 ]

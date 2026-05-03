@@ -1280,6 +1280,27 @@ export class ApiClient {
     return await res.text();
   }
 
+  async refreshFindings(
+    ga: string,
+    periodDays = 7
+  ): Promise<{ ga: string; period_days: number; findings_recorded: number }> {
+    // Iter 29a: Triggert Per-GA-Detector-Runner (DPT_MISMATCH,
+    // VALUE_OUT_OF_RANGE, MULTI_RESPONDER, READ_NO_RESPONSE,
+    // TOGGLE_LOOP, REPEAT_APPROXIMATION, PATTERN_*).
+    const url = `${this.baseUrl}/api/messagehub/findings/refresh`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ ga, period_days: periodDays }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as {
+      ga: string;
+      period_days: number;
+      findings_recorded: number;
+    };
+  }
+
   async acknowledgeKnxBulk(
     devSource: string,
     payload: { note?: string; expiryDays?: number; from?: string; to?: string } = {}

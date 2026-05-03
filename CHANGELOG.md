@@ -6,6 +6,28 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (KNX-Konfigurations-Findings, Wiring-Audit + Phase 6+7)
+- **Iter 29a — Per-GA-Detector-Runner (on-demand).**
+  Schliesst die End-to-End-Luecke aus dem Wiring-Audit (Iter 1-29):
+  bisher waren die elf neuen Detektoren reine Lib-Funktionen ohne
+  Caller, der Konfigurations-Check-Tab blieb im Live-System leer.
+  Neuer Service `processing/findings_runner.py:run_per_ga_detectors`
+  laedt Telegram-Samples einer GA, persistiert die DPT-Inferenz via
+  `set_dpt_inferred` (schliesst Iter 11), wendet pro GA die Detektoren
+  `DPT_MISMATCH`, `VALUE_OUT_OF_RANGE`, `MULTI_RESPONDER`,
+  `READ_NO_RESPONSE`, `TOGGLE_LOOP`, `REPEAT_APPROXIMATION` und den
+  Legacy-Anti-Pattern-Detector via `lift_pattern_findings` (schliesst
+  Iter 5) an, fuehrt vor `record(...)` den Severity-Resolver aus
+  (schliesst Iter 4) und persistiert die Findings. Endpoint `POST
+  /api/messagehub/findings/refresh` mit `{ga, period_days}` triggert
+  den Lauf, der UI-Button "Aktualisieren" im findings-view-Header
+  iteriert ueber alle GAs aus dem aktuellen Filter.
+- **Iter 29.audit — Wiring-Audit der Iter 1-29.**
+  Neuer Doc `docs/messagehub_knx_findings_wiring_audit.md` listet pro
+  Iter die neu eingefuehrten Symbole und ihre Caller. Befund: 13 Iter
+  komplett orphan, 4 Iter partial wired, 12 Iter vollstaendig
+  verdrahtet. Folge-Iter 29a-29x schliessen die Luecken.
+
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 6)
 - **Iter 29 — Markdown-Export (E15).**
   Neue reine Funktion `format_findings_markdown(findings)` in
