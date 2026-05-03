@@ -131,13 +131,35 @@ test.describe("Settings-Tab", () => {
     await reqPromise;
   });
 
-  // F-006 — Remediation-Hook-Edit fehlt im UI UND Backend.
-  test.fixme("F-006: Remediation-Hook-Zeilen haben 'Edit'-Knopf, der PUT /remediation-hooks/{id} ausloest", async ({ page }) => {
+  // F-006 — Remediation-Hook-Edit + Toggle in Iter +5 hinzugefuegt.
+  test("F-006: Remediation-Hook-Zeilen haben 'Bearbeiten'-Knopf, der PUT /remediation-hooks/{id} ausloest", async ({ page }) => {
     const settings = page.locator("messagehub-panel >> settings-view");
     await settings.locator("button.tab", { hasText: "Auto-Remediation" }).click();
     const firstRow = settings.locator("remediation-view tbody tr").first();
     if ((await firstRow.count()) === 0) test.skip(true, "Keine Hooks — Test ueberspringen");
-    const editButton = firstRow.locator('button:has-text("Edit"), button:has-text("Bearbeiten")');
+    const editButton = firstRow.locator('button:has-text("Bearbeiten")');
     await expect(editButton).toBeVisible({ timeout: 3000 });
+    await editButton.click();
+    const saveBtn = firstRow.locator('button:has-text("Speichern")');
+    await expect(saveBtn).toBeVisible();
+    const reqPromise = page.waitForRequest(
+      (r) => r.method() === "PUT" && r.url().includes("/api/messagehub/remediation-hooks/")
+    );
+    await saveBtn.click();
+    await reqPromise;
+  });
+
+  test("F-006: Remediation-Hook-Zeilen haben Pause/Aktivieren-Toggle", async ({ page }) => {
+    const settings = page.locator("messagehub-panel >> settings-view");
+    await settings.locator("button.tab", { hasText: "Auto-Remediation" }).click();
+    const firstRow = settings.locator("remediation-view tbody tr").first();
+    if ((await firstRow.count()) === 0) test.skip(true, "Keine Hooks — Test ueberspringen");
+    const toggle = firstRow.locator('button:has-text("Pause"), button:has-text("Aktivieren")');
+    await expect(toggle).toBeVisible({ timeout: 3000 });
+    const reqPromise = page.waitForRequest(
+      (r) => r.method() === "PUT" && r.url().includes("/api/messagehub/remediation-hooks/")
+    );
+    await toggle.click();
+    await reqPromise;
   });
 });

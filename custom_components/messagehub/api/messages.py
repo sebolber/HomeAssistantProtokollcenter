@@ -1175,6 +1175,69 @@ class RemediationHookDetailView(_RequireAdminView):
     url = "/api/messagehub/remediation-hooks/{hook_id}"
     name = "api:messagehub:remediation-hook-detail"
 
+    async def put(self, request: web.Request, hook_id: str) -> web.Response:
+        """F-006: ID-stabiles Update eines Remediation-Hooks.
+
+        Body akzeptiert dieselben Felder wie POST. Existenz wird geprueft —
+        404 bei unbekannter ID. Audit-Log: action='remediation_update'.
+        """
+        from ..processing.remediation_repo import (  # noqa: PLC0415
+            RemediationHook,
+            RemediationHookRepository,
+        )
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
+        try:
+            hid = int(hook_id)
+        except ValueError:
+            return self.json_message(_ERR_INVALID_ID, status_code=400)
+        repo = RemediationHookRepository(db)
+        # Existenz-Check schuetzt vor Silent-Update mit nicht existenter ID.
+        existing = next((h for h in await repo.list_all() if h.id == hid), None)
+        if existing is None:
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
+        try:
+            data = await request.json()
+            updated = RemediationHook(
+                id=hid,
+                name=str(data["name"]),
+                source_pattern=str(data["source_pattern"]),
+                fingerprint=data.get("fingerprint"),
+                automation_id=str(data["automation_id"]),
+                confirm_required=bool(data.get("confirm_required", True)),
+                enabled=bool(data.get("enabled", True)),
+            )
+            await repo.update(updated)
+        except (KeyError, ValueError, TypeError) as err:
+            return self.json_message(f"invalid: {err}", status_code=400)
+        await _audit(
+            hass,
+            request,
+            action="remediation_update",
+            target_type="remediation_hook",
+            target_id=hook_id,
+            details={
+                "name": updated.name,
+                "enabled": updated.enabled,
+                "confirm_required": updated.confirm_required,
+            },
+        )
+        return self.json(
+            {
+                "id": updated.id,
+                "name": updated.name,
+                "source_pattern": updated.source_pattern,
+                "fingerprint": updated.fingerprint,
+                "automation_id": updated.automation_id,
+                "confirm_required": updated.confirm_required,
+                "enabled": updated.enabled,
+            }
+        )
+
     async def delete(self, request: web.Request, hook_id: str) -> web.Response:
         from ..processing.remediation_repo import RemediationHookRepository  # noqa: PLC0415
 

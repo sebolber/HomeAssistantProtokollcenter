@@ -7,6 +7,16 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Anbindungs-Audit Sprint 1+2)
+- **Iter +5 / F-006 — Auto-Remediation-Hook-Edit + Toggle.** Hook-
+  Zeilen im Settings-Tab haben jetzt einen „Bearbeiten"-Knopf
+  (Inline-Edit fuer Name, Source-Pattern, Automation-ID, Auto-Modus,
+  Aktiv-Flag) und einen separaten „Pause/Aktivieren"-Toggle. Beide
+  Aktionen rufen den neuen Backend-Endpoint
+  `PUT /api/messagehub/remediation-hooks/{id}` (`RemediationHookDetailView.put`)
+  mit Existenz-Check (404 bei unbekannter ID), Admin-Pflicht und
+  Audit-Log (`remediation_update`). Repository-Methode `update()` war
+  schon vorhanden, der API-Wrapper fehlte. Pause-Toggle ist confirm-
+  frei, Loeschen bleibt confirm-pflichtig. Behebt Audit-Finding F-006.
 - **Iter +4 / F-005 — Heartbeat-Lifecycle-Verwaltung.** Heartbeat-
   Quellen-Zeilen im Settings-Tab haben jetzt einen „Pause/Aktivieren"-
   Toggle und einen „Loeschen"-Knopf (mit Confirm). Backend bekommt eine
