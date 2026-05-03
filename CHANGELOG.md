@@ -7,6 +7,13 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (Recommendation-Engine)
+- **Iter L5.0 / Sprint Recommendations — User-Doku.**
+  Neue Doku `docs/messagehub_knx_recommendations.md` (~250 Zeilen)
+  mit Schnellstart, Erklaerung der 4-Layer-Pipeline, Anleitung zur
+  Geraete-Profil-Pflege, vollstaendigem Setup-Guide fuer KI-
+  Empfehlungen (Anbieter-Tabelle inkl. URL-Praefixe fuer OpenAI,
+  Azure, Ollama, Groq, LiteLLM, LM Studio, Together), Sicherheits-
+  Pyramide-Erklaerung, Backend-API-Vertrag, FAQ.
 - **Iter L4.4 / Sprint Recommendations — E2E Layer-4-Pipeline.**
   Vollstaendiger Round-Trip-Test mit echter SQLite, persistentem
   Cache-Repo und einem deterministischen Mock-Provider (`_CountingProvider`)
