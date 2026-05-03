@@ -7,6 +7,13 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 4)
+- **Iter 23 — i18n fuer Phase-4-Findings.**
+  Title, Description (mit Evidence-Platzhaltern wie `{silence_until}`,
+  `{burst_count}`, `{ratio}`, `{repeats_per_day}`) und Help-URL pro
+  Code in allen sechs Sprachen (de/en/es/fr/it/nl) fuer
+  RECONNECT_STORM, SEND_CYCLE_DRIFT, REPEAT_APPROXIMATION. Frontend-
+  Helper ergaenzt um diese Codes; Tests erweitern parametrize um
+  Phase-4-Codes.
 - **Iter 22 — Detector `REPEAT_APPROXIMATION`.**
   Approximiert das Repeat-Bit, das wir ohne xknx-Layer-2-Zugriff nicht
   sehen koennen: identisches Telegramm mit Δt < 100 ms auf gleicher GA

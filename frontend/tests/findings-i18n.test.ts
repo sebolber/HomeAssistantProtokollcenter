@@ -128,3 +128,53 @@ describe("findings-i18n Iter 19: Phase 3 Codes", () => {
     expect(description).toContain("10.001");
   });
 });
+
+describe("findings-i18n Iter 23: Phase 4 Codes", () => {
+  it.each([
+    "RECONNECT_STORM",
+    "SEND_CYCLE_DRIFT",
+    "REPEAT_APPROXIMATION",
+  ])("hat Title in DE und EN: %s", (code) => {
+    const titleDe = getFindingTitle(code, "de");
+    const titleEn = getFindingTitle(code, "en");
+    expect(titleDe).not.toEqual("");
+    expect(titleEn).not.toEqual("");
+    expect(titleDe).not.toEqual(titleEn);
+  });
+
+  it("rendert RECONNECT_STORM-Description mit silence_until + burst_count", () => {
+    const description = getFindingDescription(
+      "RECONNECT_STORM",
+      "de",
+      {
+        silence_until: "2026-05-03T08:00:00",
+        burst_count: 50,
+        normal_avg: 2,
+        factor: 25,
+      }
+    );
+    expect(description).toContain("2026-05-03T08:00:00");
+    expect(description).toContain("50");
+  });
+
+  it("rendert SEND_CYCLE_DRIFT-Description mit Verhaeltnis", () => {
+    const description = getFindingDescription(
+      "SEND_CYCLE_DRIFT",
+      "de",
+      { recent_median_dt: 25, baseline_median_dt: 60, ratio: 0.42 }
+    );
+    expect(description).toContain("25");
+    expect(description).toContain("60");
+    expect(description).toContain("0.42");
+  });
+
+  it("rendert REPEAT_APPROXIMATION-Description mit Tagen + Anzahl", () => {
+    const description = getFindingDescription(
+      "REPEAT_APPROXIMATION",
+      "en",
+      { total_repeats: 12, period_days: 1, repeats_per_day: 12 }
+    );
+    expect(description).toContain("12");
+    expect(description).toContain("1");
+  });
+});

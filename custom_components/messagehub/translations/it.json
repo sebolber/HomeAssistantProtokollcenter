@@ -81,6 +81,21 @@
         "title": "Più master di tempo sullo stesso indirizzo di gruppo",
         "description": "{sources} scrivono insieme su una GA con DPT {clock_dpt}. Sorgenti di tempo duplicate causano deriva — configura un solo dispositivo come master del tempo.",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
+      },
+      "RECONNECT_STORM": {
+        "title": "Tempesta di riconnessione dopo silenzio del bus",
+        "description": "Dopo silenzio fino a {silence_until} la sorgente ha prodotto una raffica: {burst_count} telegrammi nella finestra di 30 s (normale {normal_avg}, fattore {factor}). Tipico di flooding di riconnessione dopo perdita di alimentazione.",
+        "help_url": "https://github.com/home-assistant/core/issues/69328"
+      },
+      "SEND_CYCLE_DRIFT": {
+        "title": "Ciclo di invio notevolmente abbreviato",
+        "description": "Mediana Δt recente {recent_median_dt} s vs. baseline {baseline_median_dt} s — rapporto {ratio}. Ciclo di invio dimezzato; probabilmente isteresi modificata o sensore difettoso.",
+        "help_url": "https://knx-blogger.de/was-ist-auf-deinem-knx-bus-los/"
+      },
+      "REPEAT_APPROXIMATION": {
+        "title": "Sospette ripetizioni di telegramma",
+        "description": "{total_repeats} telegrammi consecutivi identici con Δt < 100 ms su {period_days} giorni (~ {repeats_per_day}/giorno). Approssimazione del bit di ripetizione — confermare tramite tracer xknx (BL-D) quando disponibile.",
+        "help_url": "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung"
       }
     }
   }

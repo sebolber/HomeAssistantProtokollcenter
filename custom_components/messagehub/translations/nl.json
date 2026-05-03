@@ -81,6 +81,21 @@
         "title": "Meerdere tijdmasters op hetzelfde groepsadres",
         "description": "{sources} schrijven samen op een GA met DPT {clock_dpt}. Dubbele tijdbronnen veroorzaken drift — configureer slechts één apparaat als tijdmaster.",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
+      },
+      "RECONNECT_STORM": {
+        "title": "Reconnect-storm na busstilte",
+        "description": "Na stilte tot {silence_until} produceerde de bron een burst: {burst_count} telegrammen in het 30-s-venster (normaal {normal_avg}, factor {factor}). Typisch voor reconnect-floods na bus-spanningsverlies.",
+        "help_url": "https://github.com/home-assistant/core/issues/69328"
+      },
+      "SEND_CYCLE_DRIFT": {
+        "title": "Verzendcyclus aanzienlijk verkort",
+        "description": "Recente mediaan Δt {recent_median_dt} s vs. baseline {baseline_median_dt} s — verhouding {ratio}. Verzendcyclus gehalveerd; waarschijnlijk hysterese aangepast of sensor defect.",
+        "help_url": "https://knx-blogger.de/was-ist-auf-deinem-knx-bus-los/"
+      },
+      "REPEAT_APPROXIMATION": {
+        "title": "Vermoedelijke telegram-herhalingen",
+        "description": "{total_repeats} identieke opeenvolgende telegrammen met Δt < 100 ms over {period_days} dagen (~ {repeats_per_day}/dag). Benadering van de repeat-bit — bevestig via xknx-tracer (BL-D) indien beschikbaar.",
+        "help_url": "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung"
       }
     }
   }

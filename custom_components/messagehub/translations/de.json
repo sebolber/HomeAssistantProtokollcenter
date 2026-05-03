@@ -81,6 +81,21 @@
         "title": "Mehrere Zeit-Master auf gleicher GA",
         "description": "{sources} schreiben gemeinsam auf eine GA mit DPT {clock_dpt}. Doppelte Zeitquellen erzeugen Drift — nur ein Geraet als Time-Master konfigurieren.",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
+      },
+      "RECONNECT_STORM": {
+        "title": "Reconnect-Sturm nach Bus-Stille",
+        "description": "Nach einer Stille bis {silence_until} feuerte die Quelle einen Burst: {burst_count} Telegramme im 30-s-Fenster (Schnitt sonst {normal_avg}, Faktor {factor}). Typisch fuer Reconnect-Floods nach Bus-Spannungsausfall.",
+        "help_url": "https://github.com/home-assistant/core/issues/69328"
+      },
+      "SEND_CYCLE_DRIFT": {
+        "title": "Sendezyklus deutlich verkuerzt",
+        "description": "Median-Δt der letzten Periode {recent_median_dt} s vs. Vergleichszeitraum {baseline_median_dt} s — Verhaeltnis {ratio}. Sendezyklus halbiert; vermutlich Hysterese verstellt oder Sensorik defekt.",
+        "help_url": "https://knx-blogger.de/was-ist-auf-deinem-knx-bus-los/"
+      },
+      "REPEAT_APPROXIMATION": {
+        "title": "Vermutete Telegrammwiederholungen",
+        "description": "{total_repeats} identische Folge-Telegramme mit Δt < 100 ms ueber {period_days} Tage (~ {repeats_per_day}/Tag). Approximation des Repeat-Bits — bestaetigen via xknx-Tracer (BL-D), wenn verfuegbar.",
+        "help_url": "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung"
       }
     }
   }

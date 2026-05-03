@@ -78,6 +78,33 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
       help_url:
         "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types",
     },
+    RECONNECT_STORM: {
+      title: "Reconnect-Sturm nach Bus-Stille",
+      description:
+        "Nach einer Stille bis {silence_until} feuerte die Quelle einen " +
+        "Burst: {burst_count} Telegramme im 30-s-Fenster (Schnitt sonst " +
+        "{normal_avg}, Faktor {factor}). Typisch fuer Reconnect-Floods " +
+        "nach Bus-Spannungsausfall.",
+      help_url: "https://github.com/home-assistant/core/issues/69328",
+    },
+    SEND_CYCLE_DRIFT: {
+      title: "Sendezyklus deutlich verkuerzt",
+      description:
+        "Median-Δt der letzten Periode {recent_median_dt} s vs. " +
+        "Vergleichszeitraum {baseline_median_dt} s — Verhaeltnis {ratio}. " +
+        "Sendezyklus halbiert; vermutlich Hysterese verstellt oder " +
+        "Sensorik defekt.",
+      help_url: "https://knx-blogger.de/was-ist-auf-deinem-knx-bus-los/",
+    },
+    REPEAT_APPROXIMATION: {
+      title: "Vermutete Telegrammwiederholungen",
+      description:
+        "{total_repeats} identische Folge-Telegramme mit Δt < 100 ms ueber " +
+        "{period_days} Tage (~ {repeats_per_day}/Tag). Approximation des " +
+        "Repeat-Bits — bestaetigen via xknx-Tracer (BL-D), wenn verfuegbar.",
+      help_url:
+        "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung",
+    },
   },
   en: {
     DPT_MISMATCH: {
@@ -128,6 +155,31 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
         "time sources cause drift — configure only one device as time master.",
       help_url:
         "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types",
+    },
+    RECONNECT_STORM: {
+      title: "Reconnect storm after bus silence",
+      description:
+        "After silence until {silence_until} the source produced a burst: " +
+        "{burst_count} telegrams in the 30s window (normal {normal_avg}, " +
+        "factor {factor}). Typical for reconnect floods after bus power loss.",
+      help_url: "https://github.com/home-assistant/core/issues/69328",
+    },
+    SEND_CYCLE_DRIFT: {
+      title: "Send cycle significantly shortened",
+      description:
+        "Recent median Δt {recent_median_dt} s vs. baseline " +
+        "{baseline_median_dt} s — ratio {ratio}. Send cycle halved; " +
+        "likely a changed hysteresis or faulty sensor.",
+      help_url: "https://knx-blogger.de/was-ist-auf-deinem-knx-bus-los/",
+    },
+    REPEAT_APPROXIMATION: {
+      title: "Suspected telegram repeats",
+      description:
+        "{total_repeats} identical follow-up telegrams with Δt < 100 ms " +
+        "across {period_days} days (~ {repeats_per_day}/day). Approximation " +
+        "of the repeat bit — confirm via xknx tracer (BL-D) when available.",
+      help_url:
+        "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung",
     },
   },
 };
