@@ -7,6 +7,10 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (KNX-Konfigurations-Findings, Phase 5)
+- **Iter 25 — Detector `STALE_GA`.**
+  Erkennt: GA war frueher aktiv, ist seit >= `threshold_days` (Default
+  30) tot. Severity `info`, Evidence `{last_seen, days_silent}`.
+  Threshold ueberschreibbar pro Aufruf. days_silent als int gerundet.
 - **Iter 24 — Detector `ORPHAN_GA`.**
   Erkennt Whitelist-Eintraege, die im Auswertezeitraum kein einziges
   Telegramm gesehen haben (`telegram_count == 0`) — "im Projekt, aber
