@@ -24,6 +24,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   `list_findings(code, ga, severity, source, limit)` mit
   `last_seen DESC`-Sortierung. title/description sind nicht
   persistiert (UI rendert via translations/).
+- **Iter 3 — `knx_finding_acknowledgements` + Auto-Expire.**
+  Whitelist-Granularitaet `(GA, finding_code)`: ein Multi-Responder-
+  Ack auf 1/2/3 schliesst DPT-Mismatch auf derselben GA NICHT mit
+  ein. Default `expires_at = +90 Tage` (`DEFAULT_KNX_ACK_EXPIRY_DAYS`),
+  `sticky=True` setzt es auf NULL fuer dauerhafte Unterdrueckung.
+  `acknowledge` / `unacknowledge` schreiben einen `audit_log`-Eintrag
+  mit `target_type='knx_finding_ack'`. Migration
+  `0025_knx_finding_acks.sql` mit Partial-Index ueber endliche
+  expires_at-Werte.
 
 ## [0.18.0] – 2026-05-03
 

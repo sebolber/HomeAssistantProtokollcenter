@@ -14,9 +14,10 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from ..const import DEFAULT_KNX_ACK_EXPIRY_DAYS
 from ..processing.findings import (
     FINDING_SEVERITIES,
     Finding,
@@ -117,6 +118,165 @@ class FindingsRepository:
         params = (*params, limit)
         rows = await self._db.fetch_all(sql, params)
         return [_row_to_finding(dict(r)) for r in rows]
+
+    # ------------------------------------------------------------------
+    # Iter 3: Acknowledgements (siehe §9.4)
+    # ------------------------------------------------------------------
+
+    async def acknowledge(
+        self,
+        *,
+        ga: str,
+        code: str,
+        actor: str,
+        note: str | None = None,
+        expires_at: datetime | None = None,
+        sticky: bool = False,
+    ) -> None:
+        """Markiert ein Finding pro `(ga, code)` als bekannt/akzeptiert.
+
+        Default: laeuft nach `DEFAULT_KNX_ACK_EXPIRY_DAYS` Tagen ab.
+        Mit `sticky=True` permanent (expires_at IS NULL); mit explizitem
+        `expires_at` benutzerdefiniert.
+
+        Schreibt einen `audit_log`-Eintrag mit `action='ack-finding'`.
+        """
+        ack_at = datetime.now(UTC).isoformat(timespec="seconds")
+        expires = _resolve_expires_at(expires_at, sticky=sticky)
+        await self._db.execute(
+            """
+            INSERT INTO knx_finding_acknowledgements
+                (ga, finding_code, acknowledged_at, expires_at, note, schema_version)
+            VALUES (?, ?, ?, ?, ?, 1)
+            ON CONFLICT (ga, finding_code) DO UPDATE SET
+                acknowledged_at = excluded.acknowledged_at,
+                expires_at = excluded.expires_at,
+                note = excluded.note
+            """,
+            (ga, code, ack_at, expires, note),
+        )
+        await self._write_ack_audit(
+            actor=actor,
+            action="ack-finding",
+            ga=ga,
+            code=code,
+            note=note,
+            expires_at=expires,
+            sticky=sticky,
+        )
+
+    async def unacknowledge(self, *, ga: str, code: str, actor: str) -> None:
+        """Entfernt einen Ack und schreibt einen Audit-Log-Eintrag.
+
+        Idempotent: das DELETE ist auch bei nicht existierendem Row OK.
+        Audit-Eintrag wird trotzdem geschrieben — er dokumentiert den
+        Versuch, was bei UI-Doppelklicks und Race-Conditions hilfreich ist.
+        """
+        await self._db.execute(
+            "DELETE FROM knx_finding_acknowledgements "
+            "WHERE ga = ? AND finding_code = ?",
+            (ga, code),
+        )
+        await self._write_ack_audit(
+            actor=actor,
+            action="unack-finding",
+            ga=ga,
+            code=code,
+            note=None,
+            expires_at=None,
+            sticky=False,
+        )
+
+    async def is_acknowledged(
+        self,
+        *,
+        ga: str,
+        code: str,
+        now: datetime | None = None,
+    ) -> bool:
+        """True, wenn ein gueltiger (nicht abgelaufener) Ack existiert.
+
+        Sticky-Acks (expires_at IS NULL) sind immer aktiv.
+        """
+        ts = (now or datetime.now(UTC)).isoformat(timespec="seconds")
+        row = await self._db.fetch_one(
+            "SELECT expires_at FROM knx_finding_acknowledgements "
+            "WHERE ga = ? AND finding_code = ? "
+            "AND (expires_at IS NULL OR expires_at > ?)",
+            (ga, code, ts),
+        )
+        return row is not None
+
+    async def list_acknowledgements(self) -> list[dict[str, Any]]:
+        """UI-Sicht: alle Acks, sortiert nach acknowledged_at DESC."""
+        rows = await self._db.fetch_all(
+            "SELECT ga, finding_code, acknowledged_at, expires_at, note, "
+            "schema_version "
+            "FROM knx_finding_acknowledgements "
+            "ORDER BY acknowledged_at DESC"
+        )
+        return [
+            {
+                "ga": str(r["ga"]),
+                "finding_code": str(r["finding_code"]),
+                "acknowledged_at": str(r["acknowledged_at"]),
+                "expires_at": r["expires_at"],
+                "note": r["note"],
+                "schema_version": int(r["schema_version"]),
+            }
+            for r in rows
+        ]
+
+    async def _write_ack_audit(
+        self,
+        *,
+        actor: str,
+        action: str,
+        ga: str,
+        code: str,
+        note: str | None,
+        expires_at: str | None,
+        sticky: bool,
+    ) -> None:
+        """Schreibt einen Audit-Log-Eintrag fuer eine Ack/Unack-Operation."""
+        details = {
+            "ga": ga,
+            "code": code,
+            "note": note,
+            "expires_at": expires_at,
+            "sticky": sticky,
+        }
+        await self._db.execute(
+            "INSERT INTO audit_log "
+            "(timestamp, actor, action, target_type, target_id, details) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                datetime.now(UTC).isoformat(timespec="seconds"),
+                actor,
+                action,
+                "knx_finding_ack",
+                f"{ga}:{code}",
+                json.dumps(details),
+            ),
+        )
+
+
+def _resolve_expires_at(
+    explicit: datetime | None,
+    *,
+    sticky: bool,
+) -> str | None:
+    """Bestimmt den expires_at-Wert nach Auswahl (sticky | explicit | default).
+
+    Reihenfolge: sticky -> NULL; explicit -> dessen ISO-String; sonst
+    `now() + DEFAULT_KNX_ACK_EXPIRY_DAYS`.
+    """
+    if sticky:
+        return None
+    if explicit is not None:
+        return explicit.isoformat(timespec="seconds")
+    default_expires = datetime.now(UTC) + timedelta(days=DEFAULT_KNX_ACK_EXPIRY_DAYS)
+    return default_expires.isoformat(timespec="seconds")
 
 
 def _build_list_query(
