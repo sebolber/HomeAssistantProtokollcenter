@@ -675,6 +675,67 @@ class HeartbeatsView(_RequireAdminView):
         return self.json_message("ok")
 
 
+class HeartbeatDetailView(_RequireAdminView):
+    """F-005: Lifecycle-Endpoints fuer einzelne Heartbeat-Sources.
+
+    DELETE /api/messagehub/heartbeats/{source} — Eintrag entfernen,
+        anschliessend feuert der Heartbeat-Job keine Silent-Warnings
+        mehr.
+    PATCH  /api/messagehub/heartbeats/{source}  Body {"enabled": bool}
+        — Eintrag bleibt erhalten, aber temporaer aus dem Tracking
+        ausgeklinkt (z. B. Wartungs-Modus).
+
+    Beide Aktionen werden im Audit-Log dokumentiert.
+    """
+
+    url = "/api/messagehub/heartbeats/{source}"
+    name = "api:messagehub:heartbeat-detail"
+
+    async def delete(self, request: web.Request, source: str) -> web.Response:
+        from ..processing.heartbeat import HeartbeatRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
+        if not await HeartbeatRepository(db).delete(source):
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
+        await _audit(
+            hass,
+            request,
+            action="heartbeat_delete",
+            target_type="heartbeat",
+            target_id=source,
+        )
+        return self.json_message("deleted")
+
+    async def patch(self, request: web.Request, source: str) -> web.Response:
+        from ..processing.heartbeat import HeartbeatRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        hass = request.app["hass"]
+        db = _get_database(hass)
+        if db is None:
+            return self.json_message(_ERR_NOT_INITIALISED, status_code=503)
+        try:
+            data = await request.json()
+            enabled = bool(data["enabled"])
+        except (KeyError, ValueError, TypeError):
+            return self.json_message("body.enabled required (bool)", status_code=400)
+        if not await HeartbeatRepository(db).set_enabled(source, enabled):
+            return self.json_message(_ERR_NOT_FOUND, status_code=404)
+        await _audit(
+            hass,
+            request,
+            action="heartbeat_set_enabled",
+            target_type="heartbeat",
+            target_id=source,
+            details={"enabled": enabled},
+        )
+        return self.json({"source": source, "enabled": enabled})
+
+
 # KNX-Views liegen jetzt in api/knx.py (R11) — Import oben.
 
 
@@ -1371,6 +1432,7 @@ def async_register_views(hass: HomeAssistant) -> None:
         SavedFiltersView,
         SavedFilterDetailView,
         HeartbeatsView,
+        HeartbeatDetailView,
         SourcesView,
         StatsView,
         WebhooksView,

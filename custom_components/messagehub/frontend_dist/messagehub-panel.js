@@ -5,16 +5,16 @@
  */
 const De = globalThis, Ye = De.ShadowRoot && (De.ShadyCSS === void 0 || De.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, Ze = Symbol(), rt = /* @__PURE__ */ new WeakMap();
 let Rt = class {
-  constructor(t, s, r) {
-    if (this._$cssResult$ = !0, r !== Ze) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
+  constructor(t, s, a) {
+    if (this._$cssResult$ = !0, a !== Ze) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
     this.cssText = t, this.t = s;
   }
   get styleSheet() {
     let t = this.o;
     const s = this.t;
     if (Ye && t === void 0) {
-      const r = s !== void 0 && s.length === 1;
-      r && (t = rt.get(s)), t === void 0 && ((this.o = t = new CSSStyleSheet()).replaceSync(this.cssText), r && rt.set(s, t));
+      const a = s !== void 0 && s.length === 1;
+      a && (t = rt.get(s)), t === void 0 && ((this.o = t = new CSSStyleSheet()).replaceSync(this.cssText), a && rt.set(s, t));
     }
     return t;
   }
@@ -23,21 +23,21 @@ let Rt = class {
   }
 };
 const es = (e) => new Rt(typeof e == "string" ? e : e + "", void 0, Ze), y = (e, ...t) => {
-  const s = e.length === 1 ? e[0] : t.reduce((r, a, n) => r + ((o) => {
+  const s = e.length === 1 ? e[0] : t.reduce((a, r, n) => a + ((o) => {
     if (o._$cssResult$ === !0) return o.cssText;
     if (typeof o == "number") return o;
     throw Error("Value passed to 'css' function must be a 'css' function result: " + o + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
-  })(a) + e[n + 1], e[0]);
+  })(r) + e[n + 1], e[0]);
   return new Rt(s, e, Ze);
 }, ts = (e, t) => {
   if (Ye) e.adoptedStyleSheets = t.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
   else for (const s of t) {
-    const r = document.createElement("style"), a = De.litNonce;
-    a !== void 0 && r.setAttribute("nonce", a), r.textContent = s.cssText, e.appendChild(r);
+    const a = document.createElement("style"), r = De.litNonce;
+    r !== void 0 && a.setAttribute("nonce", r), a.textContent = s.cssText, e.appendChild(a);
   }
 }, it = Ye ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((t) => {
   let s = "";
-  for (const r of t.cssRules) s += r.cssText;
+  for (const a of t.cssRules) s += a.cssText;
   return es(s);
 })(e) : e;
 /**
@@ -45,7 +45,7 @@ const es = (e) => new Rt(typeof e == "string" ? e : e + "", void 0, Ze), y = (e,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: ss, defineProperty: as, getOwnPropertyDescriptor: rs, getOwnPropertyNames: is, getOwnPropertySymbols: ns, getPrototypeOf: os } = Object, G = globalThis, nt = G.trustedTypes, ls = nt ? nt.emptyScript : "", Ue = G.reactiveElementPolyfillSupport, _e = (e, t) => e, ze = { toAttribute(e, t) {
+const { is: ss, defineProperty: as, getOwnPropertyDescriptor: rs, getOwnPropertyNames: is, getOwnPropertySymbols: ns, getPrototypeOf: os } = Object, G = globalThis, nt = G.trustedTypes, ls = nt ? nt.emptyScript : "", He = G.reactiveElementPolyfillSupport, _e = (e, t) => e, ze = { toAttribute(e, t) {
   switch (t) {
     case Boolean:
       e = e ? ls : null;
@@ -84,19 +84,19 @@ let oe = class extends HTMLElement {
   }
   static createProperty(t, s = ot) {
     if (s.state && (s.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(t) && ((s = Object.create(s)).wrapped = !0), this.elementProperties.set(t, s), !s.noAccessor) {
-      const r = Symbol(), a = this.getPropertyDescriptor(t, r, s);
-      a !== void 0 && as(this.prototype, t, a);
+      const a = Symbol(), r = this.getPropertyDescriptor(t, a, s);
+      r !== void 0 && as(this.prototype, t, r);
     }
   }
-  static getPropertyDescriptor(t, s, r) {
-    const { get: a, set: n } = rs(this.prototype, t) ?? { get() {
+  static getPropertyDescriptor(t, s, a) {
+    const { get: r, set: n } = rs(this.prototype, t) ?? { get() {
       return this[s];
     }, set(o) {
       this[s] = o;
     } };
-    return { get: a, set(o) {
-      const d = a == null ? void 0 : a.call(this);
-      n == null || n.call(this, o), this.requestUpdate(t, d, r);
+    return { get: r, set(o) {
+      const d = r == null ? void 0 : r.call(this);
+      n == null || n.call(this, o), this.requestUpdate(t, d, a);
     }, configurable: !0, enumerable: !0 };
   }
   static getPropertyOptions(t) {
@@ -110,32 +110,32 @@ let oe = class extends HTMLElement {
   static finalize() {
     if (this.hasOwnProperty(_e("finalized"))) return;
     if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(_e("properties"))) {
-      const s = this.properties, r = [...is(s), ...ns(s)];
-      for (const a of r) this.createProperty(a, s[a]);
+      const s = this.properties, a = [...is(s), ...ns(s)];
+      for (const r of a) this.createProperty(r, s[r]);
     }
     const t = this[Symbol.metadata];
     if (t !== null) {
       const s = litPropertyMetadata.get(t);
-      if (s !== void 0) for (const [r, a] of s) this.elementProperties.set(r, a);
+      if (s !== void 0) for (const [a, r] of s) this.elementProperties.set(a, r);
     }
     this._$Eh = /* @__PURE__ */ new Map();
-    for (const [s, r] of this.elementProperties) {
-      const a = this._$Eu(s, r);
-      a !== void 0 && this._$Eh.set(a, s);
+    for (const [s, a] of this.elementProperties) {
+      const r = this._$Eu(s, a);
+      r !== void 0 && this._$Eh.set(r, s);
     }
     this.elementStyles = this.finalizeStyles(this.styles);
   }
   static finalizeStyles(t) {
     const s = [];
     if (Array.isArray(t)) {
-      const r = new Set(t.flat(1 / 0).reverse());
-      for (const a of r) s.unshift(it(a));
+      const a = new Set(t.flat(1 / 0).reverse());
+      for (const r of a) s.unshift(it(r));
     } else t !== void 0 && s.push(it(t));
     return s;
   }
   static _$Eu(t, s) {
-    const r = s.attribute;
-    return r === !1 ? void 0 : typeof r == "string" ? r : typeof t == "string" ? t.toLowerCase() : void 0;
+    const a = s.attribute;
+    return a === !1 ? void 0 : typeof a == "string" ? a : typeof t == "string" ? t.toLowerCase() : void 0;
   }
   constructor() {
     super(), this._$Ep = void 0, this.isUpdatePending = !1, this.hasUpdated = !1, this._$Em = null, this._$Ev();
@@ -154,7 +154,7 @@ let oe = class extends HTMLElement {
   }
   _$E_() {
     const t = /* @__PURE__ */ new Map(), s = this.constructor.elementProperties;
-    for (const r of s.keys()) this.hasOwnProperty(r) && (t.set(r, this[r]), delete this[r]);
+    for (const a of s.keys()) this.hasOwnProperty(a) && (t.set(a, this[a]), delete this[a]);
     t.size > 0 && (this._$Ep = t);
   }
   createRenderRoot() {
@@ -164,8 +164,8 @@ let oe = class extends HTMLElement {
   connectedCallback() {
     var t;
     this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this.enableUpdating(!0), (t = this._$EO) == null || t.forEach((s) => {
-      var r;
-      return (r = s.hostConnected) == null ? void 0 : r.call(s);
+      var a;
+      return (a = s.hostConnected) == null ? void 0 : a.call(s);
     });
   }
   enableUpdating(t) {
@@ -173,42 +173,42 @@ let oe = class extends HTMLElement {
   disconnectedCallback() {
     var t;
     (t = this._$EO) == null || t.forEach((s) => {
-      var r;
-      return (r = s.hostDisconnected) == null ? void 0 : r.call(s);
+      var a;
+      return (a = s.hostDisconnected) == null ? void 0 : a.call(s);
     });
   }
-  attributeChangedCallback(t, s, r) {
-    this._$AK(t, r);
+  attributeChangedCallback(t, s, a) {
+    this._$AK(t, a);
   }
   _$ET(t, s) {
     var n;
-    const r = this.constructor.elementProperties.get(t), a = this.constructor._$Eu(t, r);
-    if (a !== void 0 && r.reflect === !0) {
-      const o = (((n = r.converter) == null ? void 0 : n.toAttribute) !== void 0 ? r.converter : ze).toAttribute(s, r.type);
-      this._$Em = t, o == null ? this.removeAttribute(a) : this.setAttribute(a, o), this._$Em = null;
+    const a = this.constructor.elementProperties.get(t), r = this.constructor._$Eu(t, a);
+    if (r !== void 0 && a.reflect === !0) {
+      const o = (((n = a.converter) == null ? void 0 : n.toAttribute) !== void 0 ? a.converter : ze).toAttribute(s, a.type);
+      this._$Em = t, o == null ? this.removeAttribute(r) : this.setAttribute(r, o), this._$Em = null;
     }
   }
   _$AK(t, s) {
     var n, o;
-    const r = this.constructor, a = r._$Eh.get(t);
-    if (a !== void 0 && this._$Em !== a) {
-      const d = r.getPropertyOptions(a), h = typeof d.converter == "function" ? { fromAttribute: d.converter } : ((n = d.converter) == null ? void 0 : n.fromAttribute) !== void 0 ? d.converter : ze;
-      this._$Em = a;
+    const a = this.constructor, r = a._$Eh.get(t);
+    if (r !== void 0 && this._$Em !== r) {
+      const d = a.getPropertyOptions(r), h = typeof d.converter == "function" ? { fromAttribute: d.converter } : ((n = d.converter) == null ? void 0 : n.fromAttribute) !== void 0 ? d.converter : ze;
+      this._$Em = r;
       const m = h.fromAttribute(s, d.type);
-      this[a] = m ?? ((o = this._$Ej) == null ? void 0 : o.get(a)) ?? m, this._$Em = null;
+      this[r] = m ?? ((o = this._$Ej) == null ? void 0 : o.get(r)) ?? m, this._$Em = null;
     }
   }
-  requestUpdate(t, s, r, a = !1, n) {
+  requestUpdate(t, s, a, r = !1, n) {
     var o;
     if (t !== void 0) {
       const d = this.constructor;
-      if (a === !1 && (n = this[t]), r ?? (r = d.getPropertyOptions(t)), !((r.hasChanged ?? Xe)(n, s) || r.useDefault && r.reflect && n === ((o = this._$Ej) == null ? void 0 : o.get(t)) && !this.hasAttribute(d._$Eu(t, r)))) return;
-      this.C(t, s, r);
+      if (r === !1 && (n = this[t]), a ?? (a = d.getPropertyOptions(t)), !((a.hasChanged ?? Xe)(n, s) || a.useDefault && a.reflect && n === ((o = this._$Ej) == null ? void 0 : o.get(t)) && !this.hasAttribute(d._$Eu(t, a)))) return;
+      this.C(t, s, a);
     }
     this.isUpdatePending === !1 && (this._$ES = this._$EP());
   }
-  C(t, s, { useDefault: r, reflect: a, wrapped: n }, o) {
-    r && !(this._$Ej ?? (this._$Ej = /* @__PURE__ */ new Map())).has(t) && (this._$Ej.set(t, o ?? s ?? this[t]), n !== !0 || o !== void 0) || (this._$AL.has(t) || (this.hasUpdated || r || (s = void 0), this._$AL.set(t, s)), a === !0 && this._$Em !== t && (this._$Eq ?? (this._$Eq = /* @__PURE__ */ new Set())).add(t));
+  C(t, s, { useDefault: a, reflect: r, wrapped: n }, o) {
+    a && !(this._$Ej ?? (this._$Ej = /* @__PURE__ */ new Map())).has(t) && (this._$Ej.set(t, o ?? s ?? this[t]), n !== !0 || o !== void 0) || (this._$AL.has(t) || (this.hasUpdated || a || (s = void 0), this._$AL.set(t, s)), r === !0 && this._$Em !== t && (this._$Eq ?? (this._$Eq = /* @__PURE__ */ new Set())).add(t));
   }
   async _$EP() {
     this.isUpdatePending = !0;
@@ -224,15 +224,15 @@ let oe = class extends HTMLElement {
     return this.performUpdate();
   }
   performUpdate() {
-    var r;
+    var a;
     if (!this.isUpdatePending) return;
     if (!this.hasUpdated) {
       if (this.renderRoot ?? (this.renderRoot = this.createRenderRoot()), this._$Ep) {
         for (const [n, o] of this._$Ep) this[n] = o;
         this._$Ep = void 0;
       }
-      const a = this.constructor.elementProperties;
-      if (a.size > 0) for (const [n, o] of a) {
+      const r = this.constructor.elementProperties;
+      if (r.size > 0) for (const [n, o] of r) {
         const { wrapped: d } = o, h = this[n];
         d !== !0 || this._$AL.has(n) || h === void 0 || this.C(n, void 0, o, h);
       }
@@ -240,12 +240,12 @@ let oe = class extends HTMLElement {
     let t = !1;
     const s = this._$AL;
     try {
-      t = this.shouldUpdate(s), t ? (this.willUpdate(s), (r = this._$EO) == null || r.forEach((a) => {
+      t = this.shouldUpdate(s), t ? (this.willUpdate(s), (a = this._$EO) == null || a.forEach((r) => {
         var n;
-        return (n = a.hostUpdate) == null ? void 0 : n.call(a);
+        return (n = r.hostUpdate) == null ? void 0 : n.call(r);
       }), this.update(s)) : this._$EM();
-    } catch (a) {
-      throw t = !1, this._$EM(), a;
+    } catch (r) {
+      throw t = !1, this._$EM(), r;
     }
     t && this._$AE(s);
   }
@@ -253,9 +253,9 @@ let oe = class extends HTMLElement {
   }
   _$AE(t) {
     var s;
-    (s = this._$EO) == null || s.forEach((r) => {
-      var a;
-      return (a = r.hostUpdated) == null ? void 0 : a.call(r);
+    (s = this._$EO) == null || s.forEach((a) => {
+      var r;
+      return (r = a.hostUpdated) == null ? void 0 : r.call(a);
     }), this.hasUpdated || (this.hasUpdated = !0, this.firstUpdated(t)), this.updated(t);
   }
   _$EM() {
@@ -278,74 +278,74 @@ let oe = class extends HTMLElement {
   firstUpdated(t) {
   }
 };
-oe.elementStyles = [], oe.shadowRootOptions = { mode: "open" }, oe[_e("elementProperties")] = /* @__PURE__ */ new Map(), oe[_e("finalized")] = /* @__PURE__ */ new Map(), Ue == null || Ue({ ReactiveElement: oe }), (G.reactiveElementVersions ?? (G.reactiveElementVersions = [])).push("2.1.2");
+oe.elementStyles = [], oe.shadowRootOptions = { mode: "open" }, oe[_e("elementProperties")] = /* @__PURE__ */ new Map(), oe[_e("finalized")] = /* @__PURE__ */ new Map(), He == null || He({ ReactiveElement: oe }), (G.reactiveElementVersions ?? (G.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const we = globalThis, lt = (e) => e, Le = we.trustedTypes, dt = Le ? Le.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Mt = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Ut = "?" + j, ds = `<${Ut}>`, Z = document, xe = () => Z.createComment(""), ye = (e) => e === null || typeof e != "object" && typeof e != "function", Qe = Array.isArray, cs = (e) => Qe(e) || typeof (e == null ? void 0 : e[Symbol.iterator]) == "function", He = `[ 	
-\f\r]`, ve = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ct = /-->/g, ht = />/g, V = RegExp(`>|${He}(?:([^\\s"'>=/]+)(${He}*=${He}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), pt = /'/g, ut = /"/g, Ht = /^(?:script|style|textarea|title)$/i, hs = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), i = hs(1), X = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), mt = /* @__PURE__ */ new WeakMap(), J = Z.createTreeWalker(Z, 129);
+const we = globalThis, lt = (e) => e, Le = we.trustedTypes, dt = Le ? Le.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Ut = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Ht = "?" + j, ds = `<${Ht}>`, Z = document, xe = () => Z.createComment(""), ye = (e) => e === null || typeof e != "object" && typeof e != "function", Qe = Array.isArray, cs = (e) => Qe(e) || typeof (e == null ? void 0 : e[Symbol.iterator]) == "function", Me = `[ 	
+\f\r]`, ve = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ct = /-->/g, ht = />/g, V = RegExp(`>|${Me}(?:([^\\s"'>=/]+)(${Me}*=${Me}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`, "g"), pt = /'/g, ut = /"/g, Mt = /^(?:script|style|textarea|title)$/i, hs = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), i = hs(1), X = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), mt = /* @__PURE__ */ new WeakMap(), J = Z.createTreeWalker(Z, 129);
 function Bt(e, t) {
   if (!Qe(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return dt !== void 0 ? dt.createHTML(t) : t;
 }
 const ps = (e, t) => {
-  const s = e.length - 1, r = [];
-  let a, n = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = ve;
+  const s = e.length - 1, a = [];
+  let r, n = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = ve;
   for (let d = 0; d < s; d++) {
     const h = e[d];
     let m, g, u = -1, p = 0;
-    for (; p < h.length && (o.lastIndex = p, g = o.exec(h), g !== null); ) p = o.lastIndex, o === ve ? g[1] === "!--" ? o = ct : g[1] !== void 0 ? o = ht : g[2] !== void 0 ? (Ht.test(g[2]) && (a = RegExp("</" + g[2], "g")), o = V) : g[3] !== void 0 && (o = V) : o === V ? g[0] === ">" ? (o = a ?? ve, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? V : g[3] === '"' ? ut : pt) : o === ut || o === pt ? o = V : o === ct || o === ht ? o = ve : (o = V, a = void 0);
+    for (; p < h.length && (o.lastIndex = p, g = o.exec(h), g !== null); ) p = o.lastIndex, o === ve ? g[1] === "!--" ? o = ct : g[1] !== void 0 ? o = ht : g[2] !== void 0 ? (Mt.test(g[2]) && (r = RegExp("</" + g[2], "g")), o = V) : g[3] !== void 0 && (o = V) : o === V ? g[0] === ">" ? (o = r ?? ve, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? V : g[3] === '"' ? ut : pt) : o === ut || o === pt ? o = V : o === ct || o === ht ? o = ve : (o = V, r = void 0);
     const b = o === V && e[d + 1].startsWith("/>") ? " " : "";
-    n += o === ve ? h + ds : u >= 0 ? (r.push(m), h.slice(0, u) + Mt + h.slice(u) + j + b) : h + j + (u === -2 ? d : b);
+    n += o === ve ? h + ds : u >= 0 ? (a.push(m), h.slice(0, u) + Ut + h.slice(u) + j + b) : h + j + (u === -2 ? d : b);
   }
-  return [Bt(e, n + (e[s] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
+  return [Bt(e, n + (e[s] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), a];
 };
 class $e {
-  constructor({ strings: t, _$litType$: s }, r) {
-    let a;
+  constructor({ strings: t, _$litType$: s }, a) {
+    let r;
     this.parts = [];
     let n = 0, o = 0;
     const d = t.length - 1, h = this.parts, [m, g] = ps(t, s);
-    if (this.el = $e.createElement(m, r), J.currentNode = this.el.content, s === 2 || s === 3) {
+    if (this.el = $e.createElement(m, a), J.currentNode = this.el.content, s === 2 || s === 3) {
       const u = this.el.content.firstChild;
       u.replaceWith(...u.childNodes);
     }
-    for (; (a = J.nextNode()) !== null && h.length < d; ) {
-      if (a.nodeType === 1) {
-        if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Mt)) {
-          const p = g[o++], b = a.getAttribute(u).split(j), v = /([.?@])?(.*)/.exec(p);
-          h.push({ type: 1, index: n, name: v[2], strings: b, ctor: v[1] === "." ? ms : v[1] === "?" ? gs : v[1] === "@" ? vs : Fe }), a.removeAttribute(u);
-        } else u.startsWith(j) && (h.push({ type: 6, index: n }), a.removeAttribute(u));
-        if (Ht.test(a.tagName)) {
-          const u = a.textContent.split(j), p = u.length - 1;
+    for (; (r = J.nextNode()) !== null && h.length < d; ) {
+      if (r.nodeType === 1) {
+        if (r.hasAttributes()) for (const u of r.getAttributeNames()) if (u.endsWith(Ut)) {
+          const p = g[o++], b = r.getAttribute(u).split(j), v = /([.?@])?(.*)/.exec(p);
+          h.push({ type: 1, index: n, name: v[2], strings: b, ctor: v[1] === "." ? ms : v[1] === "?" ? gs : v[1] === "@" ? vs : Fe }), r.removeAttribute(u);
+        } else u.startsWith(j) && (h.push({ type: 6, index: n }), r.removeAttribute(u));
+        if (Mt.test(r.tagName)) {
+          const u = r.textContent.split(j), p = u.length - 1;
           if (p > 0) {
-            a.textContent = Le ? Le.emptyScript : "";
-            for (let b = 0; b < p; b++) a.append(u[b], xe()), J.nextNode(), h.push({ type: 2, index: ++n });
-            a.append(u[p], xe());
+            r.textContent = Le ? Le.emptyScript : "";
+            for (let b = 0; b < p; b++) r.append(u[b], xe()), J.nextNode(), h.push({ type: 2, index: ++n });
+            r.append(u[p], xe());
           }
         }
-      } else if (a.nodeType === 8) if (a.data === Ut) h.push({ type: 2, index: n });
+      } else if (r.nodeType === 8) if (r.data === Ht) h.push({ type: 2, index: n });
       else {
         let u = -1;
-        for (; (u = a.data.indexOf(j, u + 1)) !== -1; ) h.push({ type: 7, index: n }), u += j.length - 1;
+        for (; (u = r.data.indexOf(j, u + 1)) !== -1; ) h.push({ type: 7, index: n }), u += j.length - 1;
       }
       n++;
     }
   }
   static createElement(t, s) {
-    const r = Z.createElement("template");
-    return r.innerHTML = t, r;
+    const a = Z.createElement("template");
+    return a.innerHTML = t, a;
   }
 }
-function le(e, t, s = e, r) {
+function le(e, t, s = e, a) {
   var o, d;
   if (t === X) return t;
-  let a = r !== void 0 ? (o = s._$Co) == null ? void 0 : o[r] : s._$Cl;
+  let r = a !== void 0 ? (o = s._$Co) == null ? void 0 : o[a] : s._$Cl;
   const n = ye(t) ? void 0 : t._$litDirective$;
-  return (a == null ? void 0 : a.constructor) !== n && ((d = a == null ? void 0 : a._$AO) == null || d.call(a, !1), n === void 0 ? a = void 0 : (a = new n(e), a._$AT(e, s, r)), r !== void 0 ? (s._$Co ?? (s._$Co = []))[r] = a : s._$Cl = a), a !== void 0 && (t = le(e, a._$AS(e, t.values), a, r)), t;
+  return (r == null ? void 0 : r.constructor) !== n && ((d = r == null ? void 0 : r._$AO) == null || d.call(r, !1), n === void 0 ? r = void 0 : (r = new n(e), r._$AT(e, s, a)), a !== void 0 ? (s._$Co ?? (s._$Co = []))[a] = r : s._$Cl = r), r !== void 0 && (t = le(e, r._$AS(e, t.values), r, a)), t;
 }
 class us {
   constructor(t, s) {
@@ -358,21 +358,21 @@ class us {
     return this._$AM._$AU;
   }
   u(t) {
-    const { el: { content: s }, parts: r } = this._$AD, a = ((t == null ? void 0 : t.creationScope) ?? Z).importNode(s, !0);
-    J.currentNode = a;
-    let n = J.nextNode(), o = 0, d = 0, h = r[0];
+    const { el: { content: s }, parts: a } = this._$AD, r = ((t == null ? void 0 : t.creationScope) ?? Z).importNode(s, !0);
+    J.currentNode = r;
+    let n = J.nextNode(), o = 0, d = 0, h = a[0];
     for (; h !== void 0; ) {
       if (o === h.index) {
         let m;
-        h.type === 2 ? m = new ue(n, n.nextSibling, this, t) : h.type === 1 ? m = new h.ctor(n, h.name, h.strings, this, t) : h.type === 6 && (m = new fs(n, this, t)), this._$AV.push(m), h = r[++d];
+        h.type === 2 ? m = new ue(n, n.nextSibling, this, t) : h.type === 1 ? m = new h.ctor(n, h.name, h.strings, this, t) : h.type === 6 && (m = new fs(n, this, t)), this._$AV.push(m), h = a[++d];
       }
       o !== (h == null ? void 0 : h.index) && (n = J.nextNode(), o++);
     }
-    return J.currentNode = Z, a;
+    return J.currentNode = Z, r;
   }
   p(t) {
     let s = 0;
-    for (const r of this._$AV) r !== void 0 && (r.strings !== void 0 ? (r._$AI(t, r, s), s += r.strings.length - 2) : r._$AI(t[s])), s++;
+    for (const a of this._$AV) a !== void 0 && (a.strings !== void 0 ? (a._$AI(t, a, s), s += a.strings.length - 2) : a._$AI(t[s])), s++;
   }
 }
 class ue {
@@ -380,8 +380,8 @@ class ue {
     var t;
     return ((t = this._$AM) == null ? void 0 : t._$AU) ?? this._$Cv;
   }
-  constructor(t, s, r, a) {
-    this.type = 2, this._$AH = c, this._$AN = void 0, this._$AA = t, this._$AB = s, this._$AM = r, this.options = a, this._$Cv = (a == null ? void 0 : a.isConnected) ?? !0;
+  constructor(t, s, a, r) {
+    this.type = 2, this._$AH = c, this._$AN = void 0, this._$AA = t, this._$AB = s, this._$AM = a, this.options = r, this._$Cv = (r == null ? void 0 : r.isConnected) ?? !0;
   }
   get parentNode() {
     let t = this._$AA.parentNode;
@@ -408,10 +408,10 @@ class ue {
   }
   $(t) {
     var n;
-    const { values: s, _$litType$: r } = t, a = typeof r == "number" ? this._$AC(t) : (r.el === void 0 && (r.el = $e.createElement(Bt(r.h, r.h[0]), this.options)), r);
-    if (((n = this._$AH) == null ? void 0 : n._$AD) === a) this._$AH.p(s);
+    const { values: s, _$litType$: a } = t, r = typeof a == "number" ? this._$AC(t) : (a.el === void 0 && (a.el = $e.createElement(Bt(a.h, a.h[0]), this.options)), a);
+    if (((n = this._$AH) == null ? void 0 : n._$AD) === r) this._$AH.p(s);
     else {
-      const o = new us(a, this), d = o.u(this.options);
+      const o = new us(r, this), d = o.u(this.options);
       o.p(s), this.T(d), this._$AH = o;
     }
   }
@@ -422,15 +422,15 @@ class ue {
   k(t) {
     Qe(this._$AH) || (this._$AH = [], this._$AR());
     const s = this._$AH;
-    let r, a = 0;
-    for (const n of t) a === s.length ? s.push(r = new ue(this.O(xe()), this.O(xe()), this, this.options)) : r = s[a], r._$AI(n), a++;
-    a < s.length && (this._$AR(r && r._$AB.nextSibling, a), s.length = a);
+    let a, r = 0;
+    for (const n of t) r === s.length ? s.push(a = new ue(this.O(xe()), this.O(xe()), this, this.options)) : a = s[r], a._$AI(n), r++;
+    r < s.length && (this._$AR(a && a._$AB.nextSibling, r), s.length = r);
   }
   _$AR(t = this._$AA.nextSibling, s) {
-    var r;
-    for ((r = this._$AP) == null ? void 0 : r.call(this, !1, !0, s); t !== this._$AB; ) {
-      const a = lt(t).nextSibling;
-      lt(t).remove(), t = a;
+    var a;
+    for ((a = this._$AP) == null ? void 0 : a.call(this, !1, !0, s); t !== this._$AB; ) {
+      const r = lt(t).nextSibling;
+      lt(t).remove(), t = r;
     }
   }
   setConnected(t) {
@@ -445,19 +445,19 @@ class Fe {
   get _$AU() {
     return this._$AM._$AU;
   }
-  constructor(t, s, r, a, n) {
-    this.type = 1, this._$AH = c, this._$AN = void 0, this.element = t, this.name = s, this._$AM = a, this.options = n, r.length > 2 || r[0] !== "" || r[1] !== "" ? (this._$AH = Array(r.length - 1).fill(new String()), this.strings = r) : this._$AH = c;
+  constructor(t, s, a, r, n) {
+    this.type = 1, this._$AH = c, this._$AN = void 0, this.element = t, this.name = s, this._$AM = r, this.options = n, a.length > 2 || a[0] !== "" || a[1] !== "" ? (this._$AH = Array(a.length - 1).fill(new String()), this.strings = a) : this._$AH = c;
   }
-  _$AI(t, s = this, r, a) {
+  _$AI(t, s = this, a, r) {
     const n = this.strings;
     let o = !1;
     if (n === void 0) t = le(this, t, s, 0), o = !ye(t) || t !== this._$AH && t !== X, o && (this._$AH = t);
     else {
       const d = t;
       let h, m;
-      for (t = n[0], h = 0; h < n.length - 1; h++) m = le(this, d[r + h], s, h), m === X && (m = this._$AH[h]), o || (o = !ye(m) || m !== this._$AH[h]), m === c ? t = c : t !== c && (t += (m ?? "") + n[h + 1]), this._$AH[h] = m;
+      for (t = n[0], h = 0; h < n.length - 1; h++) m = le(this, d[a + h], s, h), m === X && (m = this._$AH[h]), o || (o = !ye(m) || m !== this._$AH[h]), m === c ? t = c : t !== c && (t += (m ?? "") + n[h + 1]), this._$AH[h] = m;
     }
-    o && !a && this.j(t);
+    o && !r && this.j(t);
   }
   j(t) {
     t === c ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
@@ -480,13 +480,13 @@ class gs extends Fe {
   }
 }
 class vs extends Fe {
-  constructor(t, s, r, a, n) {
-    super(t, s, r, a, n), this.type = 5;
+  constructor(t, s, a, r, n) {
+    super(t, s, a, r, n), this.type = 5;
   }
   _$AI(t, s = this) {
     if ((t = le(this, t, s, 0) ?? c) === X) return;
-    const r = this._$AH, a = t === c && r !== c || t.capture !== r.capture || t.once !== r.once || t.passive !== r.passive, n = t !== c && (r === c || a);
-    a && this.element.removeEventListener(this.name, this, r), n && this.element.addEventListener(this.name, this, t), this._$AH = t;
+    const a = this._$AH, r = t === c && a !== c || t.capture !== a.capture || t.once !== a.once || t.passive !== a.passive, n = t !== c && (a === c || r);
+    r && this.element.removeEventListener(this.name, this, a), n && this.element.addEventListener(this.name, this, t), this._$AH = t;
   }
   handleEvent(t) {
     var s;
@@ -494,8 +494,8 @@ class vs extends Fe {
   }
 }
 class fs {
-  constructor(t, s, r) {
-    this.element = t, this.type = 6, this._$AN = void 0, this._$AM = s, this.options = r;
+  constructor(t, s, a) {
+    this.element = t, this.type = 6, this._$AN = void 0, this._$AM = s, this.options = a;
   }
   get _$AU() {
     return this._$AM._$AU;
@@ -507,13 +507,13 @@ class fs {
 const bs = { I: ue }, Be = we.litHtmlPolyfillSupport;
 Be == null || Be($e, ue), (we.litHtmlVersions ?? (we.litHtmlVersions = [])).push("3.3.2");
 const _s = (e, t, s) => {
-  const r = (s == null ? void 0 : s.renderBefore) ?? t;
-  let a = r._$litPart$;
-  if (a === void 0) {
+  const a = (s == null ? void 0 : s.renderBefore) ?? t;
+  let r = a._$litPart$;
+  if (r === void 0) {
     const n = (s == null ? void 0 : s.renderBefore) ?? null;
-    r._$litPart$ = a = new ue(t.insertBefore(xe(), n), n, void 0, s ?? {});
+    a._$litPart$ = r = new ue(t.insertBefore(xe(), n), n, void 0, s ?? {});
   }
-  return a._$AI(e), a;
+  return r._$AI(e), r;
 };
 /**
  * @license
@@ -567,9 +567,9 @@ const ws = (e) => (t, s) => {
  * SPDX-License-Identifier: BSD-3-Clause
  */
 const xs = { attribute: !0, type: String, converter: ze, reflect: !1, hasChanged: Xe }, ys = (e = xs, t, s) => {
-  const { kind: r, metadata: a } = s;
-  let n = globalThis.litPropertyMetadata.get(a);
-  if (n === void 0 && globalThis.litPropertyMetadata.set(a, n = /* @__PURE__ */ new Map()), r === "setter" && ((e = Object.create(e)).wrapped = !0), n.set(s.name, e), r === "accessor") {
+  const { kind: a, metadata: r } = s;
+  let n = globalThis.litPropertyMetadata.get(r);
+  if (n === void 0 && globalThis.litPropertyMetadata.set(r, n = /* @__PURE__ */ new Map()), a === "setter" && ((e = Object.create(e)).wrapped = !0), n.set(s.name, e), a === "accessor") {
     const { name: o } = s;
     return { set(d) {
       const h = t.get.call(this);
@@ -578,19 +578,19 @@ const xs = { attribute: !0, type: String, converter: ze, reflect: !1, hasChanged
       return d !== void 0 && this.C(o, void 0, e, d), d;
     } };
   }
-  if (r === "setter") {
+  if (a === "setter") {
     const { name: o } = s;
     return function(d) {
       const h = this[o];
       t.call(this, d), this.requestUpdate(o, h, e, !0, d);
     };
   }
-  throw Error("Unsupported decorator location: " + r);
+  throw Error("Unsupported decorator location: " + a);
 };
 function w(e) {
-  return (t, s) => typeof s == "object" ? ys(e, t, s) : ((r, a, n) => {
-    const o = a.hasOwnProperty(n);
-    return a.constructor.createProperty(n, r), o ? Object.getOwnPropertyDescriptor(a, n) : void 0;
+  return (t, s) => typeof s == "object" ? ys(e, t, s) : ((a, r, n) => {
+    const o = r.hasOwnProperty(n);
+    return r.constructor.createProperty(n, a), o ? Object.getOwnPropertyDescriptor(r, n) : void 0;
   })(e, t, s);
 }
 /**
@@ -603,7 +603,7 @@ function l(e) {
 }
 function S(e) {
   const t = ws(e);
-  return (s, r) => customElements.get(e) ? s : t(s, r);
+  return (s, a) => customElements.get(e) ? s : t(s, a);
 }
 class $s {
   constructor(t = "") {
@@ -620,9 +620,9 @@ class $s {
     var n;
     const s = new URLSearchParams();
     (n = t.severity) != null && n.length && s.set("severity", t.severity.join(",")), t.source && s.set("source", t.source), t.search && s.set("search", t.search), t.from && s.set("from", t.from), t.to && s.set("to", t.to), t.limit !== void 0 && s.set("limit", String(t.limit)), t.offset !== void 0 && s.set("offset", String(t.offset)), t.order && s.set("order", t.order), t.hideKnxRead && s.set("hide_knx_read", "1");
-    const r = `${this.baseUrl}/api/messagehub/messages?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}`);
-    return await a.json();
+    const a = `${this.baseUrl}/api/messagehub/messages?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
   }
   async getMessage(t) {
     const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}`, {
@@ -639,20 +639,20 @@ class $s {
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
   }
   async setMessageStatus(t, s) {
-    const r = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}/status`, {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}/status`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ status: s })
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
   async setMessageSeverity(t, s) {
-    const r = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}/severity`, {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}/severity`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ severity: s })
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
   async getMessageTags(t) {
     const s = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}/tags`, {
@@ -662,27 +662,27 @@ class $s {
     return (await s.json()).tags;
   }
   async addMessageTag(t, s) {
-    const r = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}/tags`, {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/messages/${t}/tags`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ tag: s })
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return (await r.json()).tags;
-  }
-  async removeMessageTag(t, s) {
-    const r = `${this.baseUrl}/api/messagehub/messages/${t}/tags?tag=${encodeURIComponent(s)}`, a = await fetch(r, { method: "DELETE", headers: this.headers() });
     if (!a.ok) throw new Error(`HTTP ${a.status}`);
     return (await a.json()).tags;
   }
+  async removeMessageTag(t, s) {
+    const a = `${this.baseUrl}/api/messagehub/messages/${t}/tags?tag=${encodeURIComponent(s)}`, r = await fetch(a, { method: "DELETE", headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return (await r.json()).tags;
+  }
   async getRunbookForSource(t, s) {
-    const r = s ? `?fingerprint=${encodeURIComponent(s)}` : "", a = await fetch(
-      `${this.baseUrl}/api/messagehub/runbook/${encodeURIComponent(t)}${r}`,
+    const a = s ? `?fingerprint=${encodeURIComponent(s)}` : "", r = await fetch(
+      `${this.baseUrl}/api/messagehub/runbook/${encodeURIComponent(t)}${a}`,
       { headers: this.headers() }
     );
-    if (a.status === 404) return null;
-    if (!a.ok) throw new Error(`HTTP ${a.status}`);
-    return await a.json();
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
   }
   async listAudit(t = 200) {
     const s = await fetch(`${this.baseUrl}/api/messagehub/audit?limit=${t}`, {
@@ -730,22 +730,22 @@ class $s {
   // Anwendung (apply=true). Aenderungen siehe Backend-Doc-String.
   // Iter 56: Bulk-Patch fuer mehrere KNX-GAs in einem Request.
   async bulkPatchKnxAddresses(t, s) {
-    const r = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/bulk`, {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/bulk`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ addresses: t, patch: s })
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return await r.json();
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
   async syncKnxProject(t, s) {
-    const r = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/sync`, {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/sync`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ items: t, apply: s })
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return await r.json();
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
   async listKnxAddresses() {
     const t = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
@@ -778,12 +778,12 @@ class $s {
     if (!s.ok) throw new Error(`HTTP ${s.status}: ${await s.text()}`);
   }
   async updateChannel(t, s) {
-    const r = await fetch(`${this.baseUrl}/api/messagehub/channels/${t}`, {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/channels/${t}`, {
       method: "PUT",
       headers: this.headers(),
       body: JSON.stringify(s)
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
   async deleteChannel(t) {
     const s = await fetch(`${this.baseUrl}/api/messagehub/channels/${t}`, {
@@ -802,8 +802,8 @@ class $s {
       headers: this.headers()
     });
     if (!s.ok) {
-      const r = await s.text();
-      throw new Error(`HTTP ${s.status}: ${r}`);
+      const a = await s.text();
+      throw new Error(`HTTP ${s.status}: ${a}`);
     }
     return await s.json();
   }
@@ -836,12 +836,12 @@ class $s {
    * was die ID veraenderte und Audit-/Findings-Bezuege brach.
    */
   async updateMqttTopic(t, s) {
-    const r = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics/${t}`, {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/mqtt-topics/${t}`, {
       method: "PUT",
       headers: this.headers(),
       body: JSON.stringify(s)
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
   async listRemediationHooks() {
     const t = await fetch(`${this.baseUrl}/api/messagehub/remediation-hooks`, {
@@ -873,12 +873,38 @@ class $s {
     return (await t.json()).items;
   }
   async upsertHeartbeat(t, s) {
-    const r = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
+    const a = await fetch(`${this.baseUrl}/api/messagehub/heartbeats`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ source: t, expected_interval_seconds: s })
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    if (!a.ok) throw new Error(`HTTP ${a.status}`);
+  }
+  /**
+   * F-005: Entfernt einen Heartbeat-Eintrag dauerhaft.
+   * 404, wenn die Source nicht (mehr) existiert.
+   */
+  async deleteHeartbeat(t) {
+    const s = await fetch(
+      `${this.baseUrl}/api/messagehub/heartbeats/${encodeURIComponent(t)}`,
+      { method: "DELETE", headers: this.headers() }
+    );
+    if (!s.ok) throw new Error(`HTTP ${s.status}`);
+  }
+  /**
+   * F-005: Pausiert/aktiviert das Tracking ohne den Eintrag zu loeschen.
+   * False -> Heartbeat-Job ueberspringt diese Source.
+   */
+  async setHeartbeatEnabled(t, s) {
+    const a = await fetch(
+      `${this.baseUrl}/api/messagehub/heartbeats/${encodeURIComponent(t)}`,
+      {
+        method: "PATCH",
+        headers: this.headers(),
+        body: JSON.stringify({ enabled: s })
+      }
+    );
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
   async getStatsExtended(t = 30) {
     const s = await fetch(
@@ -889,8 +915,8 @@ class $s {
     return await s.json();
   }
   async deleteKnxAddress(t) {
-    const s = `${this.baseUrl}/api/messagehub/knx-addresses/${encodeURIComponent(t)}`, r = await fetch(s, { method: "DELETE", headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const s = `${this.baseUrl}/api/messagehub/knx-addresses/${encodeURIComponent(t)}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}`);
   }
   async importKnxCsv(t) {
     const s = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses`, {
@@ -902,17 +928,17 @@ class $s {
     return await s.json();
   }
   exportUrl(t) {
-    var r;
+    var a;
     const s = new URLSearchParams();
-    return (r = t.severity) != null && r.length && s.set("severity", t.severity.join(",")), t.source && s.set("source", t.source), t.search && s.set("search", t.search), t.from && s.set("from", t.from), t.to && s.set("to", t.to), s.set("format", t.format ?? "jsonl"), t.limit !== void 0 && s.set("limit", String(t.limit)), `${this.baseUrl}/api/messagehub/export?${s.toString()}`;
+    return (a = t.severity) != null && a.length && s.set("severity", t.severity.join(",")), t.source && s.set("source", t.source), t.search && s.set("search", t.search), t.from && s.set("from", t.from), t.to && s.set("to", t.to), s.set("format", t.format ?? "jsonl"), t.limit !== void 0 && s.set("limit", String(t.limit)), `${this.baseUrl}/api/messagehub/export?${s.toString()}`;
   }
   async deleteMessages(t = {}) {
     var o;
     const s = new URLSearchParams();
     (o = t.severity) != null && o.length && s.set("severity", t.severity.join(",")), t.source && s.set("source", t.source), t.search && s.set("search", t.search), t.from && s.set("from", t.from), t.to && s.set("to", t.to);
-    const r = `${this.baseUrl}/api/messagehub/messages?${s.toString()}`, a = await fetch(r, { method: "DELETE", headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}`);
-    return (await a.json()).deleted;
+    const a = `${this.baseUrl}/api/messagehub/messages?${s.toString()}`, r = await fetch(a, { method: "DELETE", headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return (await r.json()).deleted;
   }
   async listSources() {
     const t = await fetch(`${this.baseUrl}/api/messagehub/sources`, {
@@ -945,7 +971,7 @@ class $s {
     return await s.json();
   }
   async updateWebhook(t, s) {
-    const r = await fetch(
+    const a = await fetch(
       `${this.baseUrl}/api/messagehub/webhooks/${t}`,
       {
         method: "PUT",
@@ -953,8 +979,8 @@ class $s {
         body: JSON.stringify(s)
       }
     );
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return await r.json();
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
   async deleteWebhook(t) {
     const s = await fetch(
@@ -969,182 +995,182 @@ class $s {
     return t.from && s.set("from", t.from), t.to && s.set("to", t.to), t.limit !== void 0 && s.set("limit", String(t.limit)), t.minRate !== void 0 && s.set("min_rate", String(t.minRate)), t.includeAcknowledged === !1 && s.set("include_acknowledged", "false"), s;
   }
   async getKnxStatsSummary(t) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/summary?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return await r.json();
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/summary?${this._knxStatsParams(t).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
   async getKnxStatsTop(t) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/top?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return await r.json();
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/top?${this._knxStatsParams(t).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
   async getKnxStatsTopBySource(t) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/top-by-source?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/top-by-source?${this._knxStatsParams(t).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
+  }
+  async getKnxStatsGaDetail(t, s) {
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/ga/${encodeURIComponent(t)}?${this._knxStatsParams(s).toString()}`, r = await fetch(a, { headers: this.headers() });
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
     return await r.json();
   }
-  async getKnxStatsGaDetail(t, s) {
-    const r = `${this.baseUrl}/api/messagehub/knx-stats/ga/${encodeURIComponent(t)}?${this._knxStatsParams(s).toString()}`, a = await fetch(r, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
-  }
   async getKnxStatsSourceDetail(t, s) {
-    const r = `${this.baseUrl}/api/messagehub/knx-stats/source/${encodeURIComponent(t)}?${this._knxStatsParams(s).toString()}`, a = await fetch(r, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/source/${encodeURIComponent(t)}?${this._knxStatsParams(s).toString()}`, r = await fetch(a, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
   }
   async getKnxStatsTimeline(t) {
     const s = this._knxStatsParams(t);
     s.set("gas", t.gas.join(",")), t.bucketMinutes !== void 0 && s.set("bucket", String(t.bucketMinutes));
-    const r = `${this.baseUrl}/api/messagehub/knx-stats/timeline?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
-  }
-  async acknowledgeKnxGa(t, s = {}) {
-    const r = { ga: t };
-    s.note !== void 0 && (r.note = s.note), s.expiryDays !== void 0 && (r.expiry_days = s.expiryDays);
-    const a = await fetch(`${this.baseUrl}/api/messagehub/knx-stats/acknowledge`, {
-      method: "POST",
-      headers: this.headers(),
-      body: JSON.stringify(r)
-    });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-  }
-  async getKnxStatsAlarms(t) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/alarms?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/timeline?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
     return await r.json();
   }
-  /** Iter 92 / K1: Saved Filters listen. */
-  async listSavedFilters(t) {
-    const s = `${this.baseUrl}/api/messagehub/saved-filters?scope=${encodeURIComponent(t)}`, r = await fetch(s, { headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return (await r.json()).items;
-  }
-  /** Iter 92 / K1: Saved Filter speichern (upsert). */
-  async upsertSavedFilter(t, s, r) {
-    const a = `${this.baseUrl}/api/messagehub/saved-filters`, n = await fetch(a, {
+  async acknowledgeKnxGa(t, s = {}) {
+    const a = { ga: t };
+    s.note !== void 0 && (a.note = s.note), s.expiryDays !== void 0 && (a.expiry_days = s.expiryDays);
+    const r = await fetch(`${this.baseUrl}/api/messagehub/knx-stats/acknowledge`, {
       method: "POST",
       headers: this.headers(),
-      body: JSON.stringify({ name: t, scope: s, filters: r })
+      body: JSON.stringify(a)
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+  }
+  async getKnxStatsAlarms(t) {
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/alarms?${this._knxStatsParams(t).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
+  }
+  /** Iter 92 / K1: Saved Filters listen. */
+  async listSavedFilters(t) {
+    const s = `${this.baseUrl}/api/messagehub/saved-filters?scope=${encodeURIComponent(t)}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return (await a.json()).items;
+  }
+  /** Iter 92 / K1: Saved Filter speichern (upsert). */
+  async upsertSavedFilter(t, s, a) {
+    const r = `${this.baseUrl}/api/messagehub/saved-filters`, n = await fetch(r, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ name: t, scope: s, filters: a })
     });
     if (!n.ok) throw new Error(`HTTP ${n.status}: ${await n.text()}`);
     return await n.json();
   }
   /** Iter 92 / K1: Saved Filter loeschen. */
   async deleteSavedFilter(t) {
-    const s = `${this.baseUrl}/api/messagehub/saved-filters/${t}`, r = await fetch(s, {
+    const s = `${this.baseUrl}/api/messagehub/saved-filters/${t}`, a = await fetch(s, {
       method: "DELETE",
       headers: this.headers()
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
   /** Iter 91 / WR-G: GA-Heatmap (Top-N GAs x Zeit-Buckets). */
-  async getKnxStatsHeatmap(t, s = 10, r = 60) {
-    const a = this._knxStatsParams(t);
-    a.set("top_n", String(s)), a.set("bucket", String(r));
-    const n = `${this.baseUrl}/api/messagehub/knx-stats/heatmap?${a.toString()}`, o = await fetch(n, { headers: this.headers() });
+  async getKnxStatsHeatmap(t, s = 10, a = 60) {
+    const r = this._knxStatsParams(t);
+    r.set("top_n", String(s)), r.set("bucket", String(a));
+    const n = `${this.baseUrl}/api/messagehub/knx-stats/heatmap?${r.toString()}`, o = await fetch(n, { headers: this.headers() });
     if (!o.ok) throw new Error(`HTTP ${o.status}: ${await o.text()}`);
     return await o.json();
   }
   /** Iter 67 / WR-I: Trend-Vergleich aktueller Periode vs. Vorperiode. */
   async getKnxStatsTrend(t, s = 5) {
-    const r = this._knxStatsParams(t);
-    r.set("top_n", String(s));
-    const a = `${this.baseUrl}/api/messagehub/knx-stats/trend?${r.toString()}`, n = await fetch(a, { headers: this.headers() });
+    const a = this._knxStatsParams(t);
+    a.set("top_n", String(s));
+    const r = `${this.baseUrl}/api/messagehub/knx-stats/trend?${a.toString()}`, n = await fetch(r, { headers: this.headers() });
     if (!n.ok) throw new Error(`HTTP ${n.status}: ${await n.text()}`);
     return await n.json();
   }
   async getKnxStatsOrphans(t) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/orphans?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return await r.json();
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/orphans?${this._knxStatsParams(t).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
   async getKnxStatsSilence(t) {
     const s = this._knxStatsParams(t);
     t.maxSilenceMinutes !== void 0 && s.set("max_silence_min", String(t.maxSilenceMinutes));
-    const r = `${this.baseUrl}/api/messagehub/knx-stats/silence?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
-  }
-  async getKnxStatsBusHealth(t) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/bus-health?${this._knxStatsParams(t).toString()}`, r = await fetch(s, { headers: this.headers() });
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/silence?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
     return await r.json();
   }
+  async getKnxStatsBusHealth(t) {
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/bus-health?${this._knxStatsParams(t).toString()}`, a = await fetch(s, { headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
+  }
   async getKnxStatsBusload(t, s) {
-    const r = this._knxStatsParams(t);
-    s && Number.isFinite(s) && s > 0 && r.set("bucket_seconds", String(Math.trunc(s)));
-    const a = `${this.baseUrl}/api/messagehub/knx-stats/busload?${r.toString()}`, n = await fetch(a, { headers: this.headers() });
+    const a = this._knxStatsParams(t);
+    s && Number.isFinite(s) && s > 0 && a.set("bucket_seconds", String(Math.trunc(s)));
+    const r = `${this.baseUrl}/api/messagehub/knx-stats/busload?${a.toString()}`, n = await fetch(r, { headers: this.headers() });
     if (!n.ok) throw new Error(`HTTP ${n.status}: ${await n.text()}`);
     return await n.json();
   }
   async getKnxStatsHealthScore(t) {
-    const s = this._knxStatsParams(t), r = `${this.baseUrl}/api/messagehub/knx-stats/health-score?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
+    const s = this._knxStatsParams(t), a = `${this.baseUrl}/api/messagehub/knx-stats/health-score?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
   }
   async getKnxStatsLongTerm(t, s = "auto") {
-    const r = this._knxStatsParams(t);
-    s !== "auto" && r.set("bucket", s);
-    const a = `${this.baseUrl}/api/messagehub/knx-stats/long-term?${r.toString()}`, n = await fetch(a, { headers: this.headers() });
+    const a = this._knxStatsParams(t);
+    s !== "auto" && a.set("bucket", s);
+    const r = `${this.baseUrl}/api/messagehub/knx-stats/long-term?${a.toString()}`, n = await fetch(r, { headers: this.headers() });
     if (!n.ok) throw new Error(`HTTP ${n.status}: ${await n.text()}`);
     return await n.json();
   }
   async getKnxStatsBursts(t, s = {}) {
-    const r = this._knxStatsParams(t);
-    s.windowSeconds && Number.isFinite(s.windowSeconds) && r.set("window_seconds", String(Math.trunc(s.windowSeconds))), s.thresholdPct && Number.isFinite(s.thresholdPct) && r.set("threshold_pct", String(s.thresholdPct));
-    const a = `${this.baseUrl}/api/messagehub/knx-stats/bursts?${r.toString()}`, n = await fetch(a, { headers: this.headers() });
+    const a = this._knxStatsParams(t);
+    s.windowSeconds && Number.isFinite(s.windowSeconds) && a.set("window_seconds", String(Math.trunc(s.windowSeconds))), s.thresholdPct && Number.isFinite(s.thresholdPct) && a.set("threshold_pct", String(s.thresholdPct));
+    const r = `${this.baseUrl}/api/messagehub/knx-stats/bursts?${a.toString()}`, n = await fetch(r, { headers: this.headers() });
     if (!n.ok) throw new Error(`HTTP ${n.status}: ${await n.text()}`);
     return await n.json();
   }
   async getKnxStatsSensitiveLog(t) {
-    const s = this._knxStatsParams(t), r = `${this.baseUrl}/api/messagehub/knx-stats/sensitive-log?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
+    const s = this._knxStatsParams(t), a = `${this.baseUrl}/api/messagehub/knx-stats/sensitive-log?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
   }
   async setKnxStatsSensitive(t, s) {
-    const r = `${this.baseUrl}/api/messagehub/knx-stats/sensitive/${encodeURIComponent(t)}`, a = await fetch(r, {
+    const a = `${this.baseUrl}/api/messagehub/knx-stats/sensitive/${encodeURIComponent(t)}`, r = await fetch(a, {
       method: s ? "POST" : "DELETE",
       headers: this.headers()
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
   }
   async unacknowledgeKnxGa(t) {
-    const s = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge/${encodeURIComponent(t)}`, r = await fetch(s, { method: "DELETE", headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    const s = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge/${encodeURIComponent(t)}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
   }
   // ----- Iter 6/7/8 (knx-findings): Findings-Endpoints --------------------
   async listFindings(t = {}) {
     const s = new URLSearchParams();
     t.code && s.set("code", t.code), t.ga && s.set("ga", t.ga), t.severity && s.set("severity", t.severity), t.source && s.set("source", t.source), t.limit !== void 0 && s.set("limit", String(t.limit)), t.offset !== void 0 && s.set("offset", String(t.offset));
-    const r = `${this.baseUrl}/api/messagehub/findings?${s.toString()}`, a = await fetch(r, { headers: this.headers() });
-    if (!a.ok) throw new Error(`HTTP ${a.status}`);
-    return await a.json();
+    const a = `${this.baseUrl}/api/messagehub/findings?${s.toString()}`, r = await fetch(a, { headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
   }
   async acknowledgeFinding(t) {
-    const s = `${this.baseUrl}/api/messagehub/findings/ack`, r = await fetch(s, {
+    const s = `${this.baseUrl}/api/messagehub/findings/ack`, a = await fetch(s, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify(t)
     });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return await r.json();
-  }
-  async unacknowledgeFinding(t, s) {
-    const r = `${this.baseUrl}/api/messagehub/findings/ack/${encodeURIComponent(t)}/${encodeURIComponent(s)}`, a = await fetch(r, { method: "DELETE", headers: this.headers() });
     if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
     return await a.json();
+  }
+  async unacknowledgeFinding(t, s) {
+    const a = `${this.baseUrl}/api/messagehub/findings/ack/${encodeURIComponent(t)}/${encodeURIComponent(s)}`, r = await fetch(a, { method: "DELETE", headers: this.headers() });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
   }
   async listSeverityOverrides() {
     const t = `${this.baseUrl}/api/messagehub/findings/severity-overrides`, s = await fetch(t, { headers: this.headers() });
     if (!s.ok) throw new Error(`HTTP ${s.status}`);
     return await s.json();
   }
-  async setSeverityOverride(t, s, r) {
-    const a = `${this.baseUrl}/api/messagehub/findings/severity-overrides/${encodeURIComponent(t)}`, n = { severity: s };
-    r !== void 0 && (n.note = r);
-    const o = await fetch(a, {
+  async setSeverityOverride(t, s, a) {
+    const r = `${this.baseUrl}/api/messagehub/findings/severity-overrides/${encodeURIComponent(t)}`, n = { severity: s };
+    a !== void 0 && (n.note = a);
+    const o = await fetch(r, {
       method: "PUT",
       headers: this.headers(),
       body: JSON.stringify(n)
@@ -1153,9 +1179,9 @@ class $s {
     return await o.json();
   }
   async clearSeverityOverride(t) {
-    const s = `${this.baseUrl}/api/messagehub/findings/severity-overrides/${encodeURIComponent(t)}`, r = await fetch(s, { method: "DELETE", headers: this.headers() });
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
-    return await r.json();
+    const s = `${this.baseUrl}/api/messagehub/findings/severity-overrides/${encodeURIComponent(t)}`, a = await fetch(s, { method: "DELETE", headers: this.headers() });
+    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
+    return await a.json();
   }
   async exportFindingsMarkdown() {
     const t = `${this.baseUrl}/api/messagehub/findings/export.md`, s = await fetch(t, { headers: this.headers() });
@@ -1163,20 +1189,20 @@ class $s {
     return await s.text();
   }
   async refreshFindings(t, s = 7) {
-    const r = `${this.baseUrl}/api/messagehub/findings/refresh`, a = await fetch(r, {
+    const a = `${this.baseUrl}/api/messagehub/findings/refresh`, r = await fetch(a, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ ga: t, period_days: s })
     });
-    if (!a.ok) throw new Error(`HTTP ${a.status}: ${await a.text()}`);
-    return await a.json();
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return await r.json();
   }
   async acknowledgeKnxBulk(t, s = {}) {
-    const r = new URLSearchParams();
-    s.from && r.set("from", s.from), s.to && r.set("to", s.to);
-    const a = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge-bulk?${r.toString()}`, n = { dev_source: t };
+    const a = new URLSearchParams();
+    s.from && a.set("from", s.from), s.to && a.set("to", s.to);
+    const r = `${this.baseUrl}/api/messagehub/knx-stats/acknowledge-bulk?${a.toString()}`, n = { dev_source: t };
     s.note !== void 0 && (n.note = s.note), s.expiryDays !== void 0 && (n.expiry_days = s.expiryDays);
-    const o = await fetch(a, {
+    const o = await fetch(r, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify(n)
@@ -1451,8 +1477,8 @@ let Ts = class {
   get _$AU() {
     return this._$AM._$AU;
   }
-  _$AT(t, s, r) {
-    this._$Ct = t, this._$AM = s, this._$Ci = r;
+  _$AT(t, s, a) {
+    this._$Ct = t, this._$AM = s, this._$Ci = a;
   }
   _$AS(t, s) {
     return this.update(t, s);
@@ -1468,9 +1494,9 @@ let Ts = class {
  */
 const { I: As } = bs, gt = (e) => e, vt = () => document.createComment(""), fe = (e, t, s) => {
   var n;
-  const r = e._$AA.parentNode, a = t === void 0 ? e._$AB : t._$AA;
+  const a = e._$AA.parentNode, r = t === void 0 ? e._$AB : t._$AA;
   if (s === void 0) {
-    const o = r.insertBefore(vt(), a), d = r.insertBefore(vt(), a);
+    const o = a.insertBefore(vt(), r), d = a.insertBefore(vt(), r);
     s = new As(o, d, e, e.options);
   } else {
     const o = s._$AB.nextSibling, d = s._$AM, h = d !== e;
@@ -1478,11 +1504,11 @@ const { I: As } = bs, gt = (e) => e, vt = () => document.createComment(""), fe =
       let m;
       (n = s._$AQ) == null || n.call(s, e), s._$AM = e, s._$AP !== void 0 && (m = e._$AU) !== d._$AU && s._$AP(m);
     }
-    if (o !== a || h) {
+    if (o !== r || h) {
       let m = s._$AA;
       for (; m !== o; ) {
         const g = gt(m).nextSibling;
-        gt(r).insertBefore(m, a), m = g;
+        gt(a).insertBefore(m, r), m = g;
       }
     }
   }
@@ -1496,50 +1522,50 @@ const { I: As } = bs, gt = (e) => e, vt = () => document.createComment(""), fe =
  * SPDX-License-Identifier: BSD-3-Clause
  */
 const ft = (e, t, s) => {
-  const r = /* @__PURE__ */ new Map();
-  for (let a = t; a <= s; a++) r.set(e[a], a);
-  return r;
+  const a = /* @__PURE__ */ new Map();
+  for (let r = t; r <= s; r++) a.set(e[r], r);
+  return a;
 }, zs = Ss(class extends Ts {
   constructor(e) {
     if (super(e), e.type !== ks.CHILD) throw Error("repeat() can only be used in text expressions");
   }
   dt(e, t, s) {
-    let r;
-    s === void 0 ? s = t : t !== void 0 && (r = t);
-    const a = [], n = [];
+    let a;
+    s === void 0 ? s = t : t !== void 0 && (a = t);
+    const r = [], n = [];
     let o = 0;
-    for (const d of e) a[o] = r ? r(d, o) : o, n[o] = s(d, o), o++;
-    return { values: n, keys: a };
+    for (const d of e) r[o] = a ? a(d, o) : o, n[o] = s(d, o), o++;
+    return { values: n, keys: r };
   }
   render(e, t, s) {
     return this.dt(e, t, s).values;
   }
-  update(e, [t, s, r]) {
-    const a = Ds(e), { values: n, keys: o } = this.dt(t, s, r);
-    if (!Array.isArray(a)) return this.ut = o, n;
+  update(e, [t, s, a]) {
+    const r = Ds(e), { values: n, keys: o } = this.dt(t, s, a);
+    if (!Array.isArray(r)) return this.ut = o, n;
     const d = this.ut ?? (this.ut = []), h = [];
-    let m, g, u = 0, p = a.length - 1, b = 0, v = n.length - 1;
-    for (; u <= p && b <= v; ) if (a[u] === null) u++;
-    else if (a[p] === null) p--;
-    else if (d[u] === o[b]) h[b] = q(a[u], n[b]), u++, b++;
-    else if (d[p] === o[v]) h[v] = q(a[p], n[v]), p--, v--;
-    else if (d[u] === o[v]) h[v] = q(a[u], n[v]), fe(e, h[v + 1], a[u]), u++, v--;
-    else if (d[p] === o[b]) h[b] = q(a[p], n[b]), fe(e, a[u], a[p]), p--, b++;
+    let m, g, u = 0, p = r.length - 1, b = 0, v = n.length - 1;
+    for (; u <= p && b <= v; ) if (r[u] === null) u++;
+    else if (r[p] === null) p--;
+    else if (d[u] === o[b]) h[b] = q(r[u], n[b]), u++, b++;
+    else if (d[p] === o[v]) h[v] = q(r[p], n[v]), p--, v--;
+    else if (d[u] === o[v]) h[v] = q(r[u], n[v]), fe(e, h[v + 1], r[u]), u++, v--;
+    else if (d[p] === o[b]) h[b] = q(r[p], n[b]), fe(e, r[u], r[p]), p--, b++;
     else if (m === void 0 && (m = ft(o, b, v), g = ft(d, u, p)), m.has(d[u])) if (m.has(d[p])) {
-      const k = g.get(o[b]), ge = k !== void 0 ? a[k] : null;
+      const k = g.get(o[b]), ge = k !== void 0 ? r[k] : null;
       if (ge === null) {
-        const Ee = fe(e, a[u]);
+        const Ee = fe(e, r[u]);
         q(Ee, n[b]), h[b] = Ee;
-      } else h[b] = q(ge, n[b]), fe(e, a[u], ge), a[k] = null;
+      } else h[b] = q(ge, n[b]), fe(e, r[u], ge), r[k] = null;
       b++;
-    } else Ge(a[p]), p--;
-    else Ge(a[u]), u++;
+    } else Ge(r[p]), p--;
+    else Ge(r[u]), u++;
     for (; b <= v; ) {
       const k = fe(e, h[v + 1]);
       q(k, n[b]), h[b++] = k;
     }
     for (; u <= p; ) {
-      const k = a[u++];
+      const k = r[u++];
       k !== null && Ge(k);
     }
     return this.ut = o, Ps(e, h), X;
@@ -1556,11 +1582,11 @@ const ft = (e, t, s) => {
 function jt(e, t = /* @__PURE__ */ new Date()) {
   const s = new Date(e);
   if (Number.isNaN(s.getTime())) return "—";
-  const r = Math.round((s.getTime() - t.getTime()) / 1e3), a = Math.abs(r);
-  if (a < 5) return "gerade eben";
+  const a = Math.round((s.getTime() - t.getTime()) / 1e3), r = Math.abs(a);
+  if (r < 5) return "gerade eben";
   for (const { unit: n, seconds: o } of Os)
-    if (a >= o) {
-      const d = Math.round(r / o);
+    if (r >= o) {
+      const d = Math.round(a / o);
       return Ls.format(d, n);
     }
   return "gerade eben";
@@ -1568,17 +1594,17 @@ function jt(e, t = /* @__PURE__ */ new Date()) {
 function Gt(e, t = /* @__PURE__ */ new Date()) {
   const s = new Date(e);
   if (Number.isNaN(s.getTime())) return e;
-  const r = s.getFullYear() === t.getFullYear() && s.getMonth() === t.getMonth() && s.getDate() === t.getDate(), a = s.toLocaleTimeString("de-DE", {
+  const a = s.getFullYear() === t.getFullYear() && s.getMonth() === t.getMonth() && s.getDate() === t.getDate(), r = s.toLocaleTimeString("de-DE", {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit"
   });
-  return r ? a : `${s.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })} ${a}`;
+  return a ? r : `${s.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })} ${r}`;
 }
-var Fs = Object.defineProperty, Cs = Object.getOwnPropertyDescriptor, Te = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Cs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Fs(t, s, a), a;
+var Fs = Object.defineProperty, Cs = Object.getOwnPropertyDescriptor, Te = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Cs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && Fs(t, s, r), r;
 };
 const bt = {
   error: "✕",
@@ -1604,15 +1630,15 @@ let Q = class extends x {
         this._closePopover();
         return;
       }
-      const r = e.currentTarget.getBoundingClientRect(), a = 200, n = r.bottom + a < window.innerHeight;
+      const a = e.currentTarget.getBoundingClientRect(), r = 200, n = a.bottom + r < window.innerHeight;
       this._popoverPos = {
-        top: n ? r.bottom + 4 : r.top - a - 4,
-        left: r.left
+        top: n ? a.bottom + 4 : a.top - r - 4,
+        left: a.left
       }, this._editSeverityFor = t.id;
-    }, this._onSeverityPick = (e, t, s, r) => {
-      e.stopPropagation(), this._closePopover(), r !== s && this.dispatchEvent(
+    }, this._onSeverityPick = (e, t, s, a) => {
+      e.stopPropagation(), this._closePopover(), a !== s && this.dispatchEvent(
         new CustomEvent("severity-change", {
-          detail: { id: t, severity: r, previous: s },
+          detail: { id: t, severity: a, previous: s },
           bubbles: !0,
           composed: !0
         })
@@ -1631,7 +1657,7 @@ let Q = class extends x {
   _renderPopover() {
     if (this._editSeverityFor === null || this._popoverPos === null)
       return i``;
-    const e = this.items.find((r) => r.id === this._editSeverityFor);
+    const e = this.items.find((a) => a.id === this._editSeverityFor);
     if (!e) return i``;
     const t = e.severity ?? "info", s = e.id;
     return i`
@@ -1640,20 +1666,20 @@ let Q = class extends x {
         class="sev-popover"
         role="menu"
         style=${`top: ${this._popoverPos.top}px; left: ${this._popoverPos.left}px`}
-        @click=${(r) => r.stopPropagation()}
+        @click=${(a) => a.stopPropagation()}
       >
         ${Ns.map(
-      (r) => i`<button
+      (a) => i`<button
             role="menuitemradio"
-            aria-checked=${r === t}
-            class=${`sev-option ${r === t ? "active" : ""}`}
-            @click=${(a) => this._onSeverityPick(a, s, t, r)}
+            aria-checked=${a === t}
+            class=${`sev-option ${a === t ? "active" : ""}`}
+            @click=${(r) => this._onSeverityPick(r, s, t, a)}
           >
-            <span class=${`mh-pill mh-pill--${r}`}>
-              <span class="sev-icon" aria-hidden="true">${bt[r]}</span>
-              ${_t[r]}
+            <span class=${`mh-pill mh-pill--${a}`}>
+              <span class="sev-icon" aria-hidden="true">${bt[a]}</span>
+              ${_t[a]}
             </span>
-            ${r === t ? i`<span class="check" aria-hidden="true">✓</span>` : c}
+            ${a === t ? i`<span class="check" aria-hidden="true">✓</span>` : c}
           </button>`
     )}
       </div>
@@ -1678,7 +1704,7 @@ let Q = class extends x {
       this.items,
       (e) => e.id,
       (e) => {
-        const t = e.severity ?? "info", s = _t[t] ?? t, r = bt[t] ?? "·", a = jt(e.timestamp, this._now), n = Gt(e.timestamp, this._now);
+        const t = e.severity ?? "info", s = _t[t] ?? t, a = bt[t] ?? "·", r = jt(e.timestamp, this._now), n = Gt(e.timestamp, this._now);
         return i`
                 <div
                   class=${`row sev-${t} ${this._editSeverityFor === e.id ? "row-active" : ""}`}
@@ -1695,12 +1721,12 @@ let Q = class extends x {
                       aria-expanded=${this._editSeverityFor === e.id}
                       @click=${(o) => this._onSeverityClick(o, e)}
                     >
-                      <span class="sev-icon" aria-hidden="true">${r}</span>
+                      <span class="sev-icon" aria-hidden="true">${a}</span>
                       ${s}
                       <span class="caret" aria-hidden="true">▾</span>
                     </button>
                   </span>
-                  <span class="col-ts ts" title=${n}>${a}</span>
+                  <span class="col-ts ts" title=${n}>${r}</span>
                   <span class="col-src">
                     <span class="source-pill">${e.source}</span>
                   </span>
@@ -1931,10 +1957,10 @@ Te([
 Q = Te([
   S("message-table")
 ], Q);
-var Is = Object.defineProperty, Rs = Object.getOwnPropertyDescriptor, Kt = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Rs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Is(t, s, a), a;
+var Is = Object.defineProperty, Rs = Object.getOwnPropertyDescriptor, Kt = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Rs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && Is(t, s, r), r;
 };
 const wt = ["error", "warning", "info", "debug"];
 let Oe = class extends x {
@@ -2052,10 +2078,10 @@ Kt([
 Oe = Kt([
   S("severity-filter")
 ], Oe);
-var Ms = Object.defineProperty, Us = Object.getOwnPropertyDescriptor, Ne = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Us(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Ms(t, s, a), a;
+var Us = Object.defineProperty, Hs = Object.getOwnPropertyDescriptor, Ne = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Hs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && Us(t, s, r), r;
 };
 let de = class extends x {
   constructor() {
@@ -2109,10 +2135,10 @@ Ne([
 de = Ne([
   S("source-filter")
 ], de);
-var Hs = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, et = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Bs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Hs(t, s, a), a;
+var Ms = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, et = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Bs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && Ms(t, s, r), r;
 };
 let ke = class extends x {
   _set(e) {
@@ -2159,10 +2185,10 @@ et([
 ke = et([
   S("time-range-filter")
 ], ke);
-var js = Object.defineProperty, Gs = Object.getOwnPropertyDescriptor, W = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Gs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && js(t, s, a), a;
+var js = Object.defineProperty, Gs = Object.getOwnPropertyDescriptor, W = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Gs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && js(t, s, r), r;
 };
 let N = class extends x {
   constructor() {
@@ -2581,10 +2607,10 @@ W([
 N = W([
   S("detail-pane")
 ], N);
-var Ks = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, R = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Ws(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Ks(t, s, a), a;
+var Ks = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, R = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ws(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && Ks(t, s, r), r;
 };
 const Vs = ["debug", "info", "warning", "error"], qs = JSON.stringify(
   {
@@ -2928,10 +2954,10 @@ R([
 O = R([
   S("webhook-form")
 ], O);
-var Ys = Object.defineProperty, Zs = Object.getOwnPropertyDescriptor, T = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Zs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Ys(t, s, a), a;
+var Ys = Object.defineProperty, Zs = Object.getOwnPropertyDescriptor, T = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Zs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && Ys(t, s, r), r;
 };
 const Xs = /^\d{1,2}\/\d{1,2}\/\d{1,3}$/, We = ["debug", "info", "warning", "error"], xt = [...We, "auto"], Wt = "messagehub.knx-addresses.only-enabled";
 function Qs() {
@@ -2982,7 +3008,7 @@ let $ = class extends x {
   _onAddressInput(e) {
     const t = e.target.value;
     this._newAddr = t;
-    const s = this._discovery.find((r) => r.address === t);
+    const s = this._discovery.find((a) => a.address === t);
     s && (this._newLabel.trim() || (this._newLabel = s.name), !this._newDpt.trim() && s.dpt && (this._newDpt = s.dpt));
   }
   // Iter 47 (N4): Smart-Sync statt Wipe-and-Replace.
@@ -2996,8 +3022,8 @@ let $ = class extends x {
     let e;
     try {
       e = await this.api.syncKnxProject(this._discovery, !1);
-    } catch (r) {
-      this._showToast(r.message);
+    } catch (a) {
+      this._showToast(a.message);
       return;
     }
     const t = e.counts;
@@ -3013,12 +3039,12 @@ ${t.delete} Einträge löschen (in ETS nicht mehr vorhanden → Lauschen wird be
 ${t.keep} unveränderte Einträge bleiben bestehen.`;
     if (window.confirm(s)) {
       try {
-        const a = (await this.api.syncKnxProject(this._discovery, !0)).counts;
+        const r = (await this.api.syncKnxProject(this._discovery, !0)).counts;
         this._showToast(
-          `Synchronisiert: +${a.added} angelegt, ${a.updated} aktualisiert, ${a.deleted} gelöscht`
+          `Synchronisiert: +${r.added} angelegt, ${r.updated} aktualisiert, ${r.deleted} gelöscht`
         );
-      } catch (r) {
-        this._showToast(`Fehler beim Anwenden: ${r.message}`);
+      } catch (a) {
+        this._showToast(`Fehler beim Anwenden: ${a.message}`);
       }
       await this._load();
     }
@@ -3058,14 +3084,14 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
         log_enabled: t,
         log_severity: s
       }), await this._load();
-      const r = this._items.find((n) => n.address === e.address), a = !!(r != null && r.log_enabled);
-      r !== void 0 && a !== t ? this._showToast(
+      const a = this._items.find((n) => n.address === e.address), r = !!(a != null && a.log_enabled);
+      a !== void 0 && r !== t ? this._showToast(
         "Backend hat log_enabled nicht gesetzt — Browser-Cache leeren (Cmd+Shift+R) und HA-Container neu starten"
       ) : this._showToast(
         t ? `${e.address} im Protokoll aktiv` : `${e.address} aus Protokoll entfernt`
       );
-    } catch (r) {
-      this._showToast(r.message);
+    } catch (a) {
+      this._showToast(a.message);
     }
   }
   async _delete(e) {
@@ -3084,33 +3110,33 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
       this._closeSevPopover();
       return;
     }
-    const r = e.currentTarget.getBoundingClientRect(), a = 220, n = r.bottom + a < window.innerHeight;
+    const a = e.currentTarget.getBoundingClientRect(), r = 220, n = a.bottom + r < window.innerHeight;
     this._sevPopoverPos = {
-      top: n ? r.bottom + 4 : r.top - a - 4,
-      left: r.left
+      top: n ? a.bottom + 4 : a.top - r - 4,
+      left: a.left
     }, this._sevPopoverFor = t.address;
   }
   async _onSeverityPick(e, t, s) {
     if (e.stopPropagation(), this._closeSevPopover(), s === t.log_severity || !this.api) return;
-    const r = {
+    const a = {
       address: t.address,
       log_severity: s
     };
-    s === "auto" && (r.severity_on_true = t.severity_on_true ?? "warning", r.severity_on_false = t.severity_on_false ?? "info");
-    const a = t.log_severity;
+    s === "auto" && (a.severity_on_true = t.severity_on_true ?? "warning", a.severity_on_false = t.severity_on_false ?? "info");
+    const r = t.log_severity;
     this._items = this._items.map(
       (n) => n.address === t.address ? {
         ...n,
         log_severity: s,
-        severity_on_true: r.severity_on_true ?? n.severity_on_true,
-        severity_on_false: r.severity_on_false ?? n.severity_on_false
+        severity_on_true: a.severity_on_true ?? n.severity_on_true,
+        severity_on_false: a.severity_on_false ?? n.severity_on_false
       } : n
     );
     try {
-      await this.api.upsertKnxAddress({ ...t, ...r }), this._showToast(`${t.address}: Severity ${a} → ${s}`);
+      await this.api.upsertKnxAddress({ ...t, ...a }), this._showToast(`${t.address}: Severity ${r} → ${s}`);
     } catch (n) {
       this._items = this._items.map(
-        (o) => o.address === t.address ? { ...o, log_severity: a } : o
+        (o) => o.address === t.address ? { ...o, log_severity: r } : o
       ), this._showToast(`Fehlgeschlagen: ${n.message}`);
     }
   }
@@ -3132,7 +3158,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
             role="menuitemradio"
             aria-checked=${s === t}
             class=${`sev-option ${s === t ? "active" : ""}`}
-            @click=${(r) => void this._onSeverityPick(r, e, s)}
+            @click=${(a) => void this._onSeverityPick(a, e, s)}
           >
             <span
               class=${`mh-pill mh-pill--${s === "auto" ? "neutral" : s}`}
@@ -3144,17 +3170,17 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
     `;
   }
   async _onCsvFile(e) {
-    var r;
-    const t = (r = e.target.files) == null ? void 0 : r[0];
+    var a;
+    const t = (a = e.target.files) == null ? void 0 : a[0];
     if (!t || !this.api) return;
     const s = await t.text();
     try {
-      const a = await this.api.importKnxCsv(s);
+      const r = await this.api.importKnxCsv(s);
       this._showToast(
-        `Import: ${a.imported} angelegt, ${a.skipped} übersprungen, ${a.errors} Fehler`
+        `Import: ${r.imported} angelegt, ${r.skipped} übersprungen, ${r.errors} Fehler`
       ), await this._load();
-    } catch (a) {
-      this._showToast(`Import fehlgeschlagen: ${a.message}`);
+    } catch (r) {
+      this._showToast(`Import fehlgeschlagen: ${r.message}`);
     } finally {
       e.target.value = "";
     }
@@ -3224,11 +3250,11 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
     t.has(e) ? t.delete(e) : t.add(e), this._selected = t;
   }
   _toggleSelectAllVisible(e) {
-    const t = e.every((r) => this._selected.has(r)), s = new Set(this._selected);
+    const t = e.every((a) => this._selected.has(a)), s = new Set(this._selected);
     if (t)
-      for (const r of e) s.delete(r);
+      for (const a of e) s.delete(a);
     else
-      for (const r of e) s.add(r);
+      for (const a of e) s.add(a);
     this._selected = s;
   }
   _clearSelection() {
@@ -3301,8 +3327,8 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
                   <select
                     .value=${e.log_severity}
                     @change=${(s) => {
-      const r = s.target.value;
-      t({ log_severity: r });
+      const a = s.target.value;
+      t({ log_severity: a });
     }}
                   >
                     ${xt.map(
@@ -3373,7 +3399,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
       }
   }
   render() {
-    const e = this._filtered(), t = e.slice(0, this._displayedCount), s = e.length > t.length, r = this._items.filter((a) => a.log_enabled).length;
+    const e = this._filtered(), t = e.slice(0, this._displayedCount), s = e.length > t.length, a = this._items.filter((r) => r.log_enabled).length;
     return i`
       <section>
         <header class="head">
@@ -3381,7 +3407,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
             <h2>KNX-Gruppenadressen</h2>
             <p class="hint">
               ${this._items.length} Adressen,
-              <strong>${r} im Protokoll aktiv</strong>. Voraussetzung
+              <strong>${a} im Protokoll aktiv</strong>. Voraussetzung
               für die Bus-Erfassung: HA-KNX-Integration mit IP-Tunneling/Routing
               ist eingerichtet — sie feuert das Event <code>knx_event</code>, das
               wir gegen diese Whitelist matchen. Nicht-aktivierte GAs werden
@@ -3411,14 +3437,14 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
             placeholder="${this._discovery.length > 0 ? `GA aus Projekt wählen (${this._discovery.length} verfügbar)` : "GA (z. B. 1/2/3)"}"
             .value=${this._newAddr}
             @input=${this._onAddressInput}
-            @keydown=${(a) => {
-      a.key === "Enter" && this._add();
+            @keydown=${(r) => {
+      r.key === "Enter" && this._add();
     }}
           />
           <datalist id="knx-discovery-list">
             ${this._discovery.map(
-      (a) => i`<option value=${a.address}>
-                  ${a.name}${a.dpt ? ` (DPT ${a.dpt})` : ""}
+      (r) => i`<option value=${r.address}>
+                  ${r.name}${r.dpt ? ` (DPT ${r.dpt})` : ""}
                 </option>`
     )}
           </datalist>
@@ -3427,9 +3453,9 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
             class="mh-input"
             placeholder="Label (z. B. Störung Heizung Pumpe)"
             .value=${this._newLabel}
-            @input=${(a) => this._newLabel = a.target.value}
-            @keydown=${(a) => {
-      a.key === "Enter" && this._add();
+            @input=${(r) => this._newLabel = r.target.value}
+            @keydown=${(r) => {
+      r.key === "Enter" && this._add();
     }}
           />
           <input
@@ -3437,9 +3463,9 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
             class="mh-input narrow"
             placeholder="DPT (z. B. 1.001)"
             .value=${this._newDpt}
-            @input=${(a) => this._newDpt = a.target.value}
-            @keydown=${(a) => {
-      a.key === "Enter" && this._add();
+            @input=${(r) => this._newDpt = r.target.value}
+            @keydown=${(r) => {
+      r.key === "Enter" && this._add();
     }}
           />
           <button class="mh-btn mh-btn--primary" @click=${this._add}>+ Hinzufügen</button>
@@ -3457,16 +3483,16 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
             class="mh-input"
             placeholder="Suche (GA / Label / DPT)…"
             .value=${this._filter}
-            @input=${(a) => {
-      this._filter = a.target.value, this._displayedCount = be;
+            @input=${(r) => {
+      this._filter = r.target.value, this._displayedCount = be;
     }}
           />
           <label class="toggle">
             <input
               type="checkbox"
               .checked=${this._onlyEnabled}
-              @change=${(a) => {
-      this._onlyEnabled = a.target.checked, this._displayedCount = be;
+              @change=${(r) => {
+      this._onlyEnabled = r.target.checked, this._displayedCount = be;
       try {
         localStorage.setItem(
           Wt,
@@ -3482,8 +3508,8 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
             <input
               type="checkbox"
               .checked=${this._hidePlaceholders}
-              @change=${(a) => {
-      this._hidePlaceholders = a.target.checked, this._displayedCount = be;
+              @change=${(r) => {
+      this._hidePlaceholders = r.target.checked, this._displayedCount = be;
     }}
             />
             <span>Platzhalter ausblenden</span>
@@ -3497,7 +3523,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
                 ${this._items.length === 0 ? i`<p>
                       Noch keine Adressen. Lege oben den ersten Eintrag an oder
                       importiere eine ETS-CSV.
-                    </p>` : this._onlyEnabled && r === 0 ? i`<p>
+                    </p>` : this._onlyEnabled && a === 0 ? i`<p>
                           <strong>Keine Adresse ist im Protokoll aktiv.</strong>
                         </p>
                         <p>
@@ -3514,7 +3540,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
                         </p>` : i`<p>
                         Keine Treffer für aktuelle Filter
                         (${this._items.length} Adressen total,
-                        ${r} davon aktiv).
+                        ${a} davon aktiv).
                       </p>`}
               </div>` : i`
                 ${this._selected.size > 0 ? this._renderBulkToolbar() : c}
@@ -3526,9 +3552,9 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
                           <input
                             type="checkbox"
                             aria-label="Alle sichtbaren auswaehlen"
-                            .checked=${t.length > 0 && t.every((a) => this._selected.has(a.address))}
+                            .checked=${t.length > 0 && t.every((r) => this._selected.has(r.address))}
                             @change=${() => this._toggleSelectAllVisible(
-      t.map((a) => a.address)
+      t.map((r) => r.address)
     )}
                           />
                         </th>
@@ -3542,33 +3568,33 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
                     </thead>
                     <tbody>
                       ${t.map(
-      (a) => i`
-                          <tr class=${a.log_enabled ? "enabled" : ""}>
+      (r) => i`
+                          <tr class=${r.log_enabled ? "enabled" : ""}>
                             <td class="col-select">
                               <input
                                 type="checkbox"
-                                aria-label=${`${a.address} auswaehlen`}
-                                .checked=${this._selected.has(a.address)}
-                                @change=${() => this._toggleSelect(a.address)}
+                                aria-label=${`${r.address} auswaehlen`}
+                                .checked=${this._selected.has(r.address)}
+                                @change=${() => this._toggleSelect(r.address)}
                               />
                             </td>
-                            <td><code class="ga">${a.address}</code></td>
-                            <td class="label-cell">${a.label}</td>
+                            <td><code class="ga">${r.address}</code></td>
+                            <td class="label-cell">${r.label}</td>
                             <td>
-                              ${a.dpt ? i`<code class="dpt">${a.dpt}</code>` : i`<span class="muted">—</span>`}
+                              ${r.dpt ? i`<code class="dpt">${r.dpt}</code>` : i`<span class="muted">—</span>`}
                             </td>
                             <td>
-                              ${a.log_enabled ? i`<button
-                                    class=${`mh-pill mh-pill--${a.log_severity === "auto" ? "neutral" : a.log_severity} sev-trigger`}
+                              ${r.log_enabled ? i`<button
+                                    class=${`mh-pill mh-pill--${r.log_severity === "auto" ? "neutral" : r.log_severity} sev-trigger`}
                                     title="Severity ändern"
                                     aria-haspopup="menu"
-                                    aria-expanded=${this._sevPopoverFor === a.address}
-                                    @click=${(n) => this._onSeverityTrigger(n, a)}
+                                    aria-expanded=${this._sevPopoverFor === r.address}
+                                    @click=${(n) => this._onSeverityTrigger(n, r)}
                                   >
                                     <span class="mh-pill__dot"></span>
-                                    ${a.log_severity}${a.log_severity === "auto" ? i` <small class="auto-detail"
-                                          >T:${a.severity_on_true ?? "warning"}
-                                          / F:${a.severity_on_false ?? "info"}</small
+                                    ${r.log_severity}${r.log_severity === "auto" ? i` <small class="auto-detail"
+                                          >T:${r.severity_on_true ?? "warning"}
+                                          / F:${r.severity_on_false ?? "info"}</small
                                         >` : c}
                                     <span class="sev-caret" aria-hidden="true">▾</span>
                                   </button>` : i`<!-- Iter 60 / U8: bei inaktiven GAs
@@ -3579,16 +3605,16 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
                                   <span
                                     class="mh-pill mh-pill--neutral sev-pill--inactive"
                                     title="Severity beim Aktivieren (Loggen ist aus)"
-                                    >${a.log_severity || "warning"}</span
+                                    >${r.log_severity || "warning"}</span
                                   >`}
                             </td>
                             <td class="col-toggle">
-                              <label class="switch" title=${a.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}>
+                              <label class="switch" title=${r.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}>
                                 <input
                                   type="checkbox"
-                                  .checked=${a.log_enabled}
-                                  @change=${() => void this._toggleLog(a)}
-                                  aria-label=${a.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}
+                                  .checked=${r.log_enabled}
+                                  @change=${() => void this._toggleLog(r)}
+                                  aria-label=${r.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}
                                 />
                                 <span class="slider"></span>
                               </label>
@@ -3598,7 +3624,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
                                 class="icon-btn"
                                 title="Bearbeiten"
                                 aria-label="Bearbeiten"
-                                @click=${() => this._editing = a}
+                                @click=${() => this._editing = r}
                               >
                                 <span aria-hidden="true">✎</span>
                               </button>
@@ -3606,7 +3632,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
                                 class="icon-btn danger"
                                 title="Löschen"
                                 aria-label="Löschen"
-                                @click=${() => void this._delete(a.address)}
+                                @click=${() => void this._delete(r.address)}
                               >
                                 <span aria-hidden="true">🗑</span>
                               </button>
@@ -4212,10 +4238,10 @@ T([
 $ = T([
   S("knx-addresses-view")
 ], $);
-var ta = Object.defineProperty, sa = Object.getOwnPropertyDescriptor, me = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? sa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && ta(t, s, a), a;
+var ta = Object.defineProperty, sa = Object.getOwnPropertyDescriptor, me = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? sa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && ta(t, s, r), r;
 };
 const aa = ["telegram", "pushover", "ntfy", "signal", "notify"], ra = ["debug", "info", "warning", "error"];
 let K = class extends x {
@@ -4277,8 +4303,8 @@ let K = class extends x {
     !this.api || e.id == null || window.confirm(`Channel '${e.name}' löschen?`) && (await this.api.deleteChannel(e.id), await this._load());
   }
   _renderTypeFields(e, t) {
-    const s = e.config ?? {}, r = (a, n) => {
-      t({ config: { ...s, [a]: n } });
+    const s = e.config ?? {}, a = (r, n) => {
+      t({ config: { ...s, [r]: n } });
     };
     return e.channel_type === "telegram" ? i`
         <div class="row-2">
@@ -4288,7 +4314,7 @@ let K = class extends x {
               type="password"
               placeholder="123456:ABC..."
               .value=${s.bot_token ?? ""}
-              @input=${(a) => r("bot_token", a.target.value)}
+              @input=${(r) => a("bot_token", r.target.value)}
             />
             <small>Vom @BotFather erhalten.</small>
           </label>
@@ -4297,7 +4323,7 @@ let K = class extends x {
             <input
               placeholder="-100123456789 oder 12345678"
               .value=${s.chat_id ?? ""}
-              @input=${(a) => r("chat_id", a.target.value)}
+              @input=${(r) => a("chat_id", r.target.value)}
             />
             <small>An @userinfobot eine Nachricht senden, dort steht die ID.</small>
           </label>
@@ -4310,14 +4336,14 @@ let K = class extends x {
               type="password"
               placeholder="azGDORePK8gMaC0QOYAMyEEuzJnyUi"
               .value=${s.app_token ?? ""}
-              @input=${(a) => r("app_token", a.target.value)}
+              @input=${(r) => a("app_token", r.target.value)}
             />
           </label>
           <label>
             <span>User-Key</span>
             <input
               .value=${s.user_key ?? ""}
-              @input=${(a) => r("user_key", a.target.value)}
+              @input=${(r) => a("user_key", r.target.value)}
             />
           </label>
         </div>
@@ -4326,7 +4352,7 @@ let K = class extends x {
           <input
             placeholder="iphone, oder leer = alle Geräte"
             .value=${s.device ?? ""}
-            @input=${(a) => r("device", a.target.value)}
+            @input=${(r) => a("device", r.target.value)}
           />
         </label>
       ` : e.channel_type === "ntfy" ? i`
@@ -4336,7 +4362,7 @@ let K = class extends x {
             <input
               placeholder="https://ntfy.sh"
               .value=${s.base_url ?? ""}
-              @input=${(a) => r("base_url", a.target.value)}
+              @input=${(r) => a("base_url", r.target.value)}
             />
           </label>
           <label>
@@ -4344,7 +4370,7 @@ let K = class extends x {
             <input
               placeholder="ha_alerts_dein_topic"
               .value=${s.topic ?? ""}
-              @input=${(a) => r("topic", a.target.value)}
+              @input=${(r) => a("topic", r.target.value)}
             />
           </label>
         </div>
@@ -4353,7 +4379,7 @@ let K = class extends x {
           <input
             type="password"
             .value=${s.token ?? ""}
-            @input=${(a) => r("token", a.target.value)}
+            @input=${(r) => a("token", r.target.value)}
           />
         </label>
       ` : i`
@@ -4362,7 +4388,7 @@ let K = class extends x {
         <input
           placeholder="z. B. mobile_app_iphone, signal_messenger"
           .value=${s.service ?? ""}
-          @input=${(a) => r("service", a.target.value)}
+          @input=${(r) => a("service", r.target.value)}
         />
       </label>
     `;
@@ -4386,8 +4412,8 @@ let K = class extends x {
             <select
               .value=${e.channel_type}
               @change=${(s) => {
-      const r = s.target.value;
-      t({ channel_type: r, config: {} });
+      const a = s.target.value;
+      t({ channel_type: a, config: {} });
     }}
             >
               ${aa.map((s) => i`<option value=${s}>${s}</option>`)}
@@ -4405,8 +4431,8 @@ let K = class extends x {
               <select
                 .value=${e.severity_threshold}
                 @change=${(s) => {
-      const r = s.target.value;
-      t({ severity_threshold: r });
+      const a = s.target.value;
+      t({ severity_threshold: a });
     }}
               >
                 ${ra.map((s) => i`<option value=${s}>${s}</option>`)}
@@ -4494,12 +4520,12 @@ let K = class extends x {
               <tbody>
                 ${this._items.map(
       (e) => {
-        var t, s, r, a, n;
+        var t, s, a, r, n;
         return i`<tr>
                     <td>${e.name}</td>
                     <td>
                       <code>${e.channel_type}</code>
-                      ${e.channel_type === "telegram" ? i` → <small>${((t = e.config) == null ? void 0 : t.chat_id) ?? "?"}</small>` : e.channel_type === "pushover" ? i` → <small>${((r = (s = e.config) == null ? void 0 : s.user_key) == null ? void 0 : r.slice(0, 8)) ?? "?"}…</small>` : e.channel_type === "ntfy" ? i` → <small>${((a = e.config) == null ? void 0 : a.topic) ?? "?"}</small>` : (n = e.config) != null && n.service ? i` → <code>notify.${e.config.service}</code>` : i`<span class="muted">— unkonfiguriert</span>`}
+                      ${e.channel_type === "telegram" ? i` → <small>${((t = e.config) == null ? void 0 : t.chat_id) ?? "?"}</small>` : e.channel_type === "pushover" ? i` → <small>${((a = (s = e.config) == null ? void 0 : s.user_key) == null ? void 0 : a.slice(0, 8)) ?? "?"}…</small>` : e.channel_type === "ntfy" ? i` → <small>${((r = e.config) == null ? void 0 : r.topic) ?? "?"}</small>` : (n = e.config) != null && n.service ? i` → <code>notify.${e.config.service}</code>` : i`<span class="muted">— unkonfiguriert</span>`}
                     </td>
                     <td>${e.severity_threshold}</td>
                     <td>
@@ -4721,10 +4747,10 @@ me([
 K = me([
   S("channels-view")
 ], K);
-var ia = Object.defineProperty, na = Object.getOwnPropertyDescriptor, A = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? na(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && ia(t, s, a), a;
+var ia = Object.defineProperty, na = Object.getOwnPropertyDescriptor, A = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? na(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && ia(t, s, r), r;
 };
 const tt = y`
   section {
@@ -4942,20 +4968,20 @@ let I = class extends x {
         <td>
           <input
             .value=${s.topic_pattern}
-            @input=${(r) => this._patchDraft({ topic_pattern: r.target.value })}
+            @input=${(a) => this._patchDraft({ topic_pattern: a.target.value })}
           />
         </td>
         <td>
           <input
             .value=${s.source}
-            @input=${(r) => this._patchDraft({ source: r.target.value })}
+            @input=${(a) => this._patchDraft({ source: a.target.value })}
           />
         </td>
         <td>
           <select
             .value=${s.severity}
-            @change=${(r) => this._patchDraft({
-        severity: r.target.value
+            @change=${(a) => this._patchDraft({
+        severity: a.target.value
       })}
           >
             <option value="debug">debug</option>
@@ -4968,7 +4994,7 @@ let I = class extends x {
           <input
             type="checkbox"
             .checked=${s.enabled}
-            @change=${(r) => this._patchDraft({ enabled: r.target.checked })}
+            @change=${(a) => this._patchDraft({ enabled: a.target.checked })}
           />
         </td>
         <td class="actions">
@@ -5027,6 +5053,14 @@ let ee = class extends x {
   async _add() {
     !this.api || !this._newSource.trim() || (await this.api.upsertHeartbeat(this._newSource.trim(), this._newInterval), this._newSource = "", await this._load());
   }
+  // F-005: Loescht eine Source — destruktiv, daher Confirm-Dialog.
+  async _delete(e) {
+    this.api && window.confirm(`Heartbeat '${e.source}' loeschen?`) && (await this.api.deleteHeartbeat(e.source), await this._load());
+  }
+  // F-005: Pause/Aktivieren — non-destruktiv, kein Confirm.
+  async _toggleEnabled(e) {
+    this.api && (await this.api.setHeartbeatEnabled(e.source, !e.enabled), await this._load());
+  }
   render() {
     return i`
       <section>
@@ -5061,6 +5095,7 @@ let ee = class extends x {
                   <th>Intervall (s)</th>
                   <th>Letzte Sichtung</th>
                   <th>Status</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -5070,7 +5105,15 @@ let ee = class extends x {
                     <td>${e.expected_interval_seconds}</td>
                     <td>${e.last_seen ?? i`<span class="muted">—</span>`}</td>
                     <td>
-                      ${e.silent_alert_active ? i`<span class="alert">⚠ silent</span>` : i`<span class="ok">✓ ok</span>`}
+                      ${e.enabled ? e.silent_alert_active ? i`<span class="alert">⚠ silent</span>` : i`<span class="ok">✓ ok</span>` : i`<span class="muted">paused</span>`}
+                    </td>
+                    <td class="actions">
+                      <button @click=${() => void this._toggleEnabled(e)}>
+                        ${e.enabled ? "Pause" : "Aktivieren"}
+                      </button>
+                      <button class="danger" @click=${() => void this._delete(e)}>
+                        Löschen
+                      </button>
                     </td>
                   </tr>`
     )}
@@ -5096,7 +5139,7 @@ A([
 ee = A([
   S("heartbeats-view")
 ], ee);
-let M = class extends x {
+let U = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._newName = "", this._newSource = "", this._newAutomation = "", this._newAuto = !1;
   }
@@ -5192,32 +5235,32 @@ let M = class extends x {
     `;
   }
 };
-M.styles = tt;
+U.styles = tt;
 A([
   w({ attribute: !1 })
-], M.prototype, "api", 2);
+], U.prototype, "api", 2);
 A([
   l()
-], M.prototype, "_items", 2);
+], U.prototype, "_items", 2);
 A([
   l()
-], M.prototype, "_newName", 2);
+], U.prototype, "_newName", 2);
 A([
   l()
-], M.prototype, "_newSource", 2);
+], U.prototype, "_newSource", 2);
 A([
   l()
-], M.prototype, "_newAutomation", 2);
+], U.prototype, "_newAutomation", 2);
 A([
   l()
-], M.prototype, "_newAuto", 2);
-M = A([
+], U.prototype, "_newAuto", 2);
+U = A([
   S("remediation-view")
-], M);
-var oa = Object.defineProperty, la = Object.getOwnPropertyDescriptor, B = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? la(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && oa(t, s, a), a;
+], U);
+var oa = Object.defineProperty, la = Object.getOwnPropertyDescriptor, B = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? la(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && oa(t, s, r), r;
 };
 const Vt = [
   { id: "webhooks", label: "Webhooks" },
@@ -5323,7 +5366,7 @@ let F = class extends x {
               ${e.enabled ? "Aktiv" : "Deaktiviert"}
             </span>
           </div>
-          <div class="card-actions" @click=${(r) => r.stopPropagation()}>
+          <div class="card-actions" @click=${(a) => a.stopPropagation()}>
             <button
               class="mh-btn mh-btn--sm"
               title="Webhook bearbeiten"
@@ -5846,10 +5889,10 @@ B([
 F = B([
   S("settings-view")
 ], F);
-var ca = Object.defineProperty, ha = Object.getOwnPropertyDescriptor, re = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? ha(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && ca(t, s, a), a;
+var ca = Object.defineProperty, ha = Object.getOwnPropertyDescriptor, re = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? ha(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && ca(t, s, r), r;
 };
 const yt = {
   error: "Errors",
@@ -5862,7 +5905,7 @@ const yt = {
   info: "var(--mh-info)",
   debug: "var(--mh-debug)"
 }, kt = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], pa = [1, 2, 3, 4, 5, 6, 0];
-let U = class extends x {
+let H = class extends x {
   constructor() {
     super(...arguments), this._stats = null, this._sources = [], this._heatmap = [], this._topSources = [], this._loading = !1;
   }
@@ -5896,15 +5939,15 @@ let U = class extends x {
             <span></span>
             ${Array.from(
       { length: 24 },
-      (s, r) => i`<span class="hour-label">${r % 3 === 0 ? r : ""}</span>`
+      (s, a) => i`<span class="hour-label">${a % 3 === 0 ? a : ""}</span>`
     )}
           </div>
-          ${pa.map((s, r) => {
-      const a = e[s];
+          ${pa.map((s, a) => {
+      const r = e[s];
       return i`
               <div class="heatmap-row">
-                <span class="day-label">${kt[r]}</span>
-                ${a.map((n, o) => {
+                <span class="day-label">${kt[a]}</span>
+                ${r.map((n, o) => {
         const d = n === 0 ? 0 : Math.max(0.15, n / t), h = n === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(
           d * 100
         )}%, transparent)`;
@@ -5912,7 +5955,7 @@ let U = class extends x {
                     <div
                       class=${`heatmap-cell ${n === 0 ? "empty" : ""}`}
                       style=${`background: ${h}`}
-                      title=${`${kt[r]} ${o}:00 — ${n} Nachricht${n === 1 ? "" : "en"}`}
+                      title=${`${kt[a]} ${o}:00 — ${n} Nachricht${n === 1 ? "" : "en"}`}
                     ></div>
                   `;
       })}
@@ -5934,30 +5977,30 @@ let U = class extends x {
   }
   _renderSeverityStack() {
     if (!this._stats) return i``;
-    const e = this._stats.severity_24h, t = Object.values(e).reduce((r, a) => r + a, 0), s = ["error", "warning", "info", "debug"];
+    const e = this._stats.severity_24h, t = Object.values(e).reduce((a, r) => a + r, 0), s = ["error", "warning", "info", "debug"];
     return t === 0 ? i`<p class="muted">Keine Nachrichten in den letzten 24 Stunden.</p>` : i`
       <div class="stack-bar" role="img" aria-label="Severity-Verteilung der letzten 24 Stunden">
-        ${s.map((r) => {
-      const a = e[r] ?? 0;
-      if (a === 0) return null;
-      const n = a / t * 100;
+        ${s.map((a) => {
+      const r = e[a] ?? 0;
+      if (r === 0) return null;
+      const n = r / t * 100;
       return i`
             <div
-              class=${`stack-seg sev-${r}`}
-              style=${`width: ${n}%; background: ${$t[r]}`}
-              title=${`${yt[r]}: ${a} (${n.toFixed(0)}%)`}
+              class=${`stack-seg sev-${a}`}
+              style=${`width: ${n}%; background: ${$t[a]}`}
+              title=${`${yt[a]}: ${r} (${n.toFixed(0)}%)`}
             ></div>
           `;
     })}
       </div>
       <ul class="legend">
-        ${s.map((r) => {
-      const a = e[r] ?? 0, n = t > 0 ? a / t * 100 : 0;
+        ${s.map((a) => {
+      const r = e[a] ?? 0, n = t > 0 ? r / t * 100 : 0;
       return i`
             <li>
-              <span class="legend-dot" style=${`background: ${$t[r]}`}></span>
-              <span class="legend-label">${yt[r]}</span>
-              <span class="legend-count">${a.toLocaleString("de-DE")}</span>
+              <span class="legend-dot" style=${`background: ${$t[a]}`}></span>
+              <span class="legend-label">${yt[a]}</span>
+              <span class="legend-count">${r.toLocaleString("de-DE")}</span>
               <span class="legend-pct muted">${n.toFixed(0)}%</span>
             </li>
           `;
@@ -5970,7 +6013,7 @@ let U = class extends x {
       return i`<div class="root"><p class="status">lade…</p></div>`;
     if (!this._stats)
       return i`<div class="root"><p class="status">Keine Daten verfügbar.</p></div>`;
-    const e = this._stats, t = Object.values(e.severity_24h).reduce((n, o) => n + o, 0), s = e.severity_24h.error ?? 0, r = e.severity_24h.warning ?? 0, a = t > 0 ? s / t * 100 : 0;
+    const e = this._stats, t = Object.values(e.severity_24h).reduce((n, o) => n + o, 0), s = e.severity_24h.error ?? 0, a = e.severity_24h.warning ?? 0, r = t > 0 ? s / t * 100 : 0;
     return i`
       <div class="root">
         <section>
@@ -5995,12 +6038,12 @@ let U = class extends x {
               <span class="kpi-label">Errors 24 h</span>
               <span class="kpi-value">${s}</span>
               <span class="kpi-hint">
-                ${t === 0 ? "—" : `${a.toFixed(1)} % Anteil`}
+                ${t === 0 ? "—" : `${r.toFixed(1)} % Anteil`}
               </span>
             </div>
             <div class="kpi accent-warning">
               <span class="kpi-label">Warnings 24 h</span>
-              <span class="kpi-value">${r}</span>
+              <span class="kpi-value">${a}</span>
               <span class="kpi-hint">letzte 24 Stunden</span>
             </div>
           </div>
@@ -6067,7 +6110,7 @@ let U = class extends x {
     `;
   }
 };
-U.styles = [
+H.styles = [
   L,
   Se,
   ae,
@@ -6137,29 +6180,29 @@ U.styles = [
 ];
 re([
   w({ attribute: !1 })
-], U.prototype, "api", 2);
+], H.prototype, "api", 2);
 re([
   l()
-], U.prototype, "_stats", 2);
+], H.prototype, "_stats", 2);
 re([
   l()
-], U.prototype, "_sources", 2);
+], H.prototype, "_sources", 2);
 re([
   l()
-], U.prototype, "_heatmap", 2);
+], H.prototype, "_heatmap", 2);
 re([
   l()
-], U.prototype, "_topSources", 2);
+], H.prototype, "_topSources", 2);
 re([
   l()
-], U.prototype, "_loading", 2);
-U = re([
+], H.prototype, "_loading", 2);
+H = re([
   S("stats-live-view")
-], U);
-var ua = Object.defineProperty, ma = Object.getOwnPropertyDescriptor, Ie = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? ma(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && ua(t, s, a), a;
+], H);
+var ua = Object.defineProperty, ma = Object.getOwnPropertyDescriptor, Ie = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? ma(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && ua(t, s, r), r;
 };
 const Pe = [
   "var(--mh-error)",
@@ -6177,7 +6220,7 @@ let ce = class extends x {
       return i`<p class="muted">Keine Timeline-Daten.</p>`;
     if (this.items.reduce((g, u) => g + u.count, 0) === 0)
       return i`<p class="muted">Keine Telegramme im Zeitraum.</p>`;
-    const t = this._buildSeries(), s = this._allBuckets(), r = Math.max(1, ...this.items.map((g) => g.count)), a = { top: 8, right: 8, bottom: 18, left: 32 }, n = this.width - a.left - a.right, o = this.height - a.top - a.bottom, d = s.length === 1, h = (g) => d ? a.left + n / 2 : a.left + g / (s.length - 1) * n, m = (g) => a.top + (1 - g / r) * o;
+    const t = this._buildSeries(), s = this._allBuckets(), a = Math.max(1, ...this.items.map((g) => g.count)), r = { top: 8, right: 8, bottom: 18, left: 32 }, n = this.width - r.left - r.right, o = this.height - r.top - r.bottom, d = s.length === 1, h = (g) => d ? r.left + n / 2 : r.left + g / (s.length - 1) * n, m = (g) => r.top + (1 - g / a) * o;
     return i`
       <svg
         viewBox=${`0 0 ${this.width} ${this.height}`}
@@ -6187,18 +6230,18 @@ let ce = class extends x {
       >
         <!-- Grid: horizontale Linien bei 0, max -->
         <line
-          x1=${a.left} y1=${a.top}
-          x2=${this.width - a.right} y2=${a.top}
+          x1=${r.left} y1=${r.top}
+          x2=${this.width - r.right} y2=${r.top}
           class="grid"
         ></line>
         <line
-          x1=${a.left} y1=${this.height - a.bottom}
-          x2=${this.width - a.right} y2=${this.height - a.bottom}
+          x1=${r.left} y1=${this.height - r.bottom}
+          x2=${this.width - r.right} y2=${this.height - r.bottom}
           class="grid"
         ></line>
         <!-- Y-Achse Labels -->
-        <text x="2" y=${a.top + 4} class="axis-label">${r}</text>
-        <text x="2" y=${this.height - a.bottom + 4} class="axis-label">0</text>
+        <text x="2" y=${r.top + 4} class="axis-label">${a}</text>
+        <text x="2" y=${this.height - r.bottom + 4} class="axis-label">0</text>
 
         <!-- Series -->
         ${t.map((g, u) => {
@@ -6207,8 +6250,8 @@ let ce = class extends x {
         const v = m(g.values[0] ?? 0);
         return i`<g class="series">
               <line
-                x1=${a.left} y1=${v}
-                x2=${this.width - a.right} y2=${v}
+                x1=${r.left} y1=${v}
+                x2=${this.width - r.right} y2=${v}
                 stroke=${p}
                 stroke-width="2"
                 vector-effect="non-scaling-stroke"
@@ -6254,14 +6297,14 @@ let ce = class extends x {
     return Array.from(e).sort();
   }
   _buildSeries() {
-    const e = this._allBuckets(), t = new Map(e.map((r, a) => [r, a])), s = /* @__PURE__ */ new Map();
-    for (const r of this.items) {
-      let a = s.get(r.ga);
-      a === void 0 && (a = new Array(e.length).fill(0), s.set(r.ga, a));
-      const n = t.get(r.bucket);
-      n !== void 0 && (a[n] = r.count);
+    const e = this._allBuckets(), t = new Map(e.map((a, r) => [a, r])), s = /* @__PURE__ */ new Map();
+    for (const a of this.items) {
+      let r = s.get(a.ga);
+      r === void 0 && (r = new Array(e.length).fill(0), s.set(a.ga, r));
+      const n = t.get(a.bucket);
+      n !== void 0 && (r[n] = a.count);
     }
-    return Array.from(s.entries()).map(([r, a]) => ({ ga: r, values: a }));
+    return Array.from(s.entries()).map(([a, r]) => ({ ga: a, values: r }));
   }
 };
 ce.styles = [
@@ -6327,10 +6370,10 @@ Ie([
 ce = Ie([
   S("knx-timeline-chart")
 ], ce);
-var ga = Object.defineProperty, va = Object.getOwnPropertyDescriptor, Re = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? va(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && ga(t, s, a), a;
+var ga = Object.defineProperty, va = Object.getOwnPropertyDescriptor, Re = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? va(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && ga(t, s, r), r;
 };
 function fa(e) {
   if (typeof e == "number" && Number.isFinite(e)) return e;
@@ -6355,7 +6398,7 @@ let he = class extends x {
         Wertverlauf: zu wenige numerische Datenpunkte
         (${e.length} von ${this.points.length}).
       </p>`;
-    const t = e.map((v) => v.value), s = Math.min(...t), r = Math.max(...t), a = r - s || 1, n = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - n.left - n.right, d = this.height - n.top - n.bottom, h = (v) => n.left + v / Math.max(1, e.length - 1) * o, m = (v) => n.top + (1 - (v - s) / a) * d, g = e.map((v, k) => `${h(k)},${m(v.value)}`).join(" "), p = [...t.slice(1).map((v, k) => Math.abs(v - t[k]))].sort((v, k) => v - k), b = p[Math.floor(p.length / 2)];
+    const t = e.map((v) => v.value), s = Math.min(...t), a = Math.max(...t), r = a - s || 1, n = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - n.left - n.right, d = this.height - n.top - n.bottom, h = (v) => n.left + v / Math.max(1, e.length - 1) * o, m = (v) => n.top + (1 - (v - s) / r) * d, g = e.map((v, k) => `${h(k)},${m(v.value)}`).join(" "), p = [...t.slice(1).map((v, k) => Math.abs(v - t[k]))].sort((v, k) => v - k), b = p[Math.floor(p.length / 2)];
     return i`
       <div class="wrap">
         <svg
@@ -6374,14 +6417,14 @@ let he = class extends x {
             x2=${this.width - n.right} y2=${this.height - n.bottom}
             class="grid"
           ></line>
-          <text x="2" y=${n.top + 4} class="axis-label">${r.toFixed(1)}</text>
+          <text x="2" y=${n.top + 4} class="axis-label">${a.toFixed(1)}</text>
           <text x="2" y=${this.height - n.bottom + 4} class="axis-label">${s.toFixed(1)}</text>
           <polyline points=${g} class="series" fill="none"></polyline>
         </svg>
         <p class="muted small">
-          ${e.length} Punkte • Min ${s.toFixed(1)} • Max ${r.toFixed(1)} •
+          ${e.length} Punkte • Min ${s.toFixed(1)} • Max ${a.toFixed(1)} •
           Median Δ ${b.toFixed(2)}
-          ${b < 0.1 && a > 0 ? i` <span class="hint">→ enge Hysterese</span>` : ba}
+          ${b < 0.1 && r > 0 ? i` <span class="hint">→ enge Hysterese</span>` : ba}
         </p>
       </div>
     `;
@@ -6440,10 +6483,10 @@ he = Re([
   S("knx-value-sparkline")
 ], he);
 const ba = "";
-var _a = Object.defineProperty, wa = Object.getOwnPropertyDescriptor, _ = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? wa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && _a(t, s, a), a;
+var _a = Object.defineProperty, wa = Object.getOwnPropertyDescriptor, _ = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? wa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && _a(t, s, r), r;
 };
 const Jt = "messagehub.knx-stats.filters", St = "messagehub.knx-stats.filters.defaults-version", Tt = "v2", xa = 1, ya = /^[\s\-_=]*$/;
 function $a(e, t) {
@@ -6492,13 +6535,13 @@ function Aa(e, t) {
   }
   if (s)
     return e;
-  let r = e;
-  t !== null && t.minRate === xa && (r = { ...e, minRate: qe.minRate }, D(r));
+  let a = e;
+  t !== null && t.minRate === xa && (a = { ...e, minRate: qe.minRate }, D(a));
   try {
     localStorage.setItem(St, Tt);
   } catch {
   }
-  return r;
+  return a;
 }
 function D(e) {
   try {
@@ -6507,7 +6550,7 @@ function D(e) {
   }
 }
 function Dt(e) {
-  const t = Ve.find((a) => a.id === e) ?? Ve[2], s = /* @__PURE__ */ new Date();
+  const t = Ve.find((r) => r.id === e) ?? Ve[2], s = /* @__PURE__ */ new Date();
   return { from: new Date(s.getTime() - t.days * 864e5).toISOString(), to: s.toISOString() };
 }
 const Ea = 48;
@@ -6534,30 +6577,30 @@ const Lt = {
   red: 3
 };
 function Da(e, t, s) {
-  return [...e].sort((a, n) => {
+  return [...e].sort((r, n) => {
     let o;
     switch (t) {
       case "ga":
-        o = a.ga.localeCompare(n.ga);
+        o = r.ga.localeCompare(n.ga);
         break;
       case "label": {
-        const d = !a.label, h = !n.label;
+        const d = !r.label, h = !n.label;
         if (d && h) o = 0;
         else {
           if (d) return 1;
           if (h) return -1;
-          o = a.label.localeCompare(n.label);
+          o = r.label.localeCompare(n.label);
         }
         break;
       }
       case "rate_per_min":
-        o = a.rate_per_min - n.rate_per_min;
+        o = r.rate_per_min - n.rate_per_min;
         break;
       case "recommended_rate":
-        o = a.recommended_rate - n.recommended_rate;
+        o = r.recommended_rate - n.recommended_rate;
         break;
       case "severity":
-        o = Lt[a.severity] - Lt[n.severity];
+        o = Lt[r.severity] - Lt[n.severity];
         break;
     }
     return s === "desc" ? -o : o;
@@ -6618,7 +6661,7 @@ let f = class extends x {
       alarms: "Alarme",
       trend: "Trend-Vergleich",
       heatmap: "Aktivitäts-Heatmap"
-    }, s = e.map((r) => t[r] || r).join(", ");
+    }, s = e.map((a) => t[a] || a).join(", ");
     return i`
       <div class="api-error-banner" role="alert">
         <div class="api-error-banner__head">
@@ -6642,7 +6685,7 @@ let f = class extends x {
           <p class="muted small">Original-Fehlermeldungen:</p>
           <ul class="api-error-banner__raw">
             ${Array.from(this._apiErrors.entries()).map(
-      ([r, a]) => i`<li><code>${r}</code>: ${a}</li>`
+      ([a, r]) => i`<li><code>${a}</code>: ${r}</li>`
     )}
           </ul>
         </details>
@@ -6694,9 +6737,9 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   async _load() {
     if (!this.api) return;
     this._loading = !0, this._error = "";
-    const e = /* @__PURE__ */ new Map(), t = (s, r) => r.catch((a) => (e.set(s, a.message), null));
+    const e = /* @__PURE__ */ new Map(), t = (s, a) => a.catch((r) => (e.set(s, r.message), null));
     try {
-      const s = this._isLongTermMode(), r = this._apiFilters(), a = this._liveFiltersForRaw(), n = { ...a, limit: this._filters.topNDevices }, [
+      const s = this._isLongTermMode(), a = this._apiFilters(), r = this._liveFiltersForRaw(), n = { ...r, limit: this._filters.topNDevices }, [
         o,
         d,
         h,
@@ -6712,40 +6755,40 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         Zt,
         Xt
       ] = await Promise.all([
-        this.api.getKnxStatsSummary(a),
-        this.api.getKnxStatsTop(a),
+        this.api.getKnxStatsSummary(r),
+        this.api.getKnxStatsTop(r),
         this.api.getKnxStatsTopBySource(n),
-        this.api.getKnxStatsBusHealth(a),
+        this.api.getKnxStatsBusHealth(r),
         this.api.getKnxStatsSilence({
-          ...a,
+          ...r,
           maxSilenceMinutes: this._suggestSilenceMinutes()
         }),
-        t("orphans", this.api.getKnxStatsOrphans(a)),
-        t("alarms", this.api.getKnxStatsAlarms(a)),
+        t("orphans", this.api.getKnxStatsOrphans(r)),
+        t("alarms", this.api.getKnxStatsAlarms(r)),
         t(
           "busload",
-          this.api.getKnxStatsBusload(a, this._suggestBusloadBucketSeconds())
+          this.api.getKnxStatsBusload(r, this._suggestBusloadBucketSeconds())
         ),
-        t("health-score", this.api.getKnxStatsHealthScore(a)),
-        s ? t("long-term", this.api.getKnxStatsLongTerm(r)) : Promise.resolve(null),
-        t("bursts", this.api.getKnxStatsBursts(a)),
-        t("sensitive-log", this.api.getKnxStatsSensitiveLog(a)),
+        t("health-score", this.api.getKnxStatsHealthScore(r)),
+        s ? t("long-term", this.api.getKnxStatsLongTerm(a)) : Promise.resolve(null),
+        t("bursts", this.api.getKnxStatsBursts(r)),
+        t("sensitive-log", this.api.getKnxStatsSensitiveLog(r)),
         // Iter aiohttp-error-ZU9UA / Trend-Fix B+C: bei langen Perioden
         // den vollen Zeitraum (fLongTerm) statt der 48h-Live-Slice
         // (fRaw) senden — Backend liest dann aus knx_telegram_counters.
         t(
           "trend",
-          this.api.getKnxStatsTrend(s ? r : a, 5)
+          this.api.getKnxStatsTrend(s ? a : r, 5)
         ),
         t(
           "heatmap",
-          this.api.getKnxStatsHeatmap(a, 10, this._suggestHeatmapBucketMinutes())
+          this.api.getKnxStatsHeatmap(r, 10, this._suggestHeatmapBucketMinutes())
         )
       ]);
       this._summary = o, this._top = d.items, this._topBySource = h.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = b, this._health = v, this._longTerm = k, this._bursts = ge, this._sensitiveLog = Ee, this._trend = Zt, this._heatmap = Xt, this._apiErrors = e, this._apiErrorsDismissed = !1;
       const at = d.items.slice(0, 5).map((Qt) => Qt.ga);
       at.length > 0 ? this._timeline = await this.api.getKnxStatsTimeline({
-        ...a,
+        ...r,
         gas: at,
         bucketMinutes: this._suggestBucketMinutes()
       }) : this._timeline = null;
@@ -7011,7 +7054,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     const e = this._summary;
     if (e === null)
       return i`<p class="muted">Keine Daten verfuegbar.</p>`;
-    const t = e.counts_by_severity, s = this._busload, r = s !== null ? s.summary.max_pct : e.estimated_busload_pct, a = r >= 30 ? "danger" : r >= 20 ? "warning" : r >= 10 ? "elevated" : "ok", n = (o) => o.toLocaleString("de-DE", {
+    const t = e.counts_by_severity, s = this._busload, a = s !== null ? s.summary.max_pct : e.estimated_busload_pct, r = a >= 30 ? "danger" : a >= 20 ? "warning" : a >= 10 ? "elevated" : "ok", n = (o) => o.toLocaleString("de-DE", {
       minimumFractionDigits: 1,
       maximumFractionDigits: 1
     });
@@ -7032,7 +7075,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <span class="kpi-value">${e.active_devices.toLocaleString("de-DE")}</span>
           <span class="kpi-hint">Source-Adressen</span>
         </div>
-        <div class=${`kpi busload busload--${a}`}>
+        <div class=${`kpi busload busload--${r}`}>
           <span class="kpi-label">Buslast</span>
           ${s === null ? i`<span class="kpi-value">${n(e.estimated_busload_pct)} %</span>
                 <span class="kpi-hint">Ø über Zeitraum</span>` : i`<span class="kpi-value">${n(s.summary.max_pct)} %</span>
@@ -7048,12 +7091,12 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             role="meter"
             aria-valuemin="0"
             aria-valuemax="100"
-            aria-valuenow=${r.toFixed(1)}
-            title=${`Buslast ${n(r)} % auf Skala 0–100`}
+            aria-valuenow=${a.toFixed(1)}
+            title=${`Buslast ${n(a)} % auf Skala 0–100`}
           >
             <div
               class="busload-bar__marker"
-              style=${`left: ${Math.min(100, Math.max(0, r)).toFixed(1)}%;`}
+              style=${`left: ${Math.min(100, Math.max(0, a)).toFixed(1)}%;`}
             ></div>
           </div>
         </div>
@@ -7085,10 +7128,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="health-score__components">
             ${["repeat", "busload", "silence", "alarms"].map(
       (t) => {
-        const s = e.components[t], r = this._componentSeverity(s);
+        const s = e.components[t], a = this._componentSeverity(s);
         return i`<div
-                  class=${`health-score__badge health-score__badge--${r}`}
-                  title=${`${this._componentLabel(t)}: ${s}/100 (${this._healthLabel(r)})`}
+                  class=${`health-score__badge health-score__badge--${a}`}
+                  title=${`${this._componentLabel(t)}: ${s}/100 (${this._healthLabel(a)})`}
                 >
                   <span class="health-score__badge-label">${this._componentLabel(t)}</span>
                   <span class="health-score__badge-value">${s}</span>
@@ -7148,13 +7191,13 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   }
   // Iter 42: Sicherheits-Audit-Card ---------------------------------------
   _renderSensitiveLog() {
-    const e = this._sensitiveLog, t = (a) => this._formatTs(a), s = this._filters.topNAudit, r = e.telegrams.slice(0, s);
+    const e = this._sensitiveLog, t = (r) => this._formatTs(r), s = this._filters.topNAudit, a = e.telegrams.slice(0, s);
     return i`
       <section class="mh-card sensitive">
         <header class="card-head">
           <h3>Sicherheits-Audit</h3>
           <div class="card-head__meta">
-            ${this._renderInlineTopN(this._filters.topNAudit, (a) => this._onTopNAudit(a))}
+            ${this._renderInlineTopN(this._filters.topNAudit, (r) => this._onTopNAudit(r))}
             <span class="muted small">
               ${e.addresses.length} markierte GAs · ${e.telegrams.length} Telegramme im Zeitraum
             </span>
@@ -7164,10 +7207,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <h4>Sensitive GAs</h4>
           <ul class="sensitive__addr-list">
             ${e.addresses.map(
-      (a) => i`<li>
-                <code>${a.ga}</code>
-                ${a.label ? i`<span class="muted small">${a.label}</span>` : c}
-                ${a.dpt ? i`<span class="mh-pill mh-pill--neutral">${a.dpt}</span>` : c}
+      (r) => i`<li>
+                <code>${r.ga}</code>
+                ${r.label ? i`<span class="muted small">${r.label}</span>` : c}
+                ${r.dpt ? i`<span class="mh-pill mh-pill--neutral">${r.dpt}</span>` : c}
               </li>`
     )}
           </ul>
@@ -7185,15 +7228,15 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                     </tr>
                   </thead>
                   <tbody>
-                    ${r.map(
-      (a) => i`<tr>
-                        <td class="bursts__ts">${t(a.ts)}</td>
+                    ${a.map(
+      (r) => i`<tr>
+                        <td class="bursts__ts">${t(r.ts)}</td>
                         <td>
-                          <code>${a.ga}</code>
-                          ${a.label ? i`<span class="muted small">${a.label}</span>` : c}
+                          <code>${r.ga}</code>
+                          ${r.label ? i`<span class="muted small">${r.label}</span>` : c}
                         </td>
-                        <td><code>${a.dev_source}</code></td>
-                        <td><code>${a.value ?? "—"}</code></td>
+                        <td><code>${r.dev_source}</code></td>
+                        <td><code>${r.value ?? "—"}</code></td>
                       </tr>`
     )}
                   </tbody>
@@ -7206,7 +7249,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   }
   // Iter 41: Burst-Detector-Card -----------------------------------------
   _renderBursts() {
-    const e = this._bursts, t = (n) => n.toLocaleString("de-DE"), s = (n) => n.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }), r = this._filters.topNBursts, a = e.bursts.slice(0, r);
+    const e = this._bursts, t = (n) => n.toLocaleString("de-DE"), s = (n) => n.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }), a = this._filters.topNBursts, r = e.bursts.slice(0, a);
     return i`
       <section class="mh-card bursts">
         <header class="card-head">
@@ -7239,7 +7282,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
               </tr>
             </thead>
             <tbody>
-              ${a.map(
+              ${r.map(
       (n) => i`<tr>
                   <td class="bursts__ts">${this._formatTs(n.bucket)}</td>
                   <td class="num">${t(n.telegrams)}</td>
@@ -7251,7 +7294,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             </tbody>
           </table>
         </div>
-        ${e.bursts.length > r ? i`<p class="muted small">… und ${e.bursts.length - r} weitere</p>` : c}
+        ${e.bursts.length > a ? i`<p class="muted small">… und ${e.bursts.length - a} weitere</p>` : c}
       </section>
     `;
   }
@@ -7272,7 +7315,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _renderLongTerm() {
-    const e = this._longTerm, t = Math.max(1, ...e.series.map((a) => a.count)), s = (a) => a.toLocaleString("de-DE"), r = this._filters.topNLongTerm;
+    const e = this._longTerm, t = Math.max(1, ...e.series.map((r) => r.count)), s = (r) => r.toLocaleString("de-DE"), a = this._filters.topNLongTerm;
     return i`
       <section class="mh-card long-term">
         <header class="card-head">
@@ -7280,7 +7323,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="card-head__meta">
             ${this._renderInlineTopN(
       this._filters.topNLongTerm,
-      (a) => this._onTopNLongTerm(a)
+      (r) => this._onTopNLongTerm(r)
     )}
             <span class="muted small">
               ${s(e.total)} Telegramme · ${e.bucket === "day" ? "Tages-Buckets" : "Stunden-Buckets"}
@@ -7291,10 +7334,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="long-term__chart">
             ${e.series.length === 0 ? i`<p class="muted">Keine Daten in der Counter-Tabelle.</p>` : i`<div class="long-term__bars">
                   ${e.series.map(
-      (a) => i`<div
+      (r) => i`<div
                       class="long-term__bar"
-                      style=${`height: ${a.count / t * 100}%`}
-                      title="${a.bucket} — ${s(a.count)}"
+                      style=${`height: ${r.count / t * 100}%`}
+                      title="${r.bucket} — ${s(r.count)}"
                     ></div>`
     )}
                 </div>`}
@@ -7302,11 +7345,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="long-term__top">
             <h4>Top-GAs in der Periode</h4>
             ${e.top_gas.length === 0 ? i`<p class="muted small">Keine GAs aktiv.</p>` : i`<ol class="long-term__top-list">
-                  ${e.top_gas.slice(0, r).map(
-      (a) => i`<li>
-                      <code>${a.ga}</code>
-                      ${a.label ? i`<span class="muted small">${a.label}</span>` : c}
-                      <span class="long-term__top-count">${s(a.count)}</span>
+                  ${e.top_gas.slice(0, a).map(
+      (r) => i`<li>
+                      <code>${r.ga}</code>
+                      ${r.label ? i`<span class="muted small">${r.label}</span>` : c}
+                      <span class="long-term__top-count">${s(r.count)}</span>
                     </li>`
     )}
                 </ol>`}
@@ -7485,37 +7528,37 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </thead>
           <tbody>
             ${s.map(
-      (r, a) => i`<tr
-                class=${`row-${r.severity} ${r.acknowledged ? "ack" : ""} ${this._selectedGa === r.ga ? "selected" : ""}`}
-                @click=${() => void this._onSelectGa(r.ga)}
+      (a, r) => i`<tr
+                class=${`row-${a.severity} ${a.acknowledged ? "ack" : ""} ${this._selectedGa === a.ga ? "selected" : ""}`}
+                @click=${() => void this._onSelectGa(a.ga)}
               >
-                <td class="num muted">${a + 1}</td>
-                <td><code class="ga">${r.ga}</code></td>
-                <td class="label-cell" title=${r.label ?? ""}>
-                  ${r.label ?? i`<span class="muted">—</span>`}
+                <td class="num muted">${r + 1}</td>
+                <td><code class="ga">${a.ga}</code></td>
+                <td class="label-cell" title=${a.label ?? ""}>
+                  ${a.label ?? i`<span class="muted">—</span>`}
                 </td>
                 <td>
-                  ${r.dpt ? i`<code
-                        class=${`dpt ${r.dpt_inferred ? "dpt--inferred" : ""}`}
-                        title=${r.dpt_inferred ? "DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)" : ""}
-                        >${r.dpt}${r.dpt_inferred ? i`<span class="dpt__hint" aria-hidden="true">?</span>` : c}</code
+                  ${a.dpt ? i`<code
+                        class=${`dpt ${a.dpt_inferred ? "dpt--inferred" : ""}`}
+                        title=${a.dpt_inferred ? "DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)" : ""}
+                        >${a.dpt}${a.dpt_inferred ? i`<span class="dpt__hint" aria-hidden="true">?</span>` : c}</code
                       >` : i`<span class="muted">—</span>`}
                 </td>
-                <td class="num strong">${r.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
-                <td class="num muted">${r.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
-                <td>${this._renderTopRowStatus(r)}</td>
+                <td class="num strong">${a.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                <td class="num muted">${a.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                <td>${this._renderTopRowStatus(a)}</td>
                 <td class="actions">
-                  ${r.acknowledged ? i`<button
+                  ${a.acknowledged ? i`<button
                         class="mh-btn mh-btn--sm mh-btn--ghost"
                         @click=${(n) => {
-        n.stopPropagation(), this._unackGa(r.ga);
+        n.stopPropagation(), this._unackGa(a.ga);
       }}
                       >
                         ✗ Ack entfernen
                       </button>` : i`<button
                         class="mh-btn mh-btn--sm mh-btn--ghost"
                         @click=${(n) => {
-        n.stopPropagation(), this._ackGa(r.ga);
+        n.stopPropagation(), this._ackGa(a.ga);
       }}
                       >
                         ✓ Bekannt
@@ -7675,11 +7718,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   _renderHaKnxLinks(e) {
     const t = `https://knx-user-forum.de/forum/search?searchword=${encodeURIComponent(
       e.ga
-    )}`, s = this._apiFilters(), r = new URLSearchParams();
-    s.from && r.set("from", s.from), s.to && r.set("to", s.to);
-    const a = `/api/messagehub/knx-stats/ga/${encodeURIComponent(
+    )}`, s = this._apiFilters(), a = new URLSearchParams();
+    s.from && a.set("from", s.from), s.to && a.set("to", s.to);
+    const r = `/api/messagehub/knx-stats/ga/${encodeURIComponent(
       e.ga
-    )}/export?${r.toString()}`, n = `${a}&format=csv`, o = `${a}&format=json`;
+    )}/export?${a.toString()}`, n = `${r}&format=csv`, o = `${r}&format=json`;
     return i`
       <div class="ha-links">
         <strong>Schnell-Aktionen:</strong>
@@ -7731,7 +7774,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
               ${t.product ? i`<span class="muted small">(${t.product})</span>` : c}
             </strong>` : i`<strong>Hersteller-Hinweise</strong>`}
         ${s && s.tips.length > 0 ? i`<ul class="hints">
-              ${s.tips.map((r) => i`<li>${r}</li>`)}
+              ${s.tips.map((a) => i`<li>${a}</li>`)}
             </ul>` : c}
         ${s != null && s.doc_url ? i`<p class="muted small">
               Hersteller-Doku:
@@ -7804,7 +7847,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     const t = e.trend ?? null;
     if (t === null)
       return i``;
-    const s = this._classifySourceTrendSeverity(t.delta_pct), r = t.delta_pct === null ? "neu" : `${t.delta_pct > 0 ? "+" : ""}${t.delta_pct.toLocaleString(
+    const s = this._classifySourceTrendSeverity(t.delta_pct), a = t.delta_pct === null ? "neu" : `${t.delta_pct > 0 ? "+" : ""}${t.delta_pct.toLocaleString(
       "de-DE",
       { minimumFractionDigits: 1, maximumFractionDigits: 1 }
     )} %`;
@@ -7815,7 +7858,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <span class="muted small">
         jetzt ${t.count_now.toLocaleString("de-DE")} ·
         zuvor ${t.count_prev.toLocaleString("de-DE")} ·
-        <strong>${r}</strong>
+        <strong>${a}</strong>
       </span>
     </div>`;
   }
@@ -8011,9 +8054,9 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     return e !== t ? c : i`<span class="sort-arrow" aria-hidden="true">${s === "desc" ? "▼" : "▲"}</span>`;
   }
   _renderTopBySource() {
-    const e = this._filters.topNDevices, t = this._devicesSortKey, s = this._devicesSortDir, r = [...this._topBySource].sort((a, n) => {
+    const e = this._filters.topNDevices, t = this._devicesSortKey, s = this._devicesSortDir, a = [...this._topBySource].sort((r, n) => {
       let o;
-      return t === "dev_source" ? o = a.dev_source.localeCompare(n.dev_source) : o = (a[t] || 0) - (n[t] || 0), s === "desc" ? -o : o;
+      return t === "dev_source" ? o = r.dev_source.localeCompare(n.dev_source) : o = (r[t] || 0) - (n[t] || 0), s === "desc" ? -o : o;
     });
     return i`
       <div class="table-wrap">
@@ -8048,16 +8091,16 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             </tr>
           </thead>
           <tbody>
-            ${r.slice(0, e).map((a, n) => {
+            ${a.slice(0, e).map((r, n) => {
       var p;
-      const o = ((p = this._summary) == null ? void 0 : p.total_telegrams) ?? 0, d = o > 0 ? a.count / o * 100 : 0, h = a.manufacturer ?? "", m = a.device_name ?? "", g = h && m ? `${h} — ${m}` : h || m, u = this._selectedSource === a.dev_source;
+      const o = ((p = this._summary) == null ? void 0 : p.total_telegrams) ?? 0, d = o > 0 ? r.count / o * 100 : 0, h = r.manufacturer ?? "", m = r.device_name ?? "", g = h && m ? `${h} — ${m}` : h || m, u = this._selectedSource === r.dev_source;
       return i`<tr
                 class=${`top-device-row ${u ? "selected" : ""}`}
-                @click=${() => void this._loadSourceDetail(a.dev_source)}
+                @click=${() => void this._loadSourceDetail(r.dev_source)}
                 title="Geraete-Detail oeffnen"
               >
                 <td class="num muted">${n + 1}</td>
-                <td><code class="ga">${a.dev_source}</code></td>
+                <td><code class="ga">${r.dev_source}</code></td>
                 <td class="device-cell">
                   ${g ? i`<span
                         class="muted small device-cell__text"
@@ -8065,8 +8108,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                         >${g}</span
                       >` : i`<span class="muted small">—</span>`}
                 </td>
-                <td class="num">${a.ga_count}</td>
-                <td class="num strong">${a.count.toLocaleString("de-DE")}</td>
+                <td class="num">${r.ga_count}</td>
+                <td class="num strong">${r.count.toLocaleString("de-DE")}</td>
                 <td class="num muted">
                   ${d.toLocaleString("de-DE", {
         minimumFractionDigits: 1,
@@ -8078,10 +8121,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                     class="mh-btn mh-btn--sm mh-btn--ghost"
                     title="Alle GAs dieses Geräts als bekannt markieren"
                     @click=${(b) => {
-        b.stopPropagation(), this._ackBulk(a.dev_source);
+        b.stopPropagation(), this._ackBulk(r.dev_source);
       }}
                   >
-                    ✓ Alle ${a.ga_count} bekannt
+                    ✓ Alle ${r.ga_count} bekannt
                   </button>
                 </td>
               </tr>`;
@@ -8102,13 +8145,13 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     );
     if (t !== null)
       try {
-        const { from: s, to: r } = Dt(this._filters.periodId), a = await this.api.acknowledgeKnxBulk(e, {
+        const { from: s, to: a } = Dt(this._filters.periodId), r = await this.api.acknowledgeKnxBulk(e, {
           note: t || void 0,
           from: s,
-          to: r
+          to: a
         });
         this._showToast(
-          `${e}: ${a.count} GAs als bekannt markiert`
+          `${e}: ${r.count} GAs als bekannt markiert`
         ), await this._load();
       } catch (s) {
         this._showToast(`Bulk-Ack fehlgeschlagen: ${s.message}`);
@@ -8135,7 +8178,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     if (e === "") return !0;
     const s = e.toLowerCase();
     return t.some(
-      (r) => typeof r == "string" && r.toLowerCase().includes(s)
+      (a) => typeof a == "string" && a.toLowerCase().includes(s)
     );
   }
   /**
@@ -8150,9 +8193,9 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     )} %` : "neu", s = (d) => d.delta_pct === null ? d.delta_abs > 0 ? "neu" : "verstummt" : `${d.delta_pct > 0 ? "+" : ""}${d.delta_pct.toLocaleString("de-DE", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 1
-    })} %`, r = this._classifyTrendSeverity(e.total_delta_pct), a = this._filters.topNTrend, n = this._isShortTrendPeriod(), o = this._isLongRetentionGapPeriod() && e.total_prev === 0;
+    })} %`, a = this._classifyTrendSeverity(e.total_delta_pct), r = this._filters.topNTrend, n = this._isShortTrendPeriod(), o = this._isLongRetentionGapPeriod() && e.total_prev === 0;
     return i`
-      <section class=${`mh-card trend trend--${r}`}>
+      <section class=${`mh-card trend trend--${a}`}>
         <header class="card-head">
           <h3>Trend gegenüber Vorperiode</h3>
           <div class="card-head__meta">
@@ -8183,7 +8226,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="trend-col">
             <strong>Größte Anstiege</strong>
             ${e.top_increase.length === 0 ? i`<p class="muted small">Keine signifikanten Anstiege.</p>` : i`<ul class="trend-list trend-list--up">
-                  ${e.top_increase.slice(0, a).map(
+                  ${e.top_increase.slice(0, r).map(
       (d) => i`<li
                       class=${`trend-row ${this._selectedGa === d.ga ? "selected" : ""}`}
                       @click=${() => void this._onSelectGa(d.ga)}
@@ -8204,7 +8247,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="trend-col">
             <strong>Größte Rückgänge</strong>
             ${e.top_decrease.length === 0 ? i`<p class="muted small">Keine signifikanten Rückgänge.</p>` : i`<ul class="trend-list trend-list--down">
-                  ${e.top_decrease.slice(0, a).map(
+                  ${e.top_decrease.slice(0, r).map(
       (d) => i`<li
                       class=${`trend-row ${this._selectedGa === d.ga ? "selected" : ""}`}
                       @click=${() => void this._onSelectGa(d.ga)}
@@ -8275,7 +8318,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   _renderHeatmap() {
     const e = this._heatmap;
     if (e.gas.length === 0 || e.buckets.length === 0) return i``;
-    const t = e.matrix.flat().reduce((r, a) => a > r ? a : r, 1), s = (r) => r.slice(11, 16) || r;
+    const t = e.matrix.flat().reduce((a, r) => r > a ? r : a, 1), s = (a) => a.slice(11, 16) || a;
     return i`
       <section class="mh-card heatmap-card">
         <header class="card-head">
@@ -8290,21 +8333,21 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="heatmap-row heatmap-row--header">
             <div class="heatmap-cell heatmap-label"></div>
             ${e.buckets.map(
-      (r) => i`<div
+      (a) => i`<div
                 class="heatmap-cell heatmap-cell--bucket"
-                title=${r}
+                title=${a}
               >
-                ${s(r)}
+                ${s(a)}
               </div>`
     )}
           </div>
           ${e.gas.map(
-      (r, a) => i`<div class="heatmap-row">
-              <div class="heatmap-cell heatmap-label" title=${r.label || ""}>
-                <code>${r.ga}</code>
-                <span class="muted small">${r.label ?? ""}</span>
+      (a, r) => i`<div class="heatmap-row">
+              <div class="heatmap-cell heatmap-label" title=${a.label || ""}>
+                <code>${a.ga}</code>
+                <span class="muted small">${a.label ?? ""}</span>
               </div>
-              ${e.matrix[a].map((n) => {
+              ${e.matrix[r].map((n) => {
         const o = n === 0 ? 0 : Math.round(n / t * 100);
         return i`<div
                   class="heatmap-cell heatmap-cell--data"
@@ -8325,11 +8368,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _renderOrphans() {
-    const e = this._orphans, t = (p, b) => this._orphansHidePlaceholders ? p.filter((v) => !$a(v.address, b(v))) : p, s = t(e.missing_in_log, (p) => p.name), r = t(e.extra_in_log, (p) => p.label), a = s.filter(
+    const e = this._orphans, t = (p, b) => this._orphansHidePlaceholders ? p.filter((v) => !$a(v.address, b(v))) : p, s = t(e.missing_in_log, (p) => p.name), a = t(e.extra_in_log, (p) => p.label), r = s.filter(
       (p) => this._matchesOrphanFilter(this._orphansMissingFilter, [p.address, p.name, p.dpt])
-    ), n = r.filter(
+    ), n = a.filter(
       (p) => this._matchesOrphanFilter(this._orphansExtraFilter, [p.address, p.label])
-    ), o = this._filters.topNOrphansMissing, d = this._filters.topNOrphansExtra, h = a.slice(0, o), m = n.slice(0, d), g = e.missing_in_log.length - s.length, u = e.extra_in_log.length - r.length;
+    ), o = this._filters.topNOrphansMissing, d = this._filters.topNOrphansExtra, h = r.slice(0, o), m = n.slice(0, d), g = e.missing_in_log.length - s.length, u = e.extra_in_log.length - a.length;
     return i`
       <section class="mh-card">
         <header class="card-head">
@@ -8354,7 +8397,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           ${e.missing_in_log.length > 0 ? i`<div>
                 <div class="orphans-col-head">
                   <strong
-                    >Im Projekt, nie gesehen (${a.length}${this._orphansMissingFilter ? ` von ${e.missing_in_log.length}` : ""})</strong
+                    >Im Projekt, nie gesehen (${r.length}${this._orphansMissingFilter ? ` von ${e.missing_in_log.length}` : ""})</strong
                   >
                   ${this._renderInlineTopN(
       this._filters.topNOrphansMissing,
@@ -8379,8 +8422,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                     </li>`
     )}
                 </ul>
-                ${a.length > o ? i`<p class="muted small">
-                      … und ${a.length - o} weitere
+                ${r.length > o ? i`<p class="muted small">
+                      … und ${r.length - o} weitere
                     </p>` : c}
               </div>` : c}
           ${e.extra_in_log.length > 0 ? i`<div>
@@ -8420,7 +8463,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _renderSilenceAlarms() {
-    const e = this._silence, t = e.items.filter((r) => r.alarm);
+    const e = this._silence, t = e.items.filter((a) => a.alarm);
     if (t.length === 0) return i``;
     const s = this._filters.topNSilence;
     return i`
@@ -8428,7 +8471,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         <header class="card-head">
           <h3>Stille-Alarme (${e.alarm_count})</h3>
           <div class="card-head__meta">
-            ${this._renderInlineTopN(this._filters.topNSilence, (r) => this._onTopNSilence(r))}
+            ${this._renderInlineTopN(this._filters.topNSilence, (a) => this._onTopNSilence(a))}
             <span class="muted small">
               Schwelle: &gt; ${e.max_silence_minutes} Min ohne Telegramm
             </span>
@@ -8436,16 +8479,16 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         </header>
         <ul class="silence-list">
           ${t.slice(0, s).map(
-      (r) => i`<li
-              class=${`silence-row ${this._selectedSource === r.dev_source ? "selected" : ""}`}
-              @click=${() => void this._loadSourceDetail(r.dev_source)}
+      (a) => i`<li
+              class=${`silence-row ${this._selectedSource === a.dev_source ? "selected" : ""}`}
+              @click=${() => void this._loadSourceDetail(a.dev_source)}
               title="Geraete-Detail oeffnen"
             >
-              <code>${r.dev_source}</code>
+              <code>${a.dev_source}</code>
               <span class="muted">
-                seit ${this._formatSilence(r.silent_minutes)} stumm
+                seit ${this._formatSilence(a.silent_minutes)} stumm
               </span>
-              <span class="muted small">last_seen ${this._formatTs(r.last_seen)}</span>
+              <span class="muted small">last_seen ${this._formatTs(a.last_seen)}</span>
             </li>`
     )}
         </ul>
@@ -8466,7 +8509,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     }
   }
   _renderBusHealth() {
-    const e = this._busHealth, t = e.summary.ratio_pct, s = t >= 1 ? "danger" : t >= 0.5 ? "warning" : t > 0 ? "elevated" : "ok", r = this._filters.topNBusHealth;
+    const e = this._busHealth, t = e.summary.ratio_pct, s = t >= 1 ? "danger" : t >= 0.5 ? "warning" : t > 0 ? "elevated" : "ok", a = this._filters.topNBusHealth;
     return i`
       <section class="mh-card">
         <header class="card-head">
@@ -8474,7 +8517,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="card-head__meta">
             ${e.per_ga.length > 0 ? this._renderInlineTopN(
       this._filters.topNBusHealth,
-      (a) => this._onTopNBusHealth(a)
+      (r) => this._onTopNBusHealth(r)
     ) : c}
             <span class="muted small">
               xknx-Repeated-Flag — hoher Wert deutet auf Verkabelung/EMV
@@ -8502,20 +8545,20 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         ${e.per_ga.length > 0 ? i`<div class="bus-health-list">
               <strong>Top-GAs mit Wiederholungen:</strong>
               <ul>
-                ${e.per_ga.slice(0, r).map(
-      (a) => i`<li>
-                    <code>${a.ga}</code>
-                    <span class="muted">${a.label ?? "—"}</span>
-                    <span class="num">${a.repeated} / ${a.total}</span>
-                    <span class="num">${a.ratio_pct.toLocaleString("de-DE", {
+                ${e.per_ga.slice(0, a).map(
+      (r) => i`<li>
+                    <code>${r.ga}</code>
+                    <span class="muted">${r.label ?? "—"}</span>
+                    <span class="num">${r.repeated} / ${r.total}</span>
+                    <span class="num">${r.ratio_pct.toLocaleString("de-DE", {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1
       })} %</span>
                   </li>`
     )}
               </ul>
-              ${e.per_ga.length > r ? i`<p class="muted small">
-                    … und ${e.per_ga.length - r} weitere
+              ${e.per_ga.length > a ? i`<p class="muted small">
+                    … und ${e.per_ga.length - a} weitere
                   </p>` : c}
             </div>` : c}
       </section>
@@ -8540,14 +8583,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       return i`<span class="mh-pill mh-pill--neutral ack-pill" title="acknowledged">
         ✓ Bekannt
       </span>`;
-    const t = e.severity, s = e.has_findings && t === "green" ? "yellow" : t, r = e.has_findings && t === "green" ? "auffällig" : this._severityLabel(s);
+    const t = e.severity, s = e.has_findings && t === "green" ? "yellow" : t, a = e.has_findings && t === "green" ? "auffällig" : this._severityLabel(s);
     return i`<span
       class=${`mh-pill ${this._severityPillClass(s)}`}
       title=${e.has_findings ? "Anti-Pattern erkannt — Detail-Pane zeigt mehr (Konstant-Wert-Spam, Read-Burst, Heartbeat)" : ""}
     >
       <span class="mh-pill__dot"></span>
       ${e.has_findings ? i`<span aria-hidden="true">⚠</span> ` : c}
-      ${r}
+      ${a}
     </span>`;
   }
 };
@@ -10275,16 +10318,16 @@ function Oa(e) {
   return ((t = st.en[e]) == null ? void 0 : t.help_url) ?? "";
 }
 function Fa(e, t, s) {
-  const r = st[Yt(t)][e];
-  return r === void 0 ? "" : Ca(r.description, s);
+  const a = st[Yt(t)][e];
+  return a === void 0 ? "" : Ca(a.description, s);
 }
 function Ca(e, t) {
-  return e.replace(/\{(\w+)\}/g, (s, r) => r in t ? String(t[r]) : s);
+  return e.replace(/\{(\w+)\}/g, (s, a) => a in t ? String(t[a]) : s);
 }
-var Na = Object.defineProperty, Ia = Object.getOwnPropertyDescriptor, Ae = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Ia(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Na(t, s, a), a;
+var Na = Object.defineProperty, Ia = Object.getOwnPropertyDescriptor, Ae = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ia(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && Na(t, s, r), r;
 };
 const Ra = [
   "debug",
@@ -10329,8 +10372,8 @@ let te = class extends x {
       }
   }
   _onSelectChange(e, t) {
-    const r = e.target.value;
-    r === "_default" ? this._clearOverride(t) : this._setOverride(t, r);
+    const a = e.target.value;
+    a === "_default" ? this._clearOverride(t) : this._setOverride(t, a);
   }
   _lang() {
     return typeof document < "u" && document.documentElement.lang ? document.documentElement.lang : "en";
@@ -10354,7 +10397,7 @@ let te = class extends x {
     `;
   }
   _renderRow(e) {
-    const t = this._lang(), s = Je(e.code, t) || e.code, r = e.override_severity ?? "_default";
+    const t = this._lang(), s = Je(e.code, t) || e.code, a = e.override_severity ?? "_default";
     return i`
       <tr data-test="override-row" data-code=${e.code}>
         <td class="code">
@@ -10369,12 +10412,12 @@ let te = class extends x {
           <select
             class="mh-select"
             data-test="override-select"
-            .value=${r}
-            @change=${(a) => this._onSelectChange(a, e.code)}
+            .value=${a}
+            @change=${(r) => this._onSelectChange(r, e.code)}
           >
             <option value="_default">— Default —</option>
             ${Ra.map(
-      (a) => i`<option value=${a}>${a}</option>`
+      (r) => i`<option value=${r}>${r}</option>`
     )}
           </select>
         </td>
@@ -10440,12 +10483,12 @@ Ae([
 te = Ae([
   S("severity-override-form")
 ], te);
-var Ma = Object.defineProperty, Ua = Object.getOwnPropertyDescriptor, C = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Ua(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Ma(t, s, a), a;
+var Ua = Object.defineProperty, Ha = Object.getOwnPropertyDescriptor, C = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ha(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && Ua(t, s, r), r;
 };
-const Ha = [
+const Ma = [
   { value: "", label: "Alle Severities" },
   { value: "error", label: "Error" },
   { value: "warning", label: "Warning" },
@@ -10636,7 +10679,7 @@ let z = class extends x {
               .value=${this._severityFilter}
               @change=${this._onSeverityChange}
             >
-              ${Ha.map(
+              ${Ma.map(
       (e) => i`<option value=${e.value}>${e.label}</option>`
     )}
             </select>
@@ -10679,10 +10722,10 @@ let z = class extends x {
     </ul>`;
   }
   _renderItem(e) {
-    const t = this._itemKey(e), s = this._selectedKey === t, r = Je(e.code, this._lang()) || e.code, a = e.acknowledged === !0;
+    const t = this._itemKey(e), s = this._selectedKey === t, a = Je(e.code, this._lang()) || e.code, r = e.acknowledged === !0;
     return i`
       <li
-        class=${`item ${s ? "item--selected" : ""} ${a ? "item--acked" : ""}`}
+        class=${`item ${s ? "item--selected" : ""} ${r ? "item--acked" : ""}`}
         data-test="findings-item"
         @click=${() => this._onSelect(e)}
       >
@@ -10692,7 +10735,7 @@ let z = class extends x {
         >
           ${e.severity}
         </span>
-        <span class="code" data-test="item-code" title=${e.code}>${r}</span>
+        <span class="code" data-test="item-code" title=${e.code}>${a}</span>
         <span class="ga" data-test="item-ga">${e.ga ?? "(global)"}</span>
         <span class="source" data-test="item-source"
           >${e.source ?? ""}</span
@@ -10703,7 +10746,7 @@ let z = class extends x {
         <span class="count" data-test="item-count" title="Occurrence count"
           >×${e.occurrence_count}</span
         >
-        ${a ? i`<span
+        ${r ? i`<span
               class="acked-marker"
               data-test="item-acked-marker"
               title="Bereits acknowledged"
@@ -10718,11 +10761,11 @@ let z = class extends x {
   _renderDetailPane() {
     const e = this._currentSelection();
     if (e === null) return c;
-    const t = this._lang(), s = Je(e.code, t) || e.code, r = Fa(
+    const t = this._lang(), s = Je(e.code, t) || e.code, a = Fa(
       e.code,
       t,
       e.evidence
-    ), a = Oa(e.code);
+    ), r = Oa(e.code);
     return i`
       <aside class="detail mh-card" data-test="findings-detail">
         <header class="detail-header">
@@ -10739,10 +10782,10 @@ let z = class extends x {
             ✕
           </button>
         </header>
-        ${r ? i`<p class="detail-description" data-test="findings-detail-description">
-              ${r}
+        ${a ? i`<p class="detail-description" data-test="findings-detail-description">
+              ${a}
             </p>` : c}
-        ${a ? i`<a class="detail-help" href=${a} target="_blank" rel="noopener"
+        ${r ? i`<a class="detail-help" href=${r} target="_blank" rel="noopener"
               >Hilfe / Doku ↗</a
             >` : c}
         <dl class="detail-evidence">
@@ -11030,10 +11073,10 @@ C([
 z = C([
   S("findings-view")
 ], z);
-var Ba = Object.defineProperty, ja = Object.getOwnPropertyDescriptor, Me = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? ja(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Ba(t, s, a), a;
+var Ba = Object.defineProperty, ja = Object.getOwnPropertyDescriptor, Ue = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? ja(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && Ba(t, s, r), r;
 };
 const Ft = "messagehub.stats.subtab", Ga = /* @__PURE__ */ new Set(["live", "knx", "findings"]);
 let pe = class extends x {
@@ -11077,8 +11120,8 @@ let pe = class extends x {
       this._findingsSourceFilter = null;
       return;
     }
-    const a = new URLSearchParams(t.slice(s + 1)).get("source");
-    this._findingsSourceFilter = a && a.length > 0 ? a : null;
+    const r = new URLSearchParams(t.slice(s + 1)).get("source");
+    this._findingsSourceFilter = r && r.length > 0 ? r : null;
   }
   render() {
     return i`
@@ -11169,26 +11212,26 @@ pe.styles = [
       }
     `
 ];
-Me([
+Ue([
   w({ attribute: !1 })
 ], pe.prototype, "api", 2);
-Me([
+Ue([
   l()
 ], pe.prototype, "_tab", 2);
-Me([
+Ue([
   l()
 ], pe.prototype, "_findingsSourceFilter", 2);
-pe = Me([
+pe = Ue([
   S("stats-view")
 ], pe);
-var Ka = Object.defineProperty, Wa = Object.getOwnPropertyDescriptor, ie = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Wa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Ka(t, s, a), a;
+var Ka = Object.defineProperty, Wa = Object.getOwnPropertyDescriptor, ie = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Wa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && Ka(t, s, r), r;
 };
 function Va(e) {
-  const t = e.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), s = new Set(t), r = (...a) => a.some((n) => s.has(n));
-  return r("delete", "remove", "removed", "deleted") ? "delete" : r("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : r("update", "updated", "edit", "edited", "set") ? "update" : r("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
+  const t = e.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), s = new Set(t), a = (...r) => r.some((n) => s.has(n));
+  return a("delete", "remove", "removed", "deleted") ? "delete" : a("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : a("update", "updated", "edit", "edited", "set") ? "update" : a("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
 }
 const Ct = 60;
 function qa(e) {
@@ -11199,16 +11242,16 @@ function qa(e) {
   if (typeof t.name == "string") return t.name;
   const s = Object.entries(t);
   if (s.length === 1) {
-    const [a, n] = s[0];
+    const [r, n] = s[0];
     if (typeof n == "string" || typeof n == "number" || typeof n == "boolean") {
       const o = String(n), d = o.length > Ct ? `${o.slice(0, Ct)}…` : o;
-      return `${a}: ${d}`;
+      return `${r}: ${d}`;
     }
-    return `{${a}}`;
+    return `{${r}}`;
   }
-  return `{${s.slice(0, 3).map(([a]) => a).join(", ")}${s.length > 3 ? ", …" : ""}}`;
+  return `{${s.slice(0, 3).map(([r]) => r).join(", ")}${s.length > 3 ? ", …" : ""}}`;
 }
-let H = class extends x {
+let M = class extends x {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._expanded = /* @__PURE__ */ new Set(), this._now = /* @__PURE__ */ new Date();
   }
@@ -11259,8 +11302,8 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
   _filtered() {
     const e = this._filter.trim().toLowerCase();
     return e ? this._items.filter((t) => {
-      const s = `${t.target_type ?? ""}${t.target_id ?? ""}`.toLowerCase(), r = t.details ? JSON.stringify(t.details).toLowerCase() : "";
-      return (t.actor ?? "").toLowerCase().includes(e) || (t.action ?? "").toLowerCase().includes(e) || s.includes(e) || r.includes(e);
+      const s = `${t.target_type ?? ""}${t.target_id ?? ""}`.toLowerCase(), a = t.details ? JSON.stringify(t.details).toLowerCase() : "";
+      return (t.actor ?? "").toLowerCase().includes(e) || (t.action ?? "").toLowerCase().includes(e) || s.includes(e) || a.includes(e);
     }) : this._items;
   }
   _renderActionPill(e) {
@@ -11274,9 +11317,9 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
       return t.length === 0 ? i`<span class="muted">—</span>` : i`
         <dl class="kv">
           ${t.map(
-        ([s, r]) => i`
+        ([s, a]) => i`
               <dt>${s}</dt>
-              <dd>${typeof r == "object" ? JSON.stringify(r) : String(r)}</dd>
+              <dd>${typeof a == "object" ? JSON.stringify(a) : String(a)}</dd>
             `
       )}
         </dl>
@@ -11344,17 +11387,17 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
                     <span>Details</span>
                   </div>
                   ${e.map((t, s) => {
-      const r = this._expanded.has(s), a = String(t.timestamp);
+      const a = this._expanded.has(s), r = String(t.timestamp);
       return i`
-                      <div class=${`table-row ${r ? "expanded" : ""}`}>
+                      <div class=${`table-row ${a ? "expanded" : ""}`}>
                         <button
                           class="row-toggle"
                           @click=${() => this._toggle(s)}
-                          aria-expanded=${r}
-                          aria-label=${r ? "Details verbergen" : "Details anzeigen"}
+                          aria-expanded=${a}
+                          aria-label=${a ? "Details verbergen" : "Details anzeigen"}
                         >
-                          <span class="ts" title=${Gt(a, this._now)}>
-                            ${jt(a, this._now)}
+                          <span class="ts" title=${Gt(r, this._now)}>
+                            ${jt(r, this._now)}
                           </span>
                           <span class="actor">${t.actor}</span>
                           <span>${this._renderActionPill(t.action)}</span>
@@ -11364,10 +11407,10 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
                           </span>
                           <span class="details-inline">
                             ${this._renderDetailsSummary(t.details)}
-                            <span class="chevron" aria-hidden="true">${r ? "▾" : "▸"}</span>
+                            <span class="chevron" aria-hidden="true">${a ? "▾" : "▸"}</span>
                           </span>
                         </button>
-                        ${r ? i`<div class="details-panel">
+                        ${a ? i`<div class="details-panel">
                               ${this._renderDetails(t.details)}
                             </div>` : c}
                       </div>
@@ -11379,7 +11422,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     `;
   }
 };
-H.styles = [
+M.styles = [
   L,
   se,
   Ce,
@@ -11627,29 +11670,29 @@ H.styles = [
 ];
 ie([
   w({ attribute: !1 })
-], H.prototype, "api", 2);
+], M.prototype, "api", 2);
 ie([
   l()
-], H.prototype, "_items", 2);
+], M.prototype, "_items", 2);
 ie([
   l()
-], H.prototype, "_loading", 2);
+], M.prototype, "_loading", 2);
 ie([
   l()
-], H.prototype, "_filter", 2);
+], M.prototype, "_filter", 2);
 ie([
   l()
-], H.prototype, "_expanded", 2);
+], M.prototype, "_expanded", 2);
 ie([
   l()
-], H.prototype, "_now", 2);
-H = ie([
+], M.prototype, "_now", 2);
+M = ie([
   S("audit-view")
-], H);
-var Ja = Object.defineProperty, Ya = Object.getOwnPropertyDescriptor, P = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Ya(t, s) : t, n = e.length - 1, o; n >= 0; n--)
-    (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Ja(t, s, a), a;
+], M);
+var Ja = Object.defineProperty, Ya = Object.getOwnPropertyDescriptor, P = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ya(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+    (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
+  return a && r && Ja(t, s, r), r;
 };
 function Za(e) {
   return e.source === "knx-bus" && e.text.includes("(GroupValueRead)");
@@ -11671,19 +11714,19 @@ let E = class extends x {
     }, this._onSelect = (e) => {
       this._selected = e.detail.msg;
     }, this._onSeverityChangeMessage = async (e) => {
-      var a, n;
-      const { id: t, severity: s, previous: r } = e.detail;
+      var r, n;
+      const { id: t, severity: s, previous: a } = e.detail;
       this._items = this._items.map(
         (o) => o.id === t ? { ...o, severity: s } : o
-      ), ((a = this._selected) == null ? void 0 : a.id) === t && (this._selected = { ...this._selected, severity: s });
+      ), ((r = this._selected) == null ? void 0 : r.id) === t && (this._selected = { ...this._selected, severity: s });
       try {
-        await this._api.setMessageSeverity(t, s), this._showToast(`Severity geändert: ${r} → ${s}`);
+        await this._api.setMessageSeverity(t, s), this._showToast(`Severity geändert: ${a} → ${s}`);
       } catch (o) {
         this._items = this._items.map(
-          (d) => d.id === t ? { ...d, severity: r } : d
+          (d) => d.id === t ? { ...d, severity: a } : d
         ), ((n = this._selected) == null ? void 0 : n.id) === t && (this._selected = {
           ...this._selected,
-          severity: r
+          severity: a
         }), this._showToast(`Änderung fehlgeschlagen: ${o.message}`);
       }
     }, this._onDelete = async (e) => {
@@ -11709,8 +11752,8 @@ let E = class extends x {
   async _subscribeLive() {
     var e, t;
     (t = (e = this.hass) == null ? void 0 : e.connection) != null && t.subscribeEvents && (this._unsubLive = await this.hass.connection.subscribeEvents((s) => {
-      const r = s.data;
-      this._matchesFilters(r) && (this._items = [r, ...this._items].slice(0, 200), this._total += 1, this._newCount += 1, window.setTimeout(() => this._newCount = Math.max(0, this._newCount - 1), 4e3));
+      const a = s.data;
+      this._matchesFilters(a) && (this._items = [a, ...this._items].slice(0, 200), this._total += 1, this._newCount += 1, window.setTimeout(() => this._newCount = Math.max(0, this._newCount - 1), 4e3));
     }, "messagehub_message_added"));
   }
   _matchesFilters(e) {
@@ -11757,16 +11800,16 @@ let E = class extends x {
     const t = this._total, s = e === "all" ? `ALLE ${t} Nachrichten dauerhaft löschen?` : `Bis zu ${t} gefilterte Nachrichten dauerhaft löschen?`;
     if (window.confirm(s))
       try {
-        const r = e === "all" ? {} : {
+        const a = e === "all" ? {} : {
           severity: this._filters.severity,
           source: this._filters.source || void 0,
           search: this._filters.search || void 0,
           from: this._filters.fromIso,
           to: this._filters.toIso
-        }, a = await this._api.deleteMessages(r);
-        this._showToast(`${a} Nachrichten gelöscht`), this._selected = null, await this._reload();
-      } catch (r) {
-        this._showToast(`Löschen fehlgeschlagen: ${r.message}`);
+        }, r = await this._api.deleteMessages(a);
+        this._showToast(`${r} Nachrichten gelöscht`), this._selected = null, await this._reload();
+      } catch (a) {
+        this._showToast(`Löschen fehlgeschlagen: ${a.message}`);
       }
   }
   async _sendTestMessage() {
@@ -11777,16 +11820,16 @@ let E = class extends x {
     }
     this._testing = !0;
     try {
-      const t = ["info", "warning", "error", "info", "info"], s = ["pihole", "knx-bus", "backup-job", "test-script"], r = [
+      const t = ["info", "warning", "error", "info", "info"], s = ["pihole", "knx-bus", "backup-job", "test-script"], a = [
         "Demo-Nachricht aus dem Panel",
         "Test: DNS-Query erfolgreich",
         "Backup abgeschlossen, Dauer 12 min",
         "KNX 1/2/3 — Wohnzimmer Deckenlicht ein"
-      ], a = (n) => Math.floor(Math.random() * n);
+      ], r = (n) => Math.floor(Math.random() * n);
       await this.hass.callService("messagehub", "add_message", {
-        severity: t[a(t.length)],
-        source: s[a(s.length)],
-        text: r[a(r.length)],
+        severity: t[r(t.length)],
+        source: s[r(s.length)],
+        text: a[r(a.length)],
         metadata: { source_panel: !0, ts: (/* @__PURE__ */ new Date()).toISOString() }
       }), this._showToast("Test-Nachricht gesendet"), window.setTimeout(() => void this._reload(), 300);
     } catch (t) {

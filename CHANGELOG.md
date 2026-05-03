@@ -6,7 +6,19 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
-### Hinzugefuegt (Anbindungs-Audit Sprint 1)
+### Hinzugefuegt (Anbindungs-Audit Sprint 1+2)
+- **Iter +4 / F-005 — Heartbeat-Lifecycle-Verwaltung.** Heartbeat-
+  Quellen-Zeilen im Settings-Tab haben jetzt einen „Pause/Aktivieren"-
+  Toggle und einen „Loeschen"-Knopf (mit Confirm). Backend bekommt eine
+  neue View `HeartbeatDetailView` mit `DELETE /heartbeats/{source}`
+  (entfernt den Eintrag) und `PATCH /heartbeats/{source}` (toggelt
+  enabled-Flag, ohne den Eintrag zu loeschen). Pause ist non-destruktiv:
+  der periodische Heartbeat-Job ueberspringt deaktivierte Sources, kein
+  Silent-Alert mehr — bei Reaktivierung wird der Status wieder verfolgt.
+  Repository-Methoden `delete()` + `set_enabled()` mit Existenz-Check
+  (404 bei Unbekannter Source). Beide Aktionen schreiben Audit-Eintraege
+  (`heartbeat_delete` / `heartbeat_set_enabled`). Behebt Audit-Finding
+  F-005.
 - **Iter +3 / F-004 — Findings-Ack zuruecknehmen.** Akzeptierte
   KNX-Konfigurations-Findings haben jetzt einen „Ack zuruecknehmen"-
   Knopf im Detail-Pane des Konfigurations-Check-Tabs. Akkzeptierte

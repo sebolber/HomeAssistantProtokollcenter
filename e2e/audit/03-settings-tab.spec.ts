@@ -93,14 +93,34 @@ test.describe("Settings-Tab", () => {
     await reqPromise;
   });
 
-  // F-005 — Heartbeat-Delete fehlt im UI UND Backend.
-  test.fixme("F-005: Heartbeat-Zeilen haben 'Loeschen'-Knopf, der DELETE /heartbeats/{source} ausloest", async ({ page }) => {
+  // F-005 — Heartbeat-Delete + Pause-Toggle in Iter +4 hinzugefuegt.
+  test("F-005: Heartbeat-Zeilen haben 'Loeschen'-Knopf, der DELETE /heartbeats/{source} ausloest", async ({ page }) => {
+    page.on("dialog", (d) => void d.accept());
     const settings = page.locator("messagehub-panel >> settings-view");
     await settings.locator("button.tab", { hasText: "Heartbeats" }).click();
     const firstRow = settings.locator("heartbeats-view tbody tr").first();
     if ((await firstRow.count()) === 0) test.skip(true, "Keine Heartbeats — Test ueberspringen");
-    const deleteButton = firstRow.locator('button:has-text("Loeschen")');
+    const deleteButton = firstRow.locator('button:has-text("Löschen")');
     await expect(deleteButton).toBeVisible({ timeout: 3000 });
+    const reqPromise = page.waitForRequest(
+      (r) => r.method() === "DELETE" && r.url().includes("/api/messagehub/heartbeats/")
+    );
+    await deleteButton.click();
+    await reqPromise;
+  });
+
+  test("F-005: Heartbeat-Zeilen haben 'Pause/Aktivieren'-Toggle, der PATCH /heartbeats/{source} ausloest", async ({ page }) => {
+    const settings = page.locator("messagehub-panel >> settings-view");
+    await settings.locator("button.tab", { hasText: "Heartbeats" }).click();
+    const firstRow = settings.locator("heartbeats-view tbody tr").first();
+    if ((await firstRow.count()) === 0) test.skip(true, "Keine Heartbeats — Test ueberspringen");
+    const toggle = firstRow.locator('button:has-text("Pause"), button:has-text("Aktivieren")');
+    await expect(toggle).toBeVisible({ timeout: 3000 });
+    const reqPromise = page.waitForRequest(
+      (r) => r.method() === "PATCH" && r.url().includes("/api/messagehub/heartbeats/")
+    );
+    await toggle.click();
+    await reqPromise;
   });
 
   test("Auto-Remediation: remediation-view rendert + listRemediationHooks() wird aufgerufen", async ({ page }) => {

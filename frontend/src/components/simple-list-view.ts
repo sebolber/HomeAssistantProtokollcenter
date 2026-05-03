@@ -348,6 +348,21 @@ export class HeartbeatsView extends LitElement {
     await this._load();
   }
 
+  // F-005: Loescht eine Source — destruktiv, daher Confirm-Dialog.
+  private async _delete(it: HeartbeatDto): Promise<void> {
+    if (!this.api) return;
+    if (!window.confirm(`Heartbeat '${it.source}' loeschen?`)) return;
+    await this.api.deleteHeartbeat(it.source);
+    await this._load();
+  }
+
+  // F-005: Pause/Aktivieren — non-destruktiv, kein Confirm.
+  private async _toggleEnabled(it: HeartbeatDto): Promise<void> {
+    if (!this.api) return;
+    await this.api.setHeartbeatEnabled(it.source, !it.enabled);
+    await this._load();
+  }
+
   override render(): TemplateResult {
     return html`
       <section>
@@ -386,6 +401,7 @@ export class HeartbeatsView extends LitElement {
                   <th>Intervall (s)</th>
                   <th>Letzte Sichtung</th>
                   <th>Status</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -395,9 +411,19 @@ export class HeartbeatsView extends LitElement {
                     <td>${it.expected_interval_seconds}</td>
                     <td>${it.last_seen ?? html`<span class="muted">—</span>`}</td>
                     <td>
-                      ${it.silent_alert_active
-                        ? html`<span class="alert">⚠ silent</span>`
-                        : html`<span class="ok">✓ ok</span>`}
+                      ${!it.enabled
+                        ? html`<span class="muted">paused</span>`
+                        : it.silent_alert_active
+                          ? html`<span class="alert">⚠ silent</span>`
+                          : html`<span class="ok">✓ ok</span>`}
+                    </td>
+                    <td class="actions">
+                      <button @click=${() => void this._toggleEnabled(it)}>
+                        ${it.enabled ? "Pause" : "Aktivieren"}
+                      </button>
+                      <button class="danger" @click=${() => void this._delete(it)}>
+                        Löschen
+                      </button>
                     </td>
                   </tr>`
                 )}

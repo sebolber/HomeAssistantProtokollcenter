@@ -922,6 +922,34 @@ export class ApiClient {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }
 
+  /**
+   * F-005: Entfernt einen Heartbeat-Eintrag dauerhaft.
+   * 404, wenn die Source nicht (mehr) existiert.
+   */
+  async deleteHeartbeat(source: string): Promise<void> {
+    const res = await fetch(
+      `${this.baseUrl}/api/messagehub/heartbeats/${encodeURIComponent(source)}`,
+      { method: "DELETE", headers: this.headers() }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  }
+
+  /**
+   * F-005: Pausiert/aktiviert das Tracking ohne den Eintrag zu loeschen.
+   * False -> Heartbeat-Job ueberspringt diese Source.
+   */
+  async setHeartbeatEnabled(source: string, enabled: boolean): Promise<void> {
+    const res = await fetch(
+      `${this.baseUrl}/api/messagehub/heartbeats/${encodeURIComponent(source)}`,
+      {
+        method: "PATCH",
+        headers: this.headers(),
+        body: JSON.stringify({ enabled }),
+      }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  }
+
   async getStatsExtended(days = 30): Promise<{
     heatmap: Array<{ hour: number; weekday: number; count: number }>;
     top_sources: Array<{ source: string; count: number }>;
