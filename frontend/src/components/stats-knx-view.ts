@@ -35,6 +35,15 @@ import "./knx-value-sparkline.js";
 
 const STORAGE_KEY = "messagehub.knx-stats.filters";
 
+// Bug-Fix (2026-05-03): minRate-Default von 1.0 auf 0.0 gesenkt — der
+// Top-N-Selektor wirkte fuer User mit typischen HA-Anlagen (wenige GAs
+// > 1 Tel/Min) optisch wirkungslos. Migrations-Marker schuetzt
+// Bestandsuser, die NACH dieser Aenderung explizit 1.0 setzen, vor
+// erneuter Migration.
+const DEFAULTS_VERSION_KEY = "messagehub.knx-stats.filters.defaults-version";
+const DEFAULTS_VERSION_CURRENT = "v2";
+const LEGACY_MIN_RATE_DEFAULT = 1.0;
+
 // Iter aiohttp-error-ZU9UA: ETS-Platzhalter-Label-Erkennung — gleiche
 // Regex wie in knx-addresses-view.ts (Iter 53). Reale ETS-Projekte
 // enthalten oft Hunderte Trenner-GAs ("-----", "----- -----", leer)
@@ -110,21 +119,61 @@ const DEFAULT_FILTERS: UiFilters = {
   topNSilence: 25,
   topNBusHealth: 25,
   topNSiblings: 25,
-  minRate: 1.0,
+  minRate: 0.0,
   includeAck: true,
 };
 
 function loadFilters(): UiFilters {
+  let stored: Partial<UiFilters> | null = null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw) as Partial<UiFilters>;
-      return { ...DEFAULT_FILTERS, ...parsed };
+      stored = JSON.parse(raw) as Partial<UiFilters>;
     }
   } catch {
     // ignore
   }
-  return { ...DEFAULT_FILTERS };
+  const merged: UiFilters = stored
+    ? { ...DEFAULT_FILTERS, ...stored }
+    : { ...DEFAULT_FILTERS };
+  return migrateFilterDefaults(merged, stored);
+}
+
+// Bug-Fix (2026-05-03): einmalige Migration alter localStorage-Eintraege
+// auf neuen minRate-Default 0.0. Heuristik: nur User mit dem alten
+// Default-Wert 1.0 (= "nie angefasst") werden migriert. Wer explizit
+// einen anderen Wert gesetzt hat (auch 1.5 oder 2.0), behaelt seine
+// Einstellung. Versions-Flag verhindert Doppel-Migration und schuetzt
+// User, die NACH der Migration bewusst 1.0 setzen.
+function migrateFilterDefaults(
+  merged: UiFilters,
+  stored: Partial<UiFilters> | null,
+): UiFilters {
+  let alreadyMigrated = false;
+  try {
+    alreadyMigrated = localStorage.getItem(DEFAULTS_VERSION_KEY)
+      === DEFAULTS_VERSION_CURRENT;
+  } catch {
+    // ignore
+  }
+  if (alreadyMigrated) {
+    return merged;
+  }
+  // Migration nur, wenn der gespeicherte Wert exakt der alte Default ist.
+  // Frische User (stored === null) brauchen keine Wert-Migration, wir
+  // setzen aber trotzdem den Marker, damit ein spaeterer Save mit User-
+  // Wert 1.0 nicht spaeter migriert wird.
+  let migrated = merged;
+  if (stored !== null && stored.minRate === LEGACY_MIN_RATE_DEFAULT) {
+    migrated = { ...merged, minRate: DEFAULT_FILTERS.minRate };
+    saveFilters(migrated);
+  }
+  try {
+    localStorage.setItem(DEFAULTS_VERSION_KEY, DEFAULTS_VERSION_CURRENT);
+  } catch {
+    // ignore
+  }
+  return migrated;
 }
 
 function saveFilters(f: UiFilters): void {
