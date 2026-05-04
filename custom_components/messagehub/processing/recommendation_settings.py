@@ -167,7 +167,16 @@ def redact_for_response(config: ProviderConfig) -> dict[str, Any]:
     Frontend bekommt nur ein Boolean ``api_key_set``, sodass der
     Pflege-Dialog "API-Key vorhanden / leer" anzeigen kann, ohne
     den Klartext-Key durch das HTTP-Logging zu schicken.
+
+    Iter UX-7: ``default_system_prompt`` wird mitgeliefert, damit das
+    Frontend den Default-Prompt im Editor-Feld vorbefuellen kann (statt
+    den User vor einem leeren Textfeld stehen zu lassen). Read-only —
+    Aenderung des System-Prompts geht nur ueber ``system_prompt_override``.
     """
+    # Lokaler Import vermeidet Cycle (openai_chat_provider importiert
+    # ProviderConfig aus recommendation_provider).
+    from .openai_chat_provider import DEFAULT_SYSTEM_PROMPT  # noqa: PLC0415
+
     return {
         "enabled": config.enabled,
         "base_url": config.base_url,
@@ -176,6 +185,7 @@ def redact_for_response(config: ProviderConfig) -> dict[str, Any]:
         "timeout_s": config.timeout_s,
         "max_tokens": config.max_tokens,
         "system_prompt_override": config.system_prompt_override,
+        "default_system_prompt": DEFAULT_SYSTEM_PROMPT,
     }
 
 

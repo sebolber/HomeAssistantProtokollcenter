@@ -10,6 +10,12 @@ import type {
   KnxRecommendLlmTestResultDto,
 } from "../src/api-client.js";
 
+// Iter UX-7: Default-Prompt wird vom Backend mitgeliefert. Hier ein
+// markanter Fixture-Wert, damit Tests sehen koennen, ob das Frontend
+// den Default ins Editor-Feld vorbefuellt.
+const FIXTURE_DEFAULT_PROMPT =
+  "FIXTURE-DEFAULT-PROMPT: Du bist ein KNX-Empfehlungs-Engine.";
+
 const DEFAULT_SETTINGS: KnxRecommendLlmSettingsDto = {
   enabled: false,
   base_url: "",
@@ -18,6 +24,7 @@ const DEFAULT_SETTINGS: KnxRecommendLlmSettingsDto = {
   timeout_s: 15.0,
   max_tokens: 800,
   system_prompt_override: "",
+  default_system_prompt: FIXTURE_DEFAULT_PROMPT,
 };
 
 const CONFIGURED_SETTINGS: KnxRecommendLlmSettingsDto = {
@@ -28,6 +35,7 @@ const CONFIGURED_SETTINGS: KnxRecommendLlmSettingsDto = {
   timeout_s: 15.0,
   max_tokens: 800,
   system_prompt_override: "",
+  default_system_prompt: FIXTURE_DEFAULT_PROMPT,
 };
 
 interface MockApi extends ApiClient {
@@ -99,6 +107,7 @@ function makeApi(
         max_tokens: body.max_tokens ?? current.max_tokens,
         system_prompt_override:
           body.system_prompt_override ?? current.system_prompt_override,
+        default_system_prompt: current.default_system_prompt,
       };
       return { ...current };
     },
@@ -401,6 +410,94 @@ describe("knx-recommend-llm-view (Iter L4.3)", () => {
     const text = legend?.textContent ?? "";
     expect(text).toContain("Nicht uebermittelt");
     expect(text).toContain("GA-Adresse");
+  });
+
+  // -------------------------------------------------------------------
+  // Iter UX-7: Default-Prompt im Textfeld vorausgefuellt
+  // -------------------------------------------------------------------
+
+  it("UX-7: Textfeld ist mit Default-Prompt vorbefuellt, wenn kein Override gespeichert", async () => {
+    const api = makeApi(CONFIGURED_SETTINGS);
+    const el = await mount(api);
+    const textarea = el.shadowRoot!.querySelector<HTMLTextAreaElement>(
+      "textarea",
+    );
+    expect(textarea).not.toBeNull();
+    expect(textarea!.value).toBe(FIXTURE_DEFAULT_PROMPT);
+  });
+
+  it("UX-7: Override gewinnt - Textfeld zeigt gespeicherten Override, nicht Default", async () => {
+    const stored = "Mein eigener Prompt mit Anpassungen.";
+    const api = makeApi({
+      ...CONFIGURED_SETTINGS,
+      system_prompt_override: stored,
+    });
+    const el = await mount(api);
+    const textarea = el.shadowRoot!.querySelector<HTMLTextAreaElement>(
+      "textarea",
+    );
+    expect(textarea!.value).toBe(stored);
+    expect(textarea!.value).not.toBe(FIXTURE_DEFAULT_PROMPT);
+  });
+
+  it("UX-7: Reset-Knopf existiert und ist disabled, wenn Textarea bereits Default zeigt", async () => {
+    const api = makeApi(CONFIGURED_SETTINGS);
+    const el = await mount(api);
+    const buttons = Array.from(
+      el.shadowRoot!.querySelectorAll<HTMLButtonElement>("button"),
+    );
+    const reset = buttons.find((b) =>
+      (b.textContent ?? "").includes("Auf Default zuruecksetzen"),
+    );
+    expect(reset).toBeDefined();
+    expect(reset!.disabled).toBe(true);
+  });
+
+  it("UX-7: Reset-Knopf setzt Textarea auf Default zurueck", async () => {
+    const api = makeApi({
+      ...CONFIGURED_SETTINGS,
+      system_prompt_override: "Custom-Edits.",
+    });
+    const el = await mount(api);
+    const textarea = el.shadowRoot!.querySelector<HTMLTextAreaElement>(
+      "textarea",
+    );
+    expect(textarea!.value).toBe("Custom-Edits.");
+
+    const buttons = Array.from(
+      el.shadowRoot!.querySelectorAll<HTMLButtonElement>("button"),
+    );
+    const reset = buttons.find((b) =>
+      (b.textContent ?? "").includes("Auf Default zuruecksetzen"),
+    );
+    expect(reset).toBeDefined();
+    expect(reset!.disabled).toBe(false);
+    reset!.click();
+    await settle(el);
+    const textareaAfter = el.shadowRoot!.querySelector<HTMLTextAreaElement>(
+      "textarea",
+    );
+    expect(textareaAfter!.value).toBe(FIXTURE_DEFAULT_PROMPT);
+  });
+
+  it("UX-7: Speichern persistiert den im Textfeld stehenden Default-Prompt", async () => {
+    const api = makeApi(CONFIGURED_SETTINGS);
+    const el = await mount(api);
+
+    // User klickt direkt Speichern, ohne den vorbefuellten Default zu
+    // editieren. Erwartung: der Default-Text wird als Override
+    // gespeichert (so wird er fortan auch verwendet).
+    const saveBtn = Array.from(
+      el.shadowRoot!.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((b) => (b.textContent ?? "").includes("Speichern"));
+    expect(saveBtn).toBeDefined();
+    saveBtn!.click();
+    await settle(el);
+
+    expect(api.putCalls).toHaveLength(1);
+    expect(api.putCalls[0].system_prompt_override).toBe(
+      FIXTURE_DEFAULT_PROMPT,
+    );
   });
 
   it("Aktiv-Toggle zeigt Cost-Warnung", async () => {

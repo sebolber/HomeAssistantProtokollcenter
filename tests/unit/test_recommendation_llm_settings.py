@@ -201,6 +201,25 @@ def test_redact_signals_missing_key() -> None:
     assert redacted["api_key_set"] is False
 
 
+def test_redact_includes_default_system_prompt_for_prefill() -> None:
+    """Iter UX-7: Default-Prompt muss im Response stehen, damit das
+    Frontend das Editor-Feld vorbefuellen kann.
+    """
+    from custom_components.messagehub.processing.openai_chat_provider import (
+        DEFAULT_SYSTEM_PROMPT,
+    )
+    from custom_components.messagehub.processing.recommendation_provider import (
+        ProviderConfig,
+    )
+    cfg = ProviderConfig(
+        enabled=False, base_url="", model="", api_key="",
+    )
+    redacted = redact_for_response(cfg)
+    assert redacted["default_system_prompt"] == DEFAULT_SYSTEM_PROMPT
+    # Read-only — nicht via PUT-Body schreibbar.
+    assert "default_system_prompt" in redacted
+
+
 # ---------------------------------------------------------------------------
 # StubProvider
 # ---------------------------------------------------------------------------

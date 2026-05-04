@@ -77,7 +77,8 @@ export class KnxRecommendLlmView extends LitElement {
         flex-wrap: wrap;
         gap: var(--mh-space-1);
       }
-      .llm-actions {
+      .llm-actions,
+      .llm-prompt-actions {
         display: flex;
         gap: var(--mh-space-2);
       }
@@ -212,7 +213,7 @@ export class KnxRecommendLlmView extends LitElement {
         model: this._settings.model,
         timeout_s: this._settings.timeout_s,
         max_tokens: this._settings.max_tokens,
-        system_prompt_override: this._settings.system_prompt_override,
+        system_prompt_override: this._effectiveSystemPrompt(this._settings),
       };
       this._apiKeyEdit = !this._settings.api_key_set;
     } catch (err) {
@@ -220,6 +221,29 @@ export class KnxRecommendLlmView extends LitElement {
     } finally {
       this._loading = false;
     }
+  }
+
+  // Iter UX-7: Wenn der User noch keinen Override gespeichert hat, das
+  // Editor-Feld mit dem Default-Prompt vom Backend vorbefuellen — damit
+  // hat der User einen Startpunkt zum Anpassen, statt vor leerer Box
+  // sitzen zu muessen.
+  private _effectiveSystemPrompt(
+    settings: KnxRecommendLlmSettingsDto,
+  ): string {
+    const stored = settings.system_prompt_override ?? "";
+    if (stored.trim()) return stored;
+    return settings.default_system_prompt ?? "";
+  }
+
+  // Iter UX-7: Reset-Knopf — verwirft die Edits am System-Prompt und
+  // setzt das Textfeld auf den Default zurueck. Speichern muss der
+  // User selbst (UI-only Operation).
+  private _resetSystemPrompt(): void {
+    if (!this._settings) return;
+    this._draft = {
+      ...this._draft,
+      system_prompt_override: this._settings.default_system_prompt ?? "",
+    };
   }
 
   private async _save(): Promise<void> {
@@ -248,7 +272,7 @@ export class KnxRecommendLlmView extends LitElement {
         model: this._settings.model,
         timeout_s: this._settings.timeout_s,
         max_tokens: this._settings.max_tokens,
-        system_prompt_override: this._settings.system_prompt_override,
+        system_prompt_override: this._effectiveSystemPrompt(this._settings),
       };
       this._apiKeyEdit = false;
       this._info = "Einstellungen gespeichert.";
@@ -638,9 +662,8 @@ export class KnxRecommendLlmView extends LitElement {
           </label>
 
           <label>
-            <span>System-Prompt-Override (optional)</span>
+            <span>System-Prompt</span>
             <textarea
-              placeholder="Leer = Default-Prompt (siehe Legende unten)"
               .value=${this._draft.system_prompt_override ?? ""}
               ?disabled=${this._saving}
               @input=${(e: InputEvent) =>
@@ -649,10 +672,23 @@ export class KnxRecommendLlmView extends LitElement {
                   (e.target as HTMLTextAreaElement).value,
                 )}
             ></textarea>
+            <div class="llm-prompt-actions">
+              <button
+                type="button"
+                class="mh-button mh-button--ghost"
+                ?disabled=${this._saving ||
+                this._draft.system_prompt_override ===
+                  (this._settings?.default_system_prompt ?? "")}
+                title="Setzt das Textfeld auf den Default-Prompt zurueck. Speichern muss der User selbst."
+                @click=${() => this._resetSystemPrompt()}
+              >
+                Auf Default zuruecksetzen
+              </button>
+            </div>
             <span class="help">
-              Ueberschreibt den eingebauten Prompt. Antwort-Schema bleibt
-              zwingend (siehe "Erwartete Antwort" unten) — sonst kann der
-              Service die Antwort nicht parsen.
+              Vorbefuellt mit dem Default-Prompt. Anpassbar — gespeichert wird,
+              was hier steht. Antwort-Schema bleibt zwingend (siehe "Erwartete
+              Antwort" unten), sonst kann der Service die Antwort nicht parsen.
             </span>
           </label>
 

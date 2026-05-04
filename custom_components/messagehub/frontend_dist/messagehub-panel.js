@@ -4365,13 +4365,30 @@ let z = class extends y {
         model: this._settings.model,
         timeout_s: this._settings.timeout_s,
         max_tokens: this._settings.max_tokens,
-        system_prompt_override: this._settings.system_prompt_override
+        system_prompt_override: this._effectiveSystemPrompt(this._settings)
       }, this._apiKeyEdit = !this._settings.api_key_set;
     } catch (e) {
       this._error = e.message;
     } finally {
       this._loading = !1;
     }
+  }
+  // Iter UX-7: Wenn der User noch keinen Override gespeichert hat, das
+  // Editor-Feld mit dem Default-Prompt vom Backend vorbefuellen — damit
+  // hat der User einen Startpunkt zum Anpassen, statt vor leerer Box
+  // sitzen zu muessen.
+  _effectiveSystemPrompt(e) {
+    const t = e.system_prompt_override ?? "";
+    return t.trim() ? t : e.default_system_prompt ?? "";
+  }
+  // Iter UX-7: Reset-Knopf — verwirft die Edits am System-Prompt und
+  // setzt das Textfeld auf den Default zurueck. Speichern muss der
+  // User selbst (UI-only Operation).
+  _resetSystemPrompt() {
+    this._settings && (this._draft = {
+      ...this._draft,
+      system_prompt_override: this._settings.default_system_prompt ?? ""
+    });
   }
   async _save() {
     if (this.api) {
@@ -4391,7 +4408,7 @@ let z = class extends y {
           model: this._settings.model,
           timeout_s: this._settings.timeout_s,
           max_tokens: this._settings.max_tokens,
-          system_prompt_override: this._settings.system_prompt_override
+          system_prompt_override: this._effectiveSystemPrompt(this._settings)
         }, this._apiKeyEdit = !1, this._info = "Einstellungen gespeichert.";
       } catch (e) {
         this._error = e.message;
@@ -4561,7 +4578,7 @@ let z = class extends y {
     this._draft = { ...this._draft, ...t[e] };
   }
   render() {
-    var e;
+    var e, t;
     return this._loading ? i`<p class="muted">Lade Einstellungen…</p>` : i`
       <section class="llm-section mh-card">
         <header>
@@ -4585,9 +4602,9 @@ let z = class extends y {
               id="llm-enabled"
               .checked=${this._draft.enabled}
               ?disabled=${this._saving}
-              @change=${(t) => this._setDraft(
+              @change=${(s) => this._setDraft(
       "enabled",
-      t.target.checked
+      s.target.checked
     )}
             />
             <label for="llm-enabled">
@@ -4636,9 +4653,9 @@ let z = class extends y {
               placeholder="https://api.openai.com/v1"
               .value=${this._draft.base_url}
               ?disabled=${this._saving}
-              @input=${(t) => this._setDraft(
+              @input=${(s) => this._setDraft(
       "base_url",
-      t.target.value
+      s.target.value
     )}
             />
             <span class="help">
@@ -4654,9 +4671,9 @@ let z = class extends y {
               placeholder="gpt-4o-mini"
               .value=${this._draft.model}
               ?disabled=${this._saving}
-              @input=${(t) => this._setDraft(
+              @input=${(s) => this._setDraft(
       "model",
-      t.target.value
+      s.target.value
     )}
             />
             <span class="help">
@@ -4673,9 +4690,9 @@ let z = class extends y {
                     placeholder="sk-..."
                     .value=${this._draft.api_key ?? ""}
                     ?disabled=${this._saving}
-                    @input=${(t) => this._setDraft(
+                    @input=${(s) => this._setDraft(
       "api_key",
-      t.target.value
+      s.target.value
     )}
                   />` : i`<input
                     type="text"
@@ -4708,9 +4725,9 @@ let z = class extends y {
               step="1"
               .value=${String(this._draft.timeout_s ?? 15)}
               ?disabled=${this._saving}
-              @input=${(t) => this._setDraft(
+              @input=${(s) => this._setDraft(
       "timeout_s",
-      Number(t.target.value)
+      Number(s.target.value)
     )}
             />
           </label>
@@ -4724,29 +4741,39 @@ let z = class extends y {
               step="50"
               .value=${String(this._draft.max_tokens ?? 800)}
               ?disabled=${this._saving}
-              @input=${(t) => this._setDraft(
+              @input=${(s) => this._setDraft(
       "max_tokens",
-      Number(t.target.value)
+      Number(s.target.value)
     )}
             />
             <span class="help">Cap auf die Antwort-Tokens (Cost-Schutz).</span>
           </label>
 
           <label>
-            <span>System-Prompt-Override (optional)</span>
+            <span>System-Prompt</span>
             <textarea
-              placeholder="Leer = Default-Prompt (siehe Legende unten)"
               .value=${this._draft.system_prompt_override ?? ""}
               ?disabled=${this._saving}
-              @input=${(t) => this._setDraft(
+              @input=${(s) => this._setDraft(
       "system_prompt_override",
-      t.target.value
+      s.target.value
     )}
             ></textarea>
+            <div class="llm-prompt-actions">
+              <button
+                type="button"
+                class="mh-button mh-button--ghost"
+                ?disabled=${this._saving || this._draft.system_prompt_override === (((t = this._settings) == null ? void 0 : t.default_system_prompt) ?? "")}
+                title="Setzt das Textfeld auf den Default-Prompt zurueck. Speichern muss der User selbst."
+                @click=${() => this._resetSystemPrompt()}
+              >
+                Auf Default zuruecksetzen
+              </button>
+            </div>
             <span class="help">
-              Ueberschreibt den eingebauten Prompt. Antwort-Schema bleibt
-              zwingend (siehe "Erwartete Antwort" unten) — sonst kann der
-              Service die Antwort nicht parsen.
+              Vorbefuellt mit dem Default-Prompt. Anpassbar — gespeichert wird,
+              was hier steht. Antwort-Schema bleibt zwingend (siehe "Erwartete
+              Antwort" unten), sonst kann der Service die Antwort nicht parsen.
             </span>
           </label>
 
@@ -4839,7 +4866,8 @@ z.styles = [
         flex-wrap: wrap;
         gap: var(--mh-space-1);
       }
-      .llm-actions {
+      .llm-actions,
+      .llm-prompt-actions {
         display: flex;
         gap: var(--mh-space-2);
       }

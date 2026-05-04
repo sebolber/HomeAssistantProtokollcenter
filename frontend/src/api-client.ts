@@ -362,6 +362,12 @@ export interface KnxRecommendLlmSettingsDto {
   timeout_s: number;
   max_tokens: number;
   system_prompt_override: string;
+  /**
+   * Iter UX-7: Read-only Default-Prompt vom Backend, damit das
+   * Frontend das Editor-Feld vorbefuellen kann (statt User vor leerer
+   * Textbox zu lassen).
+   */
+  default_system_prompt: string;
 }
 
 export interface KnxRecommendLlmSettingsPutBody {
