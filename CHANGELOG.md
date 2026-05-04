@@ -6,6 +6,27 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Geaendert (UX)
+- **Iter UX-1 / Sprint UX — Stille-Alarme zeigen Geraete-Info.**
+  Berechtigte User-Beschwerde: der Alarm-Banner sagte nur
+  "1 Geraet(e) haben laenger als 1440 Min nicht gesendet" — ohne zu
+  verraten, welches. Jetzt:
+  * **Alarm-Banner**: silence_alarm bekommt einen aufklappbaren
+    Detail-Block mit pro betroffenem Geraet: Source-Adresse,
+    Hersteller/Modell (aus ETS-Discovery), Stille-Dauer, GA-Anzahl.
+    Pro Geraet zweite Stufe zum Aufklappen mit der vollen GA-
+    Tabelle (Adresse, Bezeichnung, DPT, Telegramm-Anzahl).
+  * **Stille-Alarme-Liste**: tabellarisches Layout analog zur
+    Top-Geraete-Tabelle (Source, Hersteller/Modell, GA-Anzahl,
+    Stille-Dauer, Letzter Trafik). Klick auf eine Zeile oeffnet
+    weiterhin das Source-Detail-Pane.
+  Backend: neuer Service-Helper `enrich_silence_with_devices` reichert
+  den `silence_detect`-Output mit ETS-Manufacturer/Modell + GA-Liste
+  pro Source an. `evaluate_alarms` filtert auf alarmierte Sources
+  (kein Performance-Hit fuer leere Periode) und embed`details.devices`
+  ins silence_alarm-Element. 6 neue Pytests (Backend) + 7 neue Vitest
+  (Frontend), 3 alte Stille-Click-Tests an Tabellen-Layout angepasst.
+
 ### Geaendert (Recommendation-Engine)
 - **Iter L2.5 / Sprint Recommendations — ETS-Discovery als Layer-2-Default.**
   Architektur-Korrektur: `compute_device_recommendation` nutzt jetzt

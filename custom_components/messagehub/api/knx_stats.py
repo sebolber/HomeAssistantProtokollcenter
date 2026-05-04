@@ -561,6 +561,11 @@ class KnxStatsAlarmsView(RequireAdminView):
             min_value=1,
             max_value=43200,
         )
+        # Iter UX-1.0: ETS-Discovery fuer den silence_alarm-Detail-
+        # Block. Lazy-Import wie an anderen Stellen, damit der View-
+        # Modul-Import HA-frei testbar bleibt.
+        from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
+        ets_devices = await discover_knx_devices(request.app["hass"])
         alarms = await svc.evaluate_alarms(
             from_iso,
             to_iso,
@@ -568,6 +573,7 @@ class KnxStatsAlarmsView(RequireAdminView):
             repeat_rate_pct_threshold=repeat_th,
             silence_count_threshold=silence_th,
             max_silence_minutes=max_silence,
+            ets_devices=ets_devices,
         )
         # Eventbus-Trigger fuer triggered Alarme.
         # Iter 76 / CR-17: Dedup pro (rule_kind, Minutenbucket) — bei
@@ -630,6 +636,7 @@ class KnxStatsSilenceView(RequireAdminView):
 
     async def get(self, request: web.Request) -> web.Response:
         from datetime import UTC, datetime  # noqa: PLC0415
+        from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
 
         self._check_admin(request)
         db = get_database(request.app["hass"])
@@ -654,6 +661,18 @@ class KnxStatsSilenceView(RequireAdminView):
         )
         # Frontend zeigt primaer die Alarme — sortieren wir die zuerst.
         rows.sort(key=lambda r: (not r["alarm"], -r["silent_minutes"]))
+        # Iter UX-1.0: Geraetename + GAs anreichern, damit das Frontend
+        # die Stille-Liste analog zur Top-Geraete-Tabelle rendern kann
+        # und der Alarm-Banner aufklappbare GA-Listen zeigen kann.
+        svc = _service(request.app["hass"])
+        if svc is not None:
+            ets_devices = await discover_knx_devices(request.app["hass"])
+            rows = await svc.enrich_silence_with_devices(
+                rows,
+                from_iso=from_iso,
+                to_iso=to_iso,
+                ets_devices=ets_devices,
+            )
         return self.json(
             {
                 "from": from_iso,

@@ -414,6 +414,28 @@ export interface KnxStatsDeviceInfo {
   product: string;
 }
 
+// Iter UX-1.0: pro stillem Geraet im Alarm-Banner-Detail.
+export interface KnxStatsSilenceDeviceDto {
+  dev_source: string;
+  manufacturer: string | null;
+  device_name: string | null;
+  silent_minutes: number;
+  last_seen: string;
+  ga_count: number;
+  gas: Array<{
+    ga: string;
+    label: string | null;
+    dpt: string | null;
+    count: number;
+  }>;
+}
+
+export interface KnxStatsAlarmDetailsDto {
+  /** Iter UX-1.0: ``silence_alarm`` enthaelt die betroffenen Geraete
+   * mit Namen + GAs zum Aufklappen. */
+  devices?: KnxStatsSilenceDeviceDto[];
+}
+
 export interface KnxStatsAlarmDto {
   rule: string;
   triggered: boolean;
@@ -421,6 +443,8 @@ export interface KnxStatsAlarmDto {
   threshold: number;
   unit: string;
   message: string;
+  /** Iter UX-1.0: regel-spezifischer Detail-Block. */
+  details?: KnxStatsAlarmDetailsDto | null;
 }
 
 export interface KnxStatsAlarmsDto {
@@ -446,6 +470,16 @@ export interface KnxStatsSilenceItemDto {
   total: number;
   silent_minutes: number;
   alarm: boolean;
+  // Iter UX-1.0: Geraete-Info aus ETS + GAs der Source.
+  manufacturer?: string | null;
+  device_name?: string | null;
+  ga_count?: number;
+  gas?: Array<{
+    ga: string;
+    label: string | null;
+    dpt: string | null;
+    count: number;
+  }>;
 }
 
 export interface KnxStatsSilenceDto {

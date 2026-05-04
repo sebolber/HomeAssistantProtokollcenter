@@ -9,6 +9,7 @@ import { customElement } from "../utils/custom-element.js";
 import { property, state } from "lit/decorators.js";
 import type {
   ApiClient,
+  KnxStatsAlarmDto,
   KnxStatsAlarmsDto,
   KnxStatsBurstsDto,
   KnxStatsBusHealthDto,
@@ -2884,10 +2885,70 @@ export class StatsKnxView extends LitElement {
             (alarm) => html`<li>
               <span class="alarm-rule">${alarm.rule}</span>
               <span class="alarm-msg">${alarm.message}</span>
+              ${this._renderAlarmDetails(alarm)}
             </li>`
           )}
         </ul>
       </section>
+    `;
+  }
+
+  // Iter UX-1.0: silence_alarm bekommt aufklappbare Geraete-Liste mit
+  // Hersteller + Name + GAs (zum Aufklappen pro Geraet).
+  private _renderAlarmDetails(alarm: KnxStatsAlarmDto): TemplateResult {
+    if (alarm.rule !== "silence_alarm") return html``;
+    const devices = alarm.details?.devices ?? [];
+    if (devices.length === 0) return html``;
+    return html`
+      <details class="alarm-details">
+        <summary>Betroffene Geräte (${devices.length})</summary>
+        <ul class="alarm-details__devices">
+          ${devices.map((dev) => {
+            const fullDeviceText =
+              dev.manufacturer && dev.device_name
+                ? `${dev.manufacturer} — ${dev.device_name}`
+                : dev.manufacturer || dev.device_name || "";
+            return html`<li class="alarm-device">
+              <details class="alarm-device__inner">
+                <summary>
+                  <code class="ga">${dev.dev_source}</code>
+                  ${fullDeviceText
+                    ? html`<span class="muted small">${fullDeviceText}</span>`
+                    : nothing}
+                  <span class="muted small">
+                    · stumm seit ${this._formatSilence(dev.silent_minutes)}
+                    · ${dev.ga_count} GA${dev.ga_count === 1 ? "" : "s"}
+                  </span>
+                </summary>
+                ${dev.gas.length > 0
+                  ? html`<table class="alarm-device__gas">
+                      <thead>
+                        <tr>
+                          <th>GA</th>
+                          <th>Bezeichnung</th>
+                          <th>DPT</th>
+                          <th class="num">Telegramme</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${dev.gas.map(
+                          (g) => html`<tr>
+                            <td><code>${g.ga}</code></td>
+                            <td>${g.label ?? "—"}</td>
+                            <td>${g.dpt ?? "—"}</td>
+                            <td class="num">${g.count}</td>
+                          </tr>`,
+                        )}
+                      </tbody>
+                    </table>`
+                  : html`<p class="muted small">
+                      Keine GA-Telegramme im Auswertezeitraum.
+                    </p>`}
+              </details>
+            </li>`;
+          })}
+        </ul>
+      </details>
     `;
   }
 
@@ -3289,6 +3350,9 @@ export class StatsKnxView extends LitElement {
     const alarms = s.items.filter((i) => i.alarm);
     if (alarms.length === 0) return html``;
     const limit = this._filters.topNSilence;
+    // Iter UX-1.0: Tabellen-Layout analog zur Top-Geraete-Tabelle —
+    // gleiche Spalten-Reihenfolge (Source, Hersteller/Modell, GAs)
+    // plus Stille-spezifische Spalten (silent_minutes, last_seen).
     return html`
       <section class="mh-card silence-card">
         <header class="card-head">
@@ -3300,23 +3364,51 @@ export class StatsKnxView extends LitElement {
             </span>
           </div>
         </header>
-        <ul class="silence-list">
-          ${alarms.slice(0, limit).map(
-            (a) => html`<li
-              class=${`silence-row ${
-                this._selectedSource === a.dev_source ? "selected" : ""
-              }`}
-              @click=${() => void this._loadSourceDetail(a.dev_source)}
-              title="Geraete-Detail oeffnen"
-            >
-              <code>${a.dev_source}</code>
-              <span class="muted">
-                seit ${this._formatSilence(a.silent_minutes)} stumm
-              </span>
-              <span class="muted small">last_seen ${this._formatTs(a.last_seen)}</span>
-            </li>`
-          )}
-        </ul>
+        <div class="table-wrap">
+          <table data-test="silence-alarms-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Gerät (Source)</th>
+                <th>Hersteller / Modell</th>
+                <th class="num">GAs</th>
+                <th class="num">Stumm seit</th>
+                <th>Letzter Trafik</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${alarms.slice(0, limit).map((a, idx) => {
+                const fullDeviceText =
+                  a.manufacturer && a.device_name
+                    ? `${a.manufacturer} — ${a.device_name}`
+                    : a.manufacturer || a.device_name || "";
+                const isSelected = this._selectedSource === a.dev_source;
+                return html`<tr
+                  class=${`silence-row ${isSelected ? "selected" : ""}`}
+                  @click=${() => void this._loadSourceDetail(a.dev_source)}
+                  title="Geraete-Detail oeffnen"
+                >
+                  <td class="num muted">${idx + 1}</td>
+                  <td><code class="ga">${a.dev_source}</code></td>
+                  <td class="device-cell">
+                    ${fullDeviceText
+                      ? html`<span
+                          class="muted small device-cell__text"
+                          title=${fullDeviceText}
+                          >${fullDeviceText}</span
+                        >`
+                      : html`<span class="muted small">—</span>`}
+                  </td>
+                  <td class="num">${a.ga_count ?? 0}</td>
+                  <td class="num strong">
+                    ${this._formatSilence(a.silent_minutes)}
+                  </td>
+                  <td class="muted small">${this._formatTs(a.last_seen)}</td>
+                </tr>`;
+              })}
+            </tbody>
+          </table>
+        </div>
         ${alarms.length > limit
           ? html`<p class="muted small">
               … und ${alarms.length - limit} weitere
@@ -4765,6 +4857,51 @@ export class StatsKnxView extends LitElement {
         font-size: var(--mh-text-xs);
         font-weight: var(--mh-weight-semibold);
         color: var(--mh-error);
+      }
+      /* Iter UX-1.0 — Aufklappbare Geraete-Details fuer silence_alarm */
+      .alarm-details {
+        grid-column: 1 / -1;
+        margin-top: var(--mh-space-1);
+      }
+      .alarm-details summary {
+        cursor: pointer;
+        color: var(--mh-fg-muted);
+        font-size: var(--mh-text-xs);
+      }
+      .alarm-details__devices {
+        list-style: none;
+        margin: var(--mh-space-2) 0 0 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-1);
+      }
+      .alarm-device {
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-sm, 4px);
+        padding: var(--mh-space-1) var(--mh-space-2);
+      }
+      .alarm-device__inner > summary {
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-1);
+        flex-wrap: wrap;
+      }
+      .alarm-device__gas {
+        width: 100%;
+        margin-top: var(--mh-space-2);
+        border-collapse: collapse;
+        font-size: var(--mh-text-xs);
+      }
+      .alarm-device__gas th,
+      .alarm-device__gas td {
+        text-align: left;
+        padding: var(--mh-space-1);
+        border-bottom: 1px solid var(--mh-divider);
+      }
+      .alarm-device__gas td.num,
+      .alarm-device__gas th.num {
+        text-align: right;
       }
 
       /* Orphans-Card */

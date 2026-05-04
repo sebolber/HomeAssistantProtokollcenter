@@ -229,10 +229,13 @@ describe("stats-knx-view silence-click (Iter F)", () => {
     const api = makeApi();
     const el = await mount(api);
 
-    // Stille-Alarm-Liste ist sichtbar (alarm_count > 0).
-    const silenceList = el.shadowRoot!.querySelector(".silence-list");
-    expect(silenceList).not.toBeNull();
-    const items = silenceList!.querySelectorAll("li");
+    // Iter UX-1.1: Stille-Alarme rendern jetzt eine Tabelle mit
+    // Geraete-Spalten analog zur Top-Geraete-Tabelle.
+    const silenceTable = el.shadowRoot!.querySelector(
+      'table[data-test="silence-alarms-table"]',
+    );
+    expect(silenceTable).not.toBeNull();
+    const items = silenceTable!.querySelectorAll("tbody tr");
     expect(items.length).toBe(2);
 
     // Klick auf erste Stille-Alarm-Zeile (1.1.99).
@@ -248,21 +251,22 @@ describe("stats-knx-view silence-click (Iter F)", () => {
     expect(api.sourceDetailCalls[0].devSource).toBe("1.1.99");
   });
 
-  it("Stille-Alarm-Zeile hat Cursor-Pointer (klickbar erkennbar)", async () => {
+  it("Stille-Alarm-Zeile hat klickbare silence-row-Klasse", async () => {
     const api = makeApi();
     const el = await mount(api);
     const item = el.shadowRoot!.querySelector(
-      ".silence-list li",
+      'table[data-test="silence-alarms-table"] tbody tr',
     ) as HTMLElement;
     expect(item).not.toBeNull();
-    // Klasse silence-row signalisiert die klickbare Variante.
     expect(item.className).toContain("silence-row");
   });
 
   it("zweite Klick-Zeile wechselt das Source-Detail (1.1.99 -> 1.1.42)", async () => {
     const api = makeApi();
     const el = await mount(api);
-    const items = el.shadowRoot!.querySelectorAll(".silence-list li");
+    const items = el.shadowRoot!.querySelectorAll(
+      'table[data-test="silence-alarms-table"] tbody tr',
+    );
     (items[0] as HTMLElement).click();
     await settleUpdates(el);
     expect(el._sourceDetail!.dev_source).toBe("1.1.99");

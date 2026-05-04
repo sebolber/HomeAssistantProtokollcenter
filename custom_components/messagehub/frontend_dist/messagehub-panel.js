@@ -284,10 +284,10 @@ de.elementStyles = [], de.shadowRootOptions = { mode: "open" }, de[xe("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const $e = globalThis, ht = (e) => e, Ce = $e.trustedTypes, pt = Ce ? Ce.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Bt = "$lit$", G = `lit$${Math.random().toFixed(9).slice(2)}$`, jt = "?" + G, hs = `<${jt}>`, ee = document, ke = () => ee.createComment(""), Se = (e) => e === null || typeof e != "object" && typeof e != "function", st = Array.isArray, ps = (e) => st(e) || typeof (e == null ? void 0 : e[Symbol.iterator]) == "function", Ke = `[ 	
-\f\r]`, be = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ut = /-->/g, mt = />/g, Y = RegExp(`>|${Ke}(?:([^\\s"'>=/]+)(${Ke}*=${Ke}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), gt = /'/g, vt = /"/g, Kt = /^(?:script|style|textarea|title)$/i, us = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), i = us(1), te = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), ft = /* @__PURE__ */ new WeakMap(), X = ee.createTreeWalker(ee, 129);
-function Gt(e, t) {
+const $e = globalThis, ht = (e) => e, Ce = $e.trustedTypes, pt = Ce ? Ce.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Bt = "$lit$", K = `lit$${Math.random().toFixed(9).slice(2)}$`, jt = "?" + K, hs = `<${jt}>`, ee = document, ke = () => ee.createComment(""), Se = (e) => e === null || typeof e != "object" && typeof e != "function", st = Array.isArray, ps = (e) => st(e) || typeof (e == null ? void 0 : e[Symbol.iterator]) == "function", Ge = `[ 	
+\f\r]`, be = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ut = /-->/g, mt = />/g, Y = RegExp(`>|${Ge}(?:([^\\s"'>=/]+)(${Ge}*=${Ge}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`, "g"), gt = /'/g, vt = /"/g, Gt = /^(?:script|style|textarea|title)$/i, us = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), i = us(1), te = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), ft = /* @__PURE__ */ new WeakMap(), X = ee.createTreeWalker(ee, 129);
+function Kt(e, t) {
   if (!st(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return pt !== void 0 ? pt.createHTML(t) : t;
 }
@@ -297,11 +297,11 @@ const ms = (e, t) => {
   for (let d = 0; d < s; d++) {
     const h = e[d];
     let m, g, u = -1, p = 0;
-    for (; p < h.length && (o.lastIndex = p, g = o.exec(h), g !== null); ) p = o.lastIndex, o === be ? g[1] === "!--" ? o = ut : g[1] !== void 0 ? o = mt : g[2] !== void 0 ? (Kt.test(g[2]) && (r = RegExp("</" + g[2], "g")), o = Y) : g[3] !== void 0 && (o = Y) : o === Y ? g[0] === ">" ? (o = r ?? be, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? Y : g[3] === '"' ? vt : gt) : o === vt || o === gt ? o = Y : o === ut || o === mt ? o = be : (o = Y, r = void 0);
+    for (; p < h.length && (o.lastIndex = p, g = o.exec(h), g !== null); ) p = o.lastIndex, o === be ? g[1] === "!--" ? o = ut : g[1] !== void 0 ? o = mt : g[2] !== void 0 ? (Gt.test(g[2]) && (r = RegExp("</" + g[2], "g")), o = Y) : g[3] !== void 0 && (o = Y) : o === Y ? g[0] === ">" ? (o = r ?? be, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? Y : g[3] === '"' ? vt : gt) : o === vt || o === gt ? o = Y : o === ut || o === mt ? o = be : (o = Y, r = void 0);
     const b = o === Y && e[d + 1].startsWith("/>") ? " " : "";
-    n += o === be ? h + hs : u >= 0 ? (a.push(m), h.slice(0, u) + Bt + h.slice(u) + G + b) : h + G + (u === -2 ? d : b);
+    n += o === be ? h + hs : u >= 0 ? (a.push(m), h.slice(0, u) + Bt + h.slice(u) + K + b) : h + K + (u === -2 ? d : b);
   }
-  return [Gt(e, n + (e[s] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), a];
+  return [Kt(e, n + (e[s] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), a];
 };
 class Te {
   constructor({ strings: t, _$litType$: s }, a) {
@@ -316,11 +316,11 @@ class Te {
     for (; (r = X.nextNode()) !== null && h.length < d; ) {
       if (r.nodeType === 1) {
         if (r.hasAttributes()) for (const u of r.getAttributeNames()) if (u.endsWith(Bt)) {
-          const p = g[o++], b = r.getAttribute(u).split(G), v = /([.?@])?(.*)/.exec(p);
+          const p = g[o++], b = r.getAttribute(u).split(K), v = /([.?@])?(.*)/.exec(p);
           h.push({ type: 1, index: n, name: v[2], strings: b, ctor: v[1] === "." ? vs : v[1] === "?" ? fs : v[1] === "@" ? _s : Ne }), r.removeAttribute(u);
-        } else u.startsWith(G) && (h.push({ type: 6, index: n }), r.removeAttribute(u));
-        if (Kt.test(r.tagName)) {
-          const u = r.textContent.split(G), p = u.length - 1;
+        } else u.startsWith(K) && (h.push({ type: 6, index: n }), r.removeAttribute(u));
+        if (Gt.test(r.tagName)) {
+          const u = r.textContent.split(K), p = u.length - 1;
           if (p > 0) {
             r.textContent = Ce ? Ce.emptyScript : "";
             for (let b = 0; b < p; b++) r.append(u[b], ke()), X.nextNode(), h.push({ type: 2, index: ++n });
@@ -330,7 +330,7 @@ class Te {
       } else if (r.nodeType === 8) if (r.data === jt) h.push({ type: 2, index: n });
       else {
         let u = -1;
-        for (; (u = r.data.indexOf(G, u + 1)) !== -1; ) h.push({ type: 7, index: n }), u += G.length - 1;
+        for (; (u = r.data.indexOf(K, u + 1)) !== -1; ) h.push({ type: 7, index: n }), u += K.length - 1;
       }
       n++;
     }
@@ -408,7 +408,7 @@ class ge {
   }
   $(t) {
     var n;
-    const { values: s, _$litType$: a } = t, r = typeof a == "number" ? this._$AC(t) : (a.el === void 0 && (a.el = Te.createElement(Gt(a.h, a.h[0]), this.options)), a);
+    const { values: s, _$litType$: a } = t, r = typeof a == "number" ? this._$AC(t) : (a.el === void 0 && (a.el = Te.createElement(Kt(a.h, a.h[0]), this.options)), a);
     if (((n = this._$AH) == null ? void 0 : n._$AD) === r) this._$AH.p(s);
     else {
       const o = new gs(r, this), d = o.u(this.options);
@@ -504,8 +504,8 @@ class bs {
     ce(this, t);
   }
 }
-const ws = { I: ge }, Ge = $e.litHtmlPolyfillSupport;
-Ge == null || Ge(Te, ge), ($e.litHtmlVersions ?? ($e.litHtmlVersions = [])).push("3.3.2");
+const ws = { I: ge }, Ke = $e.litHtmlPolyfillSupport;
+Ke == null || Ke(Te, ge), ($e.litHtmlVersions ?? ($e.litHtmlVersions = [])).push("3.3.2");
 const ys = (e, t, s) => {
   const a = (s == null ? void 0 : s.renderBefore) ?? t;
   let r = a._$litPart$;
@@ -2204,8 +2204,8 @@ He([
 he = He([
   k("source-filter")
 ], he);
-var js = Object.defineProperty, Ks = Object.getOwnPropertyDescriptor, at = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Ks(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var js = Object.defineProperty, Gs = Object.getOwnPropertyDescriptor, at = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Gs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && js(t, s, r), r;
 };
@@ -2254,10 +2254,10 @@ at([
 Ee = at([
   k("time-range-filter")
 ], Ee);
-var Gs = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, J = (e, t, s, a) => {
+var Ks = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, J = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ws(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Gs(t, s, r), r;
+  return a && r && Ks(t, s, r), r;
 };
 let R = class extends y {
   constructor() {
@@ -5835,7 +5835,7 @@ S([
 F = S([
   k("remediation-view")
 ], F);
-var ha = Object.defineProperty, pa = Object.getOwnPropertyDescriptor, K = (e, t, s, a) => {
+var ha = Object.defineProperty, pa = Object.getOwnPropertyDescriptor, G = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? pa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && ha(t, s, r), r;
@@ -6466,31 +6466,31 @@ I.styles = [
       }
     `
 ];
-K([
+G([
   w({ attribute: !1 })
 ], I.prototype, "api", 2);
-K([
+G([
   l()
 ], I.prototype, "_items", 2);
-K([
+G([
   l()
 ], I.prototype, "_loading", 2);
-K([
+G([
   l()
 ], I.prototype, "_showForm", 2);
-K([
+G([
   l()
 ], I.prototype, "_editing", 2);
-K([
+G([
   l()
 ], I.prototype, "_toast", 2);
-K([
+G([
   l()
 ], I.prototype, "_menuOpenId", 2);
-K([
+G([
   l()
 ], I.prototype, "_activeTab", 2);
-I = K([
+I = G([
   k("settings-view")
 ], I);
 var ma = Object.defineProperty, ga = Object.getOwnPropertyDescriptor, ne = (e, t, s, a) => {
@@ -9118,10 +9118,62 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       (s) => i`<li>
               <span class="alarm-rule">${s.rule}</span>
               <span class="alarm-msg">${s.message}</span>
+              ${this._renderAlarmDetails(s)}
             </li>`
     )}
         </ul>
       </section>
+    `;
+  }
+  // Iter UX-1.0: silence_alarm bekommt aufklappbare Geraete-Liste mit
+  // Hersteller + Name + GAs (zum Aufklappen pro Geraet).
+  _renderAlarmDetails(e) {
+    var s;
+    if (e.rule !== "silence_alarm") return i``;
+    const t = ((s = e.details) == null ? void 0 : s.devices) ?? [];
+    return t.length === 0 ? i`` : i`
+      <details class="alarm-details">
+        <summary>Betroffene Geräte (${t.length})</summary>
+        <ul class="alarm-details__devices">
+          ${t.map((a) => {
+      const r = a.manufacturer && a.device_name ? `${a.manufacturer} — ${a.device_name}` : a.manufacturer || a.device_name || "";
+      return i`<li class="alarm-device">
+              <details class="alarm-device__inner">
+                <summary>
+                  <code class="ga">${a.dev_source}</code>
+                  ${r ? i`<span class="muted small">${r}</span>` : c}
+                  <span class="muted small">
+                    · stumm seit ${this._formatSilence(a.silent_minutes)}
+                    · ${a.ga_count} GA${a.ga_count === 1 ? "" : "s"}
+                  </span>
+                </summary>
+                ${a.gas.length > 0 ? i`<table class="alarm-device__gas">
+                      <thead>
+                        <tr>
+                          <th>GA</th>
+                          <th>Bezeichnung</th>
+                          <th>DPT</th>
+                          <th class="num">Telegramme</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${a.gas.map(
+        (n) => i`<tr>
+                            <td><code>${n.ga}</code></td>
+                            <td>${n.label ?? "—"}</td>
+                            <td>${n.dpt ?? "—"}</td>
+                            <td class="num">${n.count}</td>
+                          </tr>`
+      )}
+                      </tbody>
+                    </table>` : i`<p class="muted small">
+                      Keine GA-Telegramme im Auswertezeitraum.
+                    </p>`}
+              </details>
+            </li>`;
+    })}
+        </ul>
+      </details>
     `;
   }
   // Iter 61 / U3: Filter-Helper case-insensitive auf address/label/dpt.
@@ -9435,21 +9487,45 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             </span>
           </div>
         </header>
-        <ul class="silence-list">
-          ${t.slice(0, s).map(
-      (a) => i`<li
-              class=${`silence-row ${this._selectedSource === a.dev_source ? "selected" : ""}`}
-              @click=${() => void this._loadSourceDetail(a.dev_source)}
-              title="Geraete-Detail oeffnen"
-            >
-              <code>${a.dev_source}</code>
-              <span class="muted">
-                seit ${this._formatSilence(a.silent_minutes)} stumm
-              </span>
-              <span class="muted small">last_seen ${this._formatTs(a.last_seen)}</span>
-            </li>`
-    )}
-        </ul>
+        <div class="table-wrap">
+          <table data-test="silence-alarms-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Gerät (Source)</th>
+                <th>Hersteller / Modell</th>
+                <th class="num">GAs</th>
+                <th class="num">Stumm seit</th>
+                <th>Letzter Trafik</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${t.slice(0, s).map((a, r) => {
+      const n = a.manufacturer && a.device_name ? `${a.manufacturer} — ${a.device_name}` : a.manufacturer || a.device_name || "", o = this._selectedSource === a.dev_source;
+      return i`<tr
+                  class=${`silence-row ${o ? "selected" : ""}`}
+                  @click=${() => void this._loadSourceDetail(a.dev_source)}
+                  title="Geraete-Detail oeffnen"
+                >
+                  <td class="num muted">${r + 1}</td>
+                  <td><code class="ga">${a.dev_source}</code></td>
+                  <td class="device-cell">
+                    ${n ? i`<span
+                          class="muted small device-cell__text"
+                          title=${n}
+                          >${n}</span
+                        >` : i`<span class="muted small">—</span>`}
+                  </td>
+                  <td class="num">${a.ga_count ?? 0}</td>
+                  <td class="num strong">
+                    ${this._formatSilence(a.silent_minutes)}
+                  </td>
+                  <td class="muted small">${this._formatTs(a.last_seen)}</td>
+                </tr>`;
+    })}
+            </tbody>
+          </table>
+        </div>
         ${t.length > s ? i`<p class="muted small">
               … und ${t.length - s} weitere
             </p>` : c}
@@ -10865,6 +10941,51 @@ f.styles = [
         font-weight: var(--mh-weight-semibold);
         color: var(--mh-error);
       }
+      /* Iter UX-1.0 — Aufklappbare Geraete-Details fuer silence_alarm */
+      .alarm-details {
+        grid-column: 1 / -1;
+        margin-top: var(--mh-space-1);
+      }
+      .alarm-details summary {
+        cursor: pointer;
+        color: var(--mh-fg-muted);
+        font-size: var(--mh-text-xs);
+      }
+      .alarm-details__devices {
+        list-style: none;
+        margin: var(--mh-space-2) 0 0 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-1);
+      }
+      .alarm-device {
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-sm, 4px);
+        padding: var(--mh-space-1) var(--mh-space-2);
+      }
+      .alarm-device__inner > summary {
+        display: flex;
+        align-items: center;
+        gap: var(--mh-space-1);
+        flex-wrap: wrap;
+      }
+      .alarm-device__gas {
+        width: 100%;
+        margin-top: var(--mh-space-2);
+        border-collapse: collapse;
+        font-size: var(--mh-text-xs);
+      }
+      .alarm-device__gas th,
+      .alarm-device__gas td {
+        text-align: left;
+        padding: var(--mh-space-1);
+        border-bottom: 1px solid var(--mh-divider);
+      }
+      .alarm-device__gas td.num,
+      .alarm-device__gas th.num {
+        text-align: right;
+      }
 
       /* Orphans-Card */
       .orphans-grid {
@@ -11579,10 +11700,10 @@ Pe([
 re = Pe([
   k("severity-override-form")
 ], re);
-var Ka = Object.defineProperty, Ga = Object.getOwnPropertyDescriptor, N = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Ga(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Ga = Object.defineProperty, Ka = Object.getOwnPropertyDescriptor, N = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ka(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Ka(t, s, r), r;
+  return a && r && Ga(t, s, r), r;
 };
 const Wa = [
   { value: "", label: "Alle Severities" },

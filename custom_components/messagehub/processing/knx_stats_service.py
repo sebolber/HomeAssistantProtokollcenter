@@ -1141,12 +1141,19 @@ class KnxStatsService:
         repeat_rate_pct_threshold: float,
         silence_count_threshold: int,
         max_silence_minutes: int,
+        ets_devices: dict[str, dict[str, Any]] | None = None,
     ) -> list[dict[str, Any]]:
         """Iter 15 (QS-l): wertet drei Default-Alarm-Regeln aus.
 
         Liefert eine Liste von Alarmen, jeweils mit `rule`, `triggered`,
         `actual`, `threshold`, `message`. UI/Eventbus-Code nutzt nur die
         triggered=True-Eintraege.
+
+        Iter UX-1.0: Bei `silence_alarm` wird zusaetzlich ein
+        ``details.devices``-Block mit Geraetename + betroffenen GAs
+        eingebettet (Source der Truth: ETS-Discovery + Live-GA-Lookup).
+        Dafuer ``ets_devices`` als Mapping IA -> {manufacturer, name,
+        product} mitliefern.
 
         Schwellwerte werden vom Aufrufer hereingegeben — der API-Layer
         kann sie aus Config-Flow-Options lesen.
@@ -1169,6 +1176,19 @@ class KnxStatsService:
             max_silence_minutes=max_silence_minutes,
         )
         silence_alarms = sum(1 for r in silence_rows if r["alarm"])
+
+        # Iter UX-1.0: nur die alarmierten Sources mit Geraete-Info +
+        # GAs anreichern. Ohne Filter waeren das pro Aufruf ggf.
+        # hunderte gas_for_source-Calls.
+        silence_alarm_rows = [r for r in silence_rows if r["alarm"]]
+        silence_devices: list[dict[str, Any]] = []
+        if silence_alarm_rows:
+            silence_devices = await self.enrich_silence_with_devices(
+                silence_alarm_rows,
+                from_iso=from_iso,
+                to_iso=to_iso,
+                ets_devices=ets_devices,
+            )
 
         return [
             {
@@ -1204,8 +1224,70 @@ class KnxStatsService:
                     f"{silence_alarms} Geraet(e) haben laenger als "
                     f"{max_silence_minutes} Min nicht gesendet."
                 ),
+                # Iter UX-1.0: aufklappbare Geraete-Liste fuer den Banner.
+                "details": {"devices": silence_devices},
             },
         ]
+
+    async def enrich_silence_with_devices(
+        self,
+        rows: list[dict[str, Any]],
+        *,
+        from_iso: str,
+        to_iso: str,
+        ets_devices: dict[str, dict[str, Any]] | None = None,
+        ga_limit_per_source: int = 50,
+    ) -> list[dict[str, Any]]:
+        """Iter UX-1.0: reicht ``silence_detect``-Output um Geraete-Info an.
+
+        Pro Eintrag werden hinzugefuegt:
+        - ``manufacturer`` und ``device_name`` aus dem ETS-Mapping (falls
+          ``ets_devices`` gegeben)
+        - ``gas`` als Liste {ga, label, dpt, count} aller GAs der Source
+          (Live-Periode, hard-capped auf ``ga_limit_per_source``)
+        - ``ga_count`` als reine Anzahl
+
+        Mutiert die uebergebene Liste nicht — gibt eine neue zurueck.
+        Performance: pro Eintrag ein Repo-Call (gas_for_source). Bei
+        typischen 5-20 Stille-Alarmen vernachlaessigbar (Index-gestuetzt).
+        """
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            dev_source = str(row.get("dev_source") or "")
+            enriched = dict(row)
+            ets_entry = (
+                ets_devices.get(dev_source) if ets_devices else None
+            )
+            if ets_entry is not None:
+                enriched["manufacturer"] = (
+                    str(ets_entry.get("manufacturer") or "").strip() or None
+                )
+                enriched["device_name"] = (
+                    str(ets_entry.get("name")
+                        or ets_entry.get("product")
+                        or "").strip() or None
+                )
+            else:
+                enriched.setdefault("manufacturer", None)
+                enriched.setdefault("device_name", None)
+            ga_rows: list[dict[str, Any]] = []
+            if dev_source:
+                ga_rows = await self._repo.gas_for_source(
+                    dev_source, from_iso, to_iso,
+                    limit=ga_limit_per_source,
+                )
+            enriched["gas"] = [
+                {
+                    "ga": str(g.get("ga") or ""),
+                    "label": g.get("label"),
+                    "dpt": g.get("dpt"),
+                    "count": int(g.get("count") or 0),
+                }
+                for g in ga_rows
+            ]
+            enriched["ga_count"] = len(ga_rows)
+            result.append(enriched)
+        return result
 
     async def compute_orphans(
         self,
