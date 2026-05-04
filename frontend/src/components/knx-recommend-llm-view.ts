@@ -15,6 +15,8 @@ import type {
   ApiClient,
   KnxRecommendLlmSettingsDto,
   KnxRecommendLlmSettingsPutBody,
+  KnxRecommendLlmTestBody,
+  KnxRecommendLlmTestResultDto,
 } from "../api-client.js";
 import { tokens, cards, buttons } from "../styles/tokens.js";
 
@@ -93,6 +95,40 @@ export class KnxRecommendLlmView extends LitElement {
         padding: var(--mh-space-2);
         border-radius: var(--mh-radius-sm, 4px);
       }
+      /* Iter UX-4 — Test-Result-Anzeige */
+      .llm-test-result {
+        margin-top: var(--mh-space-2);
+        padding: var(--mh-space-2);
+        border-radius: var(--mh-radius-sm, 4px);
+        display: flex;
+        flex-direction: column;
+        gap: var(--mh-space-1);
+      }
+      .llm-test-result--ok {
+        background: var(--mh-success-soft);
+        color: var(--mh-success);
+      }
+      .llm-test-result--err {
+        background: var(--mh-error-soft);
+        color: var(--mh-error);
+      }
+      .llm-test-result details {
+        margin-top: var(--mh-space-1);
+        color: var(--mh-fg-default);
+      }
+      .llm-test-result dl {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: var(--mh-space-1) var(--mh-space-2);
+        margin: var(--mh-space-1) 0 0;
+        font-size: var(--mh-text-sm);
+      }
+      .llm-test-result dt {
+        color: var(--mh-fg-muted);
+      }
+      .llm-test-result dd {
+        margin: 0;
+      }
     `,
   ];
 
@@ -109,6 +145,10 @@ export class KnxRecommendLlmView extends LitElement {
   };
   @state() private _apiKeyEdit = false;
   @state() private _info = "";
+  // Iter UX-4: Test-Knopf-State
+  @state() private _testing = false;
+  @state() private _testResult: KnxRecommendLlmTestResultDto | null = null;
+  @state() private _testError = "";
 
   override async firstUpdated(): Promise<void> {
     await this._reload();
@@ -182,6 +222,80 @@ export class KnxRecommendLlmView extends LitElement {
     value: KnxRecommendLlmSettingsPutBody[K],
   ): void {
     this._draft = { ...this._draft, [key]: value };
+  }
+
+  // Iter UX-4: Test-Aufruf gegen den konfigurierten Provider — der
+  // Endpoint persistiert nichts, der Test laeuft auch ohne zuvor
+  // gespeicherte Werte.
+  private async _testConnection(): Promise<void> {
+    if (!this.api || this._testing) return;
+    this._testing = true;
+    this._testResult = null;
+    this._testError = "";
+    const body: KnxRecommendLlmTestBody = {
+      base_url: this._draft.base_url,
+      model: this._draft.model,
+      timeout_s: this._draft.timeout_s,
+      max_tokens: this._draft.max_tokens,
+      system_prompt_override: this._draft.system_prompt_override,
+    };
+    if (this._apiKeyEdit) {
+      // User hat im Form einen Key eingetippt — diesen mitschicken.
+      body.api_key = this._draft.api_key ?? "";
+    }
+    try {
+      this._testResult = await this.api.testKnxRecommendLlm(body);
+    } catch (err) {
+      this._testError = (err as Error).message;
+    } finally {
+      this._testing = false;
+    }
+  }
+
+  private _renderTestResult(): TemplateResult {
+    if (this._testing) {
+      return html`<p class="muted small">Teste Verbindung…</p>`;
+    }
+    if (this._testError !== "") {
+      return html`<p class="mh-error">${this._testError}</p>`;
+    }
+    const r = this._testResult;
+    if (r === null) return html``;
+    if (r.ok && r.response !== null) {
+      const cycle =
+        r.response.cycle_minutes_min !== null &&
+        r.response.cycle_minutes_max !== null
+          ? `${r.response.cycle_minutes_min}–${r.response.cycle_minutes_max} Min`
+          : "—";
+      return html`<div class="llm-test-result llm-test-result--ok">
+        <strong>✓ Verbindung erfolgreich</strong>
+        <span class="muted small">Latenz: ${r.latency_ms} ms</span>
+        <details>
+          <summary>Antwort des Modells</summary>
+          <dl>
+            <dt>Modus</dt>
+            <dd>${r.response.mode}</dd>
+            <dt>Sendezyklus</dt>
+            <dd>${cycle}</dd>
+            <dt>Hysterese</dt>
+            <dd>${r.response.hysteresis ?? "—"}</dd>
+            <dt>Max-Rate</dt>
+            <dd>${r.response.max_rate_per_min} /Min</dd>
+            <dt>Begründung</dt>
+            <dd>${r.response.rationale}</dd>
+          </dl>
+        </details>
+      </div>`;
+    }
+    return html`<div class="llm-test-result llm-test-result--err">
+      <strong>✗ Test fehlgeschlagen</strong>
+      ${r.error
+        ? html`<p>${r.error}</p>`
+        : html`<p>Keine Antwort vom Provider.</p>`}
+      ${r.error_category
+        ? html`<p class="muted small">Kategorie: ${r.error_category}</p>`
+        : nothing}
+    </div>`;
   }
 
   private _applyPreset(
@@ -432,12 +546,22 @@ export class KnxRecommendLlmView extends LitElement {
             <button
               type="button"
               class="mh-button mh-button--ghost"
+              ?disabled=${this._saving || this._testing}
+              title="Schickt einen kleinen Test-Request an den Provider — kostet ~1 LLM-Call. Speichert nichts."
+              @click=${() => void this._testConnection()}
+            >
+              ${this._testing ? "Teste…" : "Verbindung testen"}
+            </button>
+            <button
+              type="button"
+              class="mh-button mh-button--ghost"
               ?disabled=${this._saving}
               @click=${() => void this._reload()}
             >
               Verwerfen
             </button>
           </div>
+          ${this._renderTestResult()}
         </div>
       </section>
     `;

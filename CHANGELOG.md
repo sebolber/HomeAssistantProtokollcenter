@@ -6,6 +6,31 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefuegt (UX)
+- **Iter UX-4 / KI-Empfehlungen — Verbindungs-Test-Knopf.**
+  Neuer Knopf "Verbindung testen" in der LLM-Settings-UI. Schickt einen
+  kleinen, deterministischen Test-Request (DPT 9.001, Hersteller="test",
+  Modell="test") an den konfigurierten Provider und zeigt:
+  * Erfolgs-Box mit Latenz + (aufklappbarer) Modell-Antwort
+    (Modus, Sendezyklus, Hysterese, Max-Rate, Begruendung)
+  * Fehler-Box mit Kategorie (`incomplete_config`, `exception`,
+    `invalid_response`) und Klartext-Meldung
+  * HTTP-Fehler (z. B. 429 Rate-Limit) als Inline-Error
+  Backend-Endpoint `POST /api/messagehub/knx-recommend/llm-test`:
+  * RequireAdminView, TokenBucketLimiter (5/min/User) gegen Cost-Spam
+  * URL-Schema-Whitelist (http/https) ueber neuen HA-freien
+    `merge_test_config`-Helper
+  * API-Key-Vererbung: ohne `api_key` im Body bleibt der gespeicherte
+    Schluessel erhalten — User testet Drafts ohne den Key neu zu tippen
+  * Audit-Log `knx_recommend_llm_test` mit `api_key_set: bool` +
+    Modell + Latenz, NIEMALS Klartext-Schluessel
+  * Persistiert NICHTS — Settings-Store + LLM-Cache unberuehrt
+  Plus: Stabilitaets-Fix in `test_silence_alarm_details_skip_for_unalarmed_sources`
+  (verwendet jetzt `datetime.now(UTC)`-relative Zeiten statt fixer
+  `_NOW`-Anker — sonst kippte der Test mit Zeitablauf).
+  15 neue Pytests (View-AST + merge_test_config-Verhalten) +
+  5 neue Vitest (Test-Knopf-Lifecycle).
+
 ### Behoben (UX)
 - **Iter UX-5 / Recommendation-Card — Sendezyklus klar lesbar.**
   Die "empfohlen"-Spalte zeigte zuvor nur "(5–30 Min)" hinter dem

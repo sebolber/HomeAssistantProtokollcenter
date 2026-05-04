@@ -366,6 +366,36 @@ export interface KnxRecommendLlmSettingsPutBody {
   system_prompt_override?: string;
 }
 
+// Iter UX-4: LLM-Provider-Verbindungstest
+export interface KnxRecommendLlmTestBody {
+  base_url?: string;
+  model?: string;
+  /** Wenn ``undefined``: gespeicherter Key wird genutzt. */
+  api_key?: string;
+  timeout_s?: number;
+  max_tokens?: number;
+  system_prompt_override?: string;
+}
+
+export interface KnxRecommendLlmTestResultDto {
+  ok: boolean;
+  latency_ms: number;
+  response: {
+    mode: "on_change" | "cyclic" | "hybrid";
+    cycle_minutes_min: number | null;
+    cycle_minutes_max: number | null;
+    hysteresis: string | null;
+    max_rate_per_min: number;
+    rationale: string;
+  } | null;
+  error: string | null;
+  error_category:
+    | "incomplete_config"
+    | "exception"
+    | "invalid_response"
+    | null;
+}
+
 export interface KnxStatsSourceDetailDto {
   dev_source: string;
   total_count: number;
@@ -1398,6 +1428,20 @@ export class ApiClient {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     return (await res.json()) as KnxRecommendLlmSettingsDto;
+  }
+
+  /** Iter UX-4: LLM-Provider-Verbindungstest. */
+  async testKnxRecommendLlm(
+    body: KnxRecommendLlmTestBody = {},
+  ): Promise<KnxRecommendLlmTestResultDto> {
+    const url = `${this.baseUrl}/api/messagehub/knx-recommend/llm-test`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { ...this.headers(), "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    return (await res.json()) as KnxRecommendLlmTestResultDto;
   }
 
   async getKnxStatsTimeline(

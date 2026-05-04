@@ -204,3 +204,94 @@ class StubRecommendationProvider:
 def stub_provider() -> RecommendationProvider:
     """Public-Factory — Tests + Pipeline-Default."""
     return StubRecommendationProvider()
+
+
+def _coerce_optional_str(
+    value: object, *, max_len: int,
+) -> str | None:
+    """Robust gegen non-str (None passthrough, leerer String OK)."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return None
+    if len(value) > max_len:
+        # Konsistent mit validate_note: zu lang -> Fehler. Caller
+        # entscheidet, ob das ein 400 ist.
+        raise ValueError(f"value exceeds {max_len} chars")
+    return value
+
+
+def merge_test_config(
+    stored: ProviderConfig, override: dict[str, Any],
+) -> ProviderConfig:
+    """Iter UX-4: mischt Override-Felder ueber die gespeicherte Konfig
+    fuer den Test-Endpoint.
+
+    Verhalten:
+    - ``api_key`` NICHT im Override -> behaelt den gespeicherten Wert
+      (typisches UX: User testet andere Felder ohne den Key neu zu
+      tippen).
+    - ``api_key`` mit Leerstring -> setzt explizit auf leer (loescht).
+    - ``base_url`` muss http/https sein (sonst ValueError).
+    - ``enabled=True`` wird forciert — der Test soll auch laufen,
+      wenn der Master-Toggle noch off ist.
+    """
+    if "base_url" in override:
+        base_url_raw = _coerce_optional_str(
+            override.get("base_url"), max_len=500,
+        )
+        base_url = (base_url_raw or "").strip()
+        if base_url:
+            lower = base_url.lower()
+            if not any(
+                lower.startswith(f"{scheme}://")
+                for scheme in ALLOWED_LLM_URL_SCHEMES
+            ):
+                raise ValueError(
+                    f"base_url scheme must be one of "
+                    f"{sorted(ALLOWED_LLM_URL_SCHEMES)}"
+                )
+    else:
+        base_url = stored.base_url
+    if "model" in override:
+        model_raw = _coerce_optional_str(
+            override.get("model"), max_len=200,
+        )
+        model = (model_raw or "").strip()
+    else:
+        model = stored.model
+    if "api_key" in override:
+        api_key_raw = _coerce_optional_str(
+            override.get("api_key"), max_len=2000,
+        )
+        api_key = api_key_raw if api_key_raw is not None else ""
+    else:
+        api_key = stored.api_key
+    raw_timeout = override.get("timeout_s")
+    if isinstance(raw_timeout, (int, float)):
+        timeout_s = float(raw_timeout)
+    else:
+        timeout_s = stored.timeout_s or DEFAULT_LLM_TIMEOUT_S
+    raw_max_tokens = override.get("max_tokens")
+    if isinstance(raw_max_tokens, int) and not isinstance(
+        raw_max_tokens, bool
+    ):
+        max_tokens = raw_max_tokens
+    else:
+        max_tokens = stored.max_tokens or DEFAULT_LLM_MAX_TOKENS
+    if "system_prompt_override" in override:
+        sp_raw = _coerce_optional_str(
+            override.get("system_prompt_override"), max_len=4000,
+        )
+        system_prompt = sp_raw or ""
+    else:
+        system_prompt = stored.system_prompt_override
+    return ProviderConfig(
+        enabled=True,
+        base_url=base_url,
+        model=model,
+        api_key=api_key,
+        timeout_s=timeout_s,
+        max_tokens=max_tokens,
+        system_prompt_override=system_prompt,
+    )

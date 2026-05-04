@@ -1135,6 +1135,11 @@ class KnxStatsAcknowledgeDetailView(RequireAdminView):
 _recommendation_limiter = TokenBucketLimiter(capacity=10.0, refill_per_minute=10.0)
 _recommendation_cache = RecommendationCache()
 
+# Iter UX-4: separater Limiter fuer den LLM-Test-Knopf — Test-Pfad
+# loest einen echten LLM-Aufruf aus und kostet User-Geld. 5 Tests/Min
+# pro User reichen fuer Konfig-Tuning, blocken aber Spam-Klicks.
+_llm_test_limiter = TokenBucketLimiter(capacity=5.0, refill_per_minute=5.0)
+
 
 class KnxStatsSourceRecommendationView(RequireAdminView):
     """Iter L1.3 (Sprint Recommendations): Geraete-Empfehlung.
@@ -1513,6 +1518,224 @@ class KnxRecommendationLlmSettingsView(RequireAdminView):
         return self.json(redact_for_response(config))
 
 
+# =============================================================================
+# Iter UX-4 — LLM-Provider-Verbindungstest
+# =============================================================================
+#
+# POST /api/messagehub/knx-recommend/llm-test
+#
+# Ohne Body: nutzt die gespeicherten Settings.
+# Mit Body: temporaerer Override pro Feld — User kann Werte
+# durchprobieren BEVOR er sie speichert. ``api_key`` darf weggelassen
+# werden, dann wird der gespeicherte Schluessel verwendet (analog
+# Save-Endpoint).
+#
+# Sicherheits-Pyramide:
+# - RequireAdminView + _check_admin
+# - URL-Schema-Whitelist (http/https) via _resolve_test_config
+# - validate_note auf alle string-Felder
+# - TokenBucketLimiter (5/min global) — verhindert Spam-Klicks und
+#   schuetzt vor Provider-Cost-Spikes
+# - Audit-Log knx_recommend_llm_test mit api_key_set: bool, NIE
+#   Klartext-Key
+# - Deterministische Test-Inputs (DPT 9.001, manufacturer="test",
+#   model="test") — kein Datenleck von User-Daten an den Provider
+#
+# Antwort-Schema:
+# {
+#   "ok": bool,
+#   "latency_ms": float,
+#   "response": dict | null,    # DptRecommendation als JSON
+#   "error": str | null,
+#   "error_category": str | null  # "disabled", "rate_limit", "timeout",
+#                                 #  "auth", "invalid_response", "unknown"
+# }
+
+
+class KnxRecommendationLlmTestView(RequireAdminView):
+    """Iter UX-4: testet die LLM-Provider-Konfiguration.
+
+    Schickt einen kleinen, deterministischen Test-Request an den
+    Provider und liefert Latenz + Antwort (oder Fehler-Kategorie).
+    Persistiert NICHTS — der Settings-Store wird nicht beruehrt,
+    der LLM-Cache wird nicht geschrieben.
+    """
+
+    url = "/api/messagehub/knx-recommend/llm-test"
+    name = "api:messagehub:knx-recommend:llm-test"
+
+    async def post(self, request: web.Request) -> web.Response:
+        import time as _time  # noqa: PLC0415
+
+        from ..processing.openai_chat_provider import OpenAIChatProvider  # noqa: PLC0415
+        from ..processing.recommendation_settings import (  # noqa: PLC0415
+            DEFAULT_LLM_MAX_TOKENS,
+            DEFAULT_LLM_TIMEOUT_S,
+            load_provider_config,
+            merge_test_config,
+        )
+        from ..processing.recommendation_provider import ProviderConfig  # noqa: PLC0415
+        from ..storage.settings_repo import SettingsRepository  # noqa: PLC0415
+
+        self._check_admin(request)
+        db = get_database(request.app["hass"])
+        if db is None:
+            return self.json_message(ERR_NOT_INITIALISED, status_code=503)
+
+        # Rate-Limit pro User (anonym -> "anon"-Bucket).
+        user = request.get("hass_user")
+        rate_key = (
+            f"user:{user.id}"
+            if user is not None and getattr(user, "id", None)
+            else "anon"
+        )
+        if not _llm_test_limiter.allow(rate_key):
+            return web.json_response(
+                {"message": "rate limit exceeded — bitte etwas warten"},
+                status=429,
+                headers={"Retry-After": "12"},
+            )
+
+        # Body parsen — alle Felder optional.
+        try:
+            data = await request.json()
+        except (ValueError, TypeError):
+            data = {}
+        if not isinstance(data, dict):
+            data = {}
+
+        stored = await load_provider_config(SettingsRepository(db))
+        try:
+            config = merge_test_config(stored, data)
+        except ValueError as err:
+            return self.json_message(str(err), status_code=400)
+
+        if not config.base_url or not config.model or not config.api_key:
+            await audit(
+                request.app["hass"],
+                request,
+                action="knx_recommend_llm_test",
+                target_type="knx_recommend_llm",
+                target_id="settings",
+                details={
+                    "ok": False,
+                    "error_category": "incomplete_config",
+                    "model": config.model,
+                    "api_key_set": bool(config.api_key),
+                },
+            )
+            return self.json(
+                {
+                    "ok": False,
+                    "latency_ms": 0.0,
+                    "response": None,
+                    "error": (
+                        "Konfiguration unvollstaendig — base_url, model "
+                        "und api_key sind Pflicht."
+                    ),
+                    "error_category": "incomplete_config",
+                }
+            )
+
+        # Provider mit aktivem ``enabled``, damit fetch() durchlaeuft —
+        # das gespeicherte ``enabled`` ist fuer den Test irrelevant.
+        test_config = ProviderConfig(
+            enabled=True,
+            base_url=config.base_url,
+            model=config.model,
+            api_key=config.api_key,
+            timeout_s=config.timeout_s or DEFAULT_LLM_TIMEOUT_S,
+            max_tokens=config.max_tokens or DEFAULT_LLM_MAX_TOKENS,
+            system_prompt_override=config.system_prompt_override,
+        )
+        provider = OpenAIChatProvider(test_config)
+
+        # Deterministische Test-Inputs — kein Datenleck.
+        start = _time.monotonic()
+        try:
+            response = await provider.fetch(
+                dpt="9.001",
+                manufacturer="test",
+                model="test",
+                context={
+                    "test_request": True,
+                    "observed_mode": "cyclic",
+                    "median_interval_minutes": 1.0,
+                    "sample_count": 30,
+                },
+            )
+        except Exception as err:  # noqa: BLE001 — externer Provider
+            elapsed = (_time.monotonic() - start) * 1000.0
+            await audit(
+                request.app["hass"],
+                request,
+                action="knx_recommend_llm_test",
+                target_type="knx_recommend_llm",
+                target_id="settings",
+                details={
+                    "ok": False,
+                    "model": config.model,
+                    "api_key_set": True,
+                    "error_category": "exception",
+                },
+            )
+            return self.json(
+                {
+                    "ok": False,
+                    "latency_ms": round(elapsed, 1),
+                    "response": None,
+                    "error": f"{type(err).__name__}: {err}",
+                    "error_category": "exception",
+                }
+            )
+
+        elapsed_ms = round((_time.monotonic() - start) * 1000.0, 1)
+        ok = response is not None
+        await audit(
+            request.app["hass"],
+            request,
+            action="knx_recommend_llm_test",
+            target_type="knx_recommend_llm",
+            target_id="settings",
+            details={
+                "ok": ok,
+                "model": config.model,
+                "api_key_set": True,
+                "latency_ms": elapsed_ms,
+            },
+        )
+        if not ok:
+            return self.json(
+                {
+                    "ok": False,
+                    "latency_ms": elapsed_ms,
+                    "response": None,
+                    "error": (
+                        "Provider hat keine Empfehlung geliefert "
+                        "(rate-limited, ungueltige Antwort oder leerer "
+                        "Output). Server-Log fuer Details pruefen."
+                    ),
+                    "error_category": "invalid_response",
+                }
+            )
+        return self.json(
+            {
+                "ok": True,
+                "latency_ms": elapsed_ms,
+                "response": {
+                    "mode": response.mode,
+                    "cycle_minutes_min": response.cycle_minutes_min,
+                    "cycle_minutes_max": response.cycle_minutes_max,
+                    "hysteresis": response.hysteresis,
+                    "max_rate_per_min": response.max_rate_per_min,
+                    "rationale": response.rationale,
+                },
+                "error": None,
+                "error_category": None,
+            }
+        )
+
+
 def _flush_recommendation_cache_for(dev_source: str) -> None:
     """Loescht alle Cache-Eintraege, die zu einem dev_source gehoeren.
 
@@ -1553,3 +1776,4 @@ def register_knx_stats_views(hass: Any) -> None:
     hass.http.register_view(KnxDeviceListView())
     hass.http.register_view(KnxDeviceDetailView())
     hass.http.register_view(KnxRecommendationLlmSettingsView())
+    hass.http.register_view(KnxRecommendationLlmTestView())

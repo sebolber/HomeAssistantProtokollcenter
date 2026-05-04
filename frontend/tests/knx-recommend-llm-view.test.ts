@@ -6,6 +6,8 @@ import type {
   ApiClient,
   KnxRecommendLlmSettingsDto,
   KnxRecommendLlmSettingsPutBody,
+  KnxRecommendLlmTestBody,
+  KnxRecommendLlmTestResultDto,
 } from "../src/api-client.js";
 
 const DEFAULT_SETTINGS: KnxRecommendLlmSettingsDto = {
@@ -31,20 +33,57 @@ const CONFIGURED_SETTINGS: KnxRecommendLlmSettingsDto = {
 interface MockApi extends ApiClient {
   getCalls: number;
   putCalls: KnxRecommendLlmSettingsPutBody[];
+  testCalls: KnxRecommendLlmTestBody[];
+  testResult: KnxRecommendLlmTestResultDto | "throw";
 }
+
+const OK_TEST_RESULT: KnxRecommendLlmTestResultDto = {
+  ok: true,
+  latency_ms: 234,
+  response: {
+    mode: "hybrid",
+    cycle_minutes_min: 5,
+    cycle_minutes_max: 15,
+    hysteresis: ">= 0.2 K",
+    max_rate_per_min: 2.0,
+    rationale: "Test-Antwort.",
+  },
+  error: null,
+  error_category: null,
+};
+
+const FAIL_TEST_RESULT: KnxRecommendLlmTestResultDto = {
+  ok: false,
+  latency_ms: 0,
+  response: null,
+  error: "Konfiguration unvollstaendig — base_url, model und api_key sind Pflicht.",
+  error_category: "incomplete_config",
+};
 
 function makeApi(
   initial: KnxRecommendLlmSettingsDto = DEFAULT_SETTINGS,
+  testResult: KnxRecommendLlmTestResultDto | "throw" = OK_TEST_RESULT,
 ): MockApi {
   let current: KnxRecommendLlmSettingsDto = { ...initial };
   const api: Partial<MockApi> = {
     getCalls: 0,
     putCalls: [],
+    testCalls: [],
+    testResult,
   };
   api.getKnxRecommendLlmSettings = vi.fn(async () => {
     api.getCalls!++;
     return { ...current };
   });
+  api.testKnxRecommendLlm = vi.fn(
+    async (body: KnxRecommendLlmTestBody = {}) => {
+      api.testCalls!.push({ ...body });
+      if (api.testResult === "throw") {
+        throw new Error("HTTP 429: rate limit exceeded");
+      }
+      return api.testResult!;
+    },
+  );
   api.putKnxRecommendLlmSettings = vi.fn(
     async (body: KnxRecommendLlmSettingsPutBody) => {
       api.putCalls!.push({ ...body });
@@ -212,12 +251,97 @@ describe("knx-recommend-llm-view (Iter L4.3)", () => {
     const el = await mount(api);
 
     const initialCalls = api.getCalls;
+    // Iter UX-4: Action-Reihenfolge ist Speichern / Test / Verwerfen.
     const actions = el.shadowRoot!.querySelector(".llm-actions");
-    const cancelBtn = actions!.querySelectorAll<HTMLButtonElement>("button")[1];
-    cancelBtn.click();
+    const cancelBtn = Array.from(
+      actions!.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((b) => (b.textContent ?? "").includes("Verwerfen"));
+    expect(cancelBtn).toBeDefined();
+    cancelBtn!.click();
     await settle(el);
 
     expect(api.getCalls).toBeGreaterThan(initialCalls);
+  });
+
+  // Iter UX-4: LLM-Test-Knopf
+  it("Test-Knopf existiert und ist enabled", async () => {
+    const api = makeApi(CONFIGURED_SETTINGS);
+    const el = await mount(api);
+    const buttons = Array.from(
+      el.shadowRoot!.querySelectorAll<HTMLButtonElement>(
+        ".llm-actions button",
+      ),
+    );
+    const testBtn = buttons.find((b) =>
+      (b.textContent ?? "").includes("Verbindung testen"),
+    );
+    expect(testBtn).toBeDefined();
+    expect(testBtn!.disabled).toBe(false);
+  });
+
+  it("Klick auf Test-Knopf ruft API + zeigt Erfolgs-Result", async () => {
+    const api = makeApi(CONFIGURED_SETTINGS);
+    const el = await mount(api);
+    const testBtn = Array.from(
+      el.shadowRoot!.querySelectorAll<HTMLButtonElement>(
+        ".llm-actions button",
+      ),
+    ).find((b) => (b.textContent ?? "").includes("Verbindung testen"));
+    testBtn!.click();
+    await settle(el);
+
+    expect(api.testCalls.length).toBe(1);
+    const result = el.shadowRoot!.querySelector(
+      ".llm-test-result--ok",
+    );
+    expect(result).not.toBeNull();
+    expect(result?.textContent ?? "").toContain("erfolgreich");
+    expect(result?.textContent ?? "").toContain("234");
+  });
+
+  it("Test-Knopf sendet api_key NUR wenn User editiert hat", async () => {
+    const api = makeApi(CONFIGURED_SETTINGS);
+    const el = await mount(api);
+    const testBtn = Array.from(
+      el.shadowRoot!.querySelectorAll<HTMLButtonElement>(
+        ".llm-actions button",
+      ),
+    ).find((b) => (b.textContent ?? "").includes("Verbindung testen"));
+    testBtn!.click();
+    await settle(el);
+
+    expect(api.testCalls[0].api_key).toBeUndefined();
+  });
+
+  it("Fehler-Result wird als Error-Box angezeigt", async () => {
+    const api = makeApi(DEFAULT_SETTINGS, FAIL_TEST_RESULT);
+    const el = await mount(api);
+    const testBtn = Array.from(
+      el.shadowRoot!.querySelectorAll<HTMLButtonElement>(
+        ".llm-actions button",
+      ),
+    ).find((b) => (b.textContent ?? "").includes("Verbindung testen"));
+    testBtn!.click();
+    await settle(el);
+
+    const errBox = el.shadowRoot!.querySelector(".llm-test-result--err");
+    expect(errBox).not.toBeNull();
+    expect(errBox?.textContent ?? "").toContain("incomplete_config");
+  });
+
+  it("HTTP-Fehler (z. B. 429 Rate-Limit) zeigt Inline-Error", async () => {
+    const api = makeApi(CONFIGURED_SETTINGS, "throw");
+    const el = await mount(api);
+    const testBtn = Array.from(
+      el.shadowRoot!.querySelectorAll<HTMLButtonElement>(
+        ".llm-actions button",
+      ),
+    ).find((b) => (b.textContent ?? "").includes("Verbindung testen"));
+    testBtn!.click();
+    await settle(el);
+
+    const err = el.shadowRoot!.querySelector(".mh-error");
+    expect(err?.textContent ?? "").toContain("429");
   });
 
   it("Aktiv-Toggle zeigt Cost-Warnung", async () => {

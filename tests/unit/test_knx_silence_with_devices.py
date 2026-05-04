@@ -200,37 +200,50 @@ async def test_silence_alarm_details_skip_for_unalarmed_sources(
     db: Database,
 ) -> None:
     """Source mit fresh Telegrammen wird nicht in details.devices
-    aufgenommen — nur die wirklich alarmierten."""
-    now = _ts(0)
+    aufgenommen — nur die wirklich alarmierten.
+
+    Verwendet absichtlich ``datetime.now(UTC)`` als Bezug (nicht das
+    fixe ``_NOW``-Anker), weil ``evaluate_alarms`` intern
+    ``datetime.now(UTC)`` als ``now_iso`` benutzt — sonst wuerde das
+    Test-Profil mit zunehmendem Zeitabstand zum Schreibe-Datum von
+    "B aktiv" auf "B stumm" kippen.
+    """
+    real_now = datetime.now(UTC)
+    real_now_iso = real_now.isoformat(timespec="seconds")
     await db.execute(
         "INSERT INTO knx_group_addresses "
         "(address, label, dpt, created_at, updated_at) "
         "VALUES (?, ?, ?, ?, ?)",
-        ("1/2/3", "Wohnzimmer Temp", "9.001", now, now),
+        ("1/2/3", "Wohnzimmer Temp", "9.001",
+         real_now_iso, real_now_iso),
     )
-    # Source A: stumm (Telegramm vor 2 Tagen)
+    # Source A: stumm (Telegramm vor 2 Tagen, real-relativ)
+    a_ts = (real_now - timedelta(days=2)).isoformat(timespec="seconds")
     await db.execute(
         "INSERT INTO knx_raw_telegrams "
         "(timestamp, destination, source, telegramtype, value, repeated) "
         "VALUES (?, ?, ?, ?, ?, ?)",
-        (
-            _ts(-2 * 86400), "1/2/3", "1.1.10",
-            "GroupValueWrite", json.dumps(21.5), 0,
-        ),
+        (a_ts, "1/2/3", "1.1.10",
+         "GroupValueWrite", json.dumps(21.5), 0),
     )
-    # Source B: aktiv (Telegramm vor 5 Min)
+    # Source B: aktiv (Telegramm vor 5 Min, real-relativ)
+    b_ts = (real_now - timedelta(minutes=5)).isoformat(timespec="seconds")
     await db.execute(
         "INSERT INTO knx_raw_telegrams "
         "(timestamp, destination, source, telegramtype, value, repeated) "
         "VALUES (?, ?, ?, ?, ?, ?)",
-        (
-            _ts(-300), "1/2/3", "1.1.20",
-            "GroupValueWrite", json.dumps(22.0), 0,
-        ),
+        (b_ts, "1/2/3", "1.1.20",
+         "GroupValueWrite", json.dumps(22.0), 0),
     )
+    from_iso = (
+        real_now - timedelta(days=3)
+    ).isoformat(timespec="seconds")
+    to_iso = (
+        real_now + timedelta(minutes=1)
+    ).isoformat(timespec="seconds")
     svc = KnxStatsService(KnxStatsRepository(db))
     alarms = await svc.evaluate_alarms(
-        _ts(-3 * 86400), _ts(60),
+        from_iso, to_iso,
         busload_pct_threshold=99.0,
         repeat_rate_pct_threshold=99.0,
         silence_count_threshold=1,
