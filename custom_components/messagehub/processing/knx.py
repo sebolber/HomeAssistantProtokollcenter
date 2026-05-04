@@ -9,7 +9,6 @@ from __future__ import annotations
 import csv
 import io
 import re
-from pathlib import Path
 
 _GA_RE = re.compile(r"\b(\d+)/(\d+)/(\d+)\b")
 
@@ -56,6 +55,3 @@ def lookup_label(text: str, lookup: dict[str, str]) -> str | None:
     return lookup.get(ga)
 
 
-def load_ets_csv_file(path: Path) -> dict[str, str]:
-    """Hilfs-Wrapper: liest die CSV-Datei direkt vom Filesystem."""
-    return load_ets_csv(path.read_text(encoding="utf-8"))

@@ -38,8 +38,6 @@ from ..processing.knx_recommend_service import (
     compute_device_recommendation,
     device_recommendation_to_dict,
 )
-from ..processing.recommendation_cache import RecommendationCache
-from ..storage.knx_devices_repo import KnxDeviceRepository
 from ..processing.knx_stats_service import (
     KnxStatsService,
     ga_detail_to_dict,
@@ -47,6 +45,8 @@ from ..processing.knx_stats_service import (
     top_row_to_dict,
 )
 from ..processing.rate_limit import TokenBucketLimiter
+from ..processing.recommendation_cache import RecommendationCache
+from ..storage.knx_devices_repo import KnxDeviceRepository
 from ..storage.knx_stats_repo import KnxStatsRepository
 from ._alarm_dedup import AlarmDedupCache
 from ._helpers import (
@@ -636,6 +636,7 @@ class KnxStatsSilenceView(RequireAdminView):
 
     async def get(self, request: web.Request) -> web.Response:
         from datetime import UTC, datetime  # noqa: PLC0415
+
         from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
 
         self._check_admin(request)
@@ -1568,13 +1569,13 @@ class KnxRecommendationLlmTestView(RequireAdminView):
         import time as _time  # noqa: PLC0415
 
         from ..processing.openai_chat_provider import OpenAIChatProvider  # noqa: PLC0415
+        from ..processing.recommendation_provider import ProviderConfig  # noqa: PLC0415
         from ..processing.recommendation_settings import (  # noqa: PLC0415
             DEFAULT_LLM_MAX_TOKENS,
             DEFAULT_LLM_TIMEOUT_S,
             load_provider_config,
             merge_test_config,
         )
-        from ..processing.recommendation_provider import ProviderConfig  # noqa: PLC0415
         from ..storage.settings_repo import SettingsRepository  # noqa: PLC0415
 
         self._check_admin(request)
@@ -1664,7 +1665,7 @@ class KnxRecommendationLlmTestView(RequireAdminView):
                     "sample_count": 30,
                 },
             )
-        except Exception as err:  # noqa: BLE001 — externer Provider
+        except Exception as err:
             elapsed = (_time.monotonic() - start) * 1000.0
             await audit(
                 request.app["hass"],
@@ -1745,11 +1746,11 @@ def _flush_recommendation_cache_for(dev_source: str) -> None:
     """
     prefix = f"{dev_source}:"
     keys_to_drop = [
-        k for k in list(_recommendation_cache._store.keys())  # noqa: SLF001
+        k for k in list(_recommendation_cache._store.keys())
         if k.startswith(prefix)
     ]
     for k in keys_to_drop:
-        _recommendation_cache._store.pop(k, None)  # noqa: SLF001
+        _recommendation_cache._store.pop(k, None)
 
 
 def register_knx_stats_views(hass: Any) -> None:

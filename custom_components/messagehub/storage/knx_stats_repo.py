@@ -1002,7 +1002,7 @@ class KnxStatsRepository:
         O(log n) auch bei mehreren Mio Rows.
 
         Cap-Begruendung: 10 000 Telegramme reichen statistisch fuer eine
-        belastbare σ/Median-Heuristik bei jedem realistischen
+        belastbare Std/Median-Heuristik bei jedem realistischen
         Sende-Profil. Bei extrem hoher Frequenz (Konstant-Wert-Spam)
         werden die ersten 10 000 ausgewertet — die spaeteren wuerden
         die Klassifikation ohnehin nicht aendern.

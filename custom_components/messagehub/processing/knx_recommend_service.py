@@ -15,26 +15,29 @@ import statistics
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
+from itertools import pairwise
 from typing import TYPE_CHECKING, Any, Final, Literal
 
 from .knx_device_model_recommendations import (
     ModelRecommendation,
     find_model_recommendation,
+)
+from .knx_device_model_recommendations import (
     reasoning_source as model_reasoning_source,
 )
 from .knx_dpt_recommendations import (
     DptRecommendation,
-    recommend_for_dpt,
     reasoning_source,
+    recommend_for_dpt,
 )
 
 if TYPE_CHECKING:
-    from .findings import Finding
-    from .recommendation_provider import RecommendationProvider
     from ..storage.findings_repo import FindingsRepository
     from ..storage.knx_devices_repo import KnxDeviceRepository
     from ..storage.knx_stats_repo import KnxStatsRepository
     from ..storage.recommendation_cache_repo import RecommendationCacheRepository
+    from .findings import Finding
+    from .recommendation_provider import RecommendationProvider
 
 # Klassifikations-Schwellwerte. Bewusst als Module-Konstanten — Tests
 # brauchen sie als Pinning, und User koennen sie per Import an einer
@@ -113,7 +116,7 @@ def intervals_from_timestamps(timestamps: Sequence[str | datetime]) -> list[floa
             parsed.append(datetime.fromisoformat(entry))
     parsed.sort()
     intervals: list[float] = []
-    for prev, current in zip(parsed, parsed[1:], strict=False):
+    for prev, current in pairwise(parsed):
         diff = (current - prev).total_seconds()
         intervals.append(max(0.0, diff))
     return intervals
@@ -588,7 +591,7 @@ ueber die Empfehlungs-Card."""
 def _apply_findings_override(
     ga_recos: list[GaRecommendation],
     *,
-    active_findings: Sequence["Finding"],
+    active_findings: Sequence[Finding],
 ) -> list[GaRecommendation]:
     """Layer-3-Findings-Override: aktive (unacked) Findings auf einer
     GA setzen die GA-Severity auf 'deviation'.
@@ -610,9 +613,9 @@ def _apply_findings_override(
 
 
 async def _fetch_active_findings_for_source(
-    findings_repo: "FindingsRepository",
+    findings_repo: FindingsRepository,
     dev_source: str,
-) -> list["Finding"]:
+) -> list[Finding]:
     """Holt unacked Findings einer Source, gefiltert auf relevante Codes.
 
     Defensiv gegen Repos ohne ``list_acknowledgements`` (aelteres Schema):
@@ -638,8 +641,8 @@ async def _fetch_active_findings_for_source(
 async def _apply_llm_fallback(
     ga_recos: list[GaRecommendation],
     *,
-    provider: "RecommendationProvider",
-    cache_repo: "RecommendationCacheRepository | None",
+    provider: RecommendationProvider,
+    cache_repo: RecommendationCacheRepository | None,
     provider_name: str,
     model_name: str,
     device_profile: dict[str, Any] | None,
@@ -765,7 +768,7 @@ def _dpt_recommendation_from_dict(
 
 
 async def _avg_busload_pct(
-    repo: "KnxStatsRepository", from_iso: str, to_iso: str,
+    repo: KnxStatsRepository, from_iso: str, to_iso: str,
 ) -> float:
     """Hilfsfunktion: durchschnittliche Buslast ueber die Periode.
 
@@ -780,16 +783,16 @@ async def _avg_busload_pct(
 
 
 async def compute_device_recommendation(
-    repo: "KnxStatsRepository",
+    repo: KnxStatsRepository,
     dev_source: str,
     from_iso: str,
     to_iso: str,
     *,
-    devices_repo: "KnxDeviceRepository | None" = None,
+    devices_repo: KnxDeviceRepository | None = None,
     ets_devices: dict[str, dict[str, Any]] | None = None,
-    findings_repo: "FindingsRepository | None" = None,
-    llm_provider: "RecommendationProvider | None" = None,
-    llm_cache_repo: "RecommendationCacheRepository | None" = None,
+    findings_repo: FindingsRepository | None = None,
+    llm_provider: RecommendationProvider | None = None,
+    llm_cache_repo: RecommendationCacheRepository | None = None,
     llm_provider_name: str = "openai_chat",
     llm_model: str = "",
 ) -> DeviceRecommendation | None:
@@ -900,7 +903,7 @@ async def compute_device_recommendation(
 
     # Iter L3.1: Layer-3-Findings — aktive (unacked) Findings dieser
     # Source schaerfen die Severity der betroffenen GAs auf 'deviation'.
-    active_findings: list["Finding"] = []
+    active_findings: list[Finding] = []
     if findings_repo is not None:
         active_findings = await _fetch_active_findings_for_source(
             findings_repo, dev_source,

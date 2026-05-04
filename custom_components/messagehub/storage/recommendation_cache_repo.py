@@ -60,7 +60,7 @@ def make_cache_key(
 class RecommendationCacheRepository:
     """CRUD + Cleanup fuer die ``knx_recommendation_cache``-Tabelle."""
 
-    def __init__(self, db: "Database") -> None:
+    def __init__(self, db: Database) -> None:
         self._db = db
 
     async def get(self, cache_key: str) -> dict[str, Any] | None:

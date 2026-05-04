@@ -140,12 +140,6 @@ def get_audit_failure_count() -> int:
     return _audit_failure_count
 
 
-def reset_audit_failure_count() -> None:
-    """Reset fuer Tests."""
-    global _audit_failure_count  # noqa: PLW0603
-    _audit_failure_count = 0
-
-
 async def audit(
     hass: HomeAssistant,
     request: web.Request,

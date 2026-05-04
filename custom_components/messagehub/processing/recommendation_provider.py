@@ -77,5 +77,5 @@ class RecommendationProvider(Protocol):
         manufacturer: str | None,
         model: str | None,
         context: dict[str, Any],
-    ) -> "DptRecommendation | None":
+    ) -> DptRecommendation | None:
         ...

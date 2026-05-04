@@ -24,7 +24,6 @@ from typing import Final
 
 from .knx_dpt_recommendations import DptRecommendation
 
-
 _SOURCE: Final = "device_model"
 """Reasoning-Layer-Marker fuer Layer 2."""
 

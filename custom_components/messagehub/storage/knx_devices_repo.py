@@ -40,7 +40,7 @@ class KnxDeviceRepository:
     Loop. Konsistent zum Stil der bestehenden Repos im Projekt.
     """
 
-    def __init__(self, db: "Database") -> None:
+    def __init__(self, db: Database) -> None:
         self._db = db
 
     async def get(self, dev_source: str) -> dict[str, Any] | None:

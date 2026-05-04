@@ -76,7 +76,7 @@ def _coerce_int(raw: str | None, *, default: int) -> int:
 
 
 async def load_provider_config(
-    settings_repo: "SettingsRepository",
+    settings_repo: SettingsRepository,
 ) -> ProviderConfig:
     """Liest die Provider-Konfiguration aus dem Settings-Store.
 
@@ -121,7 +121,7 @@ async def load_provider_config(
 
 
 async def save_provider_config(
-    settings_repo: "SettingsRepository",
+    settings_repo: SettingsRepository,
     *,
     enabled: bool,
     base_url: str,
@@ -207,7 +207,7 @@ class StubRecommendationProvider:
         manufacturer: str | None,
         model: str | None,
         context: dict[str, Any],
-    ) -> "DptRecommendation | None":
+    ) -> DptRecommendation | None:
         return None
 
 

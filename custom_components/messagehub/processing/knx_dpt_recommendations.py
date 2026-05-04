@@ -14,7 +14,6 @@ import re
 from dataclasses import dataclass
 from typing import Final, Literal
 
-
 SendMode = Literal["on_change", "cyclic", "hybrid"]
 """Empfohlener Sende-Modus.
 

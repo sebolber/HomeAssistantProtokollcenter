@@ -31,6 +31,10 @@ from .knx import (
     KnxProjectSyncView,
 )
 from .knx_stats import (
+    KnxDeviceDetailView,
+    KnxDeviceListView,
+    KnxRecommendationLlmSettingsView,
+    KnxRecommendationLlmTestView,
     KnxStatsAcknowledgeBulkView,
     KnxStatsAcknowledgeDetailView,
     KnxStatsAcknowledgeView,
@@ -47,10 +51,6 @@ from .knx_stats import (
     KnxStatsOrphansView,
     KnxStatsSensitiveLogView,
     KnxStatsSensitiveSetView,
-    KnxDeviceDetailView,
-    KnxDeviceListView,
-    KnxRecommendationLlmSettingsView,
-    KnxRecommendationLlmTestView,
     KnxStatsSilenceView,
     KnxStatsSourceDetailView,
     KnxStatsSourceRecommendationView,

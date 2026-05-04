@@ -38,7 +38,7 @@ from .rate_limit import TokenBucketLimiter
 from .recommendation_provider import ProviderConfig
 
 if TYPE_CHECKING:
-    from .knx_dpt_recommendations import SendMode
+    pass
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -301,7 +301,7 @@ class OpenAIChatProvider:
                     )
                     return None
                 payload = await resp.json()
-        except Exception as err:  # noqa: BLE001 — externer Provider, alles fangen
+        except Exception as err:
             _LOGGER.warning(
                 "knx_recommend_llm provider error: %s",
                 type(err).__name__,

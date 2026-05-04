@@ -333,11 +333,6 @@ export interface KnxDeviceDto {
   ets?: KnxDeviceEtsBlockDto | null;
 }
 
-export interface KnxDeviceListDto {
-  items: KnxDeviceDto[];
-  count: number;
-}
-
 export interface KnxDevicePutBody {
   manufacturer?: string | null;
   model?: string | null;
