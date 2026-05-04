@@ -57,10 +57,18 @@ Beispiele:
 
 ### Layer 2 — Modell-Override (`processing/knx_device_model_recommendations.py`)
 
-Wenn Du im Geraete-Profil (siehe unten) Hersteller + Modell pflegst,
-gibt es ggf. einen Modell-spezifischen Override pro DPT. Ca.
-10 Modelle aus Hoermann, MDT, Hager, Gira, ABB, Theben, Busch-Jaeger,
-Zennio, Elsner sind hinterlegt.
+Modell-spezifische Empfehlungen werden auf Basis von **Hersteller + Modell**
+nachgeschlagen. Quellen-Reihenfolge:
+
+1. **User-Override** aus `knx_devices`-Tabelle (manuell gepflegt — hat
+   immer Vorrang). Optional, nur fuer Edge-Cases.
+2. **ETS-Discovery** (`discover_knx_devices`) — liefert Hersteller +
+   Produkt direkt aus dem KNX-Projekt. **Keine User-Pflege noetig.**
+3. Sonst: kein Layer-2-Override.
+
+Ca. 10 Modelle aus Hoermann, MDT, Hager, Gira, ABB, Theben, Busch-Jaeger,
+Zennio, Elsner sind hinterlegt. Glob-Pattern auf das Modell
+(z. B. `garage*` matcht `garage-control`, `garage-pro`, …).
 
 Beispiel: Hoermann-Garage-Gateway → DPT 9.001 (Klima-Temp) wird auf
 `on_change` mit `max_rate 0.5/Min` ueberschrieben (Default-0-Spam
@@ -89,33 +97,47 @@ Cache und kosten nichts.
 
 ---
 
-## Geraete-Profil pflegen
+## Geraete-Profil — Standard ist zero-config
 
-Im Drawer der Recommendation-Card siehst Du den Block
-**"Geraete-Profil"** mit dem aktuellen Hersteller + Modell. Klick
-auf "Bearbeiten" oeffnet ein Inline-Form mit drei Feldern:
+In den meisten Faellen **musst Du nichts pflegen**. Im Drawer der
+Recommendation-Card zeigt der Block **"Geraet"** den Hersteller +
+Modell direkt aus dem ETS-Projekt:
+
+```
+Geraet: hoermann / garage-control (aus ETS-Projekt)  [Override anlegen]
+```
+
+### Wann brauche ich einen Override?
+
+Nur in Edge-Cases:
+
+- **ETS-Bezeichnung trifft den Modell-Glob nicht** (z. B. ETS sagt
+  `Hoermann KNX-Tormodul-Plus`, der Override-Glob ist `garage*` —
+  → `manufacturer=hoermann, model=garage-pro` als Override pflegen).
+- **ETS-Projekt nicht geladen** (kein xknx-Setup oder leere
+  Projektdatei).
+- **Eigene Notes** (gibt es in ETS nicht).
+
+### Override anlegen
+
+Klick auf **„Override anlegen"** oeffnet ein Inline-Form mit:
 
 - **Hersteller** (z. B. `hoermann`, `mdt`, `hager`)
 - **Modell** (z. B. `garage-control`, `dali-gateway`)
-- **Notiz** (optional, fuer Eigenkommentare)
+- **Notiz** (optional)
 
 Speichern triggert automatisch:
 - Persistenten Recommendation-Cache fuer dieses Geraet leeren
-- Recommendation-Card neu laden mit Layer-2-Override
-
-**Auto-Inferenz:** wenn ein Geraet noch nicht gepflegt ist, schlaegt
-der Server einen Hersteller aus den GA-Labels vor (z. B. wenn
-"Hoermann Tor Klima Temp" als Label existiert). Der Vorschlag ist
-konservativ (Mehrfach-Match → keine Empfehlung), Du musst ihn
-trotzdem manuell uebernehmen.
+- Recommendation-Card neu laden mit User-Override-Werten
 
 API-Endpoints (alle `RequireAdminView`):
-- `GET /api/messagehub/knx-devices` — Liste
-- `GET /api/messagehub/knx-devices/{dev_source}` — Einzeln (oder
-  Stub mit `inferred`-Block)
+- `GET /api/messagehub/knx-devices` — Liste aller User-Overrides
+- `GET /api/messagehub/knx-devices/{dev_source}` — Einzeleintrag mit
+  zusaetzlichem `ets`-Block fuer ETS-Default-Anzeige
 - `PUT /api/messagehub/knx-devices/{dev_source}`
   body `{manufacturer?, model?, notes?}`
 - `DELETE /api/messagehub/knx-devices/{dev_source}` — idempotent
+  (entfernt den Override; ETS-Default greift dann wieder)
 
 ---
 

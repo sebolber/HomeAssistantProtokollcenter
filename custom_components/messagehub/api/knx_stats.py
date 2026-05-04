@@ -38,7 +38,6 @@ from ..processing.knx_recommend_service import (
     compute_device_recommendation,
     device_recommendation_to_dict,
 )
-from ..processing.knx_device_inference import infer_manufacturer_from_labels
 from ..processing.recommendation_cache import RecommendationCache
 from ..storage.knx_devices_repo import KnxDeviceRepository
 from ..processing.knx_stats_service import (
@@ -1159,10 +1158,13 @@ class KnxStatsSourceRecommendationView(RequireAdminView):
             return self.json(cached)
         repo = KnxStatsRepository(db)
         devices_repo = KnxDeviceRepository(db)
-        # Iter L3.1: FindingsRepository fuer Layer-3-Override
-        # mitliefern.
+        # Iter L3.1: FindingsRepository fuer Layer-3-Override.
         from ..storage.findings_repo import FindingsRepository  # noqa: PLC0415
         findings_repo = FindingsRepository(db)
+        # Iter L2.5: ETS-Discovery als Layer-2-Default. User-Override
+        # (knx_devices) hat trotzdem Vorrang im Service-Pfad.
+        from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
+        ets_devices = await discover_knx_devices(request.app["hass"])
         # Iter L4.2: optionalen LLM-Provider laden (default Stub).
         from ..processing.openai_chat_provider import OpenAIChatProvider  # noqa: PLC0415
         from ..processing.recommendation_settings import (  # noqa: PLC0415
@@ -1184,6 +1186,7 @@ class KnxStatsSourceRecommendationView(RequireAdminView):
         reco = await compute_device_recommendation(
             repo, dev_source, from_iso, to_iso,
             devices_repo=devices_repo,
+            ets_devices=ets_devices,
             findings_repo=findings_repo,
             llm_provider=llm_provider,
             llm_cache_repo=llm_cache_repo,
@@ -1211,11 +1214,13 @@ class KnxStatsSourceRecommendationView(RequireAdminView):
 # - Audit-Log via _audit fuer PUT (knx_device_set) und DELETE
 #   (knx_device_clear)
 #
-# Default-Pflegepfad: User pflegt manufacturer + model selbst, optional
-# Auto-Inferenz auf Server-Seite (siehe `_infer_manufacturer_from_labels`)
-# beim ersten GET, falls noch kein Eintrag existiert. Auto-Inferenz ist
-# konservativ: nur ein Vorschlag mit confidence-Marker, keine
-# automatische Persistierung.
+# Iter L2.5: Pflegepfad ist ein User-Override. Default-Quelle fuer
+# Hersteller/Modell ist die ETS-Discovery (`discover_knx_devices`),
+# die im GET-Response als ``ets``-Block mitgeliefert wird.
+# `knx_devices`-Tabelle ist nur fuer Edge-Cases noetig:
+# - User will eine andere Bezeichnung als ETS (Glob-Match-Tuning)
+# - ETS-Werte fehlen / ETS-Projekt nicht geladen
+# - eigene Notes (gibt es in ETS nicht)
 
 
 class KnxDeviceListView(RequireAdminView):
@@ -1253,6 +1258,8 @@ class KnxDeviceDetailView(RequireAdminView):
     async def get(
         self, request: web.Request, dev_source: str,
     ) -> web.Response:
+        from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
+
         self._check_admin(request)
         db = get_database(request.app["hass"])
         if db is None:
@@ -1260,18 +1267,29 @@ class KnxDeviceDetailView(RequireAdminView):
         dev_source = validate_knx_individual_address(dev_source)
         repo = KnxDeviceRepository(db)
         entry = await repo.get(dev_source)
+        # Iter L2.5: ETS-Discovery als Default-Quelle. Kein Auto-
+        # Inferenz aus Labels mehr — ETS ist die kanonische Quelle,
+        # hat schon Hersteller + Produkt direkt aus dem KNX-Projekt.
+        ets_devices = await discover_knx_devices(request.app["hass"])
+        ets_entry = ets_devices.get(dev_source)
+        ets_block: dict[str, Any] | None = None
+        if ets_entry is not None and (
+            ets_entry.get("manufacturer") or ets_entry.get("product")
+        ):
+            ets_block = {
+                "manufacturer": (
+                    str(ets_entry.get("manufacturer") or "").strip() or None
+                ),
+                "model": (
+                    str(ets_entry.get("product") or "").strip() or None
+                ),
+                "name": (
+                    str(ets_entry.get("name") or "").strip() or None
+                ),
+            }
         if entry is not None:
+            entry["ets"] = ets_block
             return self.json(entry)
-        # Kein Eintrag -> Auto-Inferenz aus GA-Labels (Live-48h).
-        stats_repo = KnxStatsRepository(db)
-        from_iso, to_iso = parse_iso_period(
-            request.query, default_days=2  # 2 d = 48 h Live-Window
-        )
-        gas = await stats_repo.gas_for_source(
-            dev_source, from_iso, to_iso, limit=100,
-        )
-        labels = [str(g.get("label") or "") for g in gas]
-        inferred = infer_manufacturer_from_labels(labels)
         body: dict[str, Any] = {
             "dev_source": dev_source,
             "manufacturer": None,
@@ -1280,15 +1298,7 @@ class KnxDeviceDetailView(RequireAdminView):
             "last_seen": None,
             "created_at": None,
             "updated_at": None,
-            "inferred": (
-                {
-                    "manufacturer": inferred,
-                    "confidence": "low",
-                    "rationale": "from_ga_labels",
-                }
-                if inferred is not None
-                else None
-            ),
+            "ets": ets_block,
         }
         return self.json(body)
 

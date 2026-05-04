@@ -238,7 +238,7 @@ describe("stats-knx-view device-profile editor (Iter L2.4)", () => {
     }
   });
 
-  it("Editor zeigt 'noch nicht gepflegt' bei leerem Profil", async () => {
+  it("Profil-Block zeigt 'kein Geraete-Profil' wenn weder ETS noch Override (Iter L2.5)", async () => {
     const api = makeApi();
     const el = await mount(api);
     await loadSource(el, "1.1.220");
@@ -248,10 +248,10 @@ describe("stats-knx-view device-profile editor (Iter L2.4)", () => {
       ".recommendation-card__device-profile",
     );
     expect(profile).not.toBeNull();
-    expect(profile?.textContent ?? "").toContain("noch nicht gepflegt");
+    expect(profile?.textContent ?? "").toContain("kein Geraete-Profil");
   });
 
-  it("Bestehendes Profil wird mit manufacturer + model angezeigt", async () => {
+  it("Bestehendes User-Profil wird mit manufacturer + model + notes angezeigt", async () => {
     const api = makeApi({
       dev_source: "1.1.220",
       manufacturer: "hoermann",
@@ -268,9 +268,11 @@ describe("stats-knx-view device-profile editor (Iter L2.4)", () => {
     const profile = el.shadowRoot!.querySelector(
       ".recommendation-card__device-profile",
     );
-    expect(profile?.textContent ?? "").toContain("hoermann");
-    expect(profile?.textContent ?? "").toContain("garage-control");
-    expect(profile?.textContent ?? "").toContain("Hauptanschluss");
+    const text = profile?.textContent ?? "";
+    expect(text).toContain("hoermann");
+    expect(text).toContain("garage-control");
+    expect(text).toContain("Hauptanschluss");
+    expect(text).toContain("User-Override");
   });
 
   it("Bearbeiten-Klick zeigt Form, Save sendet PUT + reload Recommendation", async () => {
@@ -352,7 +354,7 @@ describe("stats-knx-view device-profile editor (Iter L2.4)", () => {
     expect(api.putCalls).toHaveLength(0);
   });
 
-  it("Inferenz-Vorschlag wird unterhalb 'noch nicht gepflegt' angezeigt", async () => {
+  it("ETS-Discovery wird als Default angezeigt (Iter L2.5)", async () => {
     const api = makeApi();
     api.getKnxDevice = vi.fn(
       async (devSource: string): Promise<KnxDeviceDto> => ({
@@ -363,10 +365,10 @@ describe("stats-knx-view device-profile editor (Iter L2.4)", () => {
         last_seen: null,
         created_at: null,
         updated_at: null,
-        inferred: {
+        ets: {
           manufacturer: "hoermann",
-          confidence: "low" as const,
-          rationale: "from_ga_labels",
+          model: "garage-control",
+          name: "Tor",
         },
       }),
     );
@@ -377,7 +379,51 @@ describe("stats-knx-view device-profile editor (Iter L2.4)", () => {
     const profile = el.shadowRoot!.querySelector(
       ".recommendation-card__device-profile",
     );
-    expect(profile?.textContent ?? "").toContain("Vorschlag");
-    expect(profile?.textContent ?? "").toContain("hoermann");
+    const text = profile?.textContent ?? "";
+    expect(text).toContain("hoermann");
+    expect(text).toContain("garage-control");
+    expect(text).toContain("aus ETS-Projekt");
+  });
+
+  it("User-Override hat Vorrang vor ETS-Werten (Iter L2.5)", async () => {
+    const api = makeApi({
+      dev_source: "1.1.220",
+      manufacturer: "mdt",
+      model: "dimm-aktor",
+      notes: null,
+      last_seen: null,
+      created_at: null,
+      updated_at: null,
+      ets: {
+        manufacturer: "hoermann",
+        model: "garage-control",
+        name: "Tor",
+      },
+    });
+    const el = await mount(api);
+    await loadSource(el, "1.1.220");
+    await expandRecommendation(el);
+
+    const profile = el.shadowRoot!.querySelector(
+      ".recommendation-card__device-profile",
+    );
+    const text = profile?.textContent ?? "";
+    expect(text).toContain("mdt");
+    expect(text).toContain("dimm-aktor");
+    expect(text).toContain("User-Override");
+    // ETS-Werte werden nicht angezeigt, weil User uebersteuert
+    expect(text).not.toContain("hoermann");
+  });
+
+  it("Edit-Knopf zeigt 'Override anlegen' bei fehlendem User-Profil", async () => {
+    const api = makeApi();
+    const el = await mount(api);
+    await loadSource(el, "1.1.220");
+    await expandRecommendation(el);
+
+    const editBtn = el.shadowRoot!.querySelector<HTMLButtonElement>(
+      ".recommendation-card__device-profile button",
+    );
+    expect(editBtn?.textContent?.trim()).toBe("Override anlegen");
   });
 });

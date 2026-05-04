@@ -2264,38 +2264,51 @@ export class StatsKnxView extends LitElement {
     `;
   }
 
-  // Iter L2.4: Inline-Editor fuer das Geraete-Profil (manufacturer +
-  // model + notes). Default: read-only-Anzeige; Bearbeiten-Klick
-  // zeigt Form. Speichern triggert PUT + Recommendation-Reload.
+  // Iter L2.4 / L2.5: Geraete-Profil-Anzeige.
+  // ETS-Discovery liefert Hersteller + Modell automatisch — Anzeige
+  // ohne User-Pflegeaufwand. `knx_devices`-Eintrag (User-Override)
+  // hat Vorrang, wenn gepflegt.
   private _renderDeviceProfileEditor(): TemplateResult {
     const dev = this._device;
     if (this._deviceEditing) {
       return this._renderDeviceProfileForm();
     }
+    const userMfr = dev?.manufacturer ?? null;
+    const userModel = dev?.model ?? null;
+    const ets = dev?.ets ?? null;
+    const hasUserOverride = !!(userMfr || userModel);
+    const hasEts = !!(ets?.manufacturer || ets?.model);
+    let primaryLine: TemplateResult;
+    if (hasUserOverride) {
+      primaryLine = html`<span>
+        ${userMfr ?? "—"}${userModel ? html` / ${userModel}` : nothing}
+        <span class="muted small">(User-Override)</span>
+      </span>`;
+    } else if (hasEts) {
+      primaryLine = html`<span>
+        ${ets!.manufacturer ?? "—"}${ets!.model
+          ? html` / ${ets!.model}`
+          : nothing}
+        <span class="muted small">(aus ETS-Projekt)</span>
+      </span>`;
+    } else {
+      primaryLine = html`<span class="muted">
+        kein Geraete-Profil verfuegbar (weder ETS noch Override)
+      </span>`;
+    }
     return html`
       <div class="recommendation-card__device-profile">
-        <strong>Geraete-Profil:</strong>
-        ${dev !== null && (dev.manufacturer || dev.model)
-          ? html`
-              <span>${dev.manufacturer ?? "—"}
-                ${dev.model ? html`/ ${dev.model}` : nothing}</span>
-              ${dev.notes
-                ? html`<span class="muted small">${dev.notes}</span>`
-                : nothing}`
-          : html`<span class="muted">noch nicht gepflegt</span>
-              ${dev?.inferred?.manufacturer
-                ? html`<span class="muted small">
-                    Vorschlag aus GA-Labels: ${dev.inferred.manufacturer}
-                  </span>`
-                : nothing}`}
+        <strong>Geraet:</strong>
+        ${primaryLine}
+        ${dev?.notes
+          ? html`<span class="muted small">"${dev.notes}"</span>`
+          : nothing}
         <button
           type="button"
           class="mh-button mh-button--ghost"
           @click=${() => this._startEditDevice()}
         >
-          ${dev !== null && (dev.manufacturer || dev.model)
-            ? "Bearbeiten"
-            : "Pflegen"}
+          ${hasUserOverride ? "Override bearbeiten" : "Override anlegen"}
         </button>
       </div>
     `;

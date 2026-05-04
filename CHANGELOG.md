@@ -6,6 +6,25 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Geaendert (Recommendation-Engine)
+- **Iter L2.5 / Sprint Recommendations — ETS-Discovery als Layer-2-Default.**
+  Architektur-Korrektur: `compute_device_recommendation` nutzt jetzt
+  primaer die ETS-Discovery (`discover_knx_devices`) fuer Hersteller +
+  Produkt — keine User-Pflege mehr noetig im 99%-Fall. Die
+  `knx_devices`-Tabelle bleibt als reiner User-Override fuer Edge-
+  Cases (ETS-Bezeichnung trifft den Modell-Glob nicht; ETS nicht
+  geladen; eigene Notes). User-Override hat Vorrang vor ETS,
+  Reasoning-Liste markiert die Quelle (`User-Override` oder
+  `ETS-Projekt`). Frontend-Editor zeigt jetzt `[Override anlegen]`
+  / `[Override bearbeiten]` statt `[Pflegen]`. **Komplett entfernt**
+  (kein toter Code): `processing/knx_device_inference.py`,
+  `tests/unit/test_knx_device_inference.py`,
+  `infer_manufacturer_from_labels`-Aufruf in `KnxDeviceDetailView`,
+  `inferred`-Block im Backend-Response + Frontend-DTO + Render +
+  Test. 5 neue Pytests (test_knx_recommend_service_ets.py),
+  Frontend-Tests entsprechend umgebaut. Doku korrigiert
+  (`docs/messagehub_knx_recommendations.md`).
+
 ## [0.25.0] - 2026-05-03
 
 ### Hinzugefuegt (Recommendation-Engine)

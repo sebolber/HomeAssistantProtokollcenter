@@ -319,11 +319,9 @@ export interface KnxDeviceDto {
   last_seen: string | null;
   created_at: string | null;
   updated_at: string | null;
-  inferred?: {
-    manufacturer: string | null;
-    confidence: "high" | "medium" | "low";
-    rationale: string;
-  } | null;
+  /** Iter L2.5: ETS-Default-Werte fuer Anzeige. Hat Vorrang vor User-
+   * Pflegeaufwand — der User sieht direkt, was im ETS-Projekt steht. */
+  ets?: KnxDeviceEtsBlockDto | null;
 }
 
 export interface KnxDeviceListDto {
@@ -335,6 +333,15 @@ export interface KnxDevicePutBody {
   manufacturer?: string | null;
   model?: string | null;
   notes?: string | null;
+}
+
+// Iter L2.5 — ETS-Default-Block, der vom GET /knx-devices/{id}-Endpoint
+// mitgeliefert wird, sodass das Frontend den ETS-Wert als Default
+// anzeigen kann (kein User-Pflegeaufwand fuer den 99%-Fall).
+export interface KnxDeviceEtsBlockDto {
+  manufacturer: string | null;
+  model: string | null;
+  name: string | null;
 }
 
 // Iter L4.3 — LLM-Settings (Layer 4 / KI-Empfehlungen)

@@ -8651,28 +8651,35 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       </p>
     `;
   }
-  // Iter L2.4: Inline-Editor fuer das Geraete-Profil (manufacturer +
-  // model + notes). Default: read-only-Anzeige; Bearbeiten-Klick
-  // zeigt Form. Speichern triggert PUT + Recommendation-Reload.
+  // Iter L2.4 / L2.5: Geraete-Profil-Anzeige.
+  // ETS-Discovery liefert Hersteller + Modell automatisch — Anzeige
+  // ohne User-Pflegeaufwand. `knx_devices`-Eintrag (User-Override)
+  // hat Vorrang, wenn gepflegt.
   _renderDeviceProfileEditor() {
-    var t;
     const e = this._device;
-    return this._deviceEditing ? this._renderDeviceProfileForm() : i`
+    if (this._deviceEditing)
+      return this._renderDeviceProfileForm();
+    const t = (e == null ? void 0 : e.manufacturer) ?? null, s = (e == null ? void 0 : e.model) ?? null, a = (e == null ? void 0 : e.ets) ?? null, r = !!(t || s), n = !!(a != null && a.manufacturer || a != null && a.model);
+    let o;
+    return r ? o = i`<span>
+        ${t ?? "—"}${s ? i` / ${s}` : c}
+        <span class="muted small">(User-Override)</span>
+      </span>` : n ? o = i`<span>
+        ${a.manufacturer ?? "—"}${a.model ? i` / ${a.model}` : c}
+        <span class="muted small">(aus ETS-Projekt)</span>
+      </span>` : o = i`<span class="muted">
+        kein Geraete-Profil verfuegbar (weder ETS noch Override)
+      </span>`, i`
       <div class="recommendation-card__device-profile">
-        <strong>Geraete-Profil:</strong>
-        ${e !== null && (e.manufacturer || e.model) ? i`
-              <span>${e.manufacturer ?? "—"}
-                ${e.model ? i`/ ${e.model}` : c}</span>
-              ${e.notes ? i`<span class="muted small">${e.notes}</span>` : c}` : i`<span class="muted">noch nicht gepflegt</span>
-              ${(t = e == null ? void 0 : e.inferred) != null && t.manufacturer ? i`<span class="muted small">
-                    Vorschlag aus GA-Labels: ${e.inferred.manufacturer}
-                  </span>` : c}`}
+        <strong>Geraet:</strong>
+        ${o}
+        ${e != null && e.notes ? i`<span class="muted small">"${e.notes}"</span>` : c}
         <button
           type="button"
           class="mh-button mh-button--ghost"
           @click=${() => this._startEditDevice()}
         >
-          ${e !== null && (e.manufacturer || e.model) ? "Bearbeiten" : "Pflegen"}
+          ${r ? "Override bearbeiten" : "Override anlegen"}
         </button>
       </div>
     `;

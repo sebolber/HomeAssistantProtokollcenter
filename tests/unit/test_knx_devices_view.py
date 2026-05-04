@@ -1,8 +1,12 @@
 """Iter L2.3: AST-Tests fuer KnxDeviceListView/DetailView.
 
-Verhaltens-Tests fuer Auto-Inferenz und Cache-Flush in eigenen
-Modulen (HA-frei): test_knx_device_inference.py +
-test_recommendation_cache.py.
+Iter L2.5: Auto-Inferenz aus GA-Labels entfernt — ETS-Discovery
+ist die kanonische Quelle. Die View liefert die ETS-Werte als
+``ets``-Block im GET-Response, der Frontend-Editor zeigt sie
+als Default an, der ``knx_devices``-Eintrag ist optionaler
+User-Override.
+
+Verhaltens-Tests fuer Cache-Flush: test_recommendation_cache.py.
 """
 
 from __future__ import annotations
@@ -151,17 +155,30 @@ class TestDetailView:
         body_src = ast.unparse(delete)
         assert "_flush_recommendation_cache_for" in body_src
 
-    def test_get_calls_inference_when_no_entry(self) -> None:
-        """Wenn der Eintrag fehlt, schlaegt der Endpoint einen
-        Hersteller aus den GA-Labels vor (Inferenz-Pfad)."""
+    def test_get_returns_ets_block_as_default(self) -> None:
+        """Iter L2.5: GET liefert die ETS-Discovery-Werte als
+        ``ets``-Block, sodass der Frontend-Editor sie als Default
+        anzeigen kann — kein User-Pflegeaufwand fuer den 99%-Fall."""
         cls = _find_class("KnxDeviceDetailView")
         get = next(
             n for n in cls.body
             if isinstance(n, ast.AsyncFunctionDef) and n.name == "get"
         )
         body_src = ast.unparse(get)
-        assert "infer_manufacturer_from_labels" in body_src
-        assert "inferred" in body_src
+        assert "discover_knx_devices" in body_src
+        assert "'ets'" in body_src or '"ets"' in body_src
+
+    def test_get_no_label_inference_anymore(self) -> None:
+        """Iter L2.5: Auto-Inferenz aus Labels wurde entfernt —
+        ETS ist die kanonische Quelle."""
+        cls = _find_class("KnxDeviceDetailView")
+        get = next(
+            n for n in cls.body
+            if isinstance(n, ast.AsyncFunctionDef) and n.name == "get"
+        )
+        body_src = ast.unparse(get)
+        assert "infer_manufacturer_from_labels" not in body_src
+        assert "inferred" not in body_src
 
 
 def test_views_registered_in_api_messages() -> None:

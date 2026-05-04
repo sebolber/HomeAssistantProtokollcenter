@@ -763,6 +763,7 @@ async def compute_device_recommendation(
     to_iso: str,
     *,
     devices_repo: "KnxDeviceRepository | None" = None,
+    ets_devices: dict[str, dict[str, Any]] | None = None,
     findings_repo: "FindingsRepository | None" = None,
     llm_provider: "RecommendationProvider | None" = None,
     llm_cache_repo: "RecommendationCacheRepository | None" = None,
@@ -788,18 +789,46 @@ async def compute_device_recommendation(
     if not ga_rows:
         return None
 
-    # Layer-2-Lookup: Geraete-Profil → optionales Modell-Override.
-    device_profile: dict[str, object] | None = None
-    model_override: ModelRecommendation | None = None
+    # Iter L2.5: Layer-2-Lookup mit klarer Quellen-Reihenfolge.
+    # 1. User-Override aus knx_devices (manuell gepflegt, hat Vorrang)
+    # 2. ETS-Discovery-Daten (Hersteller + Produkt direkt aus dem
+    #    KNX-Projekt — Standardquelle, kein Pflegeaufwand fuer den User)
+    # 3. None — kein Modell-Override
+    device_profile: dict[str, Any] | None = None
+    profile_source: str = ""
+    manufacturer: str | None = None
+    device_model: str | None = None
     if devices_repo is not None:
-        device_profile = await devices_repo.get(dev_source)
-        if device_profile is not None:
-            mfr = device_profile.get("manufacturer")
-            mdl = device_profile.get("model")
-            model_override = find_model_recommendation(
-                str(mfr) if mfr is not None else None,
-                str(mdl) if mdl is not None else None,
+        user_profile = await devices_repo.get(dev_source)
+        if user_profile is not None and (
+            user_profile.get("manufacturer") or user_profile.get("model")
+        ):
+            device_profile = dict(user_profile)
+            profile_source = "user_override"
+            manufacturer = (
+                str(device_profile["manufacturer"])
+                if device_profile.get("manufacturer")
+                else None
             )
+            device_model = (
+                str(device_profile["model"])
+                if device_profile.get("model")
+                else None
+            )
+    if manufacturer is None and ets_devices is not None:
+        ets_entry = ets_devices.get(dev_source)
+        if ets_entry is not None:
+            ets_manufacturer = (ets_entry.get("manufacturer") or "").strip()
+            ets_product = (ets_entry.get("product") or "").strip()
+            if ets_manufacturer or ets_product:
+                manufacturer = ets_manufacturer or None
+                device_model = ets_product or None
+                device_profile = {
+                    "manufacturer": manufacturer,
+                    "model": device_model,
+                }
+                profile_source = "ets_discovery"
+    model_override = find_model_recommendation(manufacturer, device_model)
 
     ga_recos: list[GaRecommendation] = []
     for row in ga_rows:
@@ -868,9 +897,14 @@ async def compute_device_recommendation(
             f"je GA aus knx_dpt_recommendations."
         )
     if model_override is not None:
-        # Layer-2-Marker mit Hersteller-/Modell-Begruendung + Doc-URL.
+        # Layer-2-Marker mit Hersteller-/Modell-Begruendung + Doc-URL +
+        # Quellen-Marker (ETS oder User-Override).
+        source_label = (
+            "User-Override" if profile_source == "user_override"
+            else "ETS-Projekt"
+        )
         reasoning.append(
-            f"Layer 2 ({model_reasoning_source()}) — "
+            f"Layer 2 ({model_reasoning_source()}, {source_label}) — "
             f"{model_override.manufacturer}/{model_override.model_glob}: "
             f"{model_override.rationale}"
             + (
@@ -879,14 +913,15 @@ async def compute_device_recommendation(
                 else ""
             )
         )
-    elif device_profile is not None and (
-        device_profile.get("manufacturer") or device_profile.get("model")
-    ):
-        # Geraete-Profil gepflegt aber kein Tabellen-Match: Hint.
+    elif device_profile is not None and manufacturer:
+        source_label = (
+            "User-Override" if profile_source == "user_override"
+            else "ETS-Projekt"
+        )
         reasoning.append(
-            "Layer 2 (device_model) — Hersteller/Modell-Profil ist "
-            "gepflegt, fuer dieses Modell gibt es noch keinen "
-            "kuratierten Override."
+            f"Layer 2 (device_model, {source_label}) — Hersteller "
+            f"'{manufacturer}' (Modell: {device_model or 'unbekannt'}) "
+            "hat noch keinen kuratierten Override in der Tabelle."
         )
     if llm_filled_count:
         reasoning.append(
