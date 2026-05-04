@@ -31,15 +31,11 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from .knx_dpt_recommendations import DptRecommendation
 from .rate_limit import TokenBucketLimiter
 from .recommendation_provider import ProviderConfig
-
-if TYPE_CHECKING:
-    pass
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -103,6 +99,98 @@ Regeln:
 
 _VALID_MODES: frozenset[str] = frozenset({"on_change", "cyclic", "hybrid"})
 
+# HTTP-Status-Schwelle: alles >= 400 ist Client/Server-Fehler.
+_HTTP_BAD_REQUEST_STATUS = 400
+
+# split("```", 2) liefert mind. 3 Parts wenn beide Fences vorhanden,
+# 2 Parts wenn nur die oeffnende Fence existiert. < 2 = kein gueltiger
+# Codefence-Block.
+_CODEFENCE_MIN_PARTS = 2
+
+# Lange des "json"-Sprach-Prefix nach der oeffnenden Codefence.
+_JSON_LANG_TAG_LEN = 4
+
+_DEFAULT_MAX_RATE_PER_MIN = 1.0
+_DEFAULT_RATIONALE_FALLBACK = (
+    "LLM-Empfehlung — keine Begruendung mitgeliefert."
+)
+
+
+def _strip_codefences(raw: str) -> str:
+    """Entfernt ```...``` und optionale ``json``-Sprachtags.
+
+    Beispiele:
+    - "```json\\n{...}\\n```" -> "{...}"
+    - "```{...}```" -> "{...}"
+    - "{...}" -> "{...}" (unveraendert)
+    - "```" (kaputt) -> raw zurueck (Fallback)
+    """
+    text = raw.strip()
+    if not text.startswith("```"):
+        return text
+    parts = text.split("```", 2)
+    if len(parts) < _CODEFENCE_MIN_PARTS:
+        # Sehr ungewoehnlich (kein zweites ```), Fallback auf raw.
+        return raw
+    inner = parts[1]
+    if inner.startswith("json"):
+        inner = inner[_JSON_LANG_TAG_LEN:].lstrip()
+    return inner.strip("` \n\t")
+
+
+def _coerce_optional_int(value: object) -> int | None:
+    """``None``-passthrough, sonst best-effort ``int``-Cast."""
+    if value is None:
+        return None
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    try:
+        return int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+
+
+def _coerce_cycle_pair(
+    payload: dict[str, Any],
+) -> tuple[int | None, int | None]:
+    """Cycle-Min/Max sind paarweise: beide gesetzt oder beide ``None``.
+
+    Wenn nur einer gesetzt ist, wird der andere ebenfalls auf ``None``
+    gezogen, damit der Service-Pfad ein konsistentes Schema sieht.
+    """
+    cycle_min = _coerce_optional_int(payload.get("cycle_minutes_min"))
+    cycle_max = _coerce_optional_int(payload.get("cycle_minutes_max"))
+    if (cycle_min is None) != (cycle_max is None):
+        return None, None
+    return cycle_min, cycle_max
+
+
+def _coerce_max_rate(value: object) -> float:
+    """Float-Cast mit Fallback auf 1.0; 0/Negativ wird ebenfalls
+    durch den Default ersetzt (LLM darf den Bus nicht stilllegen).
+    """
+    try:
+        rate = float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return _DEFAULT_MAX_RATE_PER_MIN
+    if rate <= 0:
+        return _DEFAULT_MAX_RATE_PER_MIN
+    return rate
+
+
+def _coerce_rationale(value: object) -> str:
+    if not isinstance(value, str) or not value.strip():
+        return _DEFAULT_RATIONALE_FALLBACK
+    return value.strip()
+
+
+def _coerce_hysteresis(value: object) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return None
+    return value
+
 
 def _build_user_prompt(
     *,
@@ -140,25 +228,12 @@ def _build_user_prompt(
 def _parse_response(raw: str) -> DptRecommendation | None:
     """Parst LLM-Antwort zu DptRecommendation.
 
-    Robust gegen:
-    - Markdown-Codefences (```json ... ```)
-    - Whitespace
-    - Felder in falscher Reihenfolge
-    - Zusaetzliche unbekannte Felder (werden ignoriert)
+    Robust gegen Markdown-Codefences, Whitespace, falsche Feld-
+    Reihenfolge und unbekannte Zusatzfelder. Cycle-Min/Max bleiben
+    paarweise konsistent; ``max_rate_per_min`` faellt auf einen
+    sicheren Default zurueck statt auf 0/Negativ.
     """
-    cleaned = raw.strip()
-    # Codefences entfernen
-    if cleaned.startswith("```"):
-        cleaned = cleaned.split("```", 2)
-        if len(cleaned) >= 2:
-            cleaned = cleaned[1]
-            if cleaned.startswith("json"):
-                cleaned = cleaned[4:].lstrip()
-        else:
-            cleaned = raw
-    if isinstance(cleaned, list):
-        cleaned = "\n".join(cleaned)
-    cleaned = cleaned.strip("` \n\t")
+    cleaned = _strip_codefences(raw)
     try:
         payload = json.loads(cleaned)
     except (TypeError, ValueError):
@@ -168,46 +243,16 @@ def _parse_response(raw: str) -> DptRecommendation | None:
     mode = payload.get("mode")
     if mode not in _VALID_MODES:
         return None
-
-    cycle_min = payload.get("cycle_minutes_min")
-    cycle_max = payload.get("cycle_minutes_max")
-    if cycle_min is not None and not isinstance(cycle_min, int):
-        try:
-            cycle_min = int(cycle_min)
-        except (TypeError, ValueError):
-            cycle_min = None
-    if cycle_max is not None and not isinstance(cycle_max, int):
-        try:
-            cycle_max = int(cycle_max)
-        except (TypeError, ValueError):
-            cycle_max = None
-    # cycle_minutes paarweise: beide oder keiner
-    if (cycle_min is None) != (cycle_max is None):
-        cycle_min, cycle_max = None, None
-
-    rate = payload.get("max_rate_per_min", 1.0)
-    try:
-        max_rate = float(rate)
-    except (TypeError, ValueError):
-        max_rate = 1.0
-    if max_rate <= 0:
-        max_rate = 1.0
-
-    rationale = payload.get("rationale", "")
-    if not isinstance(rationale, str) or not rationale.strip():
-        rationale = "LLM-Empfehlung — keine Begruendung mitgeliefert."
-
-    hysteresis = payload.get("hysteresis")
-    if hysteresis is not None and not isinstance(hysteresis, str):
-        hysteresis = None
-
+    cycle_min, cycle_max = _coerce_cycle_pair(payload)
     return DptRecommendation(
         mode=mode,  # type: ignore[arg-type]
         cycle_minutes_min=cycle_min,
         cycle_minutes_max=cycle_max,
-        hysteresis=hysteresis,
-        max_rate_per_min=max_rate,
-        rationale=rationale.strip(),
+        hysteresis=_coerce_hysteresis(payload.get("hysteresis")),
+        max_rate_per_min=_coerce_max_rate(
+            payload.get("max_rate_per_min", _DEFAULT_MAX_RATE_PER_MIN),
+        ),
+        rationale=_coerce_rationale(payload.get("rationale", "")),
     )
 
 
@@ -294,7 +339,7 @@ class OpenAIChatProvider:
             async with session.post(
                 url, json=body, headers=headers,
             ) as resp:
-                if resp.status >= 400:
+                if resp.status >= _HTTP_BAD_REQUEST_STATUS:
                     _LOGGER.warning(
                         "knx_recommend_llm provider HTTP %s",
                         resp.status,

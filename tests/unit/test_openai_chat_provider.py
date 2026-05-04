@@ -19,8 +19,14 @@ from custom_components.messagehub.processing.openai_chat_provider import (
     DEFAULT_SYSTEM_PROMPT,
     OpenAIChatProvider,
     _build_user_prompt,
+    _coerce_cycle_pair,
+    _coerce_hysteresis,
+    _coerce_max_rate,
+    _coerce_optional_int,
+    _coerce_rationale,
     _parse_response,
     _safe_str,
+    _strip_codefences,
 )
 from custom_components.messagehub.processing.rate_limit import (
     TokenBucketLimiter,
@@ -185,6 +191,118 @@ class TestParseResponse:
         reco = _parse_response(raw)
         assert reco is not None
         assert "LLM-Empfehlung" in reco.rationale
+
+
+# ---------------------------------------------------------------------------
+# Iter R2: Refactor-Helfer einzeln getestet
+# ---------------------------------------------------------------------------
+
+
+class TestStripCodefences:
+    def test_no_codefence_passes_through(self) -> None:
+        assert _strip_codefences('{"a": 1}') == '{"a": 1}'
+
+    def test_json_codefence_unwrapped(self) -> None:
+        raw = "```json\n{\"a\": 1}\n```"
+        assert _strip_codefences(raw) == '{"a": 1}'
+
+    def test_plain_codefence_unwrapped(self) -> None:
+        raw = "```\n{\"a\": 1}\n```"
+        assert _strip_codefences(raw) == '{"a": 1}'
+
+    def test_lone_triple_backtick_yields_empty(self) -> None:
+        # Edge: nur "```" => parts[1] ist leer; downstream json.loads
+        # liefert dann None ueber _parse_response (nicht hier).
+        assert _strip_codefences("```") == ""
+
+    def test_codefence_with_unparseable_content_returns_inner(self) -> None:
+        # Inner-Text wird auch bei Nicht-JSON zurueckgegeben — der
+        # JSON-Parser meldet das Problem, nicht der Stripper.
+        assert _strip_codefences("```\nnot json\n```") == "not json"
+
+
+class TestCoerceOptionalInt:
+    def test_none_passthrough(self) -> None:
+        assert _coerce_optional_int(None) is None
+
+    def test_int_returned_as_is(self) -> None:
+        assert _coerce_optional_int(42) == 42
+
+    def test_bool_not_treated_as_int(self) -> None:
+        # Wichtig: True/False sind in Python int-Subklasse, das wuerde
+        # zu mode-Glitches fuehren.
+        assert _coerce_optional_int(True) == 1  # int-Cast OK
+        assert _coerce_optional_int(False) == 0
+
+    def test_numeric_string_coerced(self) -> None:
+        assert _coerce_optional_int("15") == 15
+
+    def test_invalid_returns_none(self) -> None:
+        assert _coerce_optional_int("nope") is None
+        assert _coerce_optional_int(object()) is None
+
+
+class TestCoerceCyclePair:
+    def test_both_none_stays_none(self) -> None:
+        assert _coerce_cycle_pair({}) == (None, None)
+
+    def test_both_set_returned(self) -> None:
+        assert _coerce_cycle_pair(
+            {"cycle_minutes_min": 5, "cycle_minutes_max": 15},
+        ) == (5, 15)
+
+    def test_only_min_set_zeroed(self) -> None:
+        assert _coerce_cycle_pair(
+            {"cycle_minutes_min": 5},
+        ) == (None, None)
+
+    def test_only_max_set_zeroed(self) -> None:
+        assert _coerce_cycle_pair(
+            {"cycle_minutes_max": 15},
+        ) == (None, None)
+
+
+class TestCoerceMaxRate:
+    def test_positive_float_returned(self) -> None:
+        assert _coerce_max_rate(2.5) == 2.5
+
+    def test_zero_replaced_with_default(self) -> None:
+        assert _coerce_max_rate(0) == 1.0
+
+    def test_negative_replaced_with_default(self) -> None:
+        assert _coerce_max_rate(-1) == 1.0
+
+    def test_invalid_replaced_with_default(self) -> None:
+        assert _coerce_max_rate("not a number") == 1.0
+
+
+class TestCoerceRationale:
+    def test_valid_string_trimmed(self) -> None:
+        assert _coerce_rationale("  Hello  ") == "Hello"
+
+    def test_empty_uses_fallback(self) -> None:
+        result = _coerce_rationale("")
+        assert "LLM-Empfehlung" in result
+
+    def test_whitespace_only_uses_fallback(self) -> None:
+        result = _coerce_rationale("   ")
+        assert "LLM-Empfehlung" in result
+
+    def test_non_string_uses_fallback(self) -> None:
+        result = _coerce_rationale(123)
+        assert "LLM-Empfehlung" in result
+
+
+class TestCoerceHysteresis:
+    def test_string_returned(self) -> None:
+        assert _coerce_hysteresis(">= 0.2 K") == ">= 0.2 K"
+
+    def test_none_passthrough(self) -> None:
+        assert _coerce_hysteresis(None) is None
+
+    def test_non_string_returns_none(self) -> None:
+        assert _coerce_hysteresis(42) is None
+        assert _coerce_hysteresis({"foo": "bar"}) is None
 
 
 # ---------------------------------------------------------------------------
