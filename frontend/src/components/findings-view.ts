@@ -63,6 +63,25 @@ export class FindingsView extends LitElement {
     await this._load();
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback();
+    // Iter UX-2: Escape schliesst den Detail-Drawer — analog zu
+    // stats-knx-view. window-Level statt document-Level, damit der
+    // Listener im Shadow-DOM zuverlaessig feuert.
+    window.addEventListener("keydown", this._onWindowKeyDown);
+  }
+
+  override disconnectedCallback(): void {
+    window.removeEventListener("keydown", this._onWindowKeyDown);
+    super.disconnectedCallback();
+  }
+
+  private _onWindowKeyDown = (e: KeyboardEvent): void => {
+    if (e.key === "Escape" && this._selectedKey !== null) {
+      this._selectedKey = null;
+    }
+  };
+
   override updated(changed: Map<string, unknown>): void {
     // Iter H: bei echter Aenderung der sourceFilter-Property neu laden.
     // Auf dem ersten Update ist `oldValue === undefined` (Lit-Konvention
@@ -115,7 +134,11 @@ export class FindingsView extends LitElement {
   }
 
   private _itemKey(it: FindingDto): string {
-    return `${it.code}::${it.ga ?? ""}::${it.last_seen}`;
+    // Iter UX-2 Bug-Fix: source mit ins Key, sonst kollidieren
+    // bus-weite Findings (ga=null) mit gleichem code + last_seen
+    // (z. B. RECONNECT_STORM-Bursts pro Source) zu einem einzigen
+    // Selection-Token, was alle Eintraege gleichzeitig markiert.
+    return `${it.code}::${it.ga ?? ""}::${it.source ?? ""}::${it.first_seen}`;
   }
 
   private _onSelect(it: FindingDto): void {
@@ -400,8 +423,25 @@ export class FindingsView extends LitElement {
       selected.evidence
     );
     const helpUrl = getFindingHelpUrl(selected.code);
+    const close = (): void => {
+      this._selectedKey = null;
+    };
+    // Iter UX-2 Bug-Fix: rechts-fixed Drawer + Backdrop, identisch zum
+    // Source-/GA-Detail-Pane in stats-knx-view. Vorher rendete der
+    // Detail-Block inline ans Listenende und scrollte den Bildschirm.
     return html`
-      <aside class="detail mh-card" data-test="findings-detail">
+      <div
+        class="detail-backdrop"
+        @click=${close}
+        aria-hidden="true"
+      ></div>
+      <aside
+        class="detail-pane mh-card"
+        role="dialog"
+        aria-modal="true"
+        aria-label=${title}
+        data-test="findings-detail"
+      >
         <header class="detail-header">
           <span class=${PILL_CLASS_FOR_SEVERITY[selected.severity]}>
             ${selected.severity}
@@ -411,59 +451,69 @@ export class FindingsView extends LitElement {
             class="mh-btn mh-btn--ghost mh-btn--icon"
             type="button"
             aria-label="Schliessen"
-            @click=${() => (this._selectedKey = null)}
+            title="Schliessen (Escape)"
+            @click=${close}
           >
             ✕
           </button>
         </header>
-        ${description
-          ? html`<p class="detail-description" data-test="findings-detail-description">
-              ${description}
-            </p>`
-          : nothing}
-        ${helpUrl
-          ? html`<a class="detail-help" href=${helpUrl} target="_blank" rel="noopener"
-              >Hilfe / Doku ↗</a
-            >`
-          : nothing}
-        <dl class="detail-evidence">
-          <dt>Code</dt>
-          <dd>${selected.code}</dd>
-          <dt>GA</dt>
-          <dd>${selected.ga ?? "(global)"}</dd>
-          <dt>Source</dt>
-          <dd>${selected.source ?? "—"}</dd>
-          <dt>First-Seen</dt>
-          <dd>${this._formatTimestamp(selected.first_seen)}</dd>
-          <dt>Last-Seen</dt>
-          <dd>${this._formatTimestamp(selected.last_seen)}</dd>
-          <dt>Occurrences</dt>
-          <dd>${selected.occurrence_count}</dd>
-          <dt>Detector</dt>
-          <dd>${selected.detector_version}</dd>
-          ${this._renderEvidenceEntries(selected.evidence)}
-        </dl>
-        <div class="detail-actions">
-          ${selected.acknowledged
-            ? html`<button
-                class="mh-btn mh-btn--ghost"
-                type="button"
-                data-test="findings-unack-btn"
-                ?disabled=${selected.ga === null || this._loading}
-                title="Akzeptanz zurueckziehen — Finding erscheint wieder als ungesehen."
-                @click=${this._unackSelected}
+        <div class="detail-body">
+          ${description
+            ? html`<p
+                class="detail-description"
+                data-test="findings-detail-description"
               >
-                Ack zuruecknehmen
-              </button>`
-            : html`<button
-                class="mh-btn mh-btn--primary"
-                type="button"
-                data-test="findings-ack-btn"
-                ?disabled=${selected.ga === null || this._loading}
-                @click=${this._ackSelected}
-              >
-                Ack
-              </button>`}
+                ${description}
+              </p>`
+            : nothing}
+          ${helpUrl
+            ? html`<a
+                class="detail-help"
+                href=${helpUrl}
+                target="_blank"
+                rel="noopener"
+                >Hilfe / Doku ↗</a
+              >`
+            : nothing}
+          <dl class="detail-evidence">
+            <dt>Code</dt>
+            <dd>${selected.code}</dd>
+            <dt>GA</dt>
+            <dd>${selected.ga ?? "(global)"}</dd>
+            <dt>Source</dt>
+            <dd>${selected.source ?? "—"}</dd>
+            <dt>First-Seen</dt>
+            <dd>${this._formatTimestamp(selected.first_seen)}</dd>
+            <dt>Last-Seen</dt>
+            <dd>${this._formatTimestamp(selected.last_seen)}</dd>
+            <dt>Occurrences</dt>
+            <dd>${selected.occurrence_count}</dd>
+            <dt>Detector</dt>
+            <dd>${selected.detector_version}</dd>
+            ${this._renderEvidenceEntries(selected.evidence)}
+          </dl>
+          <div class="detail-actions">
+            ${selected.acknowledged
+              ? html`<button
+                  class="mh-btn mh-btn--ghost"
+                  type="button"
+                  data-test="findings-unack-btn"
+                  ?disabled=${selected.ga === null || this._loading}
+                  title="Akzeptanz zurueckziehen — Finding erscheint wieder als ungesehen."
+                  @click=${this._unackSelected}
+                >
+                  Ack zuruecknehmen
+                </button>`
+              : html`<button
+                  class="mh-btn mh-btn--primary"
+                  type="button"
+                  data-test="findings-ack-btn"
+                  ?disabled=${selected.ga === null || this._loading}
+                  @click=${this._ackSelected}
+                >
+                  Ack
+                </button>`}
+          </div>
         </div>
       </aside>
     `;
@@ -632,15 +682,69 @@ export class FindingsView extends LitElement {
         font-size: var(--mh-text-xs);
         color: var(--mh-fg-muted);
       }
-      .detail {
-        margin-top: var(--mh-space-3);
+      /* Iter UX-2: rechts-fixed Drawer (analog stats-knx-view).
+         Vorher inline am Listenende. */
+      .detail-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.25);
+        z-index: 100;
+        animation: mh-findings-detail-backdrop-in 160ms ease-out;
+      }
+      .detail-pane {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: clamp(360px, 42vw, 640px);
+        z-index: 101;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        border-left: 1px solid var(--mh-divider);
+        box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: mh-findings-detail-drawer-in 200ms ease-out;
         background: var(--mh-surface);
       }
+      .detail-pane .detail-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: var(--mh-space-3);
+      }
+      @media (max-width: 720px) {
+        .detail-pane {
+          width: 100vw;
+        }
+      }
+      @keyframes mh-findings-detail-backdrop-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes mh-findings-detail-drawer-in {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .detail-backdrop,
+        .detail-pane {
+          animation: none;
+        }
+      }
       .detail-header {
+        flex: 0 0 auto;
+        position: sticky;
+        top: 0;
+        background: var(--mh-surface);
+        border-bottom: 1px solid var(--mh-divider);
+        padding: var(--mh-space-3);
+        z-index: 1;
         display: flex;
         align-items: center;
         gap: var(--mh-space-3);
-        margin-bottom: var(--mh-space-3);
+        margin: 0;
       }
       .detail-code {
         font-family: var(--code-font-family, monospace);

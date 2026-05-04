@@ -194,8 +194,8 @@ let de = class extends HTMLElement {
     if (r !== void 0 && this._$Em !== r) {
       const d = a.getPropertyOptions(r), h = typeof d.converter == "function" ? { fromAttribute: d.converter } : ((n = d.converter) == null ? void 0 : n.fromAttribute) !== void 0 ? d.converter : Oe;
       this._$Em = r;
-      const m = h.fromAttribute(s, d.type);
-      this[r] = m ?? ((o = this._$Ej) == null ? void 0 : o.get(r)) ?? m, this._$Em = null;
+      const u = h.fromAttribute(s, d.type);
+      this[r] = u ?? ((o = this._$Ej) == null ? void 0 : o.get(r)) ?? u, this._$Em = null;
     }
   }
   requestUpdate(t, s, a, r = !1, n) {
@@ -284,53 +284,53 @@ de.elementStyles = [], de.shadowRootOptions = { mode: "open" }, de[xe("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const $e = globalThis, ht = (e) => e, Ce = $e.trustedTypes, pt = Ce ? Ce.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Bt = "$lit$", K = `lit$${Math.random().toFixed(9).slice(2)}$`, jt = "?" + K, hs = `<${jt}>`, ee = document, ke = () => ee.createComment(""), Se = (e) => e === null || typeof e != "object" && typeof e != "function", st = Array.isArray, ps = (e) => st(e) || typeof (e == null ? void 0 : e[Symbol.iterator]) == "function", Ge = `[ 	
-\f\r]`, be = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ut = /-->/g, mt = />/g, Y = RegExp(`>|${Ge}(?:([^\\s"'>=/]+)(${Ge}*=${Ge}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), gt = /'/g, vt = /"/g, Gt = /^(?:script|style|textarea|title)$/i, us = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), i = us(1), te = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), ft = /* @__PURE__ */ new WeakMap(), X = ee.createTreeWalker(ee, 129);
-function Kt(e, t) {
+const $e = globalThis, ht = (e) => e, Ce = $e.trustedTypes, pt = Ce ? Ce.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Bt = "$lit$", G = `lit$${Math.random().toFixed(9).slice(2)}$`, jt = "?" + G, hs = `<${jt}>`, ee = document, ke = () => ee.createComment(""), Se = (e) => e === null || typeof e != "object" && typeof e != "function", st = Array.isArray, ps = (e) => st(e) || typeof (e == null ? void 0 : e[Symbol.iterator]) == "function", Ke = `[ 	
+\f\r]`, be = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, mt = /-->/g, ut = />/g, Y = RegExp(`>|${Ke}(?:([^\\s"'>=/]+)(${Ke}*=${Ke}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`, "g"), gt = /'/g, vt = /"/g, Kt = /^(?:script|style|textarea|title)$/i, ms = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), i = ms(1), te = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), ft = /* @__PURE__ */ new WeakMap(), X = ee.createTreeWalker(ee, 129);
+function Gt(e, t) {
   if (!st(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return pt !== void 0 ? pt.createHTML(t) : t;
 }
-const ms = (e, t) => {
+const us = (e, t) => {
   const s = e.length - 1, a = [];
   let r, n = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = be;
   for (let d = 0; d < s; d++) {
     const h = e[d];
-    let m, g, u = -1, p = 0;
-    for (; p < h.length && (o.lastIndex = p, g = o.exec(h), g !== null); ) p = o.lastIndex, o === be ? g[1] === "!--" ? o = ut : g[1] !== void 0 ? o = mt : g[2] !== void 0 ? (Gt.test(g[2]) && (r = RegExp("</" + g[2], "g")), o = Y) : g[3] !== void 0 && (o = Y) : o === Y ? g[0] === ">" ? (o = r ?? be, u = -1) : g[1] === void 0 ? u = -2 : (u = o.lastIndex - g[2].length, m = g[1], o = g[3] === void 0 ? Y : g[3] === '"' ? vt : gt) : o === vt || o === gt ? o = Y : o === ut || o === mt ? o = be : (o = Y, r = void 0);
+    let u, g, m = -1, p = 0;
+    for (; p < h.length && (o.lastIndex = p, g = o.exec(h), g !== null); ) p = o.lastIndex, o === be ? g[1] === "!--" ? o = mt : g[1] !== void 0 ? o = ut : g[2] !== void 0 ? (Kt.test(g[2]) && (r = RegExp("</" + g[2], "g")), o = Y) : g[3] !== void 0 && (o = Y) : o === Y ? g[0] === ">" ? (o = r ?? be, m = -1) : g[1] === void 0 ? m = -2 : (m = o.lastIndex - g[2].length, u = g[1], o = g[3] === void 0 ? Y : g[3] === '"' ? vt : gt) : o === vt || o === gt ? o = Y : o === mt || o === ut ? o = be : (o = Y, r = void 0);
     const b = o === Y && e[d + 1].startsWith("/>") ? " " : "";
-    n += o === be ? h + hs : u >= 0 ? (a.push(m), h.slice(0, u) + Bt + h.slice(u) + K + b) : h + K + (u === -2 ? d : b);
+    n += o === be ? h + hs : m >= 0 ? (a.push(u), h.slice(0, m) + Bt + h.slice(m) + G + b) : h + G + (m === -2 ? d : b);
   }
-  return [Kt(e, n + (e[s] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), a];
+  return [Gt(e, n + (e[s] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), a];
 };
 class Te {
   constructor({ strings: t, _$litType$: s }, a) {
     let r;
     this.parts = [];
     let n = 0, o = 0;
-    const d = t.length - 1, h = this.parts, [m, g] = ms(t, s);
-    if (this.el = Te.createElement(m, a), X.currentNode = this.el.content, s === 2 || s === 3) {
-      const u = this.el.content.firstChild;
-      u.replaceWith(...u.childNodes);
+    const d = t.length - 1, h = this.parts, [u, g] = us(t, s);
+    if (this.el = Te.createElement(u, a), X.currentNode = this.el.content, s === 2 || s === 3) {
+      const m = this.el.content.firstChild;
+      m.replaceWith(...m.childNodes);
     }
     for (; (r = X.nextNode()) !== null && h.length < d; ) {
       if (r.nodeType === 1) {
-        if (r.hasAttributes()) for (const u of r.getAttributeNames()) if (u.endsWith(Bt)) {
-          const p = g[o++], b = r.getAttribute(u).split(K), v = /([.?@])?(.*)/.exec(p);
-          h.push({ type: 1, index: n, name: v[2], strings: b, ctor: v[1] === "." ? vs : v[1] === "?" ? fs : v[1] === "@" ? _s : Ne }), r.removeAttribute(u);
-        } else u.startsWith(K) && (h.push({ type: 6, index: n }), r.removeAttribute(u));
-        if (Gt.test(r.tagName)) {
-          const u = r.textContent.split(K), p = u.length - 1;
+        if (r.hasAttributes()) for (const m of r.getAttributeNames()) if (m.endsWith(Bt)) {
+          const p = g[o++], b = r.getAttribute(m).split(G), v = /([.?@])?(.*)/.exec(p);
+          h.push({ type: 1, index: n, name: v[2], strings: b, ctor: v[1] === "." ? vs : v[1] === "?" ? fs : v[1] === "@" ? _s : Ne }), r.removeAttribute(m);
+        } else m.startsWith(G) && (h.push({ type: 6, index: n }), r.removeAttribute(m));
+        if (Kt.test(r.tagName)) {
+          const m = r.textContent.split(G), p = m.length - 1;
           if (p > 0) {
             r.textContent = Ce ? Ce.emptyScript : "";
-            for (let b = 0; b < p; b++) r.append(u[b], ke()), X.nextNode(), h.push({ type: 2, index: ++n });
-            r.append(u[p], ke());
+            for (let b = 0; b < p; b++) r.append(m[b], ke()), X.nextNode(), h.push({ type: 2, index: ++n });
+            r.append(m[p], ke());
           }
         }
       } else if (r.nodeType === 8) if (r.data === jt) h.push({ type: 2, index: n });
       else {
-        let u = -1;
-        for (; (u = r.data.indexOf(K, u + 1)) !== -1; ) h.push({ type: 7, index: n }), u += K.length - 1;
+        let m = -1;
+        for (; (m = r.data.indexOf(G, m + 1)) !== -1; ) h.push({ type: 7, index: n }), m += G.length - 1;
       }
       n++;
     }
@@ -363,8 +363,8 @@ class gs {
     let n = X.nextNode(), o = 0, d = 0, h = a[0];
     for (; h !== void 0; ) {
       if (o === h.index) {
-        let m;
-        h.type === 2 ? m = new ge(n, n.nextSibling, this, t) : h.type === 1 ? m = new h.ctor(n, h.name, h.strings, this, t) : h.type === 6 && (m = new bs(n, this, t)), this._$AV.push(m), h = a[++d];
+        let u;
+        h.type === 2 ? u = new ge(n, n.nextSibling, this, t) : h.type === 1 ? u = new h.ctor(n, h.name, h.strings, this, t) : h.type === 6 && (u = new bs(n, this, t)), this._$AV.push(u), h = a[++d];
       }
       o !== (h == null ? void 0 : h.index) && (n = X.nextNode(), o++);
     }
@@ -408,7 +408,7 @@ class ge {
   }
   $(t) {
     var n;
-    const { values: s, _$litType$: a } = t, r = typeof a == "number" ? this._$AC(t) : (a.el === void 0 && (a.el = Te.createElement(Kt(a.h, a.h[0]), this.options)), a);
+    const { values: s, _$litType$: a } = t, r = typeof a == "number" ? this._$AC(t) : (a.el === void 0 && (a.el = Te.createElement(Gt(a.h, a.h[0]), this.options)), a);
     if (((n = this._$AH) == null ? void 0 : n._$AD) === r) this._$AH.p(s);
     else {
       const o = new gs(r, this), d = o.u(this.options);
@@ -454,8 +454,8 @@ class Ne {
     if (n === void 0) t = ce(this, t, s, 0), o = !Se(t) || t !== this._$AH && t !== te, o && (this._$AH = t);
     else {
       const d = t;
-      let h, m;
-      for (t = n[0], h = 0; h < n.length - 1; h++) m = ce(this, d[a + h], s, h), m === te && (m = this._$AH[h]), o || (o = !Se(m) || m !== this._$AH[h]), m === c ? t = c : t !== c && (t += (m ?? "") + n[h + 1]), this._$AH[h] = m;
+      let h, u;
+      for (t = n[0], h = 0; h < n.length - 1; h++) u = ce(this, d[a + h], s, h), u === te && (u = this._$AH[h]), o || (o = !Se(u) || u !== this._$AH[h]), u === c ? t = c : t !== c && (t += (u ?? "") + n[h + 1]), this._$AH[h] = u;
     }
     o && !r && this.j(t);
   }
@@ -504,8 +504,8 @@ class bs {
     ce(this, t);
   }
 }
-const ws = { I: ge }, Ke = $e.litHtmlPolyfillSupport;
-Ke == null || Ke(Te, ge), ($e.litHtmlVersions ?? ($e.litHtmlVersions = [])).push("3.3.2");
+const ws = { I: ge }, Ge = $e.litHtmlPolyfillSupport;
+Ge == null || Ge(Te, ge), ($e.litHtmlVersions ?? ($e.litHtmlVersions = [])).push("3.3.2");
 const ys = (e, t, s) => {
   const a = (s == null ? void 0 : s.renderBefore) ?? t;
   let r = a._$litPart$;
@@ -1570,14 +1570,14 @@ const { I: Ps } = ws, _t = (e) => e, bt = () => document.createComment(""), we =
   } else {
     const o = s._$AB.nextSibling, d = s._$AM, h = d !== e;
     if (h) {
-      let m;
-      (n = s._$AQ) == null || n.call(s, e), s._$AM = e, s._$AP !== void 0 && (m = e._$AU) !== d._$AU && s._$AP(m);
+      let u;
+      (n = s._$AQ) == null || n.call(s, e), s._$AM = e, s._$AP !== void 0 && (u = e._$AU) !== d._$AU && s._$AP(u);
     }
     if (o !== r || h) {
-      let m = s._$AA;
-      for (; m !== o; ) {
-        const g = _t(m).nextSibling;
-        _t(a).insertBefore(m, r), m = g;
+      let u = s._$AA;
+      for (; u !== o; ) {
+        const g = _t(u).nextSibling;
+        _t(a).insertBefore(u, r), u = g;
       }
     }
   }
@@ -1613,28 +1613,28 @@ const wt = (e, t, s) => {
     const r = zs(e), { values: n, keys: o } = this.dt(t, s, a);
     if (!Array.isArray(r)) return this.ut = o, n;
     const d = this.ut ?? (this.ut = []), h = [];
-    let m, g, u = 0, p = r.length - 1, b = 0, v = n.length - 1;
-    for (; u <= p && b <= v; ) if (r[u] === null) u++;
+    let u, g, m = 0, p = r.length - 1, b = 0, v = n.length - 1;
+    for (; m <= p && b <= v; ) if (r[m] === null) m++;
     else if (r[p] === null) p--;
-    else if (d[u] === o[b]) h[b] = Z(r[u], n[b]), u++, b++;
+    else if (d[m] === o[b]) h[b] = Z(r[m], n[b]), m++, b++;
     else if (d[p] === o[v]) h[v] = Z(r[p], n[v]), p--, v--;
-    else if (d[u] === o[v]) h[v] = Z(r[u], n[v]), we(e, h[v + 1], r[u]), u++, v--;
-    else if (d[p] === o[b]) h[b] = Z(r[p], n[b]), we(e, r[u], r[p]), p--, b++;
-    else if (m === void 0 && (m = wt(o, b, v), g = wt(d, u, p)), m.has(d[u])) if (m.has(d[p])) {
+    else if (d[m] === o[v]) h[v] = Z(r[m], n[v]), we(e, h[v + 1], r[m]), m++, v--;
+    else if (d[p] === o[b]) h[b] = Z(r[p], n[b]), we(e, r[m], r[p]), p--, b++;
+    else if (u === void 0 && (u = wt(o, b, v), g = wt(d, m, p)), u.has(d[m])) if (u.has(d[p])) {
       const T = g.get(o[b]), _e = T !== void 0 ? r[T] : null;
       if (_e === null) {
-        const De = we(e, r[u]);
+        const De = we(e, r[m]);
         Z(De, n[b]), h[b] = De;
-      } else h[b] = Z(_e, n[b]), we(e, r[u], _e), r[T] = null;
+      } else h[b] = Z(_e, n[b]), we(e, r[m], _e), r[T] = null;
       b++;
     } else Ve(r[p]), p--;
-    else Ve(r[u]), u++;
+    else Ve(r[m]), m++;
     for (; b <= v; ) {
       const T = we(e, h[v + 1]);
       Z(T, n[b]), h[b++] = T;
     }
-    for (; u <= p; ) {
-      const T = r[u++];
+    for (; m <= p; ) {
+      const T = r[m++];
       T !== null && Ve(T);
     }
     return this.ut = o, Ls(e, h), te;
@@ -2204,8 +2204,8 @@ He([
 he = He([
   k("source-filter")
 ], he);
-var js = Object.defineProperty, Gs = Object.getOwnPropertyDescriptor, at = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Gs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var js = Object.defineProperty, Ks = Object.getOwnPropertyDescriptor, at = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ks(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && js(t, s, r), r;
 };
@@ -2254,10 +2254,10 @@ at([
 Ee = at([
   k("time-range-filter")
 ], Ee);
-var Ks = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, J = (e, t, s, a) => {
+var Gs = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, J = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Ws(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Ks(t, s, r), r;
+  return a && r && Gs(t, s, r), r;
 };
 let R = class extends y {
   constructor() {
@@ -5835,7 +5835,7 @@ S([
 F = S([
   k("remediation-view")
 ], F);
-var ha = Object.defineProperty, pa = Object.getOwnPropertyDescriptor, G = (e, t, s, a) => {
+var ha = Object.defineProperty, pa = Object.getOwnPropertyDescriptor, K = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? pa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && ha(t, s, r), r;
@@ -5849,7 +5849,7 @@ const Ie = [
   { id: "remediation", label: "Auto-Remediation" },
   { id: "recommend-llm", label: "KI-Empfehlungen" }
 ], Yt = "messagehub.settings.tab";
-function ua() {
+function ma() {
   var e;
   if (typeof window < "u" && ((e = window.location) != null && e.hash)) {
     const t = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
@@ -5867,7 +5867,7 @@ function ua() {
 }
 let I = class extends y {
   constructor() {
-    super(...arguments), this._items = [], this._loading = !1, this._showForm = !1, this._editing = null, this._toast = "", this._menuOpenId = null, this._activeTab = ua(), this._closeMenu = () => {
+    super(...arguments), this._items = [], this._loading = !1, this._showForm = !1, this._editing = null, this._toast = "", this._menuOpenId = null, this._activeTab = ma(), this._closeMenu = () => {
       this._menuOpenId !== null && (this._menuOpenId = null);
     }, this._onHashChange = () => {
       const e = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
@@ -6466,37 +6466,37 @@ I.styles = [
       }
     `
 ];
-G([
+K([
   w({ attribute: !1 })
 ], I.prototype, "api", 2);
-G([
+K([
   l()
 ], I.prototype, "_items", 2);
-G([
+K([
   l()
 ], I.prototype, "_loading", 2);
-G([
+K([
   l()
 ], I.prototype, "_showForm", 2);
-G([
+K([
   l()
 ], I.prototype, "_editing", 2);
-G([
+K([
   l()
 ], I.prototype, "_toast", 2);
-G([
+K([
   l()
 ], I.prototype, "_menuOpenId", 2);
-G([
+K([
   l()
 ], I.prototype, "_activeTab", 2);
-I = G([
+I = K([
   k("settings-view")
 ], I);
-var ma = Object.defineProperty, ga = Object.getOwnPropertyDescriptor, ne = (e, t, s, a) => {
+var ua = Object.defineProperty, ga = Object.getOwnPropertyDescriptor, ne = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? ga(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && ma(t, s, r), r;
+  return a && r && ua(t, s, r), r;
 };
 const St = {
   error: "Errors",
@@ -6696,8 +6696,8 @@ let M = class extends y {
             </div>
             ${this._topSources.length === 0 ? i`<p class="muted">Keine Daten.</p>` : i`<ul class="top-sources">
                   ${this._topSources.map((n, o) => {
-      var m;
-      const d = ((m = this._topSources[0]) == null ? void 0 : m.count) ?? 1, h = n.count / d * 100;
+      var u;
+      const d = ((u = this._topSources[0]) == null ? void 0 : u.count) ?? 1, h = n.count / d * 100;
       return i`<li>
                       <span class="rank">${o + 1}</span>
                       <code class="source-name">${n.source}</code>
@@ -6822,9 +6822,9 @@ let pe = class extends y {
   render() {
     if (this.items.length === 0)
       return i`<p class="muted">Keine Timeline-Daten.</p>`;
-    if (this.items.reduce((g, u) => g + u.count, 0) === 0)
+    if (this.items.reduce((g, m) => g + m.count, 0) === 0)
       return i`<p class="muted">Keine Telegramme im Zeitraum.</p>`;
-    const t = this._buildSeries(), s = this._allBuckets(), a = Math.max(1, ...this.items.map((g) => g.count)), r = { top: 8, right: 8, bottom: 18, left: 32 }, n = this.width - r.left - r.right, o = this.height - r.top - r.bottom, d = s.length === 1, h = (g) => d ? r.left + n / 2 : r.left + g / (s.length - 1) * n, m = (g) => r.top + (1 - g / a) * o;
+    const t = this._buildSeries(), s = this._allBuckets(), a = Math.max(1, ...this.items.map((g) => g.count)), r = { top: 8, right: 8, bottom: 18, left: 32 }, n = this.width - r.left - r.right, o = this.height - r.top - r.bottom, d = s.length === 1, h = (g) => d ? r.left + n / 2 : r.left + g / (s.length - 1) * n, u = (g) => r.top + (1 - g / a) * o;
     return i`
       <svg
         viewBox=${`0 0 ${this.width} ${this.height}`}
@@ -6848,10 +6848,10 @@ let pe = class extends y {
         <text x="2" y=${this.height - r.bottom + 4} class="axis-label">0</text>
 
         <!-- Series -->
-        ${t.map((g, u) => {
-      const p = Le[u % Le.length];
+        ${t.map((g, m) => {
+      const p = Le[m % Le.length];
       if (d) {
-        const v = m(g.values[0] ?? 0);
+        const v = u(g.values[0] ?? 0);
         return i`<g class="series">
               <line
                 x1=${r.left} y1=${v}
@@ -6865,7 +6865,7 @@ let pe = class extends y {
               </circle>
             </g>`;
       }
-      const b = g.values.map((v, T) => `${h(T)},${m(v)}`).join(" ");
+      const b = g.values.map((v, T) => `${h(T)},${u(v)}`).join(" ");
       return i`<g class="series">
             <polyline
               points=${b}
@@ -6875,7 +6875,7 @@ let pe = class extends y {
               vector-effect="non-scaling-stroke"
             ><title>${g.ga}</title></polyline>
             ${g.values.map(
-        (v, T) => i`<circle cx=${h(T)} cy=${m(v)} r="2" fill=${p}>
+        (v, T) => i`<circle cx=${h(T)} cy=${u(v)} r="2" fill=${p}>
                 <title>${g.ga}: ${v}</title>
               </circle>`
       )}
@@ -6884,10 +6884,10 @@ let pe = class extends y {
       </svg>
       <div class="legend">
         ${t.map(
-      (g, u) => i`<span class="legend-item">
+      (g, m) => i`<span class="legend-item">
             <span
               class="dot"
-              style=${`background: ${Le[u % Le.length]}`}
+              style=${`background: ${Le[m % Le.length]}`}
             ></span>
             <code>${g.ga}</code>
           </span>`
@@ -6991,7 +6991,7 @@ function ya(e) {
   }
   return null;
 }
-let ue = class extends y {
+let me = class extends y {
   constructor() {
     super(...arguments), this.points = [], this.width = 600, this.height = 80;
   }
@@ -7002,7 +7002,7 @@ let ue = class extends y {
         Wertverlauf: zu wenige numerische Datenpunkte
         (${e.length} von ${this.points.length}).
       </p>`;
-    const t = e.map((v) => v.value), s = Math.min(...t), a = Math.max(...t), r = a - s || 1, n = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - n.left - n.right, d = this.height - n.top - n.bottom, h = (v) => n.left + v / Math.max(1, e.length - 1) * o, m = (v) => n.top + (1 - (v - s) / r) * d, g = e.map((v, T) => `${h(T)},${m(v.value)}`).join(" "), p = [...t.slice(1).map((v, T) => Math.abs(v - t[T]))].sort((v, T) => v - T), b = p[Math.floor(p.length / 2)];
+    const t = e.map((v) => v.value), s = Math.min(...t), a = Math.max(...t), r = a - s || 1, n = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - n.left - n.right, d = this.height - n.top - n.bottom, h = (v) => n.left + v / Math.max(1, e.length - 1) * o, u = (v) => n.top + (1 - (v - s) / r) * d, g = e.map((v, T) => `${h(T)},${u(v.value)}`).join(" "), p = [...t.slice(1).map((v, T) => Math.abs(v - t[T]))].sort((v, T) => v - T), b = p[Math.floor(p.length / 2)];
     return i`
       <div class="wrap">
         <svg
@@ -7034,7 +7034,7 @@ let ue = class extends y {
     `;
   }
 };
-ue.styles = [
+me.styles = [
   L,
   x`
       :host {
@@ -7076,16 +7076,16 @@ ue.styles = [
 ];
 Me([
   w({ attribute: !1 })
-], ue.prototype, "points", 2);
+], me.prototype, "points", 2);
 Me([
   w({ type: Number })
-], ue.prototype, "width", 2);
+], me.prototype, "width", 2);
 Me([
   w({ type: Number })
-], ue.prototype, "height", 2);
-ue = Me([
+], me.prototype, "height", 2);
+me = Me([
   k("knx-value-sparkline")
-], ue);
+], me);
 const xa = "";
 var $a = Object.defineProperty, ka = Object.getOwnPropertyDescriptor, _ = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? ka(t, s) : t, n = e.length - 1, o; n >= 0; n--)
@@ -7348,9 +7348,9 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         o,
         d,
         h,
-        m,
-        g,
         u,
+        g,
+        m,
         p,
         b,
         v,
@@ -7429,7 +7429,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           )
         )
       ]);
-      this._summary = o, this._top = d.items, this._topBySource = h.items, this._busHealth = m, this._silence = g, this._orphans = u, this._alarms = p, this._busload = b, this._health = v, this._longTerm = T, this._bursts = _e, this._sensitiveLog = De, this._trend = Qt, this._heatmap = es, this._apiErrors = e, this._apiErrorsDismissed = !1;
+      this._summary = o, this._top = d.items, this._topBySource = h.items, this._busHealth = u, this._silence = g, this._orphans = m, this._alarms = p, this._busload = b, this._health = v, this._longTerm = T, this._bursts = _e, this._sensitiveLog = De, this._trend = Qt, this._heatmap = es, this._apiErrors = e, this._apiErrorsDismissed = !1;
       const nt = d.items.slice(0, 5).map((ts) => ts.ga);
       nt.length > 0 ? this._timeline = await this.api.getKnxStatsTimeline({
         ...r,
@@ -9044,9 +9044,9 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <tbody>
             ${a.slice(0, e).map((r, n) => {
       var p;
-      const o = ((p = this._summary) == null ? void 0 : p.total_telegrams) ?? 0, d = o > 0 ? r.count / o * 100 : 0, h = r.manufacturer ?? "", m = r.device_name ?? "", g = h && m ? `${h} — ${m}` : h || m, u = this._selectedSource === r.dev_source;
+      const o = ((p = this._summary) == null ? void 0 : p.total_telegrams) ?? 0, d = o > 0 ? r.count / o * 100 : 0, h = r.manufacturer ?? "", u = r.device_name ?? "", g = h && u ? `${h} — ${u}` : h || u, m = this._selectedSource === r.dev_source;
       return i`<tr
-                class=${`top-device-row ${u ? "selected" : ""}`}
+                class=${`top-device-row ${m ? "selected" : ""}`}
                 @click=${() => void this._loadSourceDetail(r.dev_source)}
                 title="Geraete-Detail oeffnen"
               >
@@ -9382,7 +9382,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       (p) => this._matchesOrphanFilter(this._orphansMissingFilter, [p.address, p.name, p.dpt])
     ), n = a.filter(
       (p) => this._matchesOrphanFilter(this._orphansExtraFilter, [p.address, p.label])
-    ), o = this._filters.topNOrphansMissing, d = this._filters.topNOrphansExtra, h = r.slice(0, o), m = n.slice(0, d), g = e.missing_in_log.length - s.length, u = e.extra_in_log.length - a.length;
+    ), o = this._filters.topNOrphansMissing, d = this._filters.topNOrphansExtra, h = r.slice(0, o), u = n.slice(0, d), g = e.missing_in_log.length - s.length, m = e.extra_in_log.length - a.length;
     return i`
       <section class="mh-card">
         <header class="card-head">
@@ -9396,7 +9396,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       this._orphansHidePlaceholders = p.target.checked;
     }}
               />
-              <span>Platzhalter ausblenden${this._orphansHidePlaceholders && g + u > 0 ? i` <span class="muted small">(${g + u})</span>` : c}</span>
+              <span>Platzhalter ausblenden${this._orphansHidePlaceholders && g + m > 0 ? i` <span class="muted small">(${g + m})</span>` : c}</span>
             </label>
             <span class="muted small">
               Projekt: ${e.project_total} • geloggt: ${e.log_total}
@@ -9456,7 +9456,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     }}
                 />
                 <ul class="orphans-list extra-list">
-                  ${m.map(
+                  ${u.map(
       (p) => i`<li>
                       <code>${p.address}</code>
                       <span>${p.label ?? "—"}</span>
@@ -11700,10 +11700,10 @@ Pe([
 re = Pe([
   k("severity-override-form")
 ], re);
-var Ga = Object.defineProperty, Ka = Object.getOwnPropertyDescriptor, N = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Ka(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Ka = Object.defineProperty, Ga = Object.getOwnPropertyDescriptor, N = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Ga(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Ga(t, s, r), r;
+  return a && r && Ka(t, s, r), r;
 };
 const Wa = [
   { value: "", label: "Alle Severities" },
@@ -11719,10 +11719,18 @@ const Wa = [
 };
 let z = class extends y {
   constructor() {
-    super(...arguments), this.sourceFilter = null, this._items = [], this._total = 0, this._loading = !1, this._error = null, this._severityFilter = "", this._projectOnly = !1, this._selectedKey = null, this._showOverrides = !1;
+    super(...arguments), this.sourceFilter = null, this._items = [], this._total = 0, this._loading = !1, this._error = null, this._severityFilter = "", this._projectOnly = !1, this._selectedKey = null, this._showOverrides = !1, this._onWindowKeyDown = (e) => {
+      e.key === "Escape" && this._selectedKey !== null && (this._selectedKey = null);
+    };
   }
   async firstUpdated() {
     await this._load();
+  }
+  connectedCallback() {
+    super.connectedCallback(), window.addEventListener("keydown", this._onWindowKeyDown);
+  }
+  disconnectedCallback() {
+    window.removeEventListener("keydown", this._onWindowKeyDown), super.disconnectedCallback();
   }
   updated(e) {
     e.has("sourceFilter") && e.get("sourceFilter") !== void 0 && this._load();
@@ -11755,7 +11763,7 @@ let z = class extends y {
     return this._projectOnly ? this._items.filter((e) => Na(e.code)) : this._items;
   }
   _itemKey(e) {
-    return `${e.code}::${e.ga ?? ""}::${e.last_seen}`;
+    return `${e.code}::${e.ga ?? ""}::${e.source ?? ""}::${e.first_seen}`;
   }
   _onSelect(e) {
     const t = this._itemKey(e);
@@ -11982,9 +11990,22 @@ let z = class extends y {
       e.code,
       t,
       e.evidence
-    ), r = Ra(e.code);
+    ), r = Ra(e.code), n = () => {
+      this._selectedKey = null;
+    };
     return i`
-      <aside class="detail mh-card" data-test="findings-detail">
+      <div
+        class="detail-backdrop"
+        @click=${n}
+        aria-hidden="true"
+      ></div>
+      <aside
+        class="detail-pane mh-card"
+        role="dialog"
+        aria-modal="true"
+        aria-label=${s}
+        data-test="findings-detail"
+      >
         <header class="detail-header">
           <span class=${It[e.severity]}>
             ${e.severity}
@@ -11994,53 +12015,63 @@ let z = class extends y {
             class="mh-btn mh-btn--ghost mh-btn--icon"
             type="button"
             aria-label="Schliessen"
-            @click=${() => this._selectedKey = null}
+            title="Schliessen (Escape)"
+            @click=${n}
           >
             ✕
           </button>
         </header>
-        ${a ? i`<p class="detail-description" data-test="findings-detail-description">
-              ${a}
-            </p>` : c}
-        ${r ? i`<a class="detail-help" href=${r} target="_blank" rel="noopener"
-              >Hilfe / Doku ↗</a
-            >` : c}
-        <dl class="detail-evidence">
-          <dt>Code</dt>
-          <dd>${e.code}</dd>
-          <dt>GA</dt>
-          <dd>${e.ga ?? "(global)"}</dd>
-          <dt>Source</dt>
-          <dd>${e.source ?? "—"}</dd>
-          <dt>First-Seen</dt>
-          <dd>${this._formatTimestamp(e.first_seen)}</dd>
-          <dt>Last-Seen</dt>
-          <dd>${this._formatTimestamp(e.last_seen)}</dd>
-          <dt>Occurrences</dt>
-          <dd>${e.occurrence_count}</dd>
-          <dt>Detector</dt>
-          <dd>${e.detector_version}</dd>
-          ${this._renderEvidenceEntries(e.evidence)}
-        </dl>
-        <div class="detail-actions">
-          ${e.acknowledged ? i`<button
-                class="mh-btn mh-btn--ghost"
-                type="button"
-                data-test="findings-unack-btn"
-                ?disabled=${e.ga === null || this._loading}
-                title="Akzeptanz zurueckziehen — Finding erscheint wieder als ungesehen."
-                @click=${this._unackSelected}
+        <div class="detail-body">
+          ${a ? i`<p
+                class="detail-description"
+                data-test="findings-detail-description"
               >
-                Ack zuruecknehmen
-              </button>` : i`<button
-                class="mh-btn mh-btn--primary"
-                type="button"
-                data-test="findings-ack-btn"
-                ?disabled=${e.ga === null || this._loading}
-                @click=${this._ackSelected}
-              >
-                Ack
-              </button>`}
+                ${a}
+              </p>` : c}
+          ${r ? i`<a
+                class="detail-help"
+                href=${r}
+                target="_blank"
+                rel="noopener"
+                >Hilfe / Doku ↗</a
+              >` : c}
+          <dl class="detail-evidence">
+            <dt>Code</dt>
+            <dd>${e.code}</dd>
+            <dt>GA</dt>
+            <dd>${e.ga ?? "(global)"}</dd>
+            <dt>Source</dt>
+            <dd>${e.source ?? "—"}</dd>
+            <dt>First-Seen</dt>
+            <dd>${this._formatTimestamp(e.first_seen)}</dd>
+            <dt>Last-Seen</dt>
+            <dd>${this._formatTimestamp(e.last_seen)}</dd>
+            <dt>Occurrences</dt>
+            <dd>${e.occurrence_count}</dd>
+            <dt>Detector</dt>
+            <dd>${e.detector_version}</dd>
+            ${this._renderEvidenceEntries(e.evidence)}
+          </dl>
+          <div class="detail-actions">
+            ${e.acknowledged ? i`<button
+                  class="mh-btn mh-btn--ghost"
+                  type="button"
+                  data-test="findings-unack-btn"
+                  ?disabled=${e.ga === null || this._loading}
+                  title="Akzeptanz zurueckziehen — Finding erscheint wieder als ungesehen."
+                  @click=${this._unackSelected}
+                >
+                  Ack zuruecknehmen
+                </button>` : i`<button
+                  class="mh-btn mh-btn--primary"
+                  type="button"
+                  data-test="findings-ack-btn"
+                  ?disabled=${e.ga === null || this._loading}
+                  @click=${this._ackSelected}
+                >
+                  Ack
+                </button>`}
+          </div>
         </div>
       </aside>
     `;
@@ -12203,15 +12234,69 @@ z.styles = [
         font-size: var(--mh-text-xs);
         color: var(--mh-fg-muted);
       }
-      .detail {
-        margin-top: var(--mh-space-3);
+      /* Iter UX-2: rechts-fixed Drawer (analog stats-knx-view).
+         Vorher inline am Listenende. */
+      .detail-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.25);
+        z-index: 100;
+        animation: mh-findings-detail-backdrop-in 160ms ease-out;
+      }
+      .detail-pane {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: clamp(360px, 42vw, 640px);
+        z-index: 101;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        border-left: 1px solid var(--mh-divider);
+        box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: mh-findings-detail-drawer-in 200ms ease-out;
         background: var(--mh-surface);
       }
+      .detail-pane .detail-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: var(--mh-space-3);
+      }
+      @media (max-width: 720px) {
+        .detail-pane {
+          width: 100vw;
+        }
+      }
+      @keyframes mh-findings-detail-backdrop-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes mh-findings-detail-drawer-in {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .detail-backdrop,
+        .detail-pane {
+          animation: none;
+        }
+      }
       .detail-header {
+        flex: 0 0 auto;
+        position: sticky;
+        top: 0;
+        background: var(--mh-surface);
+        border-bottom: 1px solid var(--mh-divider);
+        padding: var(--mh-space-3);
+        z-index: 1;
         display: flex;
         align-items: center;
         gap: var(--mh-space-3);
-        margin-bottom: var(--mh-space-3);
+        margin: 0;
       }
       .detail-code {
         font-family: var(--code-font-family, monospace);
@@ -12296,7 +12381,7 @@ var Va = Object.defineProperty, qa = Object.getOwnPropertyDescriptor, Be = (e, t
   return a && r && Va(t, s, r), r;
 };
 const Nt = "messagehub.stats.subtab", Ja = /* @__PURE__ */ new Set(["live", "knx", "findings"]);
-let me = class extends y {
+let ue = class extends y {
   constructor() {
     super(...arguments), this._tab = this._loadTab(), this._findingsSourceFilter = null, this._onHashChange = () => {
       this._handleHash(window.location.hash);
@@ -12381,7 +12466,7 @@ let me = class extends y {
     `;
   }
 };
-me.styles = [
+ue.styles = [
   L,
   x`
       :host {
@@ -12440,16 +12525,16 @@ me.styles = [
 ];
 Be([
   w({ attribute: !1 })
-], me.prototype, "api", 2);
+], ue.prototype, "api", 2);
 Be([
   l()
-], me.prototype, "_tab", 2);
+], ue.prototype, "_tab", 2);
 Be([
   l()
-], me.prototype, "_findingsSourceFilter", 2);
-me = Be([
+], ue.prototype, "_findingsSourceFilter", 2);
+ue = Be([
   k("stats-view")
-], me);
+], ue);
 var Ya = Object.defineProperty, Za = Object.getOwnPropertyDescriptor, oe = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Za(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);

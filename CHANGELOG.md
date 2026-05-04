@@ -6,6 +6,22 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Behoben (UX)
+- **Iter UX-2 / Findings-View — Mehrfach-Markierung + Drawer-Position.**
+  Zwei nutzersichtbare Bugs im Konfigurations-Check:
+  * **Mehrfach-Markierung beim Klick:** `_itemKey` baute sich aus
+    `code::ga::last_seen`. Bei bus-weiten Findings (`ga=null`) mit
+    gleichem Detector-Code und identischem `last_seen` (z. B. ein
+    Burst RECONNECT_STORM-Erkennungen) kollidierten alle Keys, was
+    beim Klick alle gleichzeitig als selected markierte. Fix: Source
+    in den Key aufgenommen.
+  * **Detail-Pane inline:** Render hing am Listenende und scrollte
+    den Bildschirm. Jetzt rechts-fixed Drawer mit Backdrop, identisch
+    zum Source-/GA-Detail-Pane in stats-knx-view (Slide-In-Animation,
+    Backdrop-Klick + Escape-Taste schliessen).
+  5 neue Vitest (Mehrfach-Markierung, Drawer-Markup, Backdrop-Klick,
+  Escape, korrekter Inhalt pro Source).
+
 ### Geaendert (UX)
 - **Iter UX-1 / Sprint UX — Stille-Alarme zeigen Geraete-Info.**
   Berechtigte User-Beschwerde: der Alarm-Banner sagte nur
