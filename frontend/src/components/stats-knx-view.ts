@@ -4862,6 +4862,7 @@ export class StatsKnxView extends LitElement {
       .alarm-details {
         grid-column: 1 / -1;
         margin-top: var(--mh-space-1);
+        width: 100%;
       }
       .alarm-details summary {
         cursor: pointer;
@@ -4875,11 +4876,17 @@ export class StatsKnxView extends LitElement {
         display: flex;
         flex-direction: column;
         gap: var(--mh-space-1);
+        width: 100%;
       }
       .alarm-device {
         background: var(--mh-surface-2);
         border-radius: var(--mh-radius-sm, 4px);
         padding: var(--mh-space-1) var(--mh-space-2);
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .alarm-device__inner {
+        width: 100%;
       }
       .alarm-device__inner > summary {
         display: flex;
@@ -4887,11 +4894,18 @@ export class StatsKnxView extends LitElement {
         gap: var(--mh-space-1);
         flex-wrap: wrap;
       }
+      /* Iter UX-3 — Tabelle stretcht ueber die volle Card-Breite.
+         Vorher schrumpfte <table> auf shrink-to-fit, weil weder
+         alarm-device noch der innere <details>-Block eine explizite
+         width hatten. Jetzt: alle Container 100% + table-layout fixed
+         mit auto-Spalten + box-sizing border-box, damit das Padding
+         nicht aus dem Banner austritt. */
       .alarm-device__gas {
         width: 100%;
         margin-top: var(--mh-space-2);
         border-collapse: collapse;
         font-size: var(--mh-text-xs);
+        table-layout: auto;
       }
       .alarm-device__gas th,
       .alarm-device__gas td {

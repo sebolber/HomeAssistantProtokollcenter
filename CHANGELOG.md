@@ -7,6 +7,15 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Behoben (UX)
+- **Iter UX-3 / Alarm-Banner — Geraete-Tabelle volle Breite.**
+  Im aufgeklappten silence_alarm-Banner rendete die GA-Tabelle nur
+  auf shrink-to-fit-Breite (~25 % des Banners), weil weder
+  `.alarm-device` noch der innere `<details>`-Wrapper eine explizite
+  Breite hatten. Fix: `width: 100%` + `box-sizing: border-box` auf
+  `.alarm-details`, `.alarm-details__devices`, `.alarm-device`,
+  `.alarm-device__inner` plus `table-layout: auto` auf der Tabelle —
+  Inhalte werden jetzt voll ueber die Banner-Breite ausgenutzt.
+
 - **Iter UX-2 / Findings-View — Mehrfach-Markierung + Drawer-Position.**
   Zwei nutzersichtbare Bugs im Konfigurations-Check:
   * **Mehrfach-Markierung beim Klick:** `_itemKey` baute sich aus
