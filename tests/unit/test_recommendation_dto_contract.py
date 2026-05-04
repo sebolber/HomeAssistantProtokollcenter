@@ -27,12 +27,23 @@ from custom_components.messagehub.storage.knx_stats_repo import KnxStatsReposito
 from custom_components.messagehub.storage.migrations import MigrationRunner
 
 
-_FRONTEND_DTO_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "frontend"
-    / "src"
-    / "api-client.ts"
+_FRONTEND_SRC_DIR = (
+    Path(__file__).resolve().parents[2] / "frontend" / "src"
 )
+
+
+def _concat_frontend_dto_source() -> str:
+    """Iter R5: DTOs leben jetzt in ``api-client.ts`` *und*
+    ``types/*.ts``. Wir konkatenieren alle relevanten Sources, damit
+    der bestehende Regex-Parser unveraendert weiterlaeuft.
+    """
+    parts: list[str] = []
+    parts.append((_FRONTEND_SRC_DIR / "api-client.ts").read_text(encoding="utf-8"))
+    types_dir = _FRONTEND_SRC_DIR / "types"
+    if types_dir.exists():
+        for path in sorted(types_dir.glob("*.ts")):
+            parts.append(path.read_text(encoding="utf-8"))
+    return "\n".join(parts)
 
 _NOW = datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC)
 
@@ -57,7 +68,8 @@ def _extract_interface_fields(
     )
     match = pattern.search(src)
     assert match, (
-        f"Interface {interface_name} nicht in api-client.ts gefunden"
+        f"Interface {interface_name} nicht in api-client.ts oder "
+        "types/*.ts gefunden"
     )
     body = match.group(1)
     fields: set[str] = set()
@@ -78,7 +90,7 @@ def _extract_interface_fields(
 
 
 def test_top_level_dto_fields_match_frontend() -> None:
-    src = _FRONTEND_DTO_PATH.read_text(encoding="utf-8")
+    src = _concat_frontend_dto_source()
     frontend_fields = _extract_interface_fields(
         src, "KnxStatsSourceRecommendationDto"
     )
@@ -100,7 +112,7 @@ def test_top_level_dto_fields_match_frontend() -> None:
 
 
 def test_ga_dto_fields_match_frontend() -> None:
-    src = _FRONTEND_DTO_PATH.read_text(encoding="utf-8")
+    src = _concat_frontend_dto_source()
     fields = _extract_interface_fields(src, "KnxRecommendationGaDto")
     expected = {
         "ga", "label", "dpt", "observed", "recommended_mode",
@@ -112,7 +124,7 @@ def test_ga_dto_fields_match_frontend() -> None:
 
 
 def test_observed_dto_fields_match_frontend() -> None:
-    src = _FRONTEND_DTO_PATH.read_text(encoding="utf-8")
+    src = _concat_frontend_dto_source()
     fields = _extract_interface_fields(src, "KnxRecommendationObservedDto")
     expected = {
         "mode", "confidence", "sample_count", "value_changes",
@@ -179,7 +191,7 @@ async def test_backend_dto_keys_satisfy_frontend_contract(
     payload = device_recommendation_to_dict(reco)
     encoded = json.loads(json.dumps(payload))
 
-    src = _FRONTEND_DTO_PATH.read_text(encoding="utf-8")
+    src = _concat_frontend_dto_source()
     top_required = {
         "dev_source", "headline_mode", "headline_recommendation",
         "confidence", "reasoning", "generated_at", "ga_recommendations",

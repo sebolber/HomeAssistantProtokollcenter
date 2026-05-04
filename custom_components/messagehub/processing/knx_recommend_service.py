@@ -65,6 +65,11 @@ korrespondiert mit einer Wertaenderung. Realistischer Wert: 0.7,
 weil Repeat-Telegramme (Iter REPEAT_APPROXIMATION) ausnahmsweise mal
 identisch sind, der Sender aber konzeptuell on_change ist."""
 
+STDEV_MIN_SAMPLES: Final[int] = 2
+"""``statistics.stdev`` braucht mindestens 2 Werte. Bei < 2 Intervallen
+liefert die Heuristik 0.0, der Klassifikator faellt auf
+``insufficient`` zurueck."""
+
 
 SendMode = Literal["cyclic", "on_change", "hybrid", "silent", "insufficient"]
 Confidence = Literal["high", "medium", "low"]
@@ -218,7 +223,11 @@ def classify_send_mode(
         )
 
     median = statistics.median(intervals)
-    stdev = statistics.stdev(intervals) if len(intervals) >= 2 else 0.0
+    stdev = (
+        statistics.stdev(intervals)
+        if len(intervals) >= STDEV_MIN_SAMPLES
+        else 0.0
+    )
     sorted_intervals = sorted(intervals)
     p95 = _percentile(sorted_intervals, 0.95)
 
