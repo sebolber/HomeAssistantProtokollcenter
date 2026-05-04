@@ -37,6 +37,26 @@ DEFAULT_LLM_MAX_TOKENS = 800
 ALLOWED_LLM_URL_SCHEMES: frozenset[str] = frozenset({"http", "https"})
 
 
+def _has_allowed_url_scheme(url: str) -> bool:
+    """True wenn ``url`` mit einem Whitelist-Schema beginnt.
+
+    Whitelist (http/https) verhindert ``file://``, ``ftp://`` und
+    JS-Injektion via Setting. Leerstring -> ``False``.
+    """
+    if not url:
+        return False
+    lower = url.lower()
+    return any(
+        lower.startswith(f"{scheme}://") for scheme in ALLOWED_LLM_URL_SCHEMES
+    )
+
+
+def _raise_for_bad_url_scheme() -> None:
+    raise ValueError(
+        f"base_url scheme must be one of {sorted(ALLOWED_LLM_URL_SCHEMES)}"
+    )
+
+
 def _validate_url(value: str) -> str:
     """Whitelist-Schema-Check + Trim. Wirft ValueError bei
     ungueltigem Wert (Caller behandelt das als 400-Response).
@@ -44,16 +64,8 @@ def _validate_url(value: str) -> str:
     cleaned = (value or "").strip()
     if not cleaned:
         raise ValueError("base_url must not be empty")
-    lower = cleaned.lower()
-    matched = False
-    for scheme in ALLOWED_LLM_URL_SCHEMES:
-        if lower.startswith(f"{scheme}://"):
-            matched = True
-            break
-    if not matched:
-        raise ValueError(
-            f"base_url scheme must be one of {sorted(ALLOWED_LLM_URL_SCHEMES)}"
-        )
+    if not _has_allowed_url_scheme(cleaned):
+        _raise_for_bad_url_scheme()
     return cleaned
 
 
@@ -231,6 +243,75 @@ def _coerce_optional_str(
     return value
 
 
+# Iter UX-4 Test-Endpoint: Max-Laengen pro Feld, dimensionsgerecht zur
+# UI (BUS-URL bis 500, Modell-Name bis 200, API-Key bis 2000, System-
+# Prompt bis 4000). Werte > Max liefern ValueError -> 400-Response.
+_TEST_OVERRIDE_MAX_LEN_BASE_URL = 500
+_TEST_OVERRIDE_MAX_LEN_MODEL = 200
+_TEST_OVERRIDE_MAX_LEN_API_KEY = 2000
+_TEST_OVERRIDE_MAX_LEN_SYSTEM_PROMPT = 4000
+
+
+def _merge_base_url(stored: str, override: dict[str, Any]) -> str:
+    """Override gewinnt; leeres Override-Feld ist erlaubt (kein
+    Pflichtfeld-Check). Scheme-Check nur bei nicht-leerem Wert.
+    """
+    if "base_url" not in override:
+        return stored
+    raw = _coerce_optional_str(
+        override.get("base_url"), max_len=_TEST_OVERRIDE_MAX_LEN_BASE_URL,
+    )
+    cleaned = (raw or "").strip()
+    if cleaned and not _has_allowed_url_scheme(cleaned):
+        _raise_for_bad_url_scheme()
+    return cleaned
+
+
+def _merge_model(stored: str, override: dict[str, Any]) -> str:
+    if "model" not in override:
+        return stored
+    raw = _coerce_optional_str(
+        override.get("model"), max_len=_TEST_OVERRIDE_MAX_LEN_MODEL,
+    )
+    return (raw or "").strip()
+
+
+def _merge_api_key(stored: str, override: dict[str, Any]) -> str:
+    """``api_key`` weglassen -> stored bleibt; Leerstring -> explizit
+    leer (Loeschen-Semantik).
+    """
+    if "api_key" not in override:
+        return stored
+    raw = _coerce_optional_str(
+        override.get("api_key"), max_len=_TEST_OVERRIDE_MAX_LEN_API_KEY,
+    )
+    return raw if raw is not None else ""
+
+
+def _merge_timeout(stored: float, override: dict[str, Any]) -> float:
+    raw = override.get("timeout_s")
+    if isinstance(raw, (int, float)) and not isinstance(raw, bool):
+        return float(raw)
+    return stored or DEFAULT_LLM_TIMEOUT_S
+
+
+def _merge_max_tokens(stored: int, override: dict[str, Any]) -> int:
+    raw = override.get("max_tokens")
+    if isinstance(raw, int) and not isinstance(raw, bool):
+        return raw
+    return stored or DEFAULT_LLM_MAX_TOKENS
+
+
+def _merge_system_prompt(stored: str, override: dict[str, Any]) -> str:
+    if "system_prompt_override" not in override:
+        return stored
+    raw = _coerce_optional_str(
+        override.get("system_prompt_override"),
+        max_len=_TEST_OVERRIDE_MAX_LEN_SYSTEM_PROMPT,
+    )
+    return raw or ""
+
+
 def merge_test_config(
     stored: ProviderConfig, override: dict[str, Any],
 ) -> ProviderConfig:
@@ -246,62 +327,14 @@ def merge_test_config(
     - ``enabled=True`` wird forciert — der Test soll auch laufen,
       wenn der Master-Toggle noch off ist.
     """
-    if "base_url" in override:
-        base_url_raw = _coerce_optional_str(
-            override.get("base_url"), max_len=500,
-        )
-        base_url = (base_url_raw or "").strip()
-        if base_url:
-            lower = base_url.lower()
-            if not any(
-                lower.startswith(f"{scheme}://")
-                for scheme in ALLOWED_LLM_URL_SCHEMES
-            ):
-                raise ValueError(
-                    f"base_url scheme must be one of "
-                    f"{sorted(ALLOWED_LLM_URL_SCHEMES)}"
-                )
-    else:
-        base_url = stored.base_url
-    if "model" in override:
-        model_raw = _coerce_optional_str(
-            override.get("model"), max_len=200,
-        )
-        model = (model_raw or "").strip()
-    else:
-        model = stored.model
-    if "api_key" in override:
-        api_key_raw = _coerce_optional_str(
-            override.get("api_key"), max_len=2000,
-        )
-        api_key = api_key_raw if api_key_raw is not None else ""
-    else:
-        api_key = stored.api_key
-    raw_timeout = override.get("timeout_s")
-    if isinstance(raw_timeout, (int, float)):
-        timeout_s = float(raw_timeout)
-    else:
-        timeout_s = stored.timeout_s or DEFAULT_LLM_TIMEOUT_S
-    raw_max_tokens = override.get("max_tokens")
-    if isinstance(raw_max_tokens, int) and not isinstance(
-        raw_max_tokens, bool
-    ):
-        max_tokens = raw_max_tokens
-    else:
-        max_tokens = stored.max_tokens or DEFAULT_LLM_MAX_TOKENS
-    if "system_prompt_override" in override:
-        sp_raw = _coerce_optional_str(
-            override.get("system_prompt_override"), max_len=4000,
-        )
-        system_prompt = sp_raw or ""
-    else:
-        system_prompt = stored.system_prompt_override
     return ProviderConfig(
         enabled=True,
-        base_url=base_url,
-        model=model,
-        api_key=api_key,
-        timeout_s=timeout_s,
-        max_tokens=max_tokens,
-        system_prompt_override=system_prompt,
+        base_url=_merge_base_url(stored.base_url, override),
+        model=_merge_model(stored.model, override),
+        api_key=_merge_api_key(stored.api_key, override),
+        timeout_s=_merge_timeout(stored.timeout_s, override),
+        max_tokens=_merge_max_tokens(stored.max_tokens, override),
+        system_prompt_override=_merge_system_prompt(
+            stored.system_prompt_override, override,
+        ),
     )

@@ -225,6 +225,218 @@ def test_redact_includes_default_system_prompt_for_prefill() -> None:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Iter R3: Refactor-Helfer fuer merge_test_config einzeln getestet
+# ---------------------------------------------------------------------------
+
+
+class TestHasAllowedUrlScheme:
+    def test_http_ok(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _has_allowed_url_scheme,
+        )
+        assert _has_allowed_url_scheme("http://localhost") is True
+
+    def test_https_ok(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _has_allowed_url_scheme,
+        )
+        assert _has_allowed_url_scheme("https://api.example.com/v1") is True
+
+    def test_file_rejected(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _has_allowed_url_scheme,
+        )
+        assert _has_allowed_url_scheme("file:///etc/passwd") is False
+
+    def test_javascript_rejected(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _has_allowed_url_scheme,
+        )
+        assert _has_allowed_url_scheme("javascript:alert(1)") is False
+
+    def test_empty_rejected(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _has_allowed_url_scheme,
+        )
+        assert _has_allowed_url_scheme("") is False
+
+    def test_case_insensitive(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _has_allowed_url_scheme,
+        )
+        assert _has_allowed_url_scheme("HTTPS://Api.Example.Com") is True
+
+
+class TestMergeBaseUrl:
+    @staticmethod
+    def _stored() -> str:
+        return "https://api.openai.com/v1"
+
+    def test_not_in_override_returns_stored(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_base_url,
+        )
+        assert _merge_base_url(self._stored(), {}) == self._stored()
+
+    def test_override_replaces(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_base_url,
+        )
+        assert _merge_base_url(
+            self._stored(), {"base_url": "https://groq.com/openai/v1"},
+        ) == "https://groq.com/openai/v1"
+
+    def test_empty_override_allowed(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_base_url,
+        )
+        # Leere Strings duerfen explizit gesetzt werden — kein Pflichtfeld
+        # im Test-Endpoint.
+        assert _merge_base_url(self._stored(), {"base_url": ""}) == ""
+
+    def test_invalid_scheme_raises(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_base_url,
+        )
+        with pytest.raises(ValueError, match="scheme"):
+            _merge_base_url(
+                self._stored(), {"base_url": "file:///etc/passwd"},
+            )
+
+    def test_too_long_raises(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_base_url,
+        )
+        with pytest.raises(ValueError, match="exceeds"):
+            _merge_base_url(
+                self._stored(), {"base_url": "https://" + "a" * 600},
+            )
+
+
+class TestMergeModel:
+    def test_not_in_override_returns_stored(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_model,
+        )
+        assert _merge_model("gpt-4o-mini", {}) == "gpt-4o-mini"
+
+    def test_override_trimmed(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_model,
+        )
+        assert _merge_model("gpt-4o-mini", {"model": "  llama3  "}) == "llama3"
+
+
+class TestMergeApiKey:
+    def test_not_in_override_keeps_stored(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_api_key,
+        )
+        assert _merge_api_key("sk-stored", {}) == "sk-stored"
+
+    def test_empty_string_clears(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_api_key,
+        )
+        assert _merge_api_key("sk-stored", {"api_key": ""}) == ""
+
+    def test_new_value_replaces(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_api_key,
+        )
+        assert _merge_api_key(
+            "sk-stored", {"api_key": "sk-new"},
+        ) == "sk-new"
+
+
+class TestMergeTimeout:
+    def test_int_coerced_to_float(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_timeout,
+        )
+        assert _merge_timeout(15.0, {"timeout_s": 30}) == 30.0
+
+    def test_float_kept(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_timeout,
+        )
+        assert _merge_timeout(15.0, {"timeout_s": 7.5}) == 7.5
+
+    def test_bool_rejected_falls_back_to_stored(self) -> None:
+        # bool ist int-Subklasse — aber semantisch kein Timeout. Stored
+        # gewinnt.
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_timeout,
+        )
+        assert _merge_timeout(15.0, {"timeout_s": True}) == 15.0
+
+    def test_string_falls_back_to_stored(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_timeout,
+        )
+        assert _merge_timeout(15.0, {"timeout_s": "fast"}) == 15.0
+
+    def test_falsy_stored_uses_default(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_timeout,
+        )
+        assert _merge_timeout(0.0, {}) == DEFAULT_LLM_TIMEOUT_S
+
+
+class TestMergeMaxTokens:
+    def test_int_kept(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_max_tokens,
+        )
+        assert _merge_max_tokens(800, {"max_tokens": 1200}) == 1200
+
+    def test_bool_rejected(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_max_tokens,
+        )
+        assert _merge_max_tokens(800, {"max_tokens": True}) == 800
+
+    def test_float_rejected(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_max_tokens,
+        )
+        assert _merge_max_tokens(800, {"max_tokens": 1024.5}) == 800
+
+    def test_falsy_stored_uses_default(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_max_tokens,
+        )
+        assert _merge_max_tokens(0, {}) == DEFAULT_LLM_MAX_TOKENS
+
+
+class TestMergeSystemPrompt:
+    def test_not_in_override_keeps_stored(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_system_prompt,
+        )
+        assert _merge_system_prompt(
+            "Du bist Experte.", {},
+        ) == "Du bist Experte."
+
+    def test_empty_clears(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_system_prompt,
+        )
+        assert _merge_system_prompt(
+            "Du bist Experte.", {"system_prompt_override": ""},
+        ) == ""
+
+    def test_override_replaces(self) -> None:
+        from custom_components.messagehub.processing.recommendation_settings import (  # noqa: PLC0415
+            _merge_system_prompt,
+        )
+        assert _merge_system_prompt(
+            "Du bist Experte.",
+            {"system_prompt_override": "Andere Instruktion"},
+        ) == "Andere Instruktion"
+
+
 class TestStubProvider:
     @pytest.mark.asyncio
     async def test_stub_always_returns_none(self) -> None:
