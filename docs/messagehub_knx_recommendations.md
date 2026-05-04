@@ -221,11 +221,52 @@ Pruefe vor Aktivierung:
 
 ### Kosten / Privacy
 
-Was wird an den Provider gesendet?
-- DPT (z. B. `9.001`) — KNX-Standard, oeffentlich.
-- Hersteller + Modell (falls gepflegt) — User-Eingabe.
-- Kontext: aktueller Modus, Median-Intervall, Sample-Count — keine
-  Wertinhalte, keine GA-Adressen, keine Telegramm-Payloads.
+#### Genau diese Felder gehen pro Aufruf an den Provider:
+
+| Feld | Quelle | Beispiel | Sanitizer |
+|---|---|---|---|
+| `DPT` | `knx_group_addresses.dpt` | `9.001` | Whitelist `a-zA-Z0-9 . _ - / + space`, max 80 Zeichen |
+| `Hersteller` | ETS-Discovery oder User-Override | `hager electro` | dito |
+| `Modell` | ETS-Discovery oder User-Override | `KNX/DALI Gateway TYA670Z` | dito |
+| `observed_mode` | runtime-Klassifikation | `cyclic` / `on_change` / `hybrid` | enum |
+| `median_interval_minutes` | aus Telegramm-Statistik | `19.9` | numerisch |
+| `sample_count` | Anzahl Telegramme im Beobachtungsfenster | `30` | numerisch |
+| `test_request` | nur beim "Verbindung testen"-Knopf | `true` | boolean |
+
+#### Was **nicht** gesendet wird:
+- ❌ GA-Adresse (z. B. `8/4/48`)
+- ❌ Source-Individualadresse (z. B. `1.1.22`)
+- ❌ Telegramm-Werte / Payloads
+- ❌ Label/Bezeichnung der GA (z. B. „R008 Kinderzimmer Mia")
+- ❌ Last-Seen-Timestamps
+
+#### User-Prompt-Struktur (was beim Provider als Text ankommt):
+
+```
+DPT: 9.001
+Hersteller: hager electro
+Modell: KNX/DALI Gateway TYA670Z
+Kontext:
+  - observed_mode: cyclic
+  - median_interval_minutes: 19.9
+  - sample_count: 30
+```
+
+#### Schutz-Schichten (Code-belegt):
+
+1. **Whitelist-Sanitizer** `_safe_str` — Newlines, Backticks, Quotes,
+   Unicode raus → Prompt-Injection-Schutz
+2. **Cache-Key** = sha256 ueber `(provider, model, dpt, manufacturer,
+   device_model, prompt_version)` → bei 88 GAs mit identischem
+   `(DPT, Hersteller, Modell)` faellt **EIN** Aufruf an, der Rest
+   trifft den Cache (30 d TTL)
+3. **Rate-Limit** 5 Calls/Min global (Provider-Cost-Schutz) +
+   5 Calls/Min/User fuer den Test-Knopf
+4. **Audit-Log** mit `api_key_set: bool` + Modell + Latenz —
+   niemals Klartext-Schluessel, niemals Antwort-Inhalte
+5. **System-Prompt-Override** im Settings-UI: User kann den Default-
+   Prompt komplett ersetzen (z. B. zur Beschraenkung auf bestimmte
+   Modi oder fuer eigene Compliance-Vorgaben)
 
 Pro Drawer-Open mit unbekanntem DPT/Modell: 1 Provider-Call
 (< 1000 Tokens). Bei Cache-Hit: 0 Calls.

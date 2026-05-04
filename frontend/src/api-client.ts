@@ -282,6 +282,11 @@ export interface KnxRecommendationObservedDto {
   stdev_interval_s: number | null;
 }
 
+export type KnxRecommendationSource =
+  | "dpt_standard"
+  | "device_model"
+  | "llm";
+
 export interface KnxRecommendationGaDto {
   ga: string;
   label: string | null;
@@ -292,6 +297,10 @@ export interface KnxRecommendationGaDto {
   recommended_hysteresis: string | null;
   severity: KnxRecommendationSeverity;
   rationale: string | null;
+  /** Iter UX-6: Quelle der Empfehlung (DPT-Default / Modell-Override /
+   * LLM-Vorschlag). Frontend rendert das als Pill. ``null`` wenn
+   * keine Empfehlung greift. */
+  source?: KnxRecommendationSource | null;
 }
 
 export interface KnxStatsSourceRecommendationDto {

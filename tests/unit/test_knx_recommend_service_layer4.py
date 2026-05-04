@@ -151,7 +151,11 @@ async def test_layer4_provider_called_when_layers_1_2_have_no_match(
     ga = reco.ga_recommendations[0]
     assert ga.recommended_mode == "on_change"
     assert ga.rationale is not None
-    assert ga.rationale.startswith("[KI]")
+    # Iter UX-6: kein "[KI]"-Praefix mehr — der explizite source-
+    # Marker im DTO ist die saubere Loesung. Rationale enthaelt nur
+    # den LLM-Begruendungstext.
+    assert not ga.rationale.startswith("[KI]")
+    assert ga.source == "llm"
     # Layer-4-Marker im Reasoning
     assert any("Layer 4" in r for r in reco.reasoning)
 
@@ -341,4 +345,6 @@ async def test_layer4_dto_round_trip(db: Database) -> None:
     ga = decoded["ga_recommendations"][0]
     assert ga["recommended_mode"] == "hybrid"
     assert ga["recommended_cycle_minutes"] == [10, 30]
-    assert ga["rationale"].startswith("[KI]")
+    # Iter UX-6: source="llm" macht den Marker explizit, kein
+    # String-Praefix mehr noetig.
+    assert ga["source"] == "llm"

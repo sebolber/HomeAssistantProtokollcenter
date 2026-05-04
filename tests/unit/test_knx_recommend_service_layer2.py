@@ -87,6 +87,8 @@ async def test_layer2_override_changes_recommendation_for_known_model(
     ga = reco.ga_recommendations[0]
     # Layer-2-Override fuer DPT 9.001 → on_change.
     assert ga.recommended_mode == "on_change"
+    # Iter UX-6: source markiert die Override-Quelle.
+    assert ga.source == "device_model"
     # Reasoning enthaelt Layer-2-Marker
     assert any("Layer 2" in r for r in reco.reasoning)
     assert any("hoermann" in r for r in reco.reasoning)

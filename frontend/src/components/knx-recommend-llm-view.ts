@@ -129,6 +129,48 @@ export class KnxRecommendLlmView extends LitElement {
       .llm-test-result dd {
         margin: 0;
       }
+      /* Iter UX-6 — Legende unter System-Prompt-Override */
+      .llm-legend {
+        background: var(--mh-surface-2);
+        border-radius: var(--mh-radius-sm, 4px);
+        padding: var(--mh-space-2);
+      }
+      .llm-legend > summary {
+        cursor: pointer;
+        color: var(--mh-fg-muted);
+        font-size: var(--mh-text-sm);
+      }
+      .llm-legend__cols {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--mh-space-3);
+        margin-top: var(--mh-space-2);
+      }
+      .llm-legend section h4 {
+        margin: 0 0 var(--mh-space-1) 0;
+        font-size: var(--mh-text-sm);
+      }
+      .llm-legend dl {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: var(--mh-space-1) var(--mh-space-2);
+        margin: var(--mh-space-1) 0;
+        font-size: var(--mh-text-xs);
+      }
+      .llm-legend dt {
+        color: var(--mh-fg-muted);
+      }
+      .llm-legend dd {
+        margin: 0;
+      }
+      .llm-legend pre {
+        background: var(--mh-surface);
+        border-radius: var(--mh-radius-sm, 4px);
+        padding: var(--mh-space-2);
+        overflow-x: auto;
+        font-size: var(--mh-text-xs);
+        margin: var(--mh-space-1) 0;
+      }
     `,
   ];
 
@@ -250,6 +292,86 @@ export class KnxRecommendLlmView extends LitElement {
     } finally {
       this._testing = false;
     }
+  }
+
+  // Iter UX-6: Legende unter dem System-Prompt-Override — User sieht
+  // genau welche Variablen ihm im Prompt zur Verfuegung stehen und
+  // welches Antwort-Schema der Service erwartet. Kein Hover-Tooltip,
+  // sondern ein dauerhaft sichtbarer Reference-Block.
+  private _renderPromptLegend(): TemplateResult {
+    return html`
+      <details class="llm-legend" data-test="llm-prompt-legend">
+        <summary>
+          <strong>Legende:</strong> uebergebene Werte &amp; erwartetes
+          Antwort-Schema
+        </summary>
+        <div class="llm-legend__cols">
+          <section>
+            <h4>Eingabe an das LLM</h4>
+            <p class="muted small">
+              Diese Felder werden bei jedem Call mitgesendet
+              (Whitelist-sanitiert, max 80 Zeichen pro String):
+            </p>
+            <dl>
+              <dt><code>DPT</code></dt>
+              <dd>KNX-Datapoint-Type, z. B. <code>9.001</code></dd>
+              <dt><code>Hersteller</code></dt>
+              <dd>aus ETS-Discovery oder User-Override</dd>
+              <dt><code>Modell</code></dt>
+              <dd>aus ETS-Discovery oder User-Override</dd>
+              <dt><code>observed_mode</code></dt>
+              <dd>
+                <code>cyclic</code> / <code>on_change</code> /
+                <code>hybrid</code> (runtime-Klassifikation)
+              </dd>
+              <dt><code>median_interval_minutes</code></dt>
+              <dd>Median-Sendeintervall der GA, numerisch</dd>
+              <dt><code>sample_count</code></dt>
+              <dd>Anzahl Telegramme im Beobachtungsfenster</dd>
+            </dl>
+            <p class="muted small">
+              <strong>Nicht uebermittelt:</strong> GA-Adresse,
+              Source-IA, Telegramm-Werte, GA-Bezeichnung, Last-Seen.
+            </p>
+          </section>
+
+          <section>
+            <h4>Erwartete Antwort (JSON)</h4>
+            <p class="muted small">
+              Antwort-Schema bleibt zwingend, auch beim Override —
+              sonst wird die Antwort verworfen.
+            </p>
+            <pre><code>{
+  "mode": "on_change" | "cyclic" | "hybrid",
+  "cycle_minutes_min": null | int,
+  "cycle_minutes_max": null | int,
+  "hysteresis": null | string,
+  "max_rate_per_min": float,
+  "rationale": string
+}</code></pre>
+            <dl>
+              <dt><code>mode</code></dt>
+              <dd>empfohlener Sende-Modus (Pflicht)</dd>
+              <dt><code>cycle_minutes_min</code> / <code>_max</code></dt>
+              <dd>
+                Heartbeat-Korridor in Minuten;
+                <code>null</code> bei reinem <code>on_change</code>
+              </dd>
+              <dt><code>hysteresis</code></dt>
+              <dd>
+                menschen-lesbarer Hinweis (z. B.
+                <code>"&gt;= 0.5 K"</code>); <code>null</code> bei
+                Boolean-DPTs
+              </dd>
+              <dt><code>max_rate_per_min</code></dt>
+              <dd>Sanity-Cap fuer die Telegrammrate</dd>
+              <dt><code>rationale</code></dt>
+              <dd>kurze WHY-Begruendung (max 2 Saetze)</dd>
+            </dl>
+          </section>
+        </div>
+      </details>
+    `;
   }
 
   private _renderTestResult(): TemplateResult {
@@ -518,7 +640,7 @@ export class KnxRecommendLlmView extends LitElement {
           <label>
             <span>System-Prompt-Override (optional)</span>
             <textarea
-              placeholder="Leer = Default-Prompt"
+              placeholder="Leer = Default-Prompt (siehe Legende unten)"
               .value=${this._draft.system_prompt_override ?? ""}
               ?disabled=${this._saving}
               @input=${(e: InputEvent) =>
@@ -529,10 +651,12 @@ export class KnxRecommendLlmView extends LitElement {
             ></textarea>
             <span class="help">
               Ueberschreibt den eingebauten Prompt. Antwort-Schema bleibt
-              erforderlich (siehe Doku) — sonst kann der Service die
-              Antwort nicht parsen.
+              zwingend (siehe "Erwartete Antwort" unten) — sonst kann der
+              Service die Antwort nicht parsen.
             </span>
           </label>
+
+          ${this._renderPromptLegend()}
 
           <div class="llm-actions">
             <button

@@ -288,6 +288,13 @@ Severity = Literal["ok", "info", "warn", "deviation"]
 """
 
 
+RecommendationSource = Literal["dpt_standard", "device_model", "llm"]
+"""Iter UX-6: Quelle der Empfehlung pro GA — wird vom Frontend als
+Pill in der ``empfohlen``-Spalte gerendert, damit der User auf einen
+Blick sieht, ob ein Layer-1-DPT-Default, ein Layer-2-Modell-Override
+oder ein Layer-4-LLM-Vorschlag greift."""
+
+
 @dataclass(frozen=True, slots=True)
 class GaRecommendation:
     """Empfehlung fuer eine einzelne GA des Geraets."""
@@ -306,6 +313,10 @@ class GaRecommendation:
     rationale: str | None
     """Kurze WHY-Begruendung der DPT-Empfehlung (1:1 aus
     ``DptRecommendation.rationale``)."""
+
+    source: RecommendationSource | None = None
+    """Iter UX-6: Quelle der Empfehlung. ``None`` wenn keine
+    Empfehlung greift (alle Layer leer)."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -387,14 +398,22 @@ def _ga_recommendation(
     Iter L2.2: optionaler ``model_override`` ueberschreibt die Layer-1-
     Empfehlung pro DPT, wenn die Modell-Tabelle einen Eintrag fuer
     diese GA's DPT bereithaelt. Ansonsten greift weiter Layer 1.
+
+    Iter UX-6: setzt ``source`` auf ``device_model`` wenn der Modell-
+    Override greift, sonst ``dpt_standard``. ``None`` wenn kein DPT-
+    Match — der LLM-Fallback (L4) setzt dann sein eigenes ``llm``.
     """
     dpt_reco: DptRecommendation | None = recommend_for_dpt(dpt)
+    source: RecommendationSource | None = (
+        "dpt_standard" if dpt_reco is not None else None
+    )
     if (
         model_override is not None
         and dpt is not None
         and dpt in model_override.dpt_overrides
     ):
         dpt_reco = model_override.dpt_overrides[dpt]
+        source = "device_model"
     severity = _severity_for(
         dpt_reco.mode if dpt_reco is not None else None,
         observation.mode,
@@ -416,6 +435,7 @@ def _ga_recommendation(
         ),
         severity=severity,
         rationale=dpt_reco.rationale if dpt_reco is not None else None,
+        source=source,
     )
 
 
@@ -706,8 +726,11 @@ async def _apply_llm_fallback(
                 recommended_mode=dpt_reco.mode,
                 recommended_cycle_minutes=cycle,
                 recommended_hysteresis=dpt_reco.hysteresis,
-                rationale=f"[KI] {dpt_reco.rationale}",
+                # Iter UX-6: kein "[KI]"-Praefix mehr — der explizite
+                # ``source``-Marker wird im Frontend als Pill gerendert.
+                rationale=dpt_reco.rationale,
                 severity=_severity_for(dpt_reco.mode, ga.observed.mode),
+                source="llm",
             )
         )
         filled += 1
@@ -1011,6 +1034,7 @@ def device_recommendation_to_dict(reco: DeviceRecommendation) -> dict[str, Any]:
                 "recommended_hysteresis": ga.recommended_hysteresis,
                 "severity": ga.severity,
                 "rationale": ga.rationale,
+                "source": ga.source,
             }
             for ga in reco.ga_recommendations
         ],

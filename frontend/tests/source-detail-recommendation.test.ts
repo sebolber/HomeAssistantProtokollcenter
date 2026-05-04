@@ -78,6 +78,7 @@ const RECOMMENDATION: KnxStatsSourceRecommendationDto = {
       severity: "warn",
       rationale:
         "Helligkeit (Lux): natuerliches Licht aendert sich kontinuierlich.",
+      source: "dpt_standard",
     },
   ],
 };
@@ -324,6 +325,83 @@ describe("stats-knx-view recommendation-card (Iter L1.4)", () => {
     const text = cycleCell?.textContent ?? "";
     expect(text).toContain("10–60 Min");
     expect(text).toContain("zyklisch");
+  });
+
+  // Iter UX-6: Source-Pill (DPT / Modell / KI) sichtbar
+  it("Source-Pill 'DPT' bei dpt_standard-Empfehlung", async () => {
+    const api = makeApi();
+    const el = await mount(api);
+    await loadAndSettle(el, "1.1.42");
+    await clickToggle(el);
+
+    const pill = el.shadowRoot!.querySelector(
+      ".recommendation-source-pill",
+    );
+    expect(pill).not.toBeNull();
+    expect(pill?.textContent?.trim()).toBe("DPT");
+  });
+
+  it("Source-Pill 'KI' bei LLM-Empfehlung — sichtbar ohne Hover", async () => {
+    const api = makeApi({
+      ...RECOMMENDATION,
+      ga_recommendations: [
+        {
+          ...RECOMMENDATION.ga_recommendations[0],
+          source: "llm",
+        },
+      ],
+    });
+    const el = await mount(api);
+    await loadAndSettle(el, "1.1.42");
+    await clickToggle(el);
+
+    const pill = el.shadowRoot!.querySelector(
+      ".recommendation-source-pill",
+    );
+    expect(pill?.textContent?.trim()).toBe("KI");
+    // Tooltip mit kompletter Quellen-Erklaerung
+    expect(pill?.getAttribute("title") ?? "").toContain("Layer 4");
+  });
+
+  it("Source-Pill 'Modell' bei device_model-Override", async () => {
+    const api = makeApi({
+      ...RECOMMENDATION,
+      ga_recommendations: [
+        {
+          ...RECOMMENDATION.ga_recommendations[0],
+          source: "device_model",
+        },
+      ],
+    });
+    const el = await mount(api);
+    await loadAndSettle(el, "1.1.42");
+    await clickToggle(el);
+
+    const pill = el.shadowRoot!.querySelector(
+      ".recommendation-source-pill",
+    );
+    expect(pill?.textContent?.trim()).toBe("Modell");
+  });
+
+  it("Keine Source-Pill wenn keine Empfehlung vorliegt", async () => {
+    const api = makeApi({
+      ...RECOMMENDATION,
+      ga_recommendations: [
+        {
+          ...RECOMMENDATION.ga_recommendations[0],
+          recommended_mode: null,
+          source: null,
+        },
+      ],
+    });
+    const el = await mount(api);
+    await loadAndSettle(el, "1.1.42");
+    await clickToggle(el);
+
+    const pill = el.shadowRoot!.querySelector(
+      ".recommendation-source-pill",
+    );
+    expect(pill).toBeNull();
   });
 
   it("Sendezyklus zeigt einzelne Zahl bei min===max", async () => {

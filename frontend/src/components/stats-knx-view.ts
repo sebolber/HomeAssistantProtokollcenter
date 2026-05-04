@@ -2412,7 +2412,8 @@ export class StatsKnxView extends LitElement {
               <td>${this._renderRecommendationModePill(ga.observed.mode)}</td>
               <td>${ga.recommended_mode === null
                 ? html`<span class="muted">—</span>`
-                : this._renderRecommendationModePill(ga.recommended_mode)}</td>
+                : html`${this._renderRecommendationModePill(ga.recommended_mode)}
+                  ${this._renderRecommendationSourcePill(ga.source ?? null)}`}</td>
               <td class="recommendation-cycle">
                 ${this._renderRecommendationCycle(ga)}
               </td>
@@ -2459,6 +2460,34 @@ export class StatsKnxView extends LitElement {
     // hybrid
     return html`<strong>${formatted}</strong>
       <span class="muted small">Heartbeat (zusaetzlich zu Aenderung)</span>`;
+  }
+
+  // Iter UX-6: Quelle-Pill in der "empfohlen"-Spalte. User sieht auf
+  // einen Blick, ob die Empfehlung aus DPT-Standard, Modell-Override
+  // oder LLM stammt — ohne Hover-Tooltip.
+  private _renderRecommendationSourcePill(
+    source: KnxStatsSourceRecommendationDto["ga_recommendations"][number]["source"] | null,
+  ): TemplateResult {
+    if (source === null || source === undefined) return html``;
+    const labels = {
+      dpt_standard: "DPT",
+      device_model: "Modell",
+      llm: "KI",
+    } as const;
+    const titles = {
+      dpt_standard: "Quelle: DPT-Standard-Tabelle (Layer 1)",
+      device_model: "Quelle: Modell-Override (Layer 2)",
+      llm: "Quelle: LLM-Vorschlag (Layer 4) — bitte manuell pruefen",
+    } as const;
+    const variants = {
+      dpt_standard: "mh-pill--neutral",
+      device_model: "mh-pill--info",
+      llm: "mh-pill--caution",
+    } as const;
+    return html`<span
+      class=${`mh-pill ${variants[source]} recommendation-source-pill`}
+      title=${titles[source]}
+    >${labels[source]}</span>`;
   }
 
   private _renderRecommendationSeverityPill(
@@ -4464,6 +4493,11 @@ export class StatsKnxView extends LitElement {
       }
       .recommendation-cycle .muted {
         white-space: normal;
+      }
+      /* Iter UX-6 — Source-Pill in der Empfohlen-Spalte */
+      .recommendation-source-pill {
+        margin-left: var(--mh-space-1);
+        font-size: var(--mh-text-xs);
       }
       .recommendation-card__error {
         display: flex;

@@ -344,6 +344,65 @@ describe("knx-recommend-llm-view (Iter L4.3)", () => {
     expect(err?.textContent ?? "").toContain("429");
   });
 
+  // Iter UX-6: Legende unter System-Prompt-Override
+  it("Prompt-Legende ist im UI sichtbar (Iter UX-6)", async () => {
+    const api = makeApi(CONFIGURED_SETTINGS);
+    const el = await mount(api);
+    const legend = el.shadowRoot!.querySelector(
+      "[data-test='llm-prompt-legend']",
+    );
+    expect(legend).not.toBeNull();
+  });
+
+  it("Legende listet alle Eingabe-Felder", async () => {
+    const api = makeApi(CONFIGURED_SETTINGS);
+    const el = await mount(api);
+    const legend = el.shadowRoot!.querySelector(
+      "[data-test='llm-prompt-legend']",
+    );
+    const text = legend?.textContent ?? "";
+    for (const field of [
+      "DPT",
+      "Hersteller",
+      "Modell",
+      "observed_mode",
+      "median_interval_minutes",
+      "sample_count",
+    ]) {
+      expect(text).toContain(field);
+    }
+  });
+
+  it("Legende zeigt das erwartete JSON-Antwort-Schema", async () => {
+    const api = makeApi(CONFIGURED_SETTINGS);
+    const el = await mount(api);
+    const legend = el.shadowRoot!.querySelector(
+      "[data-test='llm-prompt-legend']",
+    );
+    const text = legend?.textContent ?? "";
+    for (const field of [
+      "mode",
+      "cycle_minutes_min",
+      "cycle_minutes_max",
+      "hysteresis",
+      "max_rate_per_min",
+      "rationale",
+    ]) {
+      expect(text).toContain(field);
+    }
+  });
+
+  it("Legende dokumentiert was NICHT uebermittelt wird", async () => {
+    const api = makeApi(CONFIGURED_SETTINGS);
+    const el = await mount(api);
+    const legend = el.shadowRoot!.querySelector(
+      "[data-test='llm-prompt-legend']",
+    );
+    const text = legend?.textContent ?? "";
+    expect(text).toContain("Nicht uebermittelt");
+    expect(text).toContain("GA-Adresse");
+  });
+
   it("Aktiv-Toggle zeigt Cost-Warnung", async () => {
     const api = makeApi();
     const el = await mount(api);

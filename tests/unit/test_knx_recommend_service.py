@@ -136,6 +136,9 @@ class TestComputeDeviceRecommendation:
         assert ga.recommended_cycle_minutes == (5, 15)
         assert ga.recommended_hysteresis is not None
         assert ga.rationale is not None
+        # Iter UX-6: dpt_standard ist die Quelle (kein Modell-Override
+        # in diesem Test, kein LLM-Fallback noetig).
+        assert ga.source == "dpt_standard"
 
     @pytest.mark.asyncio
     async def test_on_change_switch_matches_recommendation(
@@ -245,7 +248,7 @@ class TestComputeDeviceRecommendation:
         for key in (
             "ga", "label", "dpt", "observed", "recommended_mode",
             "recommended_cycle_minutes", "recommended_hysteresis",
-            "severity", "rationale",
+            "severity", "rationale", "source",
         ):
             assert key in ga_dict
         for key in (

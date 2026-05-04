@@ -7,6 +7,35 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefuegt (UX)
+- **Iter UX-6 / Recommendation-Card — Quellen-Pill + Prompt-Legende.**
+  Bisher war die Quelle einer GA-Empfehlung nur als Text-Praefix
+  `[KI]` im Tooltip sichtbar — User konnte ohne Hover nicht erkennen,
+  ob Layer 1 (DPT), Layer 2 (Modell) oder Layer 4 (LLM) greift. Jetzt:
+  * Backend-DTO bekommt expliziten `source: "dpt_standard" |
+    "device_model" | "llm" | null` pro `GaRecommendation`. Service
+    setzt das beim Verheiraten der Layer (`_ga_recommendation` /
+    `_apply_llm_fallback`); JSON-Serializer gibt's mit aus.
+  * `[KI]`-String-Praefix im rationale entfernt — der explizite
+    Source-Marker macht ihn ueberfluessig (kein toter Code).
+  * Frontend rendert in der "empfohlen"-Spalte einen Pill mit
+    Label `DPT` / `Modell` / `KI` und voller Quellen-Erklaerung im
+    Tooltip. Color-coded: KI ist `caution`, damit User weiss "manuell
+    pruefen".
+  * Legende unter dem System-Prompt-Override (immer sichtbarer
+    Reference-Block, kein Hover): listet die Eingabe-Felder
+    (`DPT`, `Hersteller`, `Modell`, `observed_mode`,
+    `median_interval_minutes`, `sample_count`) plus das erwartete
+    Antwort-JSON-Schema (`mode`, `cycle_minutes_*`, `hysteresis`,
+    `max_rate_per_min`, `rationale`). Listet auch explizit, was
+    NICHT uebermittelt wird (GA-Adresse, Source-IA, Telegramm-Werte,
+    GA-Bezeichnung, Last-Seen).
+  * `docs/messagehub_knx_recommendations.md` um konkrete Tabelle
+    der LLM-Eingaben + Schutz-Schichten erweitert.
+  4 neue Vitest (Source-Pill je Quelle + Prompt-Legende mit
+  Eingabe/Antwort/Privacy). 4 vorhandene Backend-Tests um
+  `source`-Assertion erweitert; Layer-4-Tests prinzipiell von
+  `[KI]`-Praefix auf `source == "llm"` migriert.
+
 - **Iter UX-4 / KI-Empfehlungen — Verbindungs-Test-Knopf.**
   Neuer Knopf "Verbindung testen" in der LLM-Settings-UI. Schickt einen
   kleinen, deterministischen Test-Request (DPT 9.001, Hersteller="test",
