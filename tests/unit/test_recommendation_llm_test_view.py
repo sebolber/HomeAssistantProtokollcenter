@@ -102,16 +102,34 @@ def test_view_writes_audit_log_with_redacted_key() -> None:
     assert "api_key_set" in body_src
 
 
-def test_view_uses_deterministic_test_inputs() -> None:
-    """Input-Whitelist: nur fixe Test-Strings, kein User-Datenleck."""
+def test_view_delegates_to_test_runner() -> None:
+    """Iter R4: Der View ruft ``run_provider_test`` aus dem HA-freien
+    Helfer auf — die deterministischen Inputs leben dort und sind ein
+    Modul-Konstanten-Vertrag (separat getestet).
+    """
     cls = _find_class("KnxRecommendationLlmTestView")
     post = next(
         n for n in cls.body
         if isinstance(n, ast.AsyncFunctionDef) and n.name == "post"
     )
     body_src = ast.unparse(post)
-    assert "dpt='9.001'" in body_src or 'dpt="9.001"' in body_src
-    assert "manufacturer='test'" in body_src or 'manufacturer="test"' in body_src
+    assert "run_provider_test" in body_src
+    assert "serialize_test_result" in body_src
+    assert "incomplete_config_result" in body_src
+
+
+def test_runner_pins_deterministic_inputs() -> None:
+    """Pinning: kein User-Datenleck zum LLM. Inputs muessen statisch sein."""
+    from custom_components.messagehub.processing.recommendation_test_runner import (  # noqa: PLC0415
+        DETERMINISTIC_TEST_CONTEXT,
+        DETERMINISTIC_TEST_DPT,
+        DETERMINISTIC_TEST_MANUFACTURER,
+        DETERMINISTIC_TEST_MODEL,
+    )
+    assert DETERMINISTIC_TEST_DPT == "9.001"
+    assert DETERMINISTIC_TEST_MANUFACTURER == "test"
+    assert DETERMINISTIC_TEST_MODEL == "test"
+    assert DETERMINISTIC_TEST_CONTEXT["test_request"] is True
 
 
 def test_view_returns_400_for_incomplete_config() -> None:

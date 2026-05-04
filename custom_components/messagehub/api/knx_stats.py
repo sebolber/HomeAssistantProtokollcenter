@@ -1566,8 +1566,6 @@ class KnxRecommendationLlmTestView(RequireAdminView):
     name = "api:messagehub:knx-recommend:llm-test"
 
     async def post(self, request: web.Request) -> web.Response:
-        import time as _time  # noqa: PLC0415
-
         from ..processing.openai_chat_provider import OpenAIChatProvider  # noqa: PLC0415
         from ..processing.recommendation_provider import ProviderConfig  # noqa: PLC0415
         from ..processing.recommendation_settings import (  # noqa: PLC0415
@@ -1575,6 +1573,11 @@ class KnxRecommendationLlmTestView(RequireAdminView):
             DEFAULT_LLM_TIMEOUT_S,
             load_provider_config,
             merge_test_config,
+        )
+        from ..processing.recommendation_test_runner import (  # noqa: PLC0415
+            incomplete_config_result,
+            run_provider_test,
+            serialize_test_result,
         )
         from ..storage.settings_repo import SettingsRepository  # noqa: PLC0415
 
@@ -1612,6 +1615,7 @@ class KnxRecommendationLlmTestView(RequireAdminView):
             return self.json_message(str(err), status_code=400)
 
         if not config.base_url or not config.model or not config.api_key:
+            result = incomplete_config_result()
             await audit(
                 request.app["hass"],
                 request,
@@ -1625,18 +1629,7 @@ class KnxRecommendationLlmTestView(RequireAdminView):
                     "api_key_set": bool(config.api_key),
                 },
             )
-            return self.json(
-                {
-                    "ok": False,
-                    "latency_ms": 0.0,
-                    "response": None,
-                    "error": (
-                        "Konfiguration unvollstaendig — base_url, model "
-                        "und api_key sind Pflicht."
-                    ),
-                    "error_category": "incomplete_config",
-                }
-            )
+            return self.json(serialize_test_result(result))
 
         # Provider mit aktivem ``enabled``, damit fetch() durchlaeuft —
         # das gespeicherte ``enabled`` ist fuer den Test irrelevant.
@@ -1649,49 +1642,7 @@ class KnxRecommendationLlmTestView(RequireAdminView):
             max_tokens=config.max_tokens or DEFAULT_LLM_MAX_TOKENS,
             system_prompt_override=config.system_prompt_override,
         )
-        provider = OpenAIChatProvider(test_config)
-
-        # Deterministische Test-Inputs — kein Datenleck.
-        start = _time.monotonic()
-        try:
-            response = await provider.fetch(
-                dpt="9.001",
-                manufacturer="test",
-                model="test",
-                context={
-                    "test_request": True,
-                    "observed_mode": "cyclic",
-                    "median_interval_minutes": 1.0,
-                    "sample_count": 30,
-                },
-            )
-        except Exception as err:
-            elapsed = (_time.monotonic() - start) * 1000.0
-            await audit(
-                request.app["hass"],
-                request,
-                action="knx_recommend_llm_test",
-                target_type="knx_recommend_llm",
-                target_id="settings",
-                details={
-                    "ok": False,
-                    "model": config.model,
-                    "api_key_set": True,
-                    "error_category": "exception",
-                },
-            )
-            return self.json(
-                {
-                    "ok": False,
-                    "latency_ms": round(elapsed, 1),
-                    "response": None,
-                    "error": f"{type(err).__name__}: {err}",
-                    "error_category": "exception",
-                }
-            )
-
-        elapsed_ms = round((_time.monotonic() - start) * 1000.0, 1)
-        ok = response is not None
+        result = await run_provider_test(OpenAIChatProvider(test_config))
         await audit(
             request.app["hass"],
             request,
@@ -1699,42 +1650,14 @@ class KnxRecommendationLlmTestView(RequireAdminView):
             target_type="knx_recommend_llm",
             target_id="settings",
             details={
-                "ok": ok,
+                "ok": result.ok,
                 "model": config.model,
                 "api_key_set": True,
-                "latency_ms": elapsed_ms,
+                "latency_ms": result.latency_ms,
+                "error_category": result.error_category,
             },
         )
-        if not ok:
-            return self.json(
-                {
-                    "ok": False,
-                    "latency_ms": elapsed_ms,
-                    "response": None,
-                    "error": (
-                        "Provider hat keine Empfehlung geliefert "
-                        "(rate-limited, ungueltige Antwort oder leerer "
-                        "Output). Server-Log fuer Details pruefen."
-                    ),
-                    "error_category": "invalid_response",
-                }
-            )
-        return self.json(
-            {
-                "ok": True,
-                "latency_ms": elapsed_ms,
-                "response": {
-                    "mode": response.mode,
-                    "cycle_minutes_min": response.cycle_minutes_min,
-                    "cycle_minutes_max": response.cycle_minutes_max,
-                    "hysteresis": response.hysteresis,
-                    "max_rate_per_min": response.max_rate_per_min,
-                    "rationale": response.rationale,
-                },
-                "error": None,
-                "error_category": None,
-            }
-        )
+        return self.json(serialize_test_result(result))
 
 
 def _flush_recommendation_cache_for(dev_source: str) -> None:
