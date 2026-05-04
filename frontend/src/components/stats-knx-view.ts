@@ -34,6 +34,13 @@ import type {
   KnxStatsTrendDto,
 } from "../api-client.js";
 import { tokens, cards, pills, buttons } from "../styles/tokens.js";
+import {
+  renderRecommendationConfidencePill,
+  renderRecommendationCycle,
+  renderRecommendationModePill,
+  renderRecommendationSeverityPill,
+  renderRecommendationSourcePill,
+} from "./recommendation-pills.js";
 import "./knx-timeline-chart.js";
 import "./knx-value-sparkline.js";
 
@@ -2181,40 +2188,21 @@ export class StatsKnxView extends LitElement {
     return html`<span class="recommendation-card__pills">${modePill} ${confPill}</span>`;
   }
 
+  // Iter R6: Pill-Render in pure ``recommendation-pills`` ausgelagert.
+  // Diese Wrapper bleiben als private Methoden erhalten, weil Subviews
+  // (Headline, GA-Tabelle) die gleichen Aufrufstellen nutzen — der
+  // Bezug zur ``KnxStatsSourceRecommendationDto``-Typisierung bleibt
+  // hier zentral.
   private _renderRecommendationModePill(
     mode: KnxStatsSourceRecommendationDto["headline_mode"],
   ): TemplateResult {
-    const labels: Record<typeof mode, string> = {
-      cyclic: "zyklisch",
-      on_change: "bei Änderung",
-      hybrid: "hybrid",
-      silent: "stumm",
-      insufficient: "zu wenig Daten",
-    };
-    const variants: Record<typeof mode, string> = {
-      cyclic: "mh-pill--info",
-      on_change: "mh-pill--info",
-      hybrid: "mh-pill--caution",
-      silent: "mh-pill--neutral",
-      insufficient: "mh-pill--neutral",
-    };
-    return html`<span class=${`mh-pill ${variants[mode]}`}>${labels[mode]}</span>`;
+    return renderRecommendationModePill(mode);
   }
 
   private _renderRecommendationConfidencePill(
     confidence: KnxStatsSourceRecommendationDto["confidence"],
   ): TemplateResult {
-    const labels = {
-      high: "hohe Konfidenz",
-      medium: "mittlere Konfidenz",
-      low: "niedrige Konfidenz",
-    } as const;
-    const variants = {
-      high: "mh-pill--neutral",
-      medium: "mh-pill--neutral",
-      low: "mh-pill--caution",
-    } as const;
-    return html`<span class=${`mh-pill ${variants[confidence]}`}>${labels[confidence]}</span>`;
+    return renderRecommendationConfidencePill(confidence);
   }
 
   private _renderRecommendationBody(): TemplateResult {
@@ -2433,79 +2421,21 @@ export class StatsKnxView extends LitElement {
   private _renderRecommendationCycle(
     ga: KnxStatsSourceRecommendationDto["ga_recommendations"][number],
   ): TemplateResult {
-    const cycle = ga.recommended_cycle_minutes;
-    const mode = ga.recommended_mode;
-    if (mode === null) return html`<span class="muted">—</span>`;
-    if (mode === "on_change") {
-      return html`<span class="muted small">
-        nur bei Aenderung — kein Heartbeat
-      </span>`;
-    }
-    if (cycle === null) {
-      // cyclic / hybrid ohne Cycle-Korridor — sollte nicht passieren,
-      // aber defensiv: zeige nur den Modus-Hinweis.
-      return mode === "cyclic"
-        ? html`<span class="muted small">zyklisch (Intervall offen)</span>`
-        : html`<span class="muted small">
-            bei Aenderung + Heartbeat (Intervall offen)
-          </span>`;
-    }
-    const [min, max] = cycle;
-    const formatted =
-      min === max ? `${min} Min` : `${min}–${max} Min`;
-    if (mode === "cyclic") {
-      return html`<strong>${formatted}</strong>
-        <span class="muted small">zyklisch</span>`;
-    }
-    // hybrid
-    return html`<strong>${formatted}</strong>
-      <span class="muted small">Heartbeat (zusaetzlich zu Aenderung)</span>`;
+    return renderRecommendationCycle(ga);
   }
 
-  // Iter UX-6: Quelle-Pill in der "empfohlen"-Spalte. User sieht auf
-  // einen Blick, ob die Empfehlung aus DPT-Standard, Modell-Override
-  // oder LLM stammt — ohne Hover-Tooltip.
   private _renderRecommendationSourcePill(
-    source: KnxStatsSourceRecommendationDto["ga_recommendations"][number]["source"] | null,
+    source:
+      | KnxStatsSourceRecommendationDto["ga_recommendations"][number]["source"]
+      | null,
   ): TemplateResult {
-    if (source === null || source === undefined) return html``;
-    const labels = {
-      dpt_standard: "DPT",
-      device_model: "Modell",
-      llm: "KI",
-    } as const;
-    const titles = {
-      dpt_standard: "Quelle: DPT-Standard-Tabelle (Layer 1)",
-      device_model: "Quelle: Modell-Override (Layer 2)",
-      llm: "Quelle: LLM-Vorschlag (Layer 4) — bitte manuell pruefen",
-    } as const;
-    const variants = {
-      dpt_standard: "mh-pill--neutral",
-      device_model: "mh-pill--info",
-      llm: "mh-pill--caution",
-    } as const;
-    return html`<span
-      class=${`mh-pill ${variants[source]} recommendation-source-pill`}
-      title=${titles[source]}
-    >${labels[source]}</span>`;
+    return renderRecommendationSourcePill(source ?? null);
   }
 
   private _renderRecommendationSeverityPill(
     sev: KnxStatsSourceRecommendationDto["ga_recommendations"][number]["severity"],
   ): TemplateResult {
-    const labels = {
-      ok: "ok",
-      info: "info",
-      warn: "abweichend",
-      deviation: "Abweichung",
-    } as const;
-    const variants = {
-      ok: "mh-pill--success",
-      info: "mh-pill--neutral",
-      warn: "mh-pill--caution",
-      deviation: "mh-pill--error",
-    } as const;
-    return html`<span class=${`mh-pill ${variants[sev]}`}>${labels[sev]}</span>`;
+    return renderRecommendationSeverityPill(sev);
   }
 
   // Iter I (knx-detail-panes): Trend-Compare-Block. Severity-Klassi-
