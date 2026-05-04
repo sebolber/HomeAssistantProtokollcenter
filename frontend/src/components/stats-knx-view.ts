@@ -2396,6 +2396,7 @@ export class StatsKnxView extends LitElement {
             <th>DPT</th>
             <th>aktuell</th>
             <th>empfohlen</th>
+            <th>Sendezyklus</th>
             <th>Hysterese</th>
             <th>Severity</th>
           </tr>
@@ -2411,10 +2412,10 @@ export class StatsKnxView extends LitElement {
               <td>${this._renderRecommendationModePill(ga.observed.mode)}</td>
               <td>${ga.recommended_mode === null
                 ? html`<span class="muted">—</span>`
-                : this._renderRecommendationModePill(ga.recommended_mode)}
-                ${ga.recommended_cycle_minutes
-                  ? html`<span class="muted small">(${ga.recommended_cycle_minutes[0]}–${ga.recommended_cycle_minutes[1]} Min)</span>`
-                  : nothing}</td>
+                : this._renderRecommendationModePill(ga.recommended_mode)}</td>
+              <td class="recommendation-cycle">
+                ${this._renderRecommendationCycle(ga)}
+              </td>
               <td>${ga.recommended_hysteresis ?? "—"}</td>
               <td>${this._renderRecommendationSeverityPill(ga.severity)}</td>
             </tr>`,
@@ -2422,6 +2423,42 @@ export class StatsKnxView extends LitElement {
         </tbody>
       </table>
     `;
+  }
+
+  // Iter UX-5: Sendezyklus-Spalte mit klarer, modus-abhaengiger
+  // Beschriftung. Vorher stand nur "(5–30 Min)" hinter dem Modus-Pill —
+  // ohne Kontext, was die Zahl bedeutet (Heartbeat? Maximalrate?
+  // Periode?).
+  private _renderRecommendationCycle(
+    ga: KnxStatsSourceRecommendationDto["ga_recommendations"][number],
+  ): TemplateResult {
+    const cycle = ga.recommended_cycle_minutes;
+    const mode = ga.recommended_mode;
+    if (mode === null) return html`<span class="muted">—</span>`;
+    if (mode === "on_change") {
+      return html`<span class="muted small">
+        nur bei Aenderung — kein Heartbeat
+      </span>`;
+    }
+    if (cycle === null) {
+      // cyclic / hybrid ohne Cycle-Korridor — sollte nicht passieren,
+      // aber defensiv: zeige nur den Modus-Hinweis.
+      return mode === "cyclic"
+        ? html`<span class="muted small">zyklisch (Intervall offen)</span>`
+        : html`<span class="muted small">
+            bei Aenderung + Heartbeat (Intervall offen)
+          </span>`;
+    }
+    const [min, max] = cycle;
+    const formatted =
+      min === max ? `${min} Min` : `${min}–${max} Min`;
+    if (mode === "cyclic") {
+      return html`<strong>${formatted}</strong>
+        <span class="muted small">zyklisch</span>`;
+    }
+    // hybrid
+    return html`<strong>${formatted}</strong>
+      <span class="muted small">Heartbeat (zusaetzlich zu Aenderung)</span>`;
   }
 
   private _renderRecommendationSeverityPill(
@@ -4415,6 +4452,18 @@ export class StatsKnxView extends LitElement {
       }
       .recommendation-card__row--warn {
         background: var(--mh-caution-soft);
+      }
+      /* Iter UX-5 — Sendezyklus-Spalte: Zahl gross, Beschreibung
+         klein darunter. */
+      .recommendation-cycle {
+        white-space: nowrap;
+      }
+      .recommendation-cycle strong {
+        display: block;
+        font-family: var(--ha-font-family-code, ui-monospace, monospace);
+      }
+      .recommendation-cycle .muted {
+        white-space: normal;
       }
       .recommendation-card__error {
         display: flex;

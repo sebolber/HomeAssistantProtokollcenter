@@ -265,6 +265,91 @@ describe("stats-knx-view recommendation-card (Iter L1.4)", () => {
     expect(html).toContain("50 lux");
   });
 
+  // Iter UX-5: Sendezyklus klar lesbar.
+  it("Sendezyklus-Spalte zeigt 'Heartbeat' bei hybrid-Empfehlung", async () => {
+    const api = makeApi();
+    const el = await mount(api);
+    await loadAndSettle(el, "1.1.42");
+    await clickToggle(el);
+
+    const cycleCell = el.shadowRoot!.querySelector(
+      ".recommendation-card__row .recommendation-cycle",
+    );
+    expect(cycleCell).not.toBeNull();
+    const text = cycleCell!.textContent ?? "";
+    expect(text).toContain("5–15 Min");
+    expect(text).toContain("Heartbeat");
+  });
+
+  it("Sendezyklus-Spalte zeigt 'nur bei Aenderung' fuer on_change", async () => {
+    const api = makeApi({
+      ...RECOMMENDATION,
+      ga_recommendations: [
+        {
+          ...RECOMMENDATION.ga_recommendations[0],
+          recommended_mode: "on_change",
+          recommended_cycle_minutes: null,
+          recommended_hysteresis: null,
+        },
+      ],
+    });
+    const el = await mount(api);
+    await loadAndSettle(el, "1.1.42");
+    await clickToggle(el);
+
+    const cycleCell = el.shadowRoot!.querySelector(
+      ".recommendation-card__row .recommendation-cycle",
+    );
+    expect(cycleCell?.textContent ?? "").toContain("nur bei Aenderung");
+  });
+
+  it("Sendezyklus-Spalte zeigt 'zyklisch' fuer cyclic-Empfehlung", async () => {
+    const api = makeApi({
+      ...RECOMMENDATION,
+      ga_recommendations: [
+        {
+          ...RECOMMENDATION.ga_recommendations[0],
+          recommended_mode: "cyclic",
+          recommended_cycle_minutes: [10, 60],
+        },
+      ],
+    });
+    const el = await mount(api);
+    await loadAndSettle(el, "1.1.42");
+    await clickToggle(el);
+
+    const cycleCell = el.shadowRoot!.querySelector(
+      ".recommendation-card__row .recommendation-cycle",
+    );
+    const text = cycleCell?.textContent ?? "";
+    expect(text).toContain("10–60 Min");
+    expect(text).toContain("zyklisch");
+  });
+
+  it("Sendezyklus zeigt einzelne Zahl bei min===max", async () => {
+    const api = makeApi({
+      ...RECOMMENDATION,
+      ga_recommendations: [
+        {
+          ...RECOMMENDATION.ga_recommendations[0],
+          recommended_mode: "cyclic",
+          recommended_cycle_minutes: [60, 60],
+        },
+      ],
+    });
+    const el = await mount(api);
+    await loadAndSettle(el, "1.1.42");
+    await clickToggle(el);
+
+    const cycleCell = el.shadowRoot!.querySelector(
+      ".recommendation-card__row .recommendation-cycle",
+    );
+    const text = cycleCell?.textContent ?? "";
+    expect(text).toContain("60 Min");
+    // KEINE Range-Notation bei min===max
+    expect(text).not.toContain("60–60");
+  });
+
   it("Zweiter Toggle-Klick kollabiert die Card ohne neuen API-Call", async () => {
     const api = makeApi();
     const el = await mount(api);

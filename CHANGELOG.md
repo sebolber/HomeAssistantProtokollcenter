@@ -7,6 +7,16 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Behoben (UX)
+- **Iter UX-5 / Recommendation-Card — Sendezyklus klar lesbar.**
+  Die "empfohlen"-Spalte zeigte zuvor nur "(5–30 Min)" hinter dem
+  Modus-Pill — ohne Kontext, ob das Heartbeat-Intervall, Maximalrate
+  oder reine Periode bedeutet. Jetzt eigene **Sendezyklus-Spalte**
+  mit modus-abhaengiger Beschriftung:
+  * `on_change` → "nur bei Aenderung — kein Heartbeat"
+  * `cyclic` → fett "10–60 Min" + "zyklisch"
+  * `hybrid` → fett "5–15 Min" + "Heartbeat (zusaetzlich zu Aenderung)"
+  Bei `min===max` keine Range-Notation. 4 neue Vitest.
+
 - **Iter UX-3 / Alarm-Banner — Geraete-Tabelle volle Breite.**
   Im aufgeklappten silence_alarm-Banner rendete die GA-Tabelle nur
   auf shrink-to-fit-Breite (~25 % des Banners), weil weder
