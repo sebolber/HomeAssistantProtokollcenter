@@ -52,8 +52,13 @@ const STORAGE_KEY = "messagehub.knx-stats.filters";
 // Bestandsuser, die NACH dieser Aenderung explizit 1.0 setzen, vor
 // erneuter Migration.
 const DEFAULTS_VERSION_KEY = "messagehub.knx-stats.filters.defaults-version";
-const DEFAULTS_VERSION_CURRENT = "v2";
+const DEFAULTS_VERSION_CURRENT = "v3";
 const LEGACY_MIN_RATE_DEFAULT = 1.0;
+// Iter detail-topn: vorher waren alle topN-Defaults 25 — fuer Detail-
+// Bereiche (Source-Detail-GA-Liste, Findings) zu viel auf einen Blick.
+// Migration setzt nur Stored-Werte, die exakt 25 (= alter Default) sind,
+// auf 10 zurueck. User mit explizitem Wert (50/100/200) bleiben unangetastet.
+const LEGACY_TOP_N_DEFAULT = 25;
 
 // Iter aiohttp-error-ZU9UA: ETS-Platzhalter-Label-Erkennung — gleiche
 // Regex wie in knx-addresses-view.ts (Iter 53). Reale ETS-Projekte
@@ -119,27 +124,51 @@ interface UiFilters {
   topNBusHealth: number; // "Bus-Gesundheit (Wiederholrate)"
   topNHeatmap: number; // "Aktivitaets-Heatmap" (max 30, CSS-Grid)
   topNSiblings: number; // Detail-Pane "Andere GAs des Geraets"
+  topNSourceDetailGas: number; // Source-Detail "GAs dieses Geraets"
+  topNSourceDetailFindings: number; // Source-Detail "Findings dieses Geraets"
+  topNGaFindings: number; // GA-Detail "Erkannte Muster"
   minRate: number;
   includeAck: boolean;
 }
 
+// Iter detail-topn: alle topN-Defaults 25 → 10 gesenkt. Detail-Bereiche
+// (Source-Detail-GA-Liste, Findings) waren bei 25 mit zu viel Inhalt
+// vollgepackt; im Hauptbereich kann der User pro Card hochdrehen, wenn
+// er mehr braucht. Heatmap bleibt 10 (war auch vorher Default).
 const DEFAULT_FILTERS: UiFilters = {
   periodId: "24h",
-  topN: 25,
-  topNDevices: 25,
-  topNAudit: 25,
-  topNBursts: 25,
-  topNLongTerm: 25,
-  topNTrend: 25,
-  topNOrphansMissing: 25,
-  topNOrphansExtra: 25,
-  topNSilence: 25,
-  topNBusHealth: 25,
+  topN: 10,
+  topNDevices: 10,
+  topNAudit: 10,
+  topNBursts: 10,
+  topNLongTerm: 10,
+  topNTrend: 10,
+  topNOrphansMissing: 10,
+  topNOrphansExtra: 10,
+  topNSilence: 10,
+  topNBusHealth: 10,
   topNHeatmap: 10,
-  topNSiblings: 25,
+  topNSiblings: 10,
+  topNSourceDetailGas: 10,
+  topNSourceDetailFindings: 10,
+  topNGaFindings: 10,
   minRate: 0.0,
   includeAck: true,
 };
+
+const TOP_N_KEYS_TO_MIGRATE: ReadonlyArray<keyof UiFilters> = [
+  "topN",
+  "topNDevices",
+  "topNAudit",
+  "topNBursts",
+  "topNLongTerm",
+  "topNTrend",
+  "topNOrphansMissing",
+  "topNOrphansExtra",
+  "topNSilence",
+  "topNBusHealth",
+  "topNSiblings",
+];
 
 function loadFilters(): UiFilters {
   let stored: Partial<UiFilters> | null = null;
@@ -163,6 +192,11 @@ function loadFilters(): UiFilters {
 // einen anderen Wert gesetzt hat (auch 1.5 oder 2.0), behaelt seine
 // Einstellung. Versions-Flag verhindert Doppel-Migration und schuetzt
 // User, die NACH der Migration bewusst 1.0 setzen.
+//
+// Iter detail-topn (v3): zusaetzlich alle topN-Werte, die exakt dem
+// alten Default 25 entsprechen, auf neuen Default 10 zuruecksetzen.
+// Selbe Heuristik wie bei minRate — nur "nie angefasste" Werte
+// werden migriert, explizite User-Werte (50/100/200) bleiben erhalten.
 function migrateFilterDefaults(
   merged: UiFilters,
   stored: Partial<UiFilters> | null,
@@ -180,10 +214,26 @@ function migrateFilterDefaults(
   // Migration nur, wenn der gespeicherte Wert exakt der alte Default ist.
   // Frische User (stored === null) brauchen keine Wert-Migration, wir
   // setzen aber trotzdem den Marker, damit ein spaeterer Save mit User-
-  // Wert 1.0 nicht spaeter migriert wird.
+  // Wert 1.0 / 25 nicht spaeter erneut migriert wird.
   let migrated = merged;
+  let dirty = false;
   if (stored !== null && stored.minRate === LEGACY_MIN_RATE_DEFAULT) {
-    migrated = { ...merged, minRate: DEFAULT_FILTERS.minRate };
+    migrated = { ...migrated, minRate: DEFAULT_FILTERS.minRate };
+    dirty = true;
+  }
+  if (stored !== null) {
+    const patch: Partial<UiFilters> = {};
+    for (const key of TOP_N_KEYS_TO_MIGRATE) {
+      if (stored[key] === LEGACY_TOP_N_DEFAULT) {
+        (patch as Record<string, number>)[key] = DEFAULT_FILTERS[key] as number;
+      }
+    }
+    if (Object.keys(patch).length > 0) {
+      migrated = { ...migrated, ...patch };
+      dirty = true;
+    }
+  }
+  if (dirty) {
     saveFilters(migrated);
   }
   try {
@@ -1056,6 +1106,28 @@ export class StatsKnxView extends LitElement {
 
   private _onTopNSiblings(topNSiblings: number): void {
     this._filters = { ...this._filters, topNSiblings };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
+  // Iter detail-topn: Source-Detail-Pane bekommt eigene TopN-Selektoren
+  // fuer GA-Liste und Findings-Liste. Vorher wurden beide ohne Limit
+  // gerendert, was bei groesseren Geraeten (>20 GAs / >10 Findings)
+  // den Detail-Drawer endlos scrollen liess.
+  private _onTopNSourceDetailGas(topNSourceDetailGas: number): void {
+    this._filters = { ...this._filters, topNSourceDetailGas };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
+  private _onTopNSourceDetailFindings(topNSourceDetailFindings: number): void {
+    this._filters = { ...this._filters, topNSourceDetailFindings };
+    saveFilters(this._filters);
+    this.requestUpdate();
+  }
+
+  private _onTopNGaFindings(topNGaFindings: number): void {
+    this._filters = { ...this._filters, topNGaFindings };
     saveFilters(this._filters);
     this.requestUpdate();
   }
@@ -1946,19 +2018,7 @@ export class StatsKnxView extends LitElement {
         </div>
 
         ${d.findings.length > 0
-          ? html`<div class="findings">
-              <strong>Erkannte Muster:</strong>
-              <ul>
-                ${d.findings.map(
-                  (f) => html`<li class=${`finding-${f.severity}`}>
-                    <span class=${`mh-pill ${this._severityPillClass(f.severity)}`}>
-                      ${f.kind}
-                    </span>
-                    <span>${f.text}</span>
-                  </li>`
-                )}
-              </ul>
-            </div>`
+          ? this._renderGaDetailFindings(d.findings)
           : nothing}
 
         ${d.value_history.length >= 2
@@ -1982,6 +2042,40 @@ export class StatsKnxView extends LitElement {
 
         ${this._renderHaKnxLinks(d)}
     `;
+  }
+
+  // Iter detail-topn: GA-Detail-Findings ("Erkannte Muster") jetzt mit
+  // TopN-Selektor (Default 10) + "und N weitere"-Hinweis. Vorher wurde
+  // die Liste komplett gerendert — bei findingsreichen GAs (DPT-Mismatch
+  // mit vielen unterschiedlichen Mustern) war der Detail-Drawer
+  // entsprechend lang.
+  private _renderGaDetailFindings(
+    findings: ReadonlyArray<KnxStatsGaDetailDto["findings"][number]>,
+  ): TemplateResult {
+    const limit = this._filters.topNGaFindings;
+    const shown = findings.slice(0, limit);
+    const remaining = findings.length - shown.length;
+    return html`<div class="findings">
+      <div class="source-detail-section-head">
+        <strong>Erkannte Muster (${findings.length}):</strong>
+        ${this._renderInlineTopN(limit, (n) =>
+          this._onTopNGaFindings(n),
+        )}
+      </div>
+      <ul>
+        ${shown.map(
+          (f) => html`<li class=${`finding-${f.severity}`}>
+            <span class=${`mh-pill ${this._severityPillClass(f.severity)}`}>
+              ${f.kind}
+            </span>
+            <span>${f.text}</span>
+          </li>`,
+        )}
+      </ul>
+      ${remaining > 0
+        ? html`<p class="muted small">… und ${remaining} weitere</p>`
+        : nothing}
+    </div>`;
   }
 
   /**
@@ -2492,11 +2586,23 @@ export class StatsKnxView extends LitElement {
     if (findings.length === 0) {
       return html``;
     }
+    // Iter detail-topn: TopN-Selektor (Default 10) + "und N weitere"-Hinweis.
+    const limit = this._filters.topNSourceDetailFindings;
+    const shown = findings.slice(0, limit);
+    const remaining = findings.length - shown.length;
     return html`<div class="source-detail-findings">
-      <strong>Findings dieses Geräts (${findings.length}):</strong>
+      <div class="source-detail-section-head">
+        <strong>Findings dieses Geräts (${findings.length}):</strong>
+        ${this._renderInlineTopN(limit, (n) =>
+          this._onTopNSourceDetailFindings(n),
+        )}
+      </div>
       <ul class="source-detail-findings__list">
-        ${findings.map((f) => this._renderSourceDetailFinding(f, d.dev_source))}
+        ${shown.map((f) => this._renderSourceDetailFinding(f, d.dev_source))}
       </ul>
+      ${remaining > 0
+        ? html`<p class="muted small">… und ${remaining} weitere</p>`
+        : nothing}
     </div>`;
   }
 
@@ -2595,8 +2701,18 @@ export class StatsKnxView extends LitElement {
     if (d.gas.length === 0) {
       return html`<p class="muted small">Keine GAs in diesem Zeitraum.</p>`;
     }
+    // Iter detail-topn: TopN-Selektor (Default 10) + "und N weitere"-
+    // Hinweis, identische UX wie Sibling-GAs und Haupttabellen.
+    const limit = this._filters.topNSourceDetailGas;
+    const shown = d.gas.slice(0, limit);
+    const remaining = d.gas.length - shown.length;
     return html`<div class="source-detail-ga-list">
-      <strong>GAs dieses Geräts (${d.ga_count}):</strong>
+      <div class="source-detail-section-head">
+        <strong>GAs dieses Geräts (${d.ga_count}):</strong>
+        ${this._renderInlineTopN(limit, (n) =>
+          this._onTopNSourceDetailGas(n),
+        )}
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -2610,10 +2726,13 @@ export class StatsKnxView extends LitElement {
             </tr>
           </thead>
           <tbody>
-            ${d.gas.map((g) => this._renderSourceDetailGaRow(g))}
+            ${shown.map((g) => this._renderSourceDetailGaRow(g))}
           </tbody>
         </table>
       </div>
+      ${remaining > 0
+        ? html`<p class="muted small">… und ${remaining} weitere</p>`
+        : nothing}
     </div>`;
   }
 
@@ -3737,8 +3856,13 @@ export class StatsKnxView extends LitElement {
         background: var(--mh-bg-hover, rgba(0, 0, 0, 0.04));
       }
       .inline-topn__btn.active {
-        background: var(--mh-primary);
-        color: var(--mh-on-primary, white);
+        /* Iter detail-topn: vorher griff diese Regel auf undefinierte
+           Tokens, deren Default-color "white" auf hellen HA-Themes
+           weisse Schrift auf weissem Hintergrund erzeugte. Jetzt die
+           definierten Accent-Tokens (siehe styles/tokens.ts), identisch
+           zu .mh-btn--primary. */
+        background: var(--mh-accent);
+        color: var(--mh-accent-fg);
         font-weight: var(--mh-weight-semibold);
       }
       h3 {
@@ -4765,12 +4889,16 @@ export class StatsKnxView extends LitElement {
       }
       /* Iter aiohttp-error-ZU9UA / UX-P3.3: Header mit Titel links,
          TopN-Selektor rechts. Wrappt bei schmalen Drawer-Breiten. */
-      .siblings__head {
+      .siblings__head,
+      /* Iter detail-topn: gleiche Layout-Logik fuer Source-Detail-
+         GA-Tabelle, Source-Detail-Findings und GA-Detail-Findings. */
+      .source-detail-section-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: var(--mh-space-2);
         flex-wrap: wrap;
+        margin-bottom: var(--mh-space-2);
       }
       .siblings ul {
         list-style: none;

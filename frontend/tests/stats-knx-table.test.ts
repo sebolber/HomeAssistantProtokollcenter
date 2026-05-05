@@ -396,14 +396,14 @@ describe("stats-knx-view top table + detail pane", () => {
     // Inline-TopN-Selektor in der Siblings-Card-Header
     const topnInSiblings = drawer!.querySelector(".siblings .inline-topn");
     expect(topnInSiblings).not.toBeNull();
-    // Default 25 ist aktiv
+    // Iter detail-topn: Default 25 → 10 gesenkt.
     const active = topnInSiblings!.querySelector(".inline-topn__btn.active");
-    expect(active?.textContent?.trim()).toBe("25");
-    // 25 Rows sichtbar (statt aller 30)
+    expect(active?.textContent?.trim()).toBe("10");
+    // 10 Rows sichtbar (statt aller 30)
     const rows = drawer!.querySelectorAll(".siblings ul li.sibling-row");
-    expect(rows.length).toBe(25);
-    // Hinweis "und N weitere"
-    expect(drawer!.textContent).toContain("und 5 weitere");
+    expect(rows.length).toBe(10);
+    // Hinweis "und N weitere" — 30 - 10 = 20
+    expect(drawer!.textContent).toContain("und 20 weitere");
   });
 
   it("schliesst Detail-Pane bei zweitem Click auf gleiche Zeile", async () => {

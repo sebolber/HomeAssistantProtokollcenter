@@ -211,14 +211,15 @@ describe("stats-knx-view filter bar", () => {
     expect(labels).toEqual(["10", "25", "50", "100", "200"]);
   });
 
-  it("Iter aiohttp-error-ZU9UA: Default-Top-N fuer alle Cards ist 25", async () => {
+  it("Iter detail-topn: Default-Top-N fuer alle Cards ist 10 (vorher 25)", async () => {
+    // Iter detail-topn: Default-Senkung 25 → 10. Detail-Bereiche und
+    // Haupt-Cards starten kompakter. Heatmap blieb vorher und nachher 10.
     const el = await mount();
-    // Top-Sender-Card hat default topN=25 → Button "25" ist aktiv.
     const inlineTopns = el.shadowRoot!.querySelectorAll(".inline-topn");
     expect(inlineTopns.length).toBeGreaterThanOrEqual(1);
     for (const wrap of Array.from(inlineTopns)) {
       const active = wrap.querySelector(".inline-topn__btn.active");
-      expect(active?.textContent?.trim()).toBe("25");
+      expect(active?.textContent?.trim()).toBe("10");
     }
   });
 

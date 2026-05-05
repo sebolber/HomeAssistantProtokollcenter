@@ -191,7 +191,7 @@ describe("stats-knx-view minRate default + localStorage migration", () => {
     expect(readMinRateFromInput(el)).toBe(0);
     // Migration-Marker wird trotzdem gesetzt — sonst wuerde ein
     // spaeterer Save mit User-Wert 1.0 beim naechsten Mount migriert.
-    expect(localStorage.getItem(MIGRATION_KEY)).toBe("v2");
+    expect(localStorage.getItem(MIGRATION_KEY)).toBe("v3");
   });
 
   it("Bestandsuser mit altem Default 1.0 ohne Marker wird auf 0.0 migriert", async () => {
@@ -220,7 +220,7 @@ describe("stats-knx-view minRate default + localStorage migration", () => {
 
     const el = await mount();
     expect(readMinRateFromInput(el)).toBe(0);
-    expect(localStorage.getItem(MIGRATION_KEY)).toBe("v2");
+    expect(localStorage.getItem(MIGRATION_KEY)).toBe("v3");
     // Persistierter Filter-Block hat jetzt minRate=0 (damit naechster
     // Mount stabil bleibt).
     const stored = JSON.parse(localStorage.getItem(FILTERS_KEY) ?? "{}");
@@ -237,12 +237,13 @@ describe("stats-knx-view minRate default + localStorage migration", () => {
     const el = await mount();
     expect(readMinRateFromInput(el)).toBe(1.5);
     // Marker trotzdem setzen, damit kein 2. Migration-Run passiert.
-    expect(localStorage.getItem(MIGRATION_KEY)).toBe("v2");
+    expect(localStorage.getItem(MIGRATION_KEY)).toBe("v3");
   });
 
-  it("Migration ist idempotent: nach v2-Marker bleibt minRate=1.0 erhalten", async () => {
-    // User hat NACH der Migration explizit auf 1.0 gestellt.
-    localStorage.setItem(MIGRATION_KEY, "v2");
+  it("Migration ist idempotent: nach v3-Marker bleibt minRate=1.0 erhalten", async () => {
+    // Iter detail-topn: Marker auf "v3" gehoben (TopN-Default-Senkung).
+    // User hat NACH der aktuellen Migration explizit auf 1.0 gestellt.
+    localStorage.setItem(MIGRATION_KEY, "v3");
     localStorage.setItem(
       FILTERS_KEY,
       JSON.stringify({ minRate: 1.0, periodId: "24h" }),
