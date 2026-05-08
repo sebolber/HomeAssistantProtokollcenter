@@ -899,24 +899,78 @@ class KnxStatsRepository:
 
         value wird als String serialisiert (json-konvertierter Repr).
         """
+        await self.insert_raw_batch(
+            [
+                {
+                    "timestamp": timestamp,
+                    "destination": destination,
+                    "source": source,
+                    "telegramtype": telegramtype,
+                    "value": value,
+                    "repeated": repeated,
+                }
+            ]
+        )
+
+    async def insert_raw_batch(self, rows: list[dict[str, Any]]) -> None:
+        """Iter A1: Batch-Insert per executemany() — ein Commit fuer N Rows.
+
+        Erwartet pro Row die gleichen Felder wie ``insert_raw``: timestamp,
+        destination, source, telegramtype, value, repeated. Werte werden
+        als JSON serialisiert (gleiches Format wie ``insert_raw``), damit
+        ``ga_samples`` weiterhin decodieren kann.
+
+        Hot-Path: brauchts oft, daher ``json``-Import lokal nur einmal.
+        """
         import json as _json  # noqa: PLC0415
 
-        try:
-            value_str = _json.dumps(value, default=str, ensure_ascii=False)
-        except (TypeError, ValueError):
-            value_str = str(value)
-        await self._db.execute(
+        if not rows:
+            return
+        params: list[tuple[Any, ...]] = []
+        for row in rows:
+            value: Any = row.get("value")
+            try:
+                value_str = _json.dumps(value, default=str, ensure_ascii=False)
+            except (TypeError, ValueError):
+                value_str = str(value)
+            params.append(
+                (
+                    row["timestamp"],
+                    row["destination"],
+                    row.get("source") or "",
+                    row.get("telegramtype"),
+                    value_str,
+                    1 if row.get("repeated") else 0,
+                )
+            )
+        await self._db.executemany(
             "INSERT INTO knx_raw_telegrams "
             "(timestamp, destination, source, telegramtype, value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
-            (
-                timestamp,
-                destination,
-                source or "",
-                telegramtype,
-                value_str,
-                1 if repeated else 0,
-            ),
+            params,
+        )
+
+    async def increment_counter_batch(
+        self, items: list[tuple[str, str]]
+    ) -> None:
+        """Iter A1: Batch-UPSERT auf knx_telegram_counters.
+
+        SQLite erlaubt ``executemany`` auf INSERT ... ON CONFLICT, weil
+        jede Zeile ihre eigene Affinitaet behaelt. Damit landen mehrere
+        Increments fuer dieselbe ``(ga, hour_bucket)``-Kombi in einem
+        Commit — die Reihenfolge bleibt erhalten, der Counter zaehlt
+        sequentiell hoch.
+        """
+        if not items:
+            return
+        await self._db.executemany(
+            """
+            INSERT INTO knx_telegram_counters (ga, hour_bucket, count)
+            VALUES (?, ?, 1)
+            ON CONFLICT(ga, hour_bucket) DO UPDATE SET
+                count = count + 1
+            """,
+            items,
         )
 
     # --- Schatten-Counter (Iter 16, Phase-2-Vorbereitung) -------------------

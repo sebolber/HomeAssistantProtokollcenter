@@ -6,6 +6,36 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Performance / Hot-Path
+
+- **Iter A1 / Listener-Worker-Queue + Batching.** KNX-Telegramm-
+  Erfassung lief bisher synchron pro Telegramm: pro empfangenem
+  Telegramm wurden ``insert_raw`` + ``increment_counter`` mit jeweils
+  eigenem ``commit()`` gegen die SQLite-DB gefeuert. Bei Reconnect-
+  Storms (~48 Tel/s auf TP1-Vollast) blockierte das den HA-Eventloop
+  und das Lovelace-Panel wurde traege. Jetzt:
+  * Neuer ``KnxIngestWorker`` mit asyncio-Queue (Hard-Cap 5000) und
+    Background-Task. Listener-Hot-Path ruft nur noch ``worker.enqueue``
+    (synchron, nicht-blockierend).
+  * Worker flusht in Bulks von max. 100 Telegrammen pro Commit, oder
+    spaetestens alle 250 ms (was zuerst eintritt). Bei Volllast ergibt
+    das ~2 Flushes/s statt 48 fsyncs/s.
+  * Neue Repo-Methoden ``KnxStatsRepository.insert_raw_batch`` und
+    ``increment_counter_batch`` nutzen ``executemany()`` — ein einziger
+    Commit deckt alle Rows ab. ``insert_raw`` bleibt als Backward-
+    Compat-Wrapper erhalten.
+  * DoS-Schutz: bei voller Queue werden aelteste Eintraege verworfen
+    (``KnxIngestWorker.dropped_count``); der Hot-Path blockiert nie.
+  * Listener-Unload (``_unsub_xknx`` / ``_unsub_event``) stoppt den
+    Worker sauber und flusht pending Telegramme — kein Datenverlust
+    beim HA-Reload.
+  Sechs neue Pytests (Worker-Lifecycle, Batch-Trigger, Disable-Flag,
+  Crash-Resilienz, Queue-Overflow, Final-Flush) plus fuenf Repo-Batch-
+  Tests. ``async_register_knx_listener`` wurde in drei Helper
+  zerlegt (``_make_ingest_callback``, ``_try_register_xknx_hook``,
+  ``_register_knx_event_fallback``), Cognitive Complexity sinkt unter
+  die Sonar-/Ruff-Schwelle.
+
 ### Hinzugefuegt (UX)
 - **Iter UX-6 / Recommendation-Card — Quellen-Pill + Prompt-Legende.**
   Bisher war die Quelle einer GA-Empfehlung nur als Text-Praefix

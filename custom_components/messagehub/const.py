@@ -178,6 +178,26 @@ DEFAULT_KNX_BUS_ANALYSIS_ENABLED: Final[bool] = True
 # Hass-Data-Schluessel fuer den Listener-Guard (in __init__.py gesetzt).
 HASS_KEY_KNX_BUS_ANALYSIS: Final = "_knx_bus_analysis_enabled"
 
+# Iter A1: Listener-Ingest-Worker. Statt pro Telegramm zwei einzelne
+# SQL-Statements (insert_raw + increment_counter) zu feuern, sammelt der
+# Worker Telegramme in einer asyncio-Queue und schreibt sie batched mit
+# `executemany()` in EINEM Commit. Reduziert fsync-Overhead drastisch.
+#
+# Trade-offs:
+# - max_batch_size 100: kompromiss zwischen Latenz (kleine Batches) und
+#   Durchsatz (grosse Batches). Bei 48 Tel/s (TP1-Vollast) ergibt das
+#   ~2 Flushes/s — der User sieht neue Telegramme spaetestens nach
+#   ~50 ms im Stats-Tab.
+# - flush_interval 0.25 s: zweite Flush-Trigger neben Batch-Voll. Bei
+#   leichter Bus-Last (z. B. 5 Tel/s) puffert die Queue ~1 s lang und
+#   flusht trotzdem mind. 4x/s.
+# - max_queue_size 5000: DoS-Schutz. Bei voller TP1-Last (48 Tel/s) und
+#   blockierter DB ueberlebt das ~100 s — danach werden aelteste
+#   Eintraege verworfen. Counter wird inkrementiert ("dropped").
+KNX_INGEST_MAX_BATCH_SIZE: Final[int] = 100
+KNX_INGEST_FLUSH_INTERVAL_SEC: Final[float] = 0.25
+KNX_INGEST_MAX_QUEUE_SIZE: Final[int] = 5000
+
 # Iter 34: Hersteller-spezifische Hinweise fuer Detail-Pane.
 # Erweiterung pflegeleicht: Hersteller-String → kurze Tipps zur ETS-Konfig.
 # Keys werden case-insensitive gegen den ETS-Hersteller-String gematcht
