@@ -8,6 +8,27 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ### Findings-Pipeline
 
+- **Iter B2 / DPT_MISMATCH-Severity + Inferenz haerten.** Bisher lief
+  ``DPT_MISMATCH`` mit Severity ``error``. Die werte-basierte Inferenz
+  ``infer_dpt_from_samples`` lieferte aber 1.001, sobald alle Werte
+  in {0, 1} liegen — ein DPT-5.001-Stellantrieb, der bewusst nur an/aus
+  geschaltet wird, sendet aber {0, 100} und konnte je nach Telegramm-
+  Verteilung false-positiv als 1.001 inferiert werden. Jetzt:
+  * Heuristik ``_classify_int_samples`` haerter:
+    * 1.001 nur, wenn die Werte BEIDE 0 UND 1 enthalten (Wert-Diversitaet).
+      Sequenzen ausschliesslich 0 oder ausschliesslich 1 sind NICHT
+      mehr 1.001 — sie sind nicht entscheidbar.
+    * 5.001 nur bei Werten, die >= 2 sind (sonst koennten es 1.001 sein).
+  * Default-Severity ``DPT_MISMATCH`` heruntergesetzt von ``error`` auf
+    ``warning``. Wer sein ETS-Projekt sauber pflegt, kann via
+    ``knx_finding_severity_overrides`` auf ``error`` hochstufen.
+  * Detector-Version auf ``DPT_MISMATCH/v2`` + ``schema_version=2`` —
+    alte v1-Acks bleiben gueltig (siehe Konzept §9.5).
+  * i18n-Beschreibung in 6 Sprachen erweitert: erklaert das
+    Stellantrieb-Edge-Case und schlaegt den Override-Pfad vor.
+  Acht neue Pytests fuer die Inferenz-Haertung; bestehende Override-
+  Tests an den neuen Default angepasst.
+
 - **Iter B1 / Dedup-Hash auf Identitaets-Felder umgestellt.** Detektoren
   mit kontinuierlich variabler Evidence (RECONNECT_STORM,
   SEND_CYCLE_DRIFT, REPEAT_APPROXIMATION, ...) hashten frueher die

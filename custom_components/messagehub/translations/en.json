@@ -66,7 +66,7 @@
     "codes": {
       "DPT_MISMATCH": {
         "title": "Inferred datapoint type contradicts project DPT",
-        "description": "Auto-detector inferred {inferred_dpt} from {samples} samples (confidence {confidence}). Project DPT is {project_dpt}. Values are likely decoded incorrectly — please verify the ETS project.",
+        "description": "Auto-detector inferred {inferred_dpt} from {samples} samples (confidence {confidence}). Project DPT is {project_dpt}. Values may be decoded incorrectly — please verify the ETS project. Note: actuators (DPT 5.001) that only send 0% and 100% can be mis-inferred as 1.001 — set the severity override to 'info' if that matches your case.",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
       },
       "VALUE_OUT_OF_RANGE": {

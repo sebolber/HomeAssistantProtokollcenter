@@ -295,7 +295,14 @@ KNX_DPT_VALUE_RANGES: Final[dict[str, tuple[float, float]]] = {
 
 KNX_FINDING_DEFAULT_SEVERITIES: Final[dict[str, str]] = {
     # Phase 2 — DPT-Validierung
-    "DPT_MISMATCH": "error",
+    # Iter B2: Severity auf ``warning`` heruntergesetzt — die werte-
+    # basierte DPT-Inferenz kann False-Positives produzieren (z. B.
+    # Stellantriebe, die nur an/aus geschaltet werden, und bei denen
+    # nur {0, 100} sichtbar ist). Erst wenn der Befund mit einer
+    # zweiten Quelle (ETS-Soll, xknx-Tracer) bestaetigt ist, sollte
+    # der User auf ``error`` hochstufen — das geht ueber den
+    # ``knx_finding_severity_overrides``-Pfad.
+    "DPT_MISMATCH": "warning",
     "VALUE_OUT_OF_RANGE": "error",
     # Phase 3 — Konfigurations-Klassiker
     "MULTI_RESPONDER": "warning",

@@ -38,7 +38,11 @@ class TestDptMismatchDetector:
         # Assert
         assert isinstance(finding, Finding)
         assert finding.code == "DPT_MISMATCH"
-        assert finding.severity == "error"
+        # Iter B2: Severity-Default heruntergesetzt von ``error`` auf
+        # ``warning`` (False-Positive-Risiko der werte-basierten
+        # Inferenz). User kann via knx_finding_severity_overrides auf
+        # ``error`` hochstufen, wenn das Projekt eindeutig korrekt ist.
+        assert finding.severity == "warning"
         assert finding.ga == "1/2/3"
         assert finding.evidence == {
             "project_dpt": "9.001",
@@ -48,7 +52,9 @@ class TestDptMismatchDetector:
         }
         assert finding.first_seen == _now()
         assert finding.last_seen == _now()
-        assert finding.detector_version == "DPT_MISMATCH/v1"
+        # Iter B2: schema_version=2 (Heuristik-Tuning), v2-Detector-Version.
+        assert finding.detector_version == "DPT_MISMATCH/v2"
+        assert finding.schema_version == 2
 
     def test_no_finding_when_inferred_matches_project(self) -> None:
         # Arrange — DPTs identisch -> kein Finding.

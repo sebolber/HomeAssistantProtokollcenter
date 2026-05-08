@@ -65,11 +65,26 @@ _DPT_5001_BYTE_MAX: Final = 255  # 8-bit unsigned upper bound (DPT 5.x).
 def _classify_int_samples(int_values: list[int]) -> str | None:
     """Helfer fuer infer_dpt_from_samples — nur Integer-Branche.
 
-    Trennung halt cognitive complexity in der Hauptfunktion gering.
+    Iter B2 (gehaerter):
+    - 1.001 nur, wenn alle Werte in {0,1} UND mindestens beide Werte
+      vorkommen (Wert-Diversitaet). Sequenz ausschliesslich aus 0 oder
+      ausschliesslich 1 ist nicht entscheidbar — koennte ebenso ein
+      Stellantrieb sein, der gerade in seiner Ruhe-/Arbeitslage haengt.
+    - 5.001 nur, wenn mindestens ein Wert >= 2 ist. {0, 100} ist klar
+      Stellantrieb-Profil, {0, 1} koennte ein Schaltkanal sein und wird
+      durch die obige Regel abgefangen.
+    - Werte ausserhalb [0, 255] -> None (out-of-range fuer beide DPTs).
     """
-    if all(v in (0, 1) for v in int_values):
-        return "1.001"
+    if not int_values:
+        return None
+    distinct = set(int_values)
+    if distinct.issubset({0, 1}):
+        # Beide Werte muessen vorkommen, sonst nicht entscheidbar.
+        if distinct == {0, 1}:
+            return "1.001"
+        return None
     if all(0 <= v <= _DPT_5001_BYTE_MAX for v in int_values):
+        # Stellantrieb / Dimmwert: mindestens ein Wert > 1.
         return "5.001"
     return None
 

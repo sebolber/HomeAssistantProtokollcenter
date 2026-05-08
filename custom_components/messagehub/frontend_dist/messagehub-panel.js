@@ -546,8 +546,8 @@ let y = class extends de {
     return te;
   }
 };
-var Ht;
-y._$litElement$ = !0, y.finalized = !0, (Ht = Q.litElementHydrateSupport) == null || Ht.call(Q, { LitElement: y });
+var Ut;
+y._$litElement$ = !0, y.finalized = !0, (Ut = Q.litElementHydrateSupport) == null || Ut.call(Q, { LitElement: y });
 const Ve = Q.litElementPolyfillSupport;
 Ve == null || Ve({ LitElement: y });
 (Q.litElementVersions ?? (Q.litElementVersions = [])).push("4.2.2");
@@ -1450,7 +1450,7 @@ const z = x`
     padding: 4px 10px;
     font-size: var(--mh-text-xs);
   }
-`, Ue = x`
+`, He = x`
   .mh-input,
   .mh-select {
     padding: 8px 12px;
@@ -2036,10 +2036,10 @@ Ae([
 se = Ae([
   k("message-table")
 ], se);
-var Us = Object.defineProperty, Hs = Object.getOwnPropertyDescriptor, qt = (e, t, s, a) => {
-  for (var r = a > 1 ? void 0 : a ? Hs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Hs = Object.defineProperty, Us = Object.getOwnPropertyDescriptor, qt = (e, t, s, a) => {
+  for (var r = a > 1 ? void 0 : a ? Us(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
-  return a && r && Us(t, s, r), r;
+  return a && r && Hs(t, s, r), r;
 };
 const $t = ["error", "warning", "info", "debug"];
 let Ne = class extends y {
@@ -2157,7 +2157,7 @@ qt([
 Ne = qt([
   k("severity-filter")
 ], Ne);
-var Ms = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, He = (e, t, s, a) => {
+var Ms = Object.defineProperty, Bs = Object.getOwnPropertyDescriptor, Ue = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? Bs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && Ms(t, s, r), r;
@@ -2202,16 +2202,16 @@ he.styles = x`
       color: inherit;
     }
   `;
-He([
+Ue([
   w({ attribute: !1 })
 ], he.prototype, "api", 2);
-He([
+Ue([
   w({ attribute: !1 })
 ], he.prototype, "selected", 2);
-He([
+Ue([
   l()
 ], he.prototype, "_sources", 2);
-he = He([
+he = Ue([
   k("source-filter")
 ], he);
 var Ks = Object.defineProperty, js = Object.getOwnPropertyDescriptor, at = (e, t, s, a) => {
@@ -2269,7 +2269,7 @@ var Gs = Object.defineProperty, Ws = Object.getOwnPropertyDescriptor, J = (e, t,
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && Gs(t, s, r), r;
 };
-let U = class extends y {
+let H = class extends y {
   constructor() {
     super(...arguments), this._status = "new", this._tags = [], this._newTag = "", this._runbook = null, this._busy = !1;
   }
@@ -2462,7 +2462,7 @@ let U = class extends y {
     `;
   }
 };
-U.styles = x`
+H.styles = x`
     :host {
       position: fixed;
       top: 0;
@@ -2683,28 +2683,28 @@ U.styles = x`
   `;
 J([
   w({ attribute: !1 })
-], U.prototype, "msg", 2);
+], H.prototype, "msg", 2);
 J([
   w({ attribute: !1 })
-], U.prototype, "api", 2);
+], H.prototype, "api", 2);
 J([
   l()
-], U.prototype, "_status", 2);
+], H.prototype, "_status", 2);
 J([
   l()
-], U.prototype, "_tags", 2);
+], H.prototype, "_tags", 2);
 J([
   l()
-], U.prototype, "_newTag", 2);
+], H.prototype, "_newTag", 2);
 J([
   l()
-], U.prototype, "_runbook", 2);
+], H.prototype, "_runbook", 2);
 J([
   l()
-], U.prototype, "_busy", 2);
-U = J([
+], H.prototype, "_busy", 2);
+H = J([
   k("detail-pane")
-], U);
+], H);
 var Vs = Object.defineProperty, qs = Object.getOwnPropertyDescriptor, M = (e, t, s, a) => {
   for (var r = a > 1 ? void 0 : a ? qs(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
@@ -3770,7 +3770,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
 $.styles = [
   z,
   q,
-  Ue,
+  He,
   ie,
   x`
       section {
@@ -5627,7 +5627,7 @@ const rt = x`
     color: var(--secondary-text-color, #666);
   }
 `;
-let H = class extends y {
+let U = class extends y {
   constructor() {
     super(...arguments), this._items = [], this._newPattern = "", this._newSource = "", this._newSeverity = "info", this._editId = null, this._editDraft = null;
   }
@@ -5776,31 +5776,31 @@ let H = class extends y {
     </tr>`;
   }
 };
-H.styles = rt;
+U.styles = rt;
 S([
   w({ attribute: !1 })
-], H.prototype, "api", 2);
+], U.prototype, "api", 2);
 S([
   l()
-], H.prototype, "_items", 2);
+], U.prototype, "_items", 2);
 S([
   l()
-], H.prototype, "_newPattern", 2);
+], U.prototype, "_newPattern", 2);
 S([
   l()
-], H.prototype, "_newSource", 2);
+], U.prototype, "_newSource", 2);
 S([
   l()
-], H.prototype, "_newSeverity", 2);
+], U.prototype, "_newSeverity", 2);
 S([
   l()
-], H.prototype, "_editId", 2);
+], U.prototype, "_editId", 2);
 S([
   l()
-], H.prototype, "_editDraft", 2);
-H = S([
+], U.prototype, "_editDraft", 2);
+U = S([
   k("mqtt-topics-view")
-], H);
+], U);
 let ae = class extends y {
   constructor() {
     super(...arguments), this._items = [], this._newSource = "", this._newInterval = 3600;
@@ -7447,7 +7447,7 @@ var Ra = Object.defineProperty, Fa = Object.getOwnPropertyDescriptor, _ = (e, t,
     (o = e[n]) && (r = (a ? o(t, s, r) : o(r)) || r);
   return a && r && Ra(t, s, r), r;
 };
-const Xt = "messagehub.knx-stats.filters", At = "messagehub.knx-stats.filters.defaults-version", Pt = "v3", Ua = 1, Ha = 25, Ma = /^[\s\-_=]*$/;
+const Xt = "messagehub.knx-stats.filters", At = "messagehub.knx-stats.filters.defaults-version", Pt = "v3", Ha = 1, Ua = 25, Ma = /^[\s\-_=]*$/;
 function Ba(e, t) {
   const s = (t ?? "").trim();
   return !!(s === "" || Ma.test(s) || s === e);
@@ -7511,10 +7511,10 @@ function qa(e, t) {
   if (s)
     return e;
   let a = e, r = !1;
-  if (t !== null && t.minRate === Ua && (a = { ...a, minRate: Re.minRate }, r = !0), t !== null) {
+  if (t !== null && t.minRate === Ha && (a = { ...a, minRate: Re.minRate }, r = !0), t !== null) {
     const n = {};
     for (const o of Wa)
-      t[o] === Ha && (n[o] = Re[o]);
+      t[o] === Ua && (n[o] = Re[o]);
     Object.keys(n).length > 0 && (a = { ...a, ...n }, r = !0);
   }
   r && A(a);
@@ -11845,7 +11845,7 @@ const it = {
   de: {
     DPT_MISMATCH: {
       title: "Erkannter Datentyp widerspricht Projekt-DPT",
-      description: "Auto-Erkenner liefert {inferred_dpt} aus {samples} Stichproben (Confidence {confidence}). Projekt-DPT ist {project_dpt}. Werte werden vermutlich falsch dekodiert — bitte ETS-Projekt pruefen.",
+      description: "Auto-Erkenner liefert {inferred_dpt} aus {samples} Stichproben (Confidence {confidence}). Projekt-DPT ist {project_dpt}. Werte werden moeglicherweise falsch dekodiert — bitte ETS-Projekt pruefen. Hinweis: bei Stellantrieben (DPT 5.001), die nur 0% und 100% senden, kann der Auto-Erkenner faelschlich 1.001 vermuten — in dem Fall den Severity-Override auf 'info' setzen.",
       help_url: "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
     },
     VALUE_OUT_OF_RANGE: {
@@ -11912,7 +11912,7 @@ const it = {
   en: {
     DPT_MISMATCH: {
       title: "Inferred datapoint type contradicts project DPT",
-      description: "Auto-detector inferred {inferred_dpt} from {samples} samples (confidence {confidence}). Project DPT is {project_dpt}. Values are likely decoded incorrectly — please verify the ETS project.",
+      description: "Auto-detector inferred {inferred_dpt} from {samples} samples (confidence {confidence}). Project DPT is {project_dpt}. Values may be decoded incorrectly — please verify the ETS project. Note: actuators (DPT 5.001) that only send 0% and 100% can be mis-inferred as 1.001 — set the severity override to 'info' if that matches your case.",
       help_url: "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
     },
     VALUE_OUT_OF_RANGE: {
@@ -12106,7 +12106,7 @@ let re = class extends y {
 re.styles = [
   z,
   q,
-  Ue,
+  He,
   ie,
   fe,
   x`
@@ -12557,7 +12557,7 @@ let O = class extends y {
 O.styles = [
   z,
   q,
-  Ue,
+  He,
   ie,
   fe,
   x`
@@ -13197,7 +13197,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
 K.styles = [
   z,
   q,
-  Ue,
+  He,
   ie,
   x`
       :host {
@@ -13469,7 +13469,7 @@ var fr = Object.defineProperty, vr = Object.getOwnPropertyDescriptor, D = (e, t,
 function _r(e) {
   return e.source === "knx-bus" && e.text.includes("(GroupValueRead)");
 }
-const Ut = "messagehub.filters", le = {
+const Ht = "messagehub.filters", le = {
   severity: ["error", "warning", "info"],
   source: "",
   search: "",
@@ -13561,7 +13561,7 @@ let P = class extends y {
   }
   _loadFilters() {
     try {
-      const e = localStorage.getItem(Ut);
+      const e = localStorage.getItem(Ht);
       if (e) return { ...le, ...JSON.parse(e) };
     } catch {
     }
@@ -13569,7 +13569,7 @@ let P = class extends y {
   }
   _persistFilters() {
     try {
-      localStorage.setItem(Ut, JSON.stringify(this._filters));
+      localStorage.setItem(Ht, JSON.stringify(this._filters));
     } catch {
     }
   }

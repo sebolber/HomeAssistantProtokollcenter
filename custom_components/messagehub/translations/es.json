@@ -66,7 +66,7 @@
     "codes": {
       "DPT_MISMATCH": {
         "title": "Tipo de datos detectado contradice el DPT del proyecto",
-        "description": "El detector automático infirió {inferred_dpt} a partir de {samples} muestras (confianza {confidence}). El DPT del proyecto es {project_dpt}. Los valores probablemente se decodifican incorrectamente — verifica el proyecto ETS.",
+        "description": "El auto-detector infirio {inferred_dpt} de {samples} muestras (confianza {confidence}). DPT del proyecto: {project_dpt}. Los valores podrian decodificarse incorrectamente — verifica el proyecto ETS. Nota: actuadores (DPT 5.001) que solo envian 0% y 100% pueden inferirse erroneamente como 1.001 — establece el override de severity en 'info' si es ese el caso.",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
       },
       "VALUE_OUT_OF_RANGE": {

@@ -30,7 +30,10 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
       description:
         "Auto-Erkenner liefert {inferred_dpt} aus {samples} Stichproben " +
         "(Confidence {confidence}). Projekt-DPT ist {project_dpt}. " +
-        "Werte werden vermutlich falsch dekodiert — bitte ETS-Projekt pruefen.",
+        "Werte werden moeglicherweise falsch dekodiert — bitte ETS-Projekt " +
+        "pruefen. Hinweis: bei Stellantrieben (DPT 5.001), die nur 0% und " +
+        "100% senden, kann der Auto-Erkenner faelschlich 1.001 vermuten — " +
+        "in dem Fall den Severity-Override auf 'info' setzen.",
       help_url:
         "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types",
     },
@@ -148,7 +151,10 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
       description:
         "Auto-detector inferred {inferred_dpt} from {samples} samples " +
         "(confidence {confidence}). Project DPT is {project_dpt}. " +
-        "Values are likely decoded incorrectly — please verify the ETS project.",
+        "Values may be decoded incorrectly — please verify the ETS project. " +
+        "Note: actuators (DPT 5.001) that only send 0% and 100% can be " +
+        "mis-inferred as 1.001 — set the severity override to 'info' if " +
+        "that matches your case.",
       help_url:
         "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types",
     },
