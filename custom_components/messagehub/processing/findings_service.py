@@ -70,9 +70,17 @@ async def list_findings_response(
     )
     # F-004: Single-Query Ack-Lookup. Set-Membership ist O(1) pro Item.
     acked_pairs: set[tuple[str, str]] = await _fetch_acked_pairs(repo)
+    # Iter B4: Severity wird zur Laufzeit aus ``resolve_severity``
+    # gezogen — User-Overrides + Default-Wechsel greifen damit AUCH
+    # auf alten DB-Rows. Wir cachen pro Code, damit ein Code-Repeat
+    # nicht jedes Mal die DB belastet.
+    severity_cache: dict[str, str] = {}
     serialized: list[dict[str, Any]] = []
     for item in items:
         item_dict = item.to_dict()
+        item_dict["severity"] = await _resolve_item_severity(
+            repo, item, severity_cache
+        )
         # Bus-weite Findings (ga=None) haben keine eindeutige (ga,code)-
         # Identitaet im Ack-Schema; wir melden sie konsistent als nicht-acked.
         item_dict["acknowledged"] = bool(
@@ -85,6 +93,26 @@ async def list_findings_response(
         "limit": capped_limit,
         "offset": safe_offset,
     }
+
+
+async def _resolve_item_severity(
+    repo: Any, item: Finding, cache: dict[str, str]
+) -> str:
+    """Iter B4: Severity zur Laufzeit aus ``resolve_severity`` ziehen.
+
+    Pro Code wird die Aufloesung gecacht (User-Override + Default).
+    Defensiv: bei einem unbekannten Code (sollte nicht vorkommen, aber
+    Bestand-DBs koennten Code-Reste haben) faellt die Aufloesung auf
+    den Wert aus der Row zurueck.
+    """
+    if item.code in cache:
+        return cache[item.code]
+    try:
+        sev = await repo.resolve_severity(item.code)
+    except (KeyError, AttributeError):
+        sev = item.severity
+    cache[item.code] = sev
+    return sev
 
 
 async def _fetch_acked_pairs(repo: Any) -> set[tuple[str, str]]:

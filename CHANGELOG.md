@@ -41,6 +41,17 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ### Wartbarkeit
 
+- **Iter B4 / Severity zur Laufzeit auflösen.** Bisher kam die Severity
+  beim List-Endpoint direkt aus der DB-Row — User-Overrides oder ein
+  Default-Wechsel im Code wirkten damit nur auf NEU geschriebene
+  Rows; alte Rows behielten ihre alte Severity, der Findings-Tab
+  sortierte inkonsistent (z. B. nach Iter B2 hatten alte
+  ``DPT_MISMATCH``-Rows weiter ``error``, neue ``warning``). Jetzt:
+  ``list_findings_response`` ruft pro Item-Code ``repo.resolve_severity``
+  auf (mit Per-Code-Cache, kein N+1) und uebernimmt das Ergebnis ins
+  DTO. Drei neue Pytests (Override greift; Default greift; Cache
+  kollabiert N-Calls auf 1).
+
 - **Iter A4 / Repository-Pattern in ``findings_runner`` repariert.**
   Drei Helper-Queries (``_samples_for_period``, ``_counts_per_ga``,
   ``_last_seen_per_ga``) griffen direkt auf ``stats_repo._db.fetch_all``
