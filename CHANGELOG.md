@@ -6,6 +6,31 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Findings-Pipeline
+
+- **Iter B1 / Dedup-Hash auf Identitaets-Felder umgestellt.** Detektoren
+  mit kontinuierlich variabler Evidence (RECONNECT_STORM,
+  SEND_CYCLE_DRIFT, REPEAT_APPROXIMATION, ...) hashten frueher die
+  komplette Evidence — der Hash wechselte pro Detector-Run, der UNIQUE-
+  Index griff nicht, ``occurrence_count`` blieb bei 1, die
+  ``knx_findings``-Tabelle wuchs unkontrolliert. Jetzt:
+  * Neue Konstante ``KNX_FINDING_IDENTITY_FIELDS`` definiert pro Code,
+    welche Evidence-Schluessel die Identitaet ausmachen. Variable Werte
+    bleiben in der Evidence (UI rendert sie), fliessen aber nicht in
+    den Hash ein.
+  * SQL-Migration ``0031_knx_findings_source_dedup.sql`` baut den
+    UNIQUE-Index neu auf inkl. ``COALESCE(source, '')`` — Source-
+    bezogene Findings (RECONNECT_STORM mit ga=NULL, IA-spezifisch)
+    werden jetzt korrekt unterschieden. Vorhandene Duplikate werden
+    in der Migration entfernt (jeweils juengste behalten).
+  * UPSERT-Block aktualisiert ``evidence_json`` mit dem neuen Stand,
+    damit der User immer die aktuellen Werte sieht (nicht den ersten
+    Sample).
+  Sechs neue Pytests (Repeat-Run mit wechselnder Evidence dedups; mehrere
+  Sources bleiben getrennt; mehrere Codes kollidieren nicht; Per-GA-Dedup
+  fuer REPEAT_APPROXIMATION + SEND_CYCLE_DRIFT; Evidence-Overwrite zeigt
+  AKTUELLEN Wert).
+
 ### Sicherheit / Sichtbarkeit
 
 - **Iter A3 / ANALYSIS_DISABLED-Finding.** Bisher konnte der User den

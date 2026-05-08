@@ -330,3 +330,74 @@ KNX_FINDING_DEFAULT_SEVERITIES: Final[dict[str, str]] = {
     # ein bewusster Akt sein kann.
     "ANALYSIS_DISABLED": "warning",
 }
+
+
+# Iter B1: Identitaets-Felder pro Finding-Code. Der Dedup-Hash basiert
+# auf einer Teilmenge der Evidence-Felder, NICHT der gesamten Evidence —
+# sonst wuerden kontinuierlich variable Werte (burst_count, factor,
+# ratio, ...) bei jedem Detector-Run einen neuen Hash und damit einen
+# neuen Row erzeugen. ``occurrence_count`` ginge nie hoch.
+#
+# Vertrag:
+# - Schluessel = Finding-Code.
+# - Wert = sortierte Liste der Evidence-Keys, die als ``Identitaet``
+#   dieses Findings gelten. Hash geht ueber Code+GA+Source+Schema-Version
+#   plus diese Felder.
+# - Codes ohne Eintrag fallen auf ``()`` (= reine Code+GA+Source-Identitaet)
+#   zurueck. Damit ist die Voreinstellung "Pro (code, ga, source) genau
+#   ein Finding", was fuer alle Detektoren bis auf VALUE_OUT_OF_RANGE
+#   richtig ist (dort wollen wir pro abweichendem Wert einen Eintrag).
+#
+# Variable Werte stehen weiter in der Evidence — sie werden im UI
+# gerendert und beim Update durch ``record(...)`` ueberschrieben (User
+# sieht den AKTUELLEN Stand). first_seen bleibt erhalten, last_seen +
+# occurrence_count laufen mit.
+KNX_FINDING_IDENTITY_FIELDS: Final[dict[str, tuple[str, ...]]] = {
+    # Phase 2 — DPT-Validierung
+    # DPT_MISMATCH: Soll/Ist sind ueblicherweise stabil; Confidence kann
+    # leicht schwanken. Identitaet = die beiden DPTs, der Rest ist
+    # Observation.
+    "DPT_MISMATCH": ("project_dpt", "inferred_dpt"),
+    # VALUE_OUT_OF_RANGE: jeder neue Out-of-Range-Wert ist ein eigener
+    # Befund — Identitaet enthaelt den Wert.
+    "VALUE_OUT_OF_RANGE": ("dpt", "value"),
+    # Phase 3 — Konfigurations-Klassiker
+    # MULTI_RESPONDER: Identitaet = Set der antwortenden Sources +
+    # Window. count ist Aggregat-Beobachtung.
+    "MULTI_RESPONDER": ("responding_sources", "window_ms"),
+    # READ_NO_RESPONSE: Timeout ist Konfigurations-Konstante.
+    # read_at/expected_until sind variable Beobachtungen.
+    "READ_NO_RESPONSE": ("timeout_sec",),
+    # TOGGLE_LOOP: pro GA EIN Finding (Code+GA reicht); period_ms +
+    # cycles sind Beobachtungen.
+    "TOGGLE_LOOP": (),
+    # MULTI_TIME_MASTER: Identitaet = Source-Set auf der Zeit-GA.
+    "MULTI_TIME_MASTER": ("sources", "clock_dpt"),
+    # Phase 4 — Verhalten ueber Zeit
+    # RECONNECT_STORM: pro Source-IA ein Finding; Burst-Werte sind variabel.
+    "RECONNECT_STORM": (),
+    # SEND_CYCLE_DRIFT: pro GA ein Finding; ratio ist variabel.
+    "SEND_CYCLE_DRIFT": (),
+    # REPEAT_APPROXIMATION: pro GA ein Finding; repeats_per_day variabel.
+    "REPEAT_APPROXIMATION": (),
+    # Phase 5 — Projekt-Integration
+    # ORPHAN_GA: pro GA ein Finding (Period-Strings sind variabel).
+    "ORPHAN_GA": (),
+    # STALE_GA: pro GA ein Finding; days_silent waechst monoton.
+    "STALE_GA": (),
+    # Phase 7 — komplex/letzter
+    # SEND_TO_NOWHERE: pro GA ein Finding; write_at variabel.
+    "SEND_TO_NOWHERE": (),
+    # Iter 5: Bestand
+    "HEALTH_BUSLOAD": (),  # bus-weit, ein Finding
+    "HEALTH_REPEAT_RATE": (),
+    "HEALTH_SILENCE": (),
+    "HEALTH_ALARMS": (),
+    # PATTERN_*: pro GA jeweils ein Finding (kind ist Teil des Codes).
+    "PATTERN_CONSTANT_VALUE": (),
+    "PATTERN_READ_BURST": (),
+    "PATTERN_MULTIPLE_RESPONSE": (),
+    "PATTERN_HEARTBEAT_SPAM": (),
+    # Iter A3
+    "ANALYSIS_DISABLED": (),
+}
