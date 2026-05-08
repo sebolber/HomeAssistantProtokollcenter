@@ -39,6 +39,32 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   0 Byte schrumpft. Neuer Helper ``processing.retention.run_wal_checkpoint``
   + zwei Pytests (Smoke + Idempotenz).
 
+### Frontend / i18n
+
+- **Iter E1 / Single Source of Truth: ``translations/*.json``.** Bisher
+  pflegten wir Findings-Strings in zwei parallelen Quellen — die
+  Backend-``translations/*.json`` (6 Sprachen) und die hartcodierte
+  ``STRINGS``-Tabelle in ``frontend/src/utils/findings-i18n.ts`` (nur
+  DE+EN). User mit HA in IT/FR/ES/NL sahen englische Findings, obwohl
+  die Backend-Translations vorhanden waren. Jetzt:
+  * Neuer Generator ``scripts/generate-findings-i18n.mjs`` liest
+    ``custom_components/messagehub/translations/*.json`` und schreibt
+    ``frontend/src/utils/findings-i18n.generated.ts`` mit allen 6
+    Sprachen + Code-Tabelle.
+  * Generator validiert Vollstaendigkeit: pro Code muessen alle
+    Sprachen ``title``, ``description`` und ``help_url`` liefern;
+    fehlende Codes werfen eine Build-Fehlermeldung.
+  * Frontend-Modul ``findings-i18n.ts`` nutzt das generierte Modul,
+    ``_resolveLang`` deckt jetzt alle 6 Sprachen ab (vorher: nur
+    DE/EN, Rest fiel auf EN zurueck).
+  * Pre-Build-Hook in ``frontend/package.json``: ``prebuild`` /
+    ``pretypecheck`` / ``pretest`` rufen den Generator. Der Hook
+    ist auch via ``npm run i18n:generate`` direkt anstossbar.
+  * Backend-seitiger Vollstaendigkeitstest
+    ``tests/unit/test_translations_completeness.py`` (4 Pytests):
+    alle 6 Sprachen muessen die gleichen Codes liefern; jeder Code
+    aus ``KNX_FINDING_DEFAULT_SEVERITIES`` braucht DE+EN-Strings.
+
 ### Frontend / Komponenten-Architektur
 
 - **Iter D2 / `<mh-drawer>` als wiederverwendbare Detail-Pane-Komponente.**
