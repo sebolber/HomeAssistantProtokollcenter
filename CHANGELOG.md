@@ -39,6 +39,28 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   0 Byte schrumpft. Neuer Helper ``processing.retention.run_wal_checkpoint``
   + zwei Pytests (Smoke + Idempotenz).
 
+### Frontend / Komponenten-Architektur
+
+- **Iter D2 / `<mh-drawer>` als wiederverwendbare Detail-Pane-Komponente.**
+  ``stats-knx-view`` und ``findings-view`` hatten je einen eigenen
+  Drawer (Backdrop, Animation, Escape-Handler) — ~250 Zeilen
+  Duplikat-Code mit divergentem Verhalten. Jetzt:
+  * Neue Komponente ``components/mh-drawer.ts`` mit Slot-API:
+    ``<mh-drawer .open=${bool} @mh-drawer-close=${...}>`` rendert
+    Backdrop + position:fixed-Drawer, Escape-Handler im Window-Layer,
+    prefers-reduced-motion-Schutz, mobile Vollbreite.
+  * ``findings-view`` migriert auf ``<mh-drawer>``; eigener
+    ``_onWindowKeyDown`` entfaellt. Bestandstests an die neue
+    Shadow-DOM-Topologie angepasst.
+  * Sieben neue Vitest fuer ``<mh-drawer>`` selbst (rendert nicht bei
+    open=false; rendert vollstaendig bei open=true; Backdrop-Click /
+    Close-Btn / Escape feuern jeweils mh-drawer-close; Escape ohne
+    open ist no-op; aria-label durchgereicht).
+
+  ``stats-knx-view`` migriert in einer Folge-Iter — der Lift dort ist
+  groesser, weil zwei verschachtelte Drawer existieren (Source-Detail
+  + GA-Detail) und der Refactor mit der D1-Aufteilung zusammenfaellt.
+
 ### Frontend / Live-Updates
 
 - **Iter D5 / WebSocket-Reconnect-Re-Subscribe.** Vorher rief das Panel

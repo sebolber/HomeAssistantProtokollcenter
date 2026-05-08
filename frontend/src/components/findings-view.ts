@@ -22,6 +22,7 @@ import {
   isProjectRelated,
 } from "../utils/findings-i18n.js";
 import "./severity-override-form.js";
+import "./mh-drawer.js";
 
 type SeverityFilter = "" | FindingSeverity;
 
@@ -63,24 +64,8 @@ export class FindingsView extends LitElement {
     await this._load();
   }
 
-  override connectedCallback(): void {
-    super.connectedCallback();
-    // Iter UX-2: Escape schliesst den Detail-Drawer — analog zu
-    // stats-knx-view. window-Level statt document-Level, damit der
-    // Listener im Shadow-DOM zuverlaessig feuert.
-    window.addEventListener("keydown", this._onWindowKeyDown);
-  }
-
-  override disconnectedCallback(): void {
-    window.removeEventListener("keydown", this._onWindowKeyDown);
-    super.disconnectedCallback();
-  }
-
-  private _onWindowKeyDown = (e: KeyboardEvent): void => {
-    if (e.key === "Escape" && this._selectedKey !== null) {
-      this._selectedKey = null;
-    }
-  };
+  // Iter D2: Escape-Handling laeuft jetzt im <mh-drawer>; eigener
+  // window-Listener entfaellt.
 
   override updated(changed: Map<string, unknown>): void {
     // Iter H: bei echter Aenderung der sourceFilter-Property neu laden.
@@ -414,8 +399,16 @@ export class FindingsView extends LitElement {
 
   private _renderDetailPane(): TemplateResult | typeof nothing {
     const selected = this._currentSelection();
-    if (selected === null) return nothing;
     const lang = this._lang();
+    const open = selected !== null;
+    if (!open) {
+      // Iter D2: Drawer wird trotzdem gerendert (open=false rendert nothing),
+      // damit Lit den Komponenten-State stabil haelt.
+      return html`<mh-drawer
+        .open=${false}
+        @mh-drawer-close=${this._onDrawerClose}
+      ></mh-drawer>`;
+    }
     const title = getFindingTitle(selected.code, lang) || selected.code;
     const description = getFindingDescription(
       selected.code,
@@ -423,41 +416,20 @@ export class FindingsView extends LitElement {
       selected.evidence
     );
     const helpUrl = getFindingHelpUrl(selected.code);
-    const close = (): void => {
-      this._selectedKey = null;
-    };
-    // Iter UX-2 Bug-Fix: rechts-fixed Drawer + Backdrop, identisch zum
-    // Source-/GA-Detail-Pane in stats-knx-view. Vorher rendete der
-    // Detail-Block inline ans Listenende und scrollte den Bildschirm.
     return html`
-      <div
-        class="detail-backdrop"
-        @click=${close}
-        aria-hidden="true"
-      ></div>
-      <aside
-        class="detail-pane mh-card"
-        role="dialog"
-        aria-modal="true"
-        aria-label=${title}
-        data-test="findings-detail"
+      <mh-drawer
+        .open=${true}
+        .label=${title}
+        data-test-id="findings-detail"
+        @mh-drawer-close=${this._onDrawerClose}
       >
-        <header class="detail-header">
+        <span slot="header" class="drawer-header-content">
           <span class=${PILL_CLASS_FOR_SEVERITY[selected.severity]}>
             ${selected.severity}
           </span>
           <span class="detail-code" title=${selected.code}>${title}</span>
-          <button
-            class="mh-btn mh-btn--ghost mh-btn--icon"
-            type="button"
-            aria-label="Schliessen"
-            title="Schliessen (Escape)"
-            @click=${close}
-          >
-            ✕
-          </button>
-        </header>
-        <div class="detail-body">
+        </span>
+        <div data-test="findings-detail">
           ${description
             ? html`<p
                 class="detail-description"
@@ -515,9 +487,13 @@ export class FindingsView extends LitElement {
                 </button>`}
           </div>
         </div>
-      </aside>
+      </mh-drawer>
     `;
   }
+
+  private _onDrawerClose = (): void => {
+    this._selectedKey = null;
+  };
 
   private _renderEvidenceEntries(
     evidence: Record<string, unknown>
