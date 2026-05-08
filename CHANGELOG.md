@@ -6,6 +6,24 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Frontend / Live-Updates
+
+- **Iter D5 / WebSocket-Reconnect-Re-Subscribe.** Vorher rief das Panel
+  ``hass.connection.subscribeEvents`` einmal in ``firstUpdated`` und
+  haengte sich nie wieder an. Bei einem WebSocket-Drop (HA-Update,
+  Network-Glitch) blieb die Subscription tot — der User merkte erst
+  beim Reload, dass keine Live-Updates mehr ankommen. Jetzt:
+  * Neuer Wrapper ``LiveSubscription`` (``utils/live-subscribe.ts``).
+    Haengt sich an ``connection.addEventListener("ready")`` und ruft
+    bei jedem Reconnect ``subscribeEvents()`` neu auf.
+  * Saubere Lifecycle-Methoden: ``start()`` / ``stop()`` mit Idempotenz.
+    Beim Reconnect wird die alte Subscription unsubed, die neue
+    ersetzt sie atomar.
+  * Fallback fuer alte HA-Versionen ohne ``addEventListener``: greift
+    nicht ein, ein-malige Subscription bleibt wie bisher.
+  Fuenf neue Vitest (Single-Subscribe, Re-Subscribe-bei-Ready,
+  Event-Forwarding nach Reconnect, Stop-Idempotenz, Backward-Compat).
+
 ### Findings-Pipeline
 
 - **Iter B2 / DPT_MISMATCH-Severity + Inferenz haerten.** Bisher lief

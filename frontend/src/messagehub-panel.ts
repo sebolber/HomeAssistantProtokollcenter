@@ -6,6 +6,7 @@ import { customElement } from "./utils/custom-element.js";
 import { property, state } from "lit/decorators.js";
 import { ApiClient, type MessageDto, type SavedFilterDto } from "./api-client.js";
 import { tokens, buttons } from "./styles/tokens.js";
+import { LiveSubscription } from "./utils/live-subscribe.js";
 import "./components/message-table.js";
 import "./components/severity-filter.js";
 import "./components/source-filter.js";
@@ -84,7 +85,7 @@ export class MessageHubPanel extends LitElement {
   @state() private _savedFiltersOpen = false;
 
   private _api = new ApiClient();
-  private _unsubLive?: () => void;
+  private _liveSub?: LiveSubscription;
 
   protected override firstUpdated(): void {
     if (this.hass?.auth) this._api.setAuth(this.hass.auth.data.access_token);
@@ -102,7 +103,8 @@ export class MessageHubPanel extends LitElement {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._unsubLive?.();
+    void this._liveSub?.stop();
+    this._liveSub = undefined;
     if (typeof window !== "undefined") {
       window.removeEventListener("hashchange", this._onHashChange);
     }
@@ -143,15 +145,27 @@ export class MessageHubPanel extends LitElement {
 
   private async _subscribeLive(): Promise<void> {
     if (!this.hass?.connection?.subscribeEvents) return;
-    this._unsubLive = await this.hass.connection.subscribeEvents((ev) => {
-      const newMsg = ev.data as MessageDto;
-      if (this._matchesFilters(newMsg)) {
-        this._items = [newMsg, ...this._items].slice(0, 200);
-        this._total += 1;
-        this._newCount += 1;
-        window.setTimeout(() => (this._newCount = Math.max(0, this._newCount - 1)), 4000);
-      }
-    }, "messagehub_message_added");
+    // Iter D5: LiveSubscription kapselt subscribeEvents +
+    // Re-Subscribe-Logik bei WS-Reconnect. Vorher haengte die Sub
+    // nach jedem Drop in der Luft und der User merkte erst beim Reload,
+    // dass keine neuen Telegramme mehr kommen.
+    this._liveSub = new LiveSubscription(
+      this.hass.connection,
+      "messagehub_message_added",
+      (ev: { data: unknown }) => {
+        const newMsg = ev.data as MessageDto;
+        if (this._matchesFilters(newMsg)) {
+          this._items = [newMsg, ...this._items].slice(0, 200);
+          this._total += 1;
+          this._newCount += 1;
+          window.setTimeout(
+            () => (this._newCount = Math.max(0, this._newCount - 1)),
+            4000,
+          );
+        }
+      },
+    );
+    await this._liveSub.start();
   }
 
   private _matchesFilters(msg: MessageDto): boolean {
