@@ -33,10 +33,22 @@
       "name": "Add message",
       "description": "Manually adds a message to the message hub.",
       "fields": {
-        "severity": { "name": "Severity", "description": "Severity level" },
-        "source": { "name": "Source", "description": "Logical origin" },
-        "text": { "name": "Text", "description": "Message text" },
-        "metadata": { "name": "Metadata", "description": "Optional extra fields" }
+        "severity": {
+          "name": "Severity",
+          "description": "Severity level"
+        },
+        "source": {
+          "name": "Source",
+          "description": "Logical origin"
+        },
+        "text": {
+          "name": "Text",
+          "description": "Message text"
+        },
+        "metadata": {
+          "name": "Metadata",
+          "description": "Optional extra fields"
+        }
       }
     }
   },
@@ -111,6 +123,11 @@
         "title": "Switching telegram without status echo",
         "description": "Write at {write_at} received no status echo within {status_window_ms} ms on the same GA. Actuator possibly offline, not programmed, or status lives on a separate GA (false positive possible).",
         "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
+      },
+      "ANALYSIS_DISABLED": {
+        "title": "Bus analysis is disabled",
+        "description": "The bus analysis toggle is off — the listener no longer records telegrams to the raw or counter tables. All other findings are suppressed so this tab does not create a false 'all good' impression. Enable the toggle in the KNX bus analysis tab to resume telegram capture.",
+        "help_url": ""
       }
     }
   },

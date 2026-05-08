@@ -324,4 +324,9 @@ KNX_FINDING_DEFAULT_SEVERITIES: Final[dict[str, str]] = {
     "PATTERN_READ_BURST": "warning",
     "PATTERN_MULTIPLE_RESPONSE": "warning",
     "PATTERN_HEARTBEAT_SPAM": "info",
+    # Iter A3: Bus-Analyse-Toggle abgeschaltet — User-bedienbarer
+    # Sichtbarkeits-Marker, dass der Findings-Tab gerade ohne Datenbasis
+    # laeuft. Severity ``warning`` (nicht ``error``), weil das Abschalten
+    # ein bewusster Akt sein kann.
+    "ANALYSIS_DISABLED": "warning",
 }

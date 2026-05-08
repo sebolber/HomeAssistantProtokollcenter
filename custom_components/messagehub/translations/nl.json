@@ -33,10 +33,22 @@
       "name": "Bericht toevoegen",
       "description": "Voegt handmatig een bericht toe aan de message hub.",
       "fields": {
-        "severity": { "name": "Severity", "description": "Niveau" },
-        "source": { "name": "Bron", "description": "Logische herkomst" },
-        "text": { "name": "Tekst", "description": "Berichttekst" },
-        "metadata": { "name": "Metadata", "description": "Optionele extra velden" }
+        "severity": {
+          "name": "Severity",
+          "description": "Niveau"
+        },
+        "source": {
+          "name": "Bron",
+          "description": "Logische herkomst"
+        },
+        "text": {
+          "name": "Tekst",
+          "description": "Berichttekst"
+        },
+        "metadata": {
+          "name": "Metadata",
+          "description": "Optionele extra velden"
+        }
       }
     }
   },
@@ -111,6 +123,11 @@
         "title": "Schakelttelegram zonder status-echo",
         "description": "Write om {write_at} kreeg geen status-echo binnen {status_window_ms} ms op dezelfde GA. Actuator mogelijk offline, niet geprogrammeerd of status op aparte GA (mogelijk vals positief).",
         "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
+      },
+      "ANALYSIS_DISABLED": {
+        "title": "Busanalyse is uitgeschakeld",
+        "description": "De busanalyse-schakelaar staat uit — de listener registreert geen telegrammen meer in de raw- of counter-tabellen. Alle andere findings zijn onderdrukt zodat dit tabblad geen valse 'alles OK'-indruk wekt. Activeer de schakelaar in het tabblad KNX-busanalyse om de telegramopname te hervatten.",
+        "help_url": ""
       }
     }
   },

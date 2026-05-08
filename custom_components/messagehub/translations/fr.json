@@ -33,10 +33,22 @@
       "name": "Ajouter un message",
       "description": "Ajoute manuellement un message au message hub.",
       "fields": {
-        "severity": { "name": "Sévérité", "description": "Niveau" },
-        "source": { "name": "Source", "description": "Origine logique" },
-        "text": { "name": "Texte", "description": "Texte du message" },
-        "metadata": { "name": "Metadata", "description": "Champs supplémentaires optionnels" }
+        "severity": {
+          "name": "Sévérité",
+          "description": "Niveau"
+        },
+        "source": {
+          "name": "Source",
+          "description": "Origine logique"
+        },
+        "text": {
+          "name": "Texte",
+          "description": "Texte du message"
+        },
+        "metadata": {
+          "name": "Metadata",
+          "description": "Champs supplémentaires optionnels"
+        }
       }
     }
   },
@@ -111,6 +123,11 @@
         "title": "Télégramme sans écho de statut",
         "description": "Le Write à {write_at} n'a reçu aucun écho de statut dans {status_window_ms} ms sur la même GA. Actionneur peut-être hors ligne, non programmé ou statut sur une GA séparée (faux positif possible).",
         "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
+      },
+      "ANALYSIS_DISABLED": {
+        "title": "L'analyse du bus est desactivee",
+        "description": "Le bouton d'analyse du bus est desactive — le listener n'enregistre plus de telegrammes dans les tables raw ou counter. Tous les autres findings sont supprimes afin que cet onglet ne donne pas une fausse impression de 'tout va bien'. Activez le bouton dans l'onglet d'analyse du bus KNX pour reprendre la capture des telegrammes.",
+        "help_url": ""
       }
     }
   },

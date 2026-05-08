@@ -217,6 +217,20 @@ class TestBusWideDetectorRunnerSmoke:
         assert resp["total"] == 0
 
 
+class _FakeHass:
+    """Minimaler hass-Stub fuer den Tick-Test (Iter A3)."""
+
+    def __init__(self, bus_analysis_enabled: bool = True) -> None:
+        from custom_components.messagehub.const import (
+            DOMAIN,
+            HASS_KEY_KNX_BUS_ANALYSIS,
+        )
+
+        self.data = {
+            DOMAIN: {HASS_KEY_KNX_BUS_ANALYSIS: bus_analysis_enabled}
+        }
+
+
 class TestBusWideJobTick:
     """Iter 29b: periodischer Job-Wrapper schluckt Exceptions."""
 
@@ -231,7 +245,7 @@ class TestBusWideJobTick:
         # Setze einen ORPHAN_GA-Trigger.
         await _insert_ga(db, ga="5/0/0", dpt="1.001")
 
-        await _run_findings_bus_wide_tick(db)
+        await _run_findings_bus_wide_tick(_FakeHass(), db)
 
         repo = FindingsRepository(db)
         resp = await list_findings_response(repo, code="ORPHAN_GA")
@@ -249,6 +263,28 @@ class TestBusWideJobTick:
         await db.close()
         try:
             # Soll _LOGGER.warning ausloesen, aber NICHT raisen.
-            await _run_findings_bus_wide_tick(db)
+            await _run_findings_bus_wide_tick(_FakeHass(), db)
         finally:
             await db.open()
+
+    @pytest.mark.asyncio
+    async def test_tick_emits_analysis_disabled_when_toggle_off(
+        self, db: Database
+    ) -> None:
+        """Iter A3: Wenn Bus-Analyse-Toggle aus ist, soll der Tick nur
+        ein ANALYSIS_DISABLED-Finding schreiben — nicht alle Detektoren
+        durchlaufen."""
+        from custom_components.messagehub.jobs.periodic import (
+            _run_findings_bus_wide_tick,
+        )
+
+        await _insert_ga(db, ga="5/0/0", dpt="1.001")  # Trigger ORPHAN
+
+        await _run_findings_bus_wide_tick(
+            _FakeHass(bus_analysis_enabled=False), db
+        )
+
+        repo = FindingsRepository(db)
+        resp = await list_findings_response(repo)
+        codes = {it["code"] for it in resp["items"]}
+        assert codes == {"ANALYSIS_DISABLED"}

@@ -131,6 +131,16 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
       help_url:
         "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics",
     },
+    ANALYSIS_DISABLED: {
+      title: "Bus-Analyse ist deaktiviert",
+      description:
+        "Der Bus-Analyse-Toggle ist aus — der Listener schreibt keine " +
+        "Telegramme mehr in die Raw- oder Counter-Tabelle. Alle anderen " +
+        "Findings sind deshalb unterdrueckt, damit dieser Tab keinen " +
+        "falschen 'alles OK'-Eindruck erweckt. Aktiviere den Toggle " +
+        "im KNX-Bus-Analyse-Tab oben rechts, um Telegramme wieder zu erfassen.",
+      help_url: "",
+    },
   },
   en: {
     DPT_MISMATCH: {
@@ -233,6 +243,16 @@ const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
         "possible).",
       help_url:
         "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics",
+    },
+    ANALYSIS_DISABLED: {
+      title: "Bus analysis is disabled",
+      description:
+        "The bus analysis toggle is off — the listener no longer records " +
+        "telegrams to the raw or counter tables. All other findings are " +
+        "suppressed so this tab does not create a false 'all good' " +
+        "impression. Enable the toggle in the KNX bus analysis tab to " +
+        "resume telegram capture.",
+      help_url: "",
     },
   },
 };

@@ -33,10 +33,22 @@
       "name": "Nachricht hinzufuegen",
       "description": "Fuegt manuell eine Nachricht in den Message Hub ein.",
       "fields": {
-        "severity": { "name": "Severity", "description": "Schweregrad" },
-        "source": { "name": "Quelle", "description": "Logische Herkunft" },
-        "text": { "name": "Text", "description": "Nachrichtentext" },
-        "metadata": { "name": "Metadata", "description": "Optionale Zusatzfelder" }
+        "severity": {
+          "name": "Severity",
+          "description": "Schweregrad"
+        },
+        "source": {
+          "name": "Quelle",
+          "description": "Logische Herkunft"
+        },
+        "text": {
+          "name": "Text",
+          "description": "Nachrichtentext"
+        },
+        "metadata": {
+          "name": "Metadata",
+          "description": "Optionale Zusatzfelder"
+        }
       }
     }
   },
@@ -111,6 +123,11 @@
         "title": "Schalt-Telegramm ohne Status-Echo",
         "description": "Write um {write_at} blieb {status_window_ms} ms ohne Status-Echo auf derselben GA. Aktor moeglicherweise offline, unprogrammiert oder Status liegt auf separater GA (False-Positive moeglich).",
         "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
+      },
+      "ANALYSIS_DISABLED": {
+        "title": "Bus-Analyse ist deaktiviert",
+        "description": "Der Bus-Analyse-Toggle ist aus — der Listener schreibt keine Telegramme mehr in die Raw- oder Counter-Tabelle. Alle anderen Findings sind deshalb unterdrueckt, damit dieser Tab keinen falschen 'alles OK'-Eindruck erweckt. Aktiviere den Toggle im KNX-Bus-Analyse-Tab oben rechts, um Telegramme wieder zu erfassen.",
+        "help_url": ""
       }
     }
   },

@@ -385,6 +385,7 @@ async def run_bus_wide_detectors(
     period_from: str,
     period_to: str,
     now: datetime,
+    bus_analysis_enabled: bool = True,
 ) -> int:
     """Fuehrt alle bus-weiten Detektoren aus und persistiert Findings.
 
@@ -396,9 +397,18 @@ async def run_bus_wide_detectors(
        STALE_GA (Iter 25).
     5. Severity-Resolver + record() — analog zum per-GA-Runner.
 
+    Iter A3: Bei deaktivierter Bus-Analyse (``bus_analysis_enabled=False``)
+    wird genau EIN Finding ``ANALYSIS_DISABLED`` emittiert — alle anderen
+    Detektoren werden uebersprungen, weil ihre Datenquelle
+    (knx_raw_telegrams) leer waere und User keinen falschen "alles OK"-
+    Eindruck bekommen sollen.
+
     Returns: Anzahl persistierter Findings.
     """
     now = _now_naive(now)
+    if not bus_analysis_enabled:
+        finding = build_analysis_disabled_finding(now=now)
+        return await _record_with_severity_override(findings_repo, [finding])
     findings: list[Finding] = []
     findings.extend(await _build_health_findings(stats_repo, period_from, period_to, now))
     addresses = await address_repo.list_all()
@@ -420,6 +430,35 @@ async def run_bus_wide_detectors(
         )
     )
     return await _record_with_severity_override(findings_repo, findings)
+
+
+_ANALYSIS_DISABLED_VERSION = "ANALYSIS_DISABLED/v1"
+
+
+def build_analysis_disabled_finding(*, now: datetime) -> Finding:
+    """Liefert ein Finding, das anzeigt: Bus-Analyse-Toggle ist aus.
+
+    Severity ``warning`` (nicht ``error``), weil das Abschalten ein
+    bewusster Bedienakt sein kann (z. B. waehrend Datenmigration).
+    Der User sieht trotzdem einen klaren Hinweis im Findings-Tab,
+    statt eine leere Liste falsch zu interpretieren.
+    """
+    return Finding(
+        code="ANALYSIS_DISABLED",
+        schema_version=1,
+        severity="warning",
+        ga=None,
+        source=None,
+        title="",
+        description="",
+        evidence={
+            "reason": "bus-analysis toggle disabled — no telegrams recorded",
+        },
+        first_seen=now,
+        last_seen=now,
+        occurrence_count=1,
+        detector_version=_ANALYSIS_DISABLED_VERSION,
+    )
 
 
 async def _build_health_findings(

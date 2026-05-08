@@ -6,6 +6,24 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Sicherheit / Sichtbarkeit
+
+- **Iter A3 / ANALYSIS_DISABLED-Finding.** Bisher konnte der User den
+  Bus-Analyse-Toggle abschalten und trotzdem in den leeren Findings-
+  Tab schauen — der Eindruck "alles OK" war falsch, weil die
+  Datenquelle (knx_raw_telegrams) gar nicht beschrieben wurde. Jetzt:
+  * ``run_bus_wide_detectors(bus_analysis_enabled=False)`` ueberspringt
+    alle Detektoren und emittiert genau ein Finding mit Code
+    ``ANALYSIS_DISABLED`` (severity ``warning``).
+  * Periodischer Job (``_run_findings_bus_wide_tick``) liest den Toggle
+    aus ``hass.data[DOMAIN][HASS_KEY_KNX_BUS_ANALYSIS]`` und reicht ihn
+    durch — keine zusaetzliche Setup-Aenderung noetig.
+  * i18n-Strings fuer 6 Sprachen (de/en/es/fr/it/nl) plus Frontend-
+    Konstante in ``findings-i18n.ts``. Beschreibungstexte erklaeren,
+    wie der Toggle wieder aktiviert wird.
+  Drei neue Pytests (Default-Severity, runner-disabled, runner-enabled)
+  plus ein Tick-Test plus vier Frontend-Tests fuer i18n-Vollstaendigkeit.
+
 ### Performance / Hot-Path
 
 - **Iter A1 / Listener-Worker-Queue + Batching.** KNX-Telegramm-

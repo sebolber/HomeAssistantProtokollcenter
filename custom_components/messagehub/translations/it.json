@@ -33,10 +33,22 @@
       "name": "Aggiungi messaggio",
       "description": "Aggiunge manualmente un messaggio al message hub.",
       "fields": {
-        "severity": { "name": "Severità", "description": "Livello" },
-        "source": { "name": "Sorgente", "description": "Origine logica" },
-        "text": { "name": "Testo", "description": "Testo del messaggio" },
-        "metadata": { "name": "Metadata", "description": "Campi aggiuntivi opzionali" }
+        "severity": {
+          "name": "Severità",
+          "description": "Livello"
+        },
+        "source": {
+          "name": "Sorgente",
+          "description": "Origine logica"
+        },
+        "text": {
+          "name": "Testo",
+          "description": "Testo del messaggio"
+        },
+        "metadata": {
+          "name": "Metadata",
+          "description": "Campi aggiuntivi opzionali"
+        }
       }
     }
   },
@@ -111,6 +123,11 @@
         "title": "Telegramma di commutazione senza eco di stato",
         "description": "Il Write alle {write_at} non ha ricevuto eco di stato entro {status_window_ms} ms sulla stessa GA. Attuatore possibilmente offline, non programmato o stato su GA separata (possibile falso positivo).",
         "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
+      },
+      "ANALYSIS_DISABLED": {
+        "title": "L'analisi del bus e disattivata",
+        "description": "L'interruttore di analisi del bus e spento — il listener non registra piu telegrammi nelle tabelle raw o counter. Tutti gli altri findings sono soppressi affinche questa scheda non dia una falsa impressione di 'tutto OK'. Attiva l'interruttore nella scheda di analisi del bus KNX per riprendere la cattura dei telegrammi.",
+        "help_url": ""
       }
     }
   },
