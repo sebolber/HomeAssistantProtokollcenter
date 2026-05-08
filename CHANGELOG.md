@@ -6,6 +6,27 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Bus-Health-KPI
+
+- **Iter B3 / Repeat-Quote rebalanciert + als Approximation markiert.**
+  Der Repeat-KPI im Bus-Health-Score basiert auf
+  ``knx_raw_telegrams.repeated`` — einem Flag, das xknx in der
+  Cemi-Frame-Lage praktisch nie liefert (siehe Konzept §3.1 F4 / BL-D).
+  Frueher hatte der KPI 30% Gewicht; in einer realen Anlage zog er den
+  Score systematisch auf ~70 runter, ohne dass real ein Problem vorlag.
+  Jetzt:
+  * Gewichte rebalanciert: ``_WEIGHT_REPEAT 0.30→0.10``,
+    ``_WEIGHT_BUSLOAD 0.30→0.40``, ``_WEIGHT_SILENCE 0.20→0.25``,
+    ``_WEIGHT_ALARMS 0.20→0.25``. Buslast ist der realistischste KPI
+    und bekommt am meisten Gewicht.
+  * Score-DTO trägt ``repeat_approximate: true`` mit; Frontend rendert
+    in der Komponenten-Karte einen Stern (`*`) hinter "Wiederholungen"
+    und einen Tooltip mit Erklärung "xknx liefert das Repeat-Bit nicht
+    zuverlaessig (BL-D blocked)".
+  Sechs neue Pytests (Gewichte, Score-Werte, Approximations-Marker)
+  plus zwei Frontend-Tests; bestehende Health-Tests an die neuen
+  Score-Erwartungen angepasst.
+
 ### Storage / Skalierung
 
 - **Iter A2 / WAL-Checkpoint im Cleanup-Tick.** SQLite laeuft mit

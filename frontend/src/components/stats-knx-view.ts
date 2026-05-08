@@ -1330,11 +1330,23 @@ export class StatsKnxView extends LitElement {
               (key) => {
                 const value = h.components[key];
                 const sev = this._componentSeverity(value);
+                // Iter B3: ``repeat``-KPI ist Approximation, weil xknx
+                // das echte Repeat-Bit nicht zuverlaessig liefert. UI
+                // markiert den KPI mit einem Stern + Tooltip-Hinweis.
+                const isApprox = key === "repeat" && h.repeat_approximate === true;
+                const baseLabel = this._componentLabel(key);
+                const labelText = isApprox ? `${baseLabel} *` : baseLabel;
+                const titleText = isApprox
+                  ? `${baseLabel}: ${value}/100 (${this._healthLabel(sev)}) — Approximation: xknx liefert das Repeat-Bit nicht zuverlaessig (BL-D blocked)`
+                  : `${baseLabel}: ${value}/100 (${this._healthLabel(sev)})`;
                 return html`<div
                   class=${`health-score__badge health-score__badge--${sev}`}
-                  title=${`${this._componentLabel(key)}: ${value}/100 (${this._healthLabel(sev)})`}
+                  title=${titleText}
+                  data-test="health-component"
+                  data-key=${key}
+                  data-approximate=${isApprox ? "true" : "false"}
                 >
-                  <span class="health-score__badge-label">${this._componentLabel(key)}</span>
+                  <span class="health-score__badge-label">${labelText}</span>
                   <span class="health-score__badge-value">${value}</span>
                 </div>`;
               }

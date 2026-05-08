@@ -519,10 +519,20 @@ _BUSLOAD_PCT_CRITICAL: Final[float] = 40.0
 _ALARMS_CRITICAL: Final[int] = 5
 
 # Gewichtung der Komponenten (Summe = 1.0).
-_WEIGHT_REPEAT: Final[float] = 0.30
-_WEIGHT_BUSLOAD: Final[float] = 0.30
-_WEIGHT_SILENCE: Final[float] = 0.20
-_WEIGHT_ALARMS: Final[float] = 0.20
+#
+# Iter B3 (Konzept-Schwaeche B3): Repeat-Quote runtergewichtet, weil
+# xknx das ``repeated``-Flag in der Cemi-Frame-Lage praktisch nie
+# liefert. Die echte Wiederholrate waere nur per Bus-Sniffer messbar
+# (BL-D blocked). Frueher hatte dieser KPI 30% Gewicht — der Score zog
+# damit dauerhaft auf ~70 runter, ohne dass real ein Bus-Problem vorlag.
+# Jetzt wird er als Approximation markiert (siehe
+# ``compute_health_score`` -> ``repeat_approximate``) und nimmt nur
+# noch 10% Gewicht ein. Buslast (realistischster KPI) bekommt 40%,
+# Silence + Alarme je 25%.
+_WEIGHT_REPEAT: Final[float] = 0.10
+_WEIGHT_BUSLOAD: Final[float] = 0.40
+_WEIGHT_SILENCE: Final[float] = 0.25
+_WEIGHT_ALARMS: Final[float] = 0.25
 
 # Severity-Schwellen (Score >= X -> Severity).
 _SCORE_GREEN_MIN: Final[int] = 90
@@ -632,6 +642,9 @@ def compute_health_score(input_: HealthScoreInput) -> dict[str, Any]:
     - severity: green/yellow/orange/red
     - components: dict pro Komponente (0..100)
     - findings: list[HealthFinding] mit konkreten Hinweisen
+    - repeat_approximate: bool — Iter B3: signalisiert dem UI, dass
+      die Repeat-Komponente auf einer Approximation beruht (xknx
+      liefert das echte Repeat-Bit nicht — F4/BL-D im Konzept).
     """
     components = {
         "repeat": _component_health(input_.repeat_ratio_pct, _REPEAT_PCT_LIMIT),
@@ -651,4 +664,9 @@ def compute_health_score(input_: HealthScoreInput) -> dict[str, Any]:
         "severity": _severity_for_score(score),
         "components": components,
         "findings": _build_health_findings(input_),
+        # Iter B3: Approximations-Marker fuer das Frontend. Der
+        # Repeat-Bit ist xknx-seitig nicht zuverlaessig sichtbar — bis
+        # ein Sniffer-Side-Channel oder Layer-2-Frame-Pass-Through
+        # ergaenzt wird, ist die Quote eine Schaetzung mit Tendenz 0.
+        "repeat_approximate": True,
     }

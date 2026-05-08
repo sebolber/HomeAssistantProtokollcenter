@@ -337,6 +337,10 @@ export interface KnxStatsHealthScoreDto {
     alarms: number;
   };
   findings: KnxStatsHealthFinding[];
+  // Iter B3: Marker, dass die Repeat-Komponente eine Approximation ist
+  // (xknx liefert das echte Repeat-Bit nicht zuverlaessig). UI rendert
+  // entsprechend einen "Approx."-Hinweis neben dem KPI.
+  repeat_approximate?: boolean;
 }
 
 export interface KnxStatsLongTermBucket {

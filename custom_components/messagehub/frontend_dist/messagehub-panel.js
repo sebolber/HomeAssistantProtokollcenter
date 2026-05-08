@@ -8274,12 +8274,15 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="health-score__components">
             ${["repeat", "busload", "silence", "alarms"].map(
       (t) => {
-        const s = e.components[t], a = this._componentSeverity(s);
+        const s = e.components[t], a = this._componentSeverity(s), r = t === "repeat" && e.repeat_approximate === !0, n = this._componentLabel(t), o = r ? `${n} *` : n, d = r ? `${n}: ${s}/100 (${this._healthLabel(a)}) — Approximation: xknx liefert das Repeat-Bit nicht zuverlaessig (BL-D blocked)` : `${n}: ${s}/100 (${this._healthLabel(a)})`;
         return i`<div
                   class=${`health-score__badge health-score__badge--${a}`}
-                  title=${`${this._componentLabel(t)}: ${s}/100 (${this._healthLabel(a)})`}
+                  title=${d}
+                  data-test="health-component"
+                  data-key=${t}
+                  data-approximate=${r ? "true" : "false"}
                 >
-                  <span class="health-score__badge-label">${this._componentLabel(t)}</span>
+                  <span class="health-score__badge-label">${o}</span>
                   <span class="health-score__badge-value">${s}</span>
                 </div>`;
       }
