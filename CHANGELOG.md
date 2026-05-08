@@ -39,6 +39,52 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   0 Byte schrumpft. Neuer Helper ``processing.retention.run_wal_checkpoint``
   + zwei Pytests (Smoke + Idempotenz).
 
+### Wartbarkeit / Cleanup
+
+- **Iter E3 / Versionierter localStorage-Helper.** Neuer
+  ``utils/persisted-state.ts`` kapselt das Pattern: Daten + Versions-
+  Marker; bei Mismatch optional Migration. Panel-Filter sind darauf
+  umgestellt; sechs neue Vitest decken den Helper ab.
+- **Iter E4 / Saved-Filter mit `schema_version`.** Beim Speichern wird
+  die aktuelle Filter-Schema-Version mitgeschrieben. Beim Anwenden
+  werden nur bekannte Keys ins state gehoben (sanitized merge), sodass
+  alte Saved-Filter neue Default-Werte fuer unbekannte Felder kriegen.
+- **Iter F2 / Repair-Issue ``knx_unavailable`` konditional.** Frueher
+  feuerte das Issue immer beim Setup ohne xknx — auch wenn der User
+  KNX gar nicht nutzt. Jetzt nur, wenn mindestens eine GA mit
+  ``log_enabled=1`` konfiguriert ist. Drei neue Pytests.
+- **Iter F3 / Cache-Buster aus Bundle-Hash.** ``_bundle_cache_buster``
+  hashed jetzt den Bundle-Inhalt (sha256 Prefix 12) statt mtime.
+  Reproducible bei Git-Clone / HACS-Update; verhindert sowohl
+  unnoetige Cache-Misses als auch stille Doppel-Belegung. Tests
+  angepasst.
+- **Iter F5 / Webhook-Export-Endpoint.** ``GET /api/messagehub/webhooks?format=export``
+  liefert eine JSON-Datei mit allen Webhook-Configs (inkl. Field-Map),
+  damit Backups ohne SQLite-Mitnahme moeglich sind.
+- **Iter F6 / Lifecycle-Hooks Auto-Cleanup.** ``async_unload_entry``
+  iteriert nicht mehr ueber eine handgeschriebene Liste, sondern
+  automatisch alle ``state``-Schluessel mit ``unsub_``/``_unsub``-
+  Konvention. Neue Listener werden ohne Aenderung am Cleanup-Pfad
+  erfasst.
+- **Iter B7 / Szenen-DPTs aus Rate-Klassifizierung neutralisiert.**
+  DPT 17.001 / 18.001 sind User-Event-getrieben — eine "Soll-Rate
+  pro Minute" ist inhaltsleer. Limit auf 60/min gesetzt, sodass die
+  Rate-Ampel dort kein false-positives mehr feuert; spezifische
+  Anti-Patterns laufen weiter ueber TOGGLE_LOOP/READ_BURST.
+- **Iter C2 / LLM-Cache-Key mit API-Key-Fingerprint.** Wechsel zwischen
+  Free-Tier- und Pro-Key fuer denselben Provider/Model haben frueher
+  stale Cache-Eintraege geliefert. ``make_cache_key`` nimmt jetzt einen
+  optionalen ``api_key``-Parameter, dessen sha256-Prefix in den Key
+  eingeht. ``_apply_llm_fallback`` reicht den Wert durch.
+- **Iter D8 / Sortier-UX-Hinweis.** Wenn der User die Top-Sender-Tabelle
+  nach severity / GA / Label sortiert, kann ein "rotes" GA ausserhalb
+  der Top-N (per Tel/Min) sein und damit unsichtbar. Hinweis-Banner
+  klaert das auf.
+- **Iter H2 / `LegacyPatternFinding` umbenannt.** Die Anti-Pattern-
+  Dataclass in ``knx_stats.py`` hiess gleich wie der erweiterte
+  Findings-Vertrag in ``processing.findings``. Umbenannt mit Backward-
+  Compat-Alias ``Finding`` — bestehende Imports brechen nicht.
+
 ### Wartbarkeit
 
 - **Iter B4 / Severity zur Laufzeit auflösen.** Bisher kam die Severity

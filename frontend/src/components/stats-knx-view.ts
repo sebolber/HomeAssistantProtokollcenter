@@ -1807,7 +1807,22 @@ export class StatsKnxView extends LitElement {
     const sortKey = this._topSortKey;
     const sortDir = this._topSortDir;
     const sorted = sortTopSender(this._top, sortKey, sortDir);
+    // Iter D8: Wenn der User nach severity / GA / Label sortiert,
+    // kann ein "rotes" GA ausserhalb der Top-N (per Tel/Min) liegen
+    // und damit unsichtbar sein. Hinweis nur, wenn nicht-Default-Sort.
+    const isNonDefaultSort = sortKey !== "rate_per_min" || sortDir !== "desc";
+    const sortHint = isNonDefaultSort
+      ? html`<p
+          class="muted small"
+          data-test="sort-hint"
+          title="Top-N wird vom Backend nach Tel/Min ausgewaehlt — die Sortierung wirkt nur auf diese Auswahl, nicht auf alle GAs."
+        >
+          ⓘ Sortierung wirkt nur auf die Top-${this._filters.topN} nach
+          Tel/Min — andere GAs sind nicht in der Liste.
+        </p>`
+      : null;
     return html`
+      ${sortHint}
       <div class="table-wrap">
         <table>
           <thead>

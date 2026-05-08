@@ -655,6 +655,7 @@ async def _apply_llm_fallback(
     provider_name: str,
     model_name: str,
     device_profile: dict[str, Any] | None,
+    api_key: str | None = None,
 ) -> tuple[list[GaRecommendation], int]:
     """Layer-4-Fallback fuer GAs ohne ``recommended_mode``.
 
@@ -689,12 +690,16 @@ async def _apply_llm_fallback(
             new_recos.append(ga)
             continue
         # Layer 1+2 hatten kein Match — Fallback auf LLM
+        # Iter C2: api_key-Fingerprint geht in den Cache-Key, damit
+        # zwei verschiedene Provider-Schluessel (Free/Pro) NICHT
+        # denselben Eintrag teilen.
         cache_key = make_cache_key(
             provider=provider_name,
             model=model_name,
             dpt=ga.dpt,
             manufacturer=manufacturer or None,
             device_model=device_model or None,
+            api_key=api_key,
         )
         dpt_reco: DptRecommendation | None = None
         if cache_repo is not None:
@@ -804,6 +809,7 @@ async def compute_device_recommendation(
     llm_cache_repo: RecommendationCacheRepository | None = None,
     llm_provider_name: str = "openai_chat",
     llm_model: str = "",
+    llm_api_key: str | None = None,
 ) -> DeviceRecommendation | None:
     """Aggregiert die Geraete-Empfehlung aus den GA-Klassifikationen.
 
@@ -903,6 +909,7 @@ async def compute_device_recommendation(
             provider_name=llm_provider_name,
             model_name=llm_model,
             device_profile=device_profile,
+            api_key=llm_api_key,
         )
 
     # Iter L3.0: Layer-3-Override — bei hoher Buslast die Cycle-

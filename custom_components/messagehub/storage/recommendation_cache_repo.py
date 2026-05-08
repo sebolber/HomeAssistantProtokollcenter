@@ -30,6 +30,21 @@ def _expires_at(ttl_days: int = _DEFAULT_TTL_DAYS) -> str:
     ).isoformat(timespec="seconds")
 
 
+def _hash_api_key_fingerprint(api_key: str | None) -> str:
+    """Iter C2: nicht-reversibler Identifier fuer den API-Key.
+
+    Wir nehmen sha256 ueber den Key und kuerzen auf 16 Hex-Zeichen.
+    Damit kann der Cache zwischen ``free-tier-key`` und ``pro-key``
+    unterscheiden, ohne den Key irgendwo im Klartext zu speichern.
+    Leerer Key → leerer Fingerprint, damit bestehende Cache-Eintraege
+    (z. B. fuer DPT-Standard ohne LLM-Provider) nicht durch die
+    Migration ungueltig werden.
+    """
+    if not api_key:
+        return ""
+    return hashlib.sha256(api_key.encode("utf-8")).hexdigest()[:16]
+
+
 def make_cache_key(
     *,
     provider: str,
@@ -38,12 +53,19 @@ def make_cache_key(
     manufacturer: str | None,
     device_model: str | None,
     prompt_version: str = "v1",
+    api_key: str | None = None,
 ) -> str:
     """Stabile sha256-Hash-Berechnung fuer den Cache-Key.
 
     Reihenfolge der Felder ist Teil des Vertrags — Aenderungen hier
     invalidieren ALLE bestehenden Cache-Eintraege. ``prompt_version``
     erlaubt gezielte Invalidierung beim Tunen des System-Prompts.
+
+    Iter C2: optionaler ``api_key``-Parameter; sein Fingerprint
+    (gekuerzter sha256-Hash) geht in den Cache-Key ein. Damit teilen
+    sich verschiedene Provider-Keys (Free/Pro/Test) NICHT denselben
+    Cache-Eintrag. Default ``None`` haelt Backward-Compat fuer Aufrufer
+    ohne Key (Layer 1+2-Empfehlungen, Tests).
     """
     parts = [
         provider,
@@ -52,6 +74,7 @@ def make_cache_key(
         manufacturer or "",
         device_model or "",
         prompt_version,
+        _hash_api_key_fingerprint(api_key),
     ]
     payload = "\x1f".join(parts).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()

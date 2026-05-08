@@ -432,15 +432,43 @@ def _try_register_xknx_hook(
     return _unsub_xknx
 
 
+async def _report_knx_repair_if_user_wants_it(
+    hass: HomeAssistant, knx_repo: KnxAddressRepository
+) -> None:
+    """Iter F2: Repair-Issue ``knx_unavailable`` nur, wenn der User KNX
+    aktiv nutzt (mind. 1 GA mit ``log_enabled=1``). Sonst spammt das
+    Issue-Center bei Installationen ohne KNX.
+    """
+    try:
+        logged = await knx_repo.list_logged()
+    except (RuntimeError, ValueError) as err:
+        _LOGGER.debug("repair-issue check skipped: %s", err)
+        return
+    if not logged:
+        # Kein User-Wunsch nach KNX — keine Issue.
+        _LOGGER.debug("repair-issue skipped: keine GAs mit log_enabled=1")
+        return
+    report_knx_unavailable(hass)
+
+
 def _register_knx_event_fallback(
-    hass: HomeAssistant, ingest: Any, worker: KnxIngestWorker
+    hass: HomeAssistant,
+    ingest: Any,
+    worker: KnxIngestWorker,
+    knx_repo: KnxAddressRepository,
 ) -> Any:
-    """Fallback-Listener auf den HA-Eventbus 'knx_event'."""
+    """Fallback-Listener auf den HA-Eventbus 'knx_event'.
+
+    Iter F2: Das Repair-Issue ``knx_unavailable`` wird nur ausgeloest,
+    wenn der User mindestens eine GA mit ``log_enabled=1`` konfiguriert
+    hat — sonst spammt das Issue-Center bei Installationen, die KNX gar
+    nicht nutzen.
+    """
     _LOGGER.warning(
         "messagehub: kein xknx-Hook moeglich — falle auf knx_event-Bus zurueck. "
         "Damit Telegramme ankommen, in configuration.yaml 'knx: event: <ga-liste>' eintragen."
     )
-    report_knx_unavailable(hass)
+    hass.async_create_task(_report_knx_repair_if_user_wants_it(hass, knx_repo))
 
     async def _on_knx_event(event: Any) -> None:
         try:
@@ -467,10 +495,11 @@ def async_register_knx_listener(hass: HomeAssistant, database: Any, repository: 
     cache, _counters_repo, worker = _build_listener_state(hass, database)
     hass.async_create_task(worker.start())
     ingest = _make_ingest_callback(hass, cache, repository, worker)
+    knx_repo = KnxAddressRepository(database)
 
     xknx = _get_xknx_instance(hass)
     if xknx is not None:
         unsub = _try_register_xknx_hook(hass, xknx, ingest, worker)
         if unsub is not None:
             return unsub
-    return _register_knx_event_fallback(hass, ingest, worker)
+    return _register_knx_event_fallback(hass, ingest, worker, knx_repo)

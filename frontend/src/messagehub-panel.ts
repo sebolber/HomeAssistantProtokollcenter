@@ -7,6 +7,7 @@ import { property, state } from "lit/decorators.js";
 import { ApiClient, type MessageDto, type SavedFilterDto } from "./api-client.js";
 import { tokens, buttons } from "./styles/tokens.js";
 import { LiveSubscription } from "./utils/live-subscribe.js";
+import { loadPersisted, savePersisted } from "./utils/persisted-state.js";
 import "./components/message-table.js";
 import "./components/severity-filter.js";
 import "./components/source-filter.js";
@@ -44,6 +45,11 @@ interface HassLike {
 }
 
 const STORAGE_KEY_FILTERS = "messagehub.filters";
+// Iter E3: versionierter Persistenz-Marker. Bei Schema-Aenderungen
+// (neuer Default fuer hideKnxRead, neue Severity-Enum-Werte, ...)
+// wird hier hochgezogen — Migration kann angehaengt werden.
+const STORAGE_VERSION_FILTERS = "messagehub.filters.version";
+const FILTERS_CURRENT_VERSION = "v1";
 
 interface UiFilters {
   severity: string[];
@@ -244,21 +250,26 @@ export class MessageHubPanel extends LitElement {
   }
 
   private _loadFilters(): UiFilters {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY_FILTERS);
-      if (raw) return { ...DEFAULT_FILTERS, ...JSON.parse(raw) };
-    } catch {
-      // ignore
-    }
-    return { ...DEFAULT_FILTERS };
+    // Iter E3: versionierte Persistenz via Helper. Migrations-Block
+    // bleibt heute leer; bei Schema-Bumps (z. B. neue Severity-Werte
+    // oder Filter-Property mit anderem Default) hier ergaenzen.
+    return loadPersisted({
+      key: STORAGE_KEY_FILTERS,
+      versionKey: STORAGE_VERSION_FILTERS,
+      currentVersion: FILTERS_CURRENT_VERSION,
+      defaults: DEFAULT_FILTERS,
+    });
   }
 
   private _persistFilters(): void {
-    try {
-      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(this._filters));
-    } catch {
-      // ignore
-    }
+    savePersisted(
+      {
+        key: STORAGE_KEY_FILTERS,
+        versionKey: STORAGE_VERSION_FILTERS,
+        currentVersion: FILTERS_CURRENT_VERSION,
+      },
+      this._filters,
+    );
   }
 
   private _resetFilters(): void {
@@ -466,11 +477,15 @@ export class MessageHubPanel extends LitElement {
     const name = window.prompt("Filter speichern als:");
     if (name === null || name.trim() === "") return;
     try {
-      await this._api.upsertSavedFilter(
-        name.trim(),
-        "messages",
-        this._filters as unknown as Record<string, unknown>,
-      );
+      // Iter E4: Saved-Filter mit schema_version. Der Server speichert
+      // die Filter-Form direkt, ohne Validierung — bei spaeteren Schema-
+      // Aenderungen kann der Lader (Apply) anhand der Version migrieren
+      // statt unbekannte Felder einfach zu droppen.
+      const payload: Record<string, unknown> = {
+        ...(this._filters as unknown as Record<string, unknown>),
+        schema_version: FILTERS_CURRENT_VERSION,
+      };
+      await this._api.upsertSavedFilter(name.trim(), "messages", payload);
       this._showToast(`Filter „${name.trim()}" gespeichert`);
       await this._loadSavedFilters();
     } catch (err) {
@@ -479,9 +494,25 @@ export class MessageHubPanel extends LitElement {
   }
 
   private _applySavedFilter(item: SavedFilterDto): void {
-    // Vorsichtig mergen: nur bekannte Felder uebernehmen.
-    const incoming = item.filters as Partial<UiFilters>;
-    this._filters = { ...DEFAULT_FILTERS, ...incoming };
+    // Iter E4: ``schema_version`` aus dem gespeicherten Filter ziehen.
+    // Felder, die der aktuelle Code nicht kennt, droppen wir absichtlich
+    // (Defensive Default-Merge); falls noetig, kann hier eine konkrete
+    // Migration zwischen Versionen eingehaengt werden.
+    const incoming = item.filters as Partial<UiFilters> & {
+      schema_version?: string;
+    };
+    // Nur die bekannten UiFilters-Keys ins state heben.
+    // Kuenftige Migrationen koennen anhand `incoming.schema_version`
+    // alte Filter umformen, bevor sie in `sanitized` gehen.
+    const sanitized: Partial<UiFilters> = {};
+    for (const k of Object.keys(DEFAULT_FILTERS) as Array<keyof UiFilters>) {
+      if (k in incoming) {
+        (sanitized as Record<string, unknown>)[k] = (
+          incoming as Record<string, unknown>
+        )[k];
+      }
+    }
+    this._filters = { ...DEFAULT_FILTERS, ...sanitized };
     this._persistFilters();
     this._savedFiltersOpen = false;
     void this._reload();

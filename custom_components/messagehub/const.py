@@ -98,8 +98,14 @@ KNX_RECOMMENDED_RATES_PER_MIN: Final[dict[str, float]] = {
     "11.001": 0.05,  # Date — 1x/Tag reicht
     "13.010": 0.5,  # Energiezaehler Wh
     "13.013": 0.5,  # Energiezaehler kWh
-    "17.001": 1.0,  # Szenenaufruf
-    "18.001": 1.0,  # Szenensteuerung
+    # Iter B7: Szenen-DPTs sind User-Event-getrieben (Tastendruck → genau
+    # 1 Telegramm). Eine "Soll-Rate pro Minute" ist hier inhaltsleer; wir
+    # setzen einen permissiven Wert (60/min), der praktisch nie ueberschritten
+    # wird — damit feuert die Rate-Klassifizierung dort kein false-positives.
+    # Konkrete Anti-Patterns auf Szenen-GAs (Loops, Bursts) erkennen die
+    # spezifischen Detektoren (TOGGLE_LOOP / READ_BURST), nicht die Rate.
+    "17.001": 60.0,  # Szenenaufruf — User-Event, hohes Limit
+    "18.001": 60.0,  # Szenensteuerung — User-Event, hohes Limit
     "_default": 5.0,
 }
 

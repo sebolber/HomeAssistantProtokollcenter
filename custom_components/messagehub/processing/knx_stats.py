@@ -347,12 +347,28 @@ class TelegramSample:
 
 
 @dataclass(frozen=True, slots=True)
-class Finding:
-    """Erkannte Anomalie im Telegramm-Strom."""
+class LegacyPatternFinding:
+    """Erkannte Anomalie im Telegramm-Strom (Iter 3 / Anti-Pattern).
+
+    Iter H2: umbenannt von ``Finding`` auf ``LegacyPatternFinding``,
+    um Kollisionen mit ``processing.findings.Finding`` (Iter 1+) zu
+    vermeiden. Beide Klassen leben aus historischen Gruenden parallel —
+    der bus-weite Anti-Pattern-Detector bleibt hier, der erweiterte
+    Findings-Vertrag (mit Code, Evidence, Schema-Version) liegt unter
+    ``processing.findings``.
+
+    Backward-Compat-Alias: ``Finding`` bleibt als Modul-Name erhalten,
+    damit alte Imports nicht brechen — siehe unten.
+    """
 
     kind: FindingKind
     severity: KnxSeverity
     text: str
+
+
+# Iter H2: Backward-Compat-Alias. Bestehende Importpfade
+# (``from .knx_stats import Finding``) bleiben gueltig.
+Finding = LegacyPatternFinding
 
 
 def _detect_constant_value(samples: Sequence[TelegramSample]) -> Finding | None:
