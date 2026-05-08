@@ -117,7 +117,14 @@ async def _run_anomaly_tick(
 
 
 async def _run_knx_stats_cleanup(database: Any) -> None:
-    """Iter 24: cleanup-Job fuer knx_raw_telegrams + knx_telegram_counters."""
+    """Iter 24: cleanup-Job fuer knx_raw_telegrams + knx_telegram_counters.
+
+    Iter A2: nach den Loeschungen wird ``PRAGMA wal_checkpoint(TRUNCATE)``
+    ausgeloest, damit das WAL nicht ueber die Cleanups hinaus wachsen
+    bleibt. Bei voller TP1-Last ohne Checkpoint hat das WAL frueher
+    >1 GB erreicht.
+    """
+    from ..processing.retention import run_wal_checkpoint  # noqa: PLC0415
     from ..storage.knx_stats_repo import KnxStatsRepository  # noqa: PLC0415
 
     repo = KnxStatsRepository(database)
@@ -139,6 +146,9 @@ async def _run_knx_stats_cleanup(database: Any) -> None:
                 deleted_capped,
                 deleted_counter,
             )
+        # Iter A2: WAL-Checkpoint nach Cleanup — nutzt die Gelegenheit,
+        # dass die DB gerade einen kohaerenten Zustand hat.
+        await run_wal_checkpoint(database)
     except (ValueError, RuntimeError) as err:
         _LOGGER.warning("knx-stats cleanup failed: %s", err)
 

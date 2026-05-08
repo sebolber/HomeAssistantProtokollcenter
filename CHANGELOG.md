@@ -6,6 +6,18 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Storage / Skalierung
+
+- **Iter A2 / WAL-Checkpoint im Cleanup-Tick.** SQLite laeuft mit
+  ``journal_mode=WAL``, der Schreib-Operationen in einer Sidecar-Datei
+  puffert. Ohne periodisches ``PRAGMA wal_checkpoint(TRUNCATE)`` konnte
+  das WAL bei voller KNX-Bus-Last (~48 Tel/s) auf mehrere GB wachsen,
+  bevor SQLite intern selbst checkpointet — Disk-Verbrauch und
+  langsamere Reads. Jetzt feuert der KNX-Stats-Cleanup-Tick (alle 6 h)
+  nach Loeschungen einen TRUNCATE-Checkpoint, der die WAL-Datei auf
+  0 Byte schrumpft. Neuer Helper ``processing.retention.run_wal_checkpoint``
+  + zwei Pytests (Smoke + Idempotenz).
+
 ### Frontend / Live-Updates
 
 - **Iter D5 / WebSocket-Reconnect-Re-Subscribe.** Vorher rief das Panel
