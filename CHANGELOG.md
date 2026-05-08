@@ -39,6 +39,16 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   0 Byte schrumpft. Neuer Helper ``processing.retention.run_wal_checkpoint``
   + zwei Pytests (Smoke + Idempotenz).
 
+### Wartbarkeit
+
+- **Iter A4 / Repository-Pattern in ``findings_runner`` repariert.**
+  Drei Helper-Queries (``_samples_for_period``, ``_counts_per_ga``,
+  ``_last_seen_per_ga``) griffen direkt auf ``stats_repo._db.fetch_all``
+  zu — Inline-SQL ausserhalb des Repositories, also Vertragsbruch.
+  Jetzt sind sie als Public-Methoden auf ``KnxStatsRepository``:
+  ``samples_for_period_all_gas``, ``counts_per_ga``, ``last_seen_per_ga``.
+  Vier neue Pytests (Smoke + Empty-DB).
+
 ### Findings-Vertrag
 
 - **Iter B6 / `title`/`description` aus dem ``Finding``-Dataclass entfernt.**

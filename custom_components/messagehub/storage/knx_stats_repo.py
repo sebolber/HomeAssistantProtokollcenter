@@ -950,6 +950,74 @@ class KnxStatsRepository:
             params,
         )
 
+    async def samples_for_period_all_gas(
+        self, from_iso: str, to_iso: str
+    ) -> list[dict[str, Any]]:
+        """Iter A4: Public-Methode fuer GA-uebergreifende Samples.
+
+        Liefert ``ts``, ``ga``, ``dev_source``, ``value`` (Python-decoded),
+        ``telegramtype`` ueber den Zeitraum, sortiert nach ts ASC.
+        ``ga_samples`` ist strikt pro GA — hier brauchen wir alle, fuer
+        bus-weite Detektoren wie ``RECONNECT_STORM``.
+        """
+        import contextlib  # noqa: PLC0415
+        import json as _json  # noqa: PLC0415
+
+        rows = await self._db.fetch_all(
+            "SELECT timestamp AS ts, destination AS ga, source AS dev_source, "
+            "       value, telegramtype "
+            "FROM knx_raw_telegrams "
+            "WHERE timestamp >= ? AND timestamp < ? "
+            "ORDER BY timestamp ASC",
+            (from_iso, to_iso),
+        )
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            raw: Any = row["value"]
+            if isinstance(raw, str):
+                with contextlib.suppress(ValueError, TypeError):
+                    raw = _json.loads(raw)
+            out.append(
+                {
+                    "ts": str(row["ts"]),
+                    "ga": str(row["ga"]),
+                    "dev_source": str(row["dev_source"] or ""),
+                    "value": raw,
+                    "telegramtype": row["telegramtype"],
+                }
+            )
+        return out
+
+    async def counts_per_ga(
+        self, from_iso: str, to_iso: str
+    ) -> dict[str, int]:
+        """Iter A4: Public-Methode — Telegramm-Anzahl pro GA im Zeitraum."""
+        rows = await self._db.fetch_all(
+            "SELECT destination AS ga, COUNT(*) AS n "
+            "FROM knx_raw_telegrams "
+            "WHERE timestamp >= ? AND timestamp < ? "
+            "GROUP BY destination",
+            (from_iso, to_iso),
+        )
+        return {str(r["ga"]): int(r["n"]) for r in rows}
+
+    async def last_seen_per_ga(self) -> dict[str, str]:
+        """Iter A4: Public-Methode — letztes Telegramm pro GA, ueber den
+        gesamten Retention-Zeitraum (kein Period-Filter, weil Aufrufer
+        wissen muss, ob eine GA ueberhaupt jemals gesehen wurde)."""
+        rows = await self._db.fetch_all(
+            "SELECT destination AS ga, MAX(timestamp) AS last_seen "
+            "FROM knx_raw_telegrams "
+            "GROUP BY destination",
+        )
+        out: dict[str, str] = {}
+        for row in rows:
+            last = row["last_seen"]
+            if last is None:
+                continue
+            out[str(row["ga"])] = str(last)
+        return out
+
     async def increment_counter_batch(
         self, items: list[tuple[str, str]]
     ) -> None:
