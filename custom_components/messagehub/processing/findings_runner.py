@@ -339,8 +339,6 @@ def _replace_severity(finding: Finding, severity: str) -> Finding:
         severity=severity,  # type: ignore[arg-type]
         ga=finding.ga,
         source=finding.source,
-        title=finding.title,
-        description=finding.description,
         evidence=dict(finding.evidence),
         first_seen=finding.first_seen,
         last_seen=finding.last_seen,
@@ -449,8 +447,6 @@ def build_analysis_disabled_finding(*, now: datetime) -> Finding:
         severity="warning",
         ga=None,
         source=None,
-        title="",
-        description="",
         evidence={
             "reason": "bus-analysis toggle disabled — no telegrams recorded",
         },

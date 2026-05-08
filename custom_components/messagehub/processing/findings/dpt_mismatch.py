@@ -78,8 +78,6 @@ def detect_dpt_mismatch(
         severity=_DPT_MISMATCH_SEVERITY,
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={
             "project_dpt": project_dpt,
             "inferred_dpt": inferred_dpt,

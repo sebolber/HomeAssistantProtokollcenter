@@ -41,8 +41,6 @@ def _f(
         severity=severity,  # type: ignore[arg-type]
         ga=ga,
         source="1.1.5",
-        title="",
-        description="",
         evidence=evidence
         or {"project_dpt": "9.001", "inferred_dpt": "1.001"},
         first_seen=base,

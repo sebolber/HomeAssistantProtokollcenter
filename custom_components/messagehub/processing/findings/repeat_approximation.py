@@ -69,8 +69,6 @@ def detect_repeat_approximation(
         severity=_REPEAT_APPROXIMATION_SEVERITY,
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={
             "repeats_per_day": round(repeats_per_day, 1),
             "total_repeats": repeats,

@@ -526,7 +526,9 @@ def _build_where_clause(
 def _row_to_finding(row: dict[str, Any]) -> Finding:
     """Mappt eine DB-Row zur Finding-Dataclass.
 
-    title/description bleiben leer — UI fuellt sie aus translations/.
+    Iter B6: title/description sind nicht mehr Bestandteil des
+    Dataclass-Schemas. UI rendert die Strings aus
+    ``translations/*.json`` (siehe Iter E1).
     """
     evidence: dict[str, Any] = json.loads(row["evidence_json"]) if row["evidence_json"] else {}
     return Finding(
@@ -535,8 +537,6 @@ def _row_to_finding(row: dict[str, Any]) -> Finding:
         severity=row["severity"],
         ga=row["ga"],
         source=row["source"],
-        title="",
-        description="",
         evidence=evidence,
         first_seen=datetime.fromisoformat(row["first_seen"]),
         last_seen=datetime.fromisoformat(row["last_seen"]),

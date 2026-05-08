@@ -77,8 +77,6 @@ def detect_reconnect_storm(
         severity=_RECONNECT_STORM_SEVERITY,
         ga=None,  # Source-bezogenes Finding, nicht GA-bezogen
         source=source,
-        title="",
-        description="",
         evidence={
             "silence_until": gap_end.isoformat(),
             "burst_count": burst_count,

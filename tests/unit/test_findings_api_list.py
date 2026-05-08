@@ -54,8 +54,6 @@ def _f(
         severity=severity,  # type: ignore[arg-type]
         ga=ga,
         source="1.1.5",
-        title="t",
-        description="d",
         evidence=evidence or {"k": "v"},
         first_seen=base,
         last_seen=base,

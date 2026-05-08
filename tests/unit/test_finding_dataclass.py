@@ -18,17 +18,14 @@ from custom_components.messagehub.processing.findings import (
 
 
 def _sample_finding() -> Finding:
+    # Iter B6: title/description nicht mehr im Dataclass; UI rendert
+    # die Strings aus translations/.
     return Finding(
         code="DPT_MISMATCH",
         schema_version=1,
         severity="error",
         ga="1/2/3",
         source="1.1.5",
-        title="Erkannter Datentyp widerspricht Projekt-DPT",
-        description=(
-            "DPT-Inferenz aus Werten ergibt 1.001, ETS-Projekt sagt 9.001. "
-            "Wahrscheinlich falscher DPT im ETS-Projekt."
-        ),
         evidence={
             "project_dpt": "9.001",
             "inferred_dpt": "1.001",
@@ -95,8 +92,6 @@ class TestFindingRoundTrip:
             severity="error",
             ga=None,
             source=None,
-            title="Mehrere Zeit-Master",
-            description="Mehrere Quellen schreiben Zeit/Datum.",
             evidence={"sources": ["1.1.5", "1.1.6"], "clock_dpt": "10.001"},
             first_seen=datetime(2026, 5, 3, 0, 0, 0, tzinfo=UTC),
             last_seen=datetime(2026, 5, 3, 0, 0, 0, tzinfo=UTC),

@@ -91,8 +91,6 @@ def _build_finding(
         severity=_READ_NO_RESPONSE_SEVERITY,
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={
             "read_at": read_at.isoformat(),
             "expected_until": expected_until.isoformat(),

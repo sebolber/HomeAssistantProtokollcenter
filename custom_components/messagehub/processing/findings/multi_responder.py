@@ -61,8 +61,6 @@ def detect_multi_responder(
         severity=_MULTI_RESPONDER_SEVERITY,
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={
             "responding_sources": sorted(sources_in_window),
             "count": len(sources_in_window),

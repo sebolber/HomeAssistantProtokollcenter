@@ -44,8 +44,6 @@ def _reconnect_storm_finding(
         severity="warning",
         ga=None,
         source=source,
-        title="",
-        description="",
         evidence={
             # Zeitstempel + Variablen wechseln pro Detector-Run.
             "silence_until": "2026-05-08T11:00:00",
@@ -120,8 +118,6 @@ async def test_different_codes_dont_collide(repo: FindingsRepository) -> None:
         severity="warning",
         ga=None,
         source=None,
-        title="",
-        description="",
         evidence={"busload_max_pct": 35.0, "threshold": 20.0},
         first_seen=_now(),
         last_seen=_now(),
@@ -148,8 +144,6 @@ async def test_repeat_approximation_dedups_per_ga(
             severity="warning",
             ga="1/2/3",
             source=None,
-            title="",
-            description="",
             evidence={
                 "repeats_per_day": repeats,
                 "total_repeats": total,
@@ -197,8 +191,6 @@ async def test_send_cycle_drift_dedups_per_ga(
             severity="info",
             ga="1/2/3",
             source=None,
-            title="",
-            description="",
             evidence={
                 "recent_median_dt": 60.0,
                 "baseline_median_dt": 150.0 / ratio,

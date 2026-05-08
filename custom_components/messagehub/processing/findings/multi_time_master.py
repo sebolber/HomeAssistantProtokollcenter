@@ -52,8 +52,6 @@ def detect_multi_time_master(
         severity=_MULTI_TIME_MASTER_SEVERITY,
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={
             "sources": sorted(sources),
             "clock_dpt": dpt,

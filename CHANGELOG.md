@@ -39,6 +39,22 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   0 Byte schrumpft. Neuer Helper ``processing.retention.run_wal_checkpoint``
   + zwei Pytests (Smoke + Idempotenz).
 
+### Findings-Vertrag
+
+- **Iter B6 / `title`/`description` aus dem ``Finding``-Dataclass entfernt.**
+  Die zwei Felder waren Pflicht-Argumente am ``Finding``-Init, wurden
+  aber von jedem der 13 Detektoren als ``""`` gesetzt — das eigentliche
+  Rendering passiert seit Iter E1 ueber ``translations/*.json``. Jetzt
+  kann der Detector-Code knapp bleiben:
+  * ``title`` und ``description`` sind aus dem Dataclass entfernt;
+    ``to_dict`` liefert sie weiterhin als leere Strings, damit alte
+    Frontend-Versionen die DTO-Form akzeptieren.
+  * 13 Detector-Module bereinigt (knapp 30 redundante Init-Argumente
+    weg). Bestand-Tests entsprechend angepasst.
+  * Reasoning-Text in der Recommendation-Engine nutzt nur noch den
+    Code als Marker, weil der Detector-seitige ``title`` ohnehin leer
+    war.
+
 ### Frontend / i18n
 
 - **Iter E1 / Single Source of Truth: ``translations/*.json``.** Bisher

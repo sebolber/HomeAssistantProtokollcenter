@@ -973,9 +973,13 @@ async def compute_device_recommendation(
         ga_label = (
             f"auf {finding.ga}" if finding.ga is not None else "(bus-weit)"
         )
+        # Iter B6: title kommt nicht mehr aus dem Finding selbst —
+        # die UI rendert die Translation zur Laufzeit. Im Reasoning-
+        # Text reicht der Code als maschinenlesbarer Marker; das
+        # Frontend (oder ein nachgelagerter Service) ersetzt ihn ggf.
+        # mit dem lokalisierten Titel.
         reasoning.append(
-            f"Layer 3 (live_anomaly) — Finding {finding.code} {ga_label} "
-            f"aktiv: {finding.title}"
+            f"Layer 3 (live_anomaly) — Finding {finding.code} {ga_label} aktiv"
         )
     silent_count = sum(1 for r in ga_recos if r.observed.mode == "silent")
     if silent_count:

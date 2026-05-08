@@ -44,8 +44,6 @@ def _finding(
         severity=severity,  # type: ignore[arg-type]
         ga=ga,
         source=source,
-        title="Test-Finding",
-        description="Beschreibung fuer Test.",
         evidence=evidence
         or {"project_dpt": "9.001", "inferred_dpt": "1.001", "confidence": 0.94},
         first_seen=base_time,
@@ -207,8 +205,6 @@ class TestFindingsRepoSchemaVersion:
             severity="error",
             ga="1/2/3",
             source="1.1.5",
-            title="t",
-            description="d",
             evidence={
                 "project_dpt": "9.001",
                 "inferred_dpt": "1.001",

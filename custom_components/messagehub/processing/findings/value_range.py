@@ -51,8 +51,6 @@ def detect_value_out_of_range(
         severity=_VALUE_OUT_OF_RANGE_SEVERITY,
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={
             "value": numeric_value,
             "dpt": dpt,
