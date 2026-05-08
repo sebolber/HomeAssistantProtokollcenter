@@ -102,6 +102,47 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
     alle 6 Sprachen muessen die gleichen Codes liefern; jeder Code
     aus ``KNX_FINDING_DEFAULT_SEVERITIES`` braucht DE+EN-Strings.
 
+### Frontend / Robustheit
+
+- **Iter D3 / Auth-Race in `firstUpdated` aufgeloest.** Wenn `hass`
+  zur firstUpdated-Zeit noch nicht gesetzt ist (HA-Lifecycle-Race),
+  feuerte ``_reload()`` ohne Auth → 401, kein Retry, leeres Panel.
+  Jetzt wartet die Initialisierung in ``_tryInitialize`` auf
+  ``hass.auth.data.access_token`` und laeuft erst dann; via
+  ``updated()`` wird sie nachgezogen, sobald hass nachgereicht wird.
+  Drei Vitest decken den Race ab (kein Init ohne hass; Init bei
+  Nachreichung; nicht-doppelt-Init).
+
+- **Iter D4 / `_load()`-Race-Schutz im stats-knx-view.** Bei schnellen
+  Filter-Wechseln konnten parallele ``_load()``-Calls in der falschen
+  Reihenfolge in den State zurueckkommen — der User sah Daten zu
+  Filter A statt B. Jetzt inkrementiert jeder ``_load()`` ein
+  Request-Token und schreibt nur in den State, wenn das Token noch
+  der aktuelle ist. Spaetere Resultate werden verworfen. Ein Vitest
+  verifiziert, dass die zweite (schnellere) Antwort die erste
+  (langsamere) nicht ueberschreibt.
+
+- **Iter D6 / Live-Update-Buffer mit rAF-Throttling.** Frueher rief
+  jeder ``messagehub_message_added``-Event direkt einen Lit-Re-Render
+  aus. Bei Reconnect-Storms (Hunderte Events/s) hat das DOM in jedem
+  Frame neu gebaut. Jetzt sammelt ``_liveBuffer`` die Events pro
+  ``requestAnimationFrame``-Tick und committet einmal — das DOM-Update
+  bleibt unter 60 fps stabil.
+
+- **Iter D7 / `_refreshAll` mit Concurrency-Cap parallelisiert.** Der
+  "Aktualisieren"-Button im Findings-Tab feuerte vorher 50 sequentielle
+  HTTP-Calls bei 50 GAs (~10 s bei 200 ms Latenz). Jetzt laufen 5
+  parallel via Promise-Worker-Loop; Fehler einzelner GAs werden
+  gesammelt und im UI als Banner angezeigt — der Lauf wird nicht
+  abgebrochen.
+
+- **Iter E2 / `_lang()` priorisiert `hass.locale.language`.** Vorher
+  laß die i18n-Aufloesung primaer aus ``document.documentElement.lang``;
+  beim HA-Sprach-Wechsel ohne Reload haengte sie. Jetzt ist
+  ``hass.locale.language`` die kanonische Quelle (Fallback-Kette:
+  hass.locale → document.lang → navigator.language → "en"). hass-
+  Property wird vom Panel an stats-view + findings-view durchgereicht.
+
 ### Frontend / Komponenten-Architektur
 
 - **Iter D2 / `<mh-drawer>` als wiederverwendbare Detail-Pane-Komponente.**

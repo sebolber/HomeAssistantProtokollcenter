@@ -50,6 +50,10 @@ export class FindingsView extends LitElement {
   // Source-Detail-Pane (via stats-view + URL-Hash). null heisst "kein
   // Filter aktiv" — die Liste zeigt dann alle Findings.
   @property({ attribute: false }) sourceFilter: string | null = null;
+  // Iter E2: hass-Property als Quelle fuer hass.locale.language. Optional —
+  // bei Tests ohne hass faellt _lang() auf document.documentElement.lang
+  // / navigator.language zurueck.
+  @property({ attribute: false }) hass?: { locale?: { language?: string } };
 
   @state() private _items: FindingDto[] = [];
   @state() private _total = 0;
@@ -173,8 +177,33 @@ export class FindingsView extends LitElement {
     this._loading = true;
     this._error = null;
     try {
-      for (const ga of gas) {
-        await this.api.refreshFindings(ga);
+      // Iter D7: parallel mit Concurrency-Cap. Sequentiell waren bei
+      // 50 GAs 50 sequentielle HTTP-Calls — bei 200 ms Latenz pro Call
+      // = 10 s Wartezeit. Mit Cap=5 parallel + Promise.allSettled
+      // brauchts nur ~2 s.
+      const concurrency = 5;
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
+      const apiClient = this.api;
+      const queue = [...gas];
+      const errors: string[] = [];
+      const worker = async (): Promise<void> => {
+        while (queue.length > 0) {
+          const ga = queue.shift();
+          if (ga === undefined) return;
+          try {
+            await apiClient.refreshFindings(ga);
+          } catch (err) {
+            errors.push(`${ga}: ${(err as Error).message}`);
+          }
+        }
+      };
+      await Promise.all(
+        Array.from({ length: Math.min(concurrency, gas.length) }, () => worker()),
+      );
+      if (errors.length > 0) {
+        this._error =
+          `${errors.length} GA(s) konnten nicht aktualisiert werden: ` +
+          errors.slice(0, 3).join("; ");
       }
       await this._load();
     } catch (err) {
@@ -384,10 +413,15 @@ export class FindingsView extends LitElement {
   }
 
   private _lang(): string {
-    // Iter 14: Sprache via Browser. HA-Theme-Sprache wuerde via
-    // hass.locale.language kommen, aber das Panel hat aktuell keinen
-    // Hass-Bus-Hook fuer Locale — nehmen wir document.documentElement.lang
-    // (HA setzt das im html-Tag). Fallback: navigator.language.
+    // Iter E2: hass.locale.language ist die kanonische HA-Quelle. Wenn
+    // verfuegbar, hat sie Vorrang — der User waehlt seine Panel-Sprache
+    // in HA-Profile-Settings, und Reloads sind nicht noetig. Fallbacks:
+    // document.documentElement.lang (HA setzt das im <html>) und
+    // navigator.language fuer reine Test-/Standalone-Faelle.
+    const fromHass = this.hass?.locale?.language;
+    if (typeof fromHass === "string" && fromHass.length > 0) {
+      return fromHass;
+    }
     if (typeof document !== "undefined" && document.documentElement.lang) {
       return document.documentElement.lang;
     }

@@ -86,9 +86,31 @@ export class MessageHubPanel extends LitElement {
 
   private _api = new ApiClient();
   private _liveSub?: LiveSubscription;
+  private _initialized = false;
 
   protected override firstUpdated(): void {
-    if (this.hass?.auth) this._api.setAuth(this.hass.auth.data.access_token);
+    // Iter D3: bei firstUpdated ist `hass` evtl. noch nicht gesetzt
+    // (HA-Lifecycle-Race). Wir initialisieren erst, sobald hass.auth
+    // verfuegbar ist — siehe `updated()`. Bei sofortigem Vorhandensein
+    // greift der Pfad gleich.
+    this._tryInitialize();
+  }
+
+  protected override updated(changed: Map<string, unknown>): void {
+    if (changed.has("hass")) {
+      this._tryInitialize();
+    }
+  }
+
+  private _tryInitialize(): void {
+    if (this._initialized) return;
+    if (!this.hass?.auth?.data?.access_token) {
+      // hass noch nicht voll ausgestattet — Initialisierung wird
+      // beim naechsten updated()-Hook nachgezogen.
+      return;
+    }
+    this._initialized = true;
+    this._api.setAuth(this.hass.auth.data.access_token);
     void this._reload();
     void this._subscribeLive();
     void this._loadSavedFilters();
@@ -143,25 +165,57 @@ export class MessageHubPanel extends LitElement {
     }
   }
 
+  // Iter D6: Live-Update-Buffer. Bei Reconnect-Storms (Hunderte
+  // Events/s) hat das frueher Lit pro Event re-rendert (Array-Allokation
+  // + DOM-Update in jedem AnimationFrame). Jetzt sammeln wir Events
+  // im _liveBuffer und committen pro requestAnimationFrame-Tick einmal
+  // den State.
+  private _liveBuffer: MessageDto[] = [];
+  private _liveFlushScheduled = false;
+
+  private _flushLiveBuffer = (): void => {
+    this._liveFlushScheduled = false;
+    if (this._liveBuffer.length === 0) return;
+    const batch = this._liveBuffer;
+    this._liveBuffer = [];
+    // Newest-first; auf 200 Items kappen (gleicher Cap wie vorher).
+    const merged = [...batch.reverse(), ...this._items].slice(0, 200);
+    this._items = merged;
+    this._total += batch.length;
+    this._newCount += batch.length;
+    const fadeoutMs = 4000;
+    const newCountSnapshot = batch.length;
+    window.setTimeout(
+      () => (this._newCount = Math.max(0, this._newCount - newCountSnapshot)),
+      fadeoutMs,
+    );
+  };
+
+  private _scheduleLiveFlush(): void {
+    if (this._liveFlushScheduled) return;
+    this._liveFlushScheduled = true;
+    if (typeof window !== "undefined" && window.requestAnimationFrame) {
+      window.requestAnimationFrame(this._flushLiveBuffer);
+    } else {
+      // Test-/Server-Umgebung ohne rAF: minimaler Microtask-Pfad.
+      window.setTimeout(this._flushLiveBuffer, 0);
+    }
+  }
+
   private async _subscribeLive(): Promise<void> {
     if (!this.hass?.connection?.subscribeEvents) return;
-    // Iter D5: LiveSubscription kapselt subscribeEvents +
-    // Re-Subscribe-Logik bei WS-Reconnect. Vorher haengte die Sub
-    // nach jedem Drop in der Luft und der User merkte erst beim Reload,
-    // dass keine neuen Telegramme mehr kommen.
+    // Iter D5 + D6: LiveSubscription kapselt Re-Subscribe + Drop-
+    // Resilienz. Eingehende Events werden im _liveBuffer gesammelt
+    // und einmal pro Frame committed — schuetzt vor Re-Render-Storm
+    // bei Bus-Bursts.
     this._liveSub = new LiveSubscription(
       this.hass.connection,
       "messagehub_message_added",
       (ev: { data: unknown }) => {
         const newMsg = ev.data as MessageDto;
         if (this._matchesFilters(newMsg)) {
-          this._items = [newMsg, ...this._items].slice(0, 200);
-          this._total += 1;
-          this._newCount += 1;
-          window.setTimeout(
-            () => (this._newCount = Math.max(0, this._newCount - 1)),
-            4000,
-          );
+          this._liveBuffer.push(newMsg);
+          this._scheduleLiveFlush();
         }
       },
     );
@@ -741,7 +795,7 @@ export class MessageHubPanel extends LitElement {
         <main>
           ${this._tab === "messages" ? this._renderMessages() : null}
           ${this._tab === "stats"
-            ? html`<stats-view .api=${this._api}></stats-view>`
+            ? html`<stats-view .api=${this._api} .hass=${this.hass}></stats-view>`
             : null}
           ${this._tab === "settings"
             ? html`<settings-view .api=${this._api}></settings-view>`

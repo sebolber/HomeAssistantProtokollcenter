@@ -20,6 +20,9 @@ const VALID_TABS: ReadonlySet<StatsSubTab> = new Set(["live", "knx", "findings"]
 @customElement("stats-view")
 export class StatsView extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
+  // Iter E2: hass-Property an die Sub-Views durchreichen, damit
+  // findings-view.locale-Aufloesung greift.
+  @property({ attribute: false }) hass?: { locale?: { language?: string } };
 
   @state() private _tab: StatsSubTab = this._loadTab();
   // Iter H (knx-detail-panes): vorbefuellter Source-Filter fuer den
@@ -136,6 +139,7 @@ export class StatsView extends LitElement {
           ${this._tab === "findings"
             ? html`<findings-view
                 .api=${this.api}
+                .hass=${this.hass}
                 .sourceFilter=${this._findingsSourceFilter}
               ></findings-view>`
             : nothing}

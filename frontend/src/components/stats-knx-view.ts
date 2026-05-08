@@ -431,6 +431,13 @@ export class StatsKnxView extends LitElement {
   @state() private _loading = false;
   @state() private _error = "";
   @state() private _toast = "";
+  // Iter D4: Request-Token gegen parallele _load()-Calls. Bei Filter-
+  // Wechsel kann der User schneller klicken als die Server-Antworten
+  // zurueckkommen — ohne Schutz wird das langsamere Resultat nach dem
+  // schnelleren in den State gehoben (Flicker / inkonsistente Daten).
+  // Vor jedem _load() inkrementieren wir den Token; spaetere Calls
+  // ueberschreiben nur, wenn ihr Token noch der aktuelle ist.
+  private _loadToken = 0;
 
   override async firstUpdated(): Promise<void> {
     await Promise.all([this._loadBusAnalysisState(), this._load()]);
@@ -603,6 +610,12 @@ export class StatsKnxView extends LitElement {
 
   private async _load(): Promise<void> {
     if (!this.api) return;
+    // Iter D4: Token-basierter Race-Schutz. Wenn der User die Filter
+    // schnell wechselt, gewinnt der LETZTE Aufruf — frueher konnte ein
+    // langsam zurueckkommendes Resultat den State eines spaeteren
+    // Aufrufs ueberschreiben. Token wird nur beim Schreiben verglichen,
+    // damit wir auch bei Timeout-Fehlern sauber abbrechen.
+    const requestToken = ++this._loadToken;
     this._loading = true;
     this._error = "";
     // Iter 51: Fehler-Map pro Load zuruecksetzen — sonst wuerden
@@ -706,6 +719,12 @@ export class StatsKnxView extends LitElement {
           ),
         ),
       ]);
+      // Iter D4: Token-Check vor jedem Schreibzugriff. Wenn der User
+      // waehrend wir geladen haben einen neueren _load() angestossen
+      // hat, ueberlassen wir DEM den State-Update.
+      if (requestToken !== this._loadToken) {
+        return;
+      }
       this._summary = summary;
       this._top = top.items;
       this._topBySource = topBySource.items;
@@ -728,15 +747,23 @@ export class StatsKnxView extends LitElement {
       // liest aus knx_raw_telegrams.
       const topGas = top.items.slice(0, 5).map((r) => r.ga);
       if (topGas.length > 0) {
-        this._timeline = await this.api.getKnxStatsTimeline({
+        const timelineResult = await this.api.getKnxStatsTimeline({
           ...fRaw,
           gas: topGas,
           bucketMinutes: this._suggestBucketMinutes(),
         });
-      } else {
+        // Erneut pruefen: Timeline-Call lief async nach dem Promise.all.
+        if (requestToken === this._loadToken) {
+          this._timeline = timelineResult;
+        }
+      } else if (requestToken === this._loadToken) {
         this._timeline = null;
       }
     } catch (err) {
+      if (requestToken !== this._loadToken) {
+        // Veralteter Aufruf — Fehler nicht mehr darstellen.
+        return;
+      }
       this._error = (err as Error).message;
       this._summary = null;
       this._top = [];
@@ -754,7 +781,10 @@ export class StatsKnxView extends LitElement {
       this._trend = null;
       this._heatmap = null;
     } finally {
-      this._loading = false;
+      // Loading-State nur zuruecksetzen, wenn wir der aktuelle Aufruf sind.
+      if (requestToken === this._loadToken) {
+        this._loading = false;
+      }
     }
   }
 
