@@ -59,10 +59,20 @@ describe("findings-i18n Iter 14: Phase 2", () => {
   });
 
   it("faellt auf EN zurueck, wenn die Sprache nicht eingerichtet ist", () => {
+    // Iter E1: jetzt sind DE/EN/ES/FR/IT/NL aus dem Backend
+    // generiert; Sprachen ausserhalb dieser Liste fallen auf EN zurueck.
+    const titleZh = getFindingTitle("DPT_MISMATCH", "zh");
+    const titleEn = getFindingTitle("DPT_MISMATCH", "en");
+    expect(titleZh).toEqual(titleEn);
+  });
+
+  it("liefert spanische Strings, weil ES jetzt aus translations/es.json kommt", () => {
+    // Iter E1: Backend ist Single Source of Truth — Frontend liefert
+    // alle 6 Sprachen direkt.
     const titleEs = getFindingTitle("DPT_MISMATCH", "es");
     const titleEn = getFindingTitle("DPT_MISMATCH", "en");
-    // Iter 14: nur DE+EN definiert. ES faellt auf EN zurueck.
-    expect(titleEs).toEqual(titleEn);
+    expect(titleEs).not.toEqual(titleEn);
+    expect(titleEs.toLowerCase()).toContain("dpt");
   });
 
   it("liefert leeren String fuer unbekannte Codes (Iter 9 Fallback)", () => {

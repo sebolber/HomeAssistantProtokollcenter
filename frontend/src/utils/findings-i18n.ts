@@ -3,18 +3,21 @@
 // Vertrag aus docs/messagehub_knx_konfigurationsfehler_recherche.md §9.7:
 // Detektoren liefern Code + Evidence, UI rendert lesbare Strings.
 //
-// Iter 14: Phase 2 (DPT_MISMATCH, VALUE_OUT_OF_RANGE) in DE/EN.
-// Spaetere Iter (19, 23, 26) ergaenzen weitere Codes + Sprachen — die
-// Tabelle in `STRINGS` ist die zentrale Anlaufstelle. Andere Sprachen
-// fallen automatisch auf EN zurueck.
-//
-// Synchronisiert mit `custom_components/messagehub/translations/*.json`,
-// wo dieselben Strings unter `findings.codes.{CODE}.{title|description|
-// help_url}` liegen — der HA-Backend-Layer (i18n fuer Issues) liest sie
-// von dort, das Frontend bringt sie als TypeScript-Const mit (kein
-// Runtime-Fetch noetig, weil das Panel als ein Bundle ausgeliefert wird).
+// Iter E1: Single Source of Truth ist
+// ``custom_components/messagehub/translations/*.json``. Der Pre-Build-
+// Schritt ``npm run prebuild`` ruft ``scripts/generate-findings-i18n.mjs``
+// und schreibt die Strings nach ``findings-i18n.generated.ts``. Hier
+// importieren wir das Generated-Modul und exposen die public Helper.
+// Frontend hat damit alle 6 Sprachen (de/en/es/fr/it/nl) und keine
+// Drift mehr zwischen Backend- und Frontend-Tabellen.
 
-type Lang = "de" | "en";
+import {
+  STRINGS as GENERATED_STRINGS,
+  SUPPORTED_LANGS,
+  type Lang as GeneratedLang,
+} from "./findings-i18n.generated.js";
+
+type Lang = GeneratedLang;
 type FallbackLang = string;
 
 interface CodeStrings {
@@ -23,219 +26,8 @@ interface CodeStrings {
   help_url: string;
 }
 
-const STRINGS: Record<Lang, Record<string, CodeStrings>> = {
-  de: {
-    DPT_MISMATCH: {
-      title: "Erkannter Datentyp widerspricht Projekt-DPT",
-      description:
-        "Auto-Erkenner liefert {inferred_dpt} aus {samples} Stichproben " +
-        "(Confidence {confidence}). Projekt-DPT ist {project_dpt}. " +
-        "Werte werden vermutlich falsch dekodiert — bitte ETS-Projekt pruefen.",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types",
-    },
-    VALUE_OUT_OF_RANGE: {
-      title: "Wert ausserhalb des erlaubten DPT-Bereichs",
-      description:
-        "Wert {value} liegt ausserhalb des fuer DPT {dpt} erlaubten " +
-        "Bereichs [{range_min}, {range_max}]. Wahrscheinlich falscher " +
-        "DPT oder fehlerhafte Sensorik.",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/115001133744-Datapoint-Type",
-    },
-    MULTI_RESPONDER: {
-      title: "Mehrere Aktoren antworten auf gleicher GA",
-      description:
-        "{count} Quellen antworten innerhalb {window_ms} ms: " +
-        "{responding_sources}. Wahrscheinlich mehrere Aktoren mit gesetztem " +
-        "L-Flag — kann beabsichtigt sein bei parallelen Aktoren, sonst " +
-        "ETS-Topologie pruefen.",
-      help_url: "https://knx-blogger.de/knx-flags-einfach-erklaert/",
-    },
-    READ_NO_RESPONSE: {
-      title: "GroupValueRead bleibt ohne Antwort",
-      description:
-        "Read um {read_at} hat innerhalb von {timeout_sec} s keine Antwort " +
-        "erhalten. Empfaenger fehlt, ist offline oder das L-Flag ist nicht " +
-        "gesetzt.",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics",
-    },
-    TOGGLE_LOOP: {
-      title: "Schaltschleife auf DPT 1.001",
-      description:
-        "GA wechselt zyklisch zwischen 0 und 1 (Periode {period_ms} ms, " +
-        "{cycles} Wertwechsel). Vermutung: gleiche GA wird sendend und " +
-        "hoerend gleichzeitig genutzt.",
-      help_url: "https://community.openhab.org/t/loops-on-knx-bus/22185",
-    },
-    MULTI_TIME_MASTER: {
-      title: "Mehrere Zeit-Master auf gleicher GA",
-      description:
-        "{sources} schreiben gemeinsam auf eine GA mit DPT {clock_dpt}. " +
-        "Doppelte Zeitquellen erzeugen Drift — nur ein Geraet als " +
-        "Time-Master konfigurieren.",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types",
-    },
-    RECONNECT_STORM: {
-      title: "Reconnect-Sturm nach Bus-Stille",
-      description:
-        "Nach einer Stille bis {silence_until} feuerte die Quelle einen " +
-        "Burst: {burst_count} Telegramme im 30-s-Fenster (Schnitt sonst " +
-        "{normal_avg}, Faktor {factor}). Typisch fuer Reconnect-Floods " +
-        "nach Bus-Spannungsausfall.",
-      help_url: "https://github.com/home-assistant/core/issues/69328",
-    },
-    SEND_CYCLE_DRIFT: {
-      title: "Sendezyklus deutlich verkuerzt",
-      description:
-        "Median-Δt der letzten Periode {recent_median_dt} s vs. " +
-        "Vergleichszeitraum {baseline_median_dt} s — Verhaeltnis {ratio}. " +
-        "Sendezyklus halbiert; vermutlich Hysterese verstellt oder " +
-        "Sensorik defekt.",
-      help_url: "https://knx-blogger.de/was-ist-auf-deinem-knx-bus-los/",
-    },
-    REPEAT_APPROXIMATION: {
-      title: "Vermutete Telegrammwiederholungen",
-      description:
-        "{total_repeats} identische Folge-Telegramme mit Δt < 100 ms ueber " +
-        "{period_days} Tage (~ {repeats_per_day}/Tag). Approximation des " +
-        "Repeat-Bits — bestaetigen via xknx-Tracer (BL-D), wenn verfuegbar.",
-      help_url:
-        "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung",
-    },
-    ORPHAN_GA: {
-      title: "GA in Projekt-Whitelist, aber stumm",
-      description:
-        "Im Auswertezeitraum {period_from} bis {period_to} kein einziges " +
-        "Telegramm gesehen. ETS-Projekt enthaelt diese GA — entweder " +
-        "loeschen oder Empfaenger pruefen.",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check",
-    },
-    STALE_GA: {
-      title: "GA seit Tagen tot",
-      description:
-        "Letztes Telegramm am {last_seen}, seit {days_silent} Tagen keine " +
-        "weitere Aktivitaet. Sensorik defekt oder Linie unterbrochen?",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check",
-    },
-    SEND_TO_NOWHERE: {
-      title: "Schalt-Telegramm ohne Status-Echo",
-      description:
-        "Write um {write_at} blieb {status_window_ms} ms ohne Status-Echo " +
-        "auf derselben GA. Aktor moeglicherweise offline, unprogrammiert " +
-        "oder Status liegt auf separater GA (False-Positive moeglich).",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics",
-    },
-  },
-  en: {
-    DPT_MISMATCH: {
-      title: "Inferred datapoint type contradicts project DPT",
-      description:
-        "Auto-detector inferred {inferred_dpt} from {samples} samples " +
-        "(confidence {confidence}). Project DPT is {project_dpt}. " +
-        "Values are likely decoded incorrectly — please verify the ETS project.",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types",
-    },
-    VALUE_OUT_OF_RANGE: {
-      title: "Value outside allowed DPT range",
-      description:
-        "Value {value} is outside the allowed range [{range_min}, {range_max}] " +
-        "for DPT {dpt}. Likely wrong DPT or faulty sensor.",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/115001133744-Datapoint-Type",
-    },
-    MULTI_RESPONDER: {
-      title: "Multiple actuators respond on same group address",
-      description:
-        "{count} sources answered within {window_ms} ms: {responding_sources}. " +
-        "Likely multiple actuators with the L-flag set — may be intentional " +
-        "for parallel actuators, otherwise verify the ETS topology.",
-      help_url: "https://knx-blogger.de/knx-flags-einfach-erklaert/",
-    },
-    READ_NO_RESPONSE: {
-      title: "GroupValueRead without response",
-      description:
-        "Read at {read_at} received no response within {timeout_sec} s. " +
-        "Receiver missing, offline, or L-flag not set.",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics",
-    },
-    TOGGLE_LOOP: {
-      title: "Switching loop on DPT 1.001",
-      description:
-        "Group address alternates between 0 and 1 (period {period_ms} ms, " +
-        "{cycles} value changes). Likely the same GA is used both sending " +
-        "and listening.",
-      help_url: "https://community.openhab.org/t/loops-on-knx-bus/22185",
-    },
-    MULTI_TIME_MASTER: {
-      title: "Multiple time masters on same group address",
-      description:
-        "{sources} both write to a GA with DPT {clock_dpt}. Duplicate " +
-        "time sources cause drift — configure only one device as time master.",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types",
-    },
-    RECONNECT_STORM: {
-      title: "Reconnect storm after bus silence",
-      description:
-        "After silence until {silence_until} the source produced a burst: " +
-        "{burst_count} telegrams in the 30s window (normal {normal_avg}, " +
-        "factor {factor}). Typical for reconnect floods after bus power loss.",
-      help_url: "https://github.com/home-assistant/core/issues/69328",
-    },
-    SEND_CYCLE_DRIFT: {
-      title: "Send cycle significantly shortened",
-      description:
-        "Recent median Δt {recent_median_dt} s vs. baseline " +
-        "{baseline_median_dt} s — ratio {ratio}. Send cycle halved; " +
-        "likely a changed hysteresis or faulty sensor.",
-      help_url: "https://knx-blogger.de/was-ist-auf-deinem-knx-bus-los/",
-    },
-    REPEAT_APPROXIMATION: {
-      title: "Suspected telegram repeats",
-      description:
-        "{total_repeats} identical follow-up telegrams with Δt < 100 ms " +
-        "across {period_days} days (~ {repeats_per_day}/day). Approximation " +
-        "of the repeat bit — confirm via xknx tracer (BL-D) when available.",
-      help_url:
-        "https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1611435-unbest%C3%A4tigte-telegramme-telegrammwiederholung",
-    },
-    ORPHAN_GA: {
-      title: "GA in project whitelist but silent",
-      description:
-        "No telegrams observed in the period from {period_from} to " +
-        "{period_to}. The ETS project lists this GA — remove it or check " +
-        "the receiver.",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check",
-    },
-    STALE_GA: {
-      title: "GA gone silent",
-      description:
-        "Last telegram at {last_seen}, no activity for {days_silent} " +
-        "days. Sensor faulty or line interrupted?",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/115001822790-Project-Check",
-    },
-    SEND_TO_NOWHERE: {
-      title: "Switching telegram without status echo",
-      description:
-        "Write at {write_at} received no status echo within " +
-        "{status_window_ms} ms on the same GA. Actuator possibly offline, " +
-        "not programmed, or status lives on a separate GA (false positive " +
-        "possible).",
-      help_url:
-        "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics",
-    },
-  },
-};
+// Iter E1: STRINGS kommt jetzt aus dem Generator-Modul.
+const STRINGS: Record<Lang, Record<string, CodeStrings>> = GENERATED_STRINGS as Record<Lang, Record<string, CodeStrings>>;
 
 // Iter 26: Codes mit Projekt-Bezug (Filter "Nur Projekt-Befunde").
 // DPT_MISMATCH braucht das Soll-DPT aus dem Projekt; ORPHAN_GA und
@@ -252,9 +44,15 @@ export function isProjectRelated(code: string): boolean {
 }
 
 function _resolveLang(lang: FallbackLang): Lang {
-  // Iter 14: nur DE/EN explizit gepflegt. Andere Sprachen fallen auf
-  // EN zurueck — HA setzt typischerweise einen 2-stelligen Code.
-  if (lang.startsWith("de")) return "de";
+  // Iter E1: alle SUPPORTED_LANGS aus dem Generator pruefen — der User
+  // bekommt seine HA-Sprache, wenn ein Backend-Translation-File
+  // existiert; sonst Fallback EN.
+  const code = (lang || "").toLowerCase();
+  for (const supported of SUPPORTED_LANGS) {
+    if (code === supported || code.startsWith(supported + "-")) {
+      return supported;
+    }
+  }
   return "en";
 }
 

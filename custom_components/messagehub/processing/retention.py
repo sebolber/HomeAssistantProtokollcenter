@@ -73,3 +73,38 @@ async def run_retention(
 async def run_vacuum(database: Database) -> None:
     await database.executescript("VACUUM;")
     _LOGGER.info("VACUUM completed")
+
+
+async def run_wal_checkpoint(database: Database) -> tuple[int, int, int]:
+    """Iter A2: WAL-Checkpoint im TRUNCATE-Modus.
+
+    SQLite-WAL-Mode buffert Schreib-Operationen in der Sidecar-Datei
+    ``<db>-wal``. Ohne periodisches Checkpointen kann sie unter starker
+    Schreib-Last (KNX-Bus mit ~48 Tel/s) auf mehrere GB wachsen, bevor
+    SQLite intern selbst checkpointet — Disk-Verbrauch und langsamere
+    Reads. ``TRUNCATE`` schrumpft die WAL-Datei nach erfolgreichem
+    Checkpoint auf 0 Byte.
+
+    Liefert das ``PRAGMA wal_checkpoint``-Tupel ``(busy, log, checkpointed)``:
+    - busy: 0 wenn erfolgreich, 1 wenn Reader/Writer blockierten.
+    - log: Anzahl der Frames im WAL.
+    - checkpointed: Anzahl der frames, die in die DB geschrieben wurden.
+    """
+    cursor = await database.connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+    try:
+        row = await cursor.fetchone()
+    finally:
+        await cursor.close()
+    await database.connection.commit()
+    if row is None:
+        _LOGGER.debug("wal_checkpoint returned no row")
+        return (0, 0, 0)
+    busy = int(row[0]) if row[0] is not None else 0
+    log = int(row[1]) if row[1] is not None else 0
+    checkpointed = int(row[2]) if row[2] is not None else 0
+    if busy or checkpointed:
+        _LOGGER.debug(
+            "wal_checkpoint: busy=%d log=%d checkpointed=%d",
+            busy, log, checkpointed,
+        )
+    return (busy, log, checkpointed)

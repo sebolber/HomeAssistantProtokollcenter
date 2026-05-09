@@ -517,17 +517,25 @@ def _ensure_device_registered(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 
 def _bundle_cache_buster(bundle_path: Path) -> str:
-    """Liefert eine kurze Cache-Buster-Zeichenkette aus der Bundle-mtime.
+    """Liefert eine kurze Cache-Buster-Zeichenkette.
 
-    Hintergrund: HA serviert das Panel-JS unter einem festen Pfad ohne
-    eingebauten Hash. Ohne Cache-Buster zeigt der Browser nach einem
-    Frontend-Rebuild das alte Bundle aus dem HTTP-Cache.
+    Iter F3: Inhalts-Hash statt mtime. mtime ist nicht reproduzierbar
+    (Git-Clone, HACS-Update — alle setzen mtime auf Checkout-Zeit), bei
+    identischer Datei kann das zu Browser-Cache-Misses fuehren oder
+    umgekehrt zu zwei verschiedenen Bundles unter demselben ?v=...
+    Param. Inhalts-Hash ist deterministisch, ohne externen Build-State.
+    Bei OSError (Datei fehlt) Fallback auf ``"0"``.
     """
+    import hashlib  # noqa: PLC0415
+
     try:
-        mtime = int(bundle_path.stat().st_mtime)
+        with bundle_path.open("rb") as fh:
+            digest = hashlib.sha256()
+            while chunk := fh.read(64 * 1024):
+                digest.update(chunk)
+            return digest.hexdigest()[:12]
     except OSError:
         return "0"
-    return str(mtime)
 
 
 async def _async_register_panel(hass: HomeAssistant) -> None:
@@ -604,20 +612,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if geoip is not None:
             with contextlib.suppress(Exception):
                 geoip.close()
-        for key in (
-            "unsub_eventbus",
-            "unsub_knx",
-            "unsub_periodic",
-            "unsub_dispatch",
-            "unsub_remediation",
-            "unsub_mqtt",
-            "unsub_syslog",
-            "unsub_options",
-            "retention_unsub",
-            "weekly_report_unsub",
-            "pattern_unsub",
-        ):
-            unsub = state.get(key)
+        # Iter F6: Convention-based Auto-Cleanup. Schluessel, deren
+        # Name mit ``unsub_`` beginnt oder mit ``_unsub`` endet, gelten
+        # als Lifecycle-Hooks und werden hier abgeraeumt. Damit muessen
+        # neue Listener nicht mehr in eine zentrale Liste eingetragen
+        # werden — Vergessen-Risiko ist weg.
+        for key, unsub in list(state.items()):
+            if not (key.startswith("unsub_") or key.endswith("_unsub")):
+                continue
             if callable(unsub):
                 with contextlib.suppress(RuntimeError, ValueError):
                     unsub()

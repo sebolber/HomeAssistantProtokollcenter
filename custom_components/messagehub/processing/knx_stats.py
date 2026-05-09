@@ -65,11 +65,26 @@ _DPT_5001_BYTE_MAX: Final = 255  # 8-bit unsigned upper bound (DPT 5.x).
 def _classify_int_samples(int_values: list[int]) -> str | None:
     """Helfer fuer infer_dpt_from_samples — nur Integer-Branche.
 
-    Trennung halt cognitive complexity in der Hauptfunktion gering.
+    Iter B2 (gehaerter):
+    - 1.001 nur, wenn alle Werte in {0,1} UND mindestens beide Werte
+      vorkommen (Wert-Diversitaet). Sequenz ausschliesslich aus 0 oder
+      ausschliesslich 1 ist nicht entscheidbar — koennte ebenso ein
+      Stellantrieb sein, der gerade in seiner Ruhe-/Arbeitslage haengt.
+    - 5.001 nur, wenn mindestens ein Wert >= 2 ist. {0, 100} ist klar
+      Stellantrieb-Profil, {0, 1} koennte ein Schaltkanal sein und wird
+      durch die obige Regel abgefangen.
+    - Werte ausserhalb [0, 255] -> None (out-of-range fuer beide DPTs).
     """
-    if all(v in (0, 1) for v in int_values):
-        return "1.001"
+    if not int_values:
+        return None
+    distinct = set(int_values)
+    if distinct.issubset({0, 1}):
+        # Beide Werte muessen vorkommen, sonst nicht entscheidbar.
+        if distinct == {0, 1}:
+            return "1.001"
+        return None
     if all(0 <= v <= _DPT_5001_BYTE_MAX for v in int_values):
+        # Stellantrieb / Dimmwert: mindestens ein Wert > 1.
         return "5.001"
     return None
 
@@ -332,12 +347,28 @@ class TelegramSample:
 
 
 @dataclass(frozen=True, slots=True)
-class Finding:
-    """Erkannte Anomalie im Telegramm-Strom."""
+class LegacyPatternFinding:
+    """Erkannte Anomalie im Telegramm-Strom (Iter 3 / Anti-Pattern).
+
+    Iter H2: umbenannt von ``Finding`` auf ``LegacyPatternFinding``,
+    um Kollisionen mit ``processing.findings.Finding`` (Iter 1+) zu
+    vermeiden. Beide Klassen leben aus historischen Gruenden parallel —
+    der bus-weite Anti-Pattern-Detector bleibt hier, der erweiterte
+    Findings-Vertrag (mit Code, Evidence, Schema-Version) liegt unter
+    ``processing.findings``.
+
+    Backward-Compat-Alias: ``Finding`` bleibt als Modul-Name erhalten,
+    damit alte Imports nicht brechen — siehe unten.
+    """
 
     kind: FindingKind
     severity: KnxSeverity
     text: str
+
+
+# Iter H2: Backward-Compat-Alias. Bestehende Importpfade
+# (``from .knx_stats import Finding``) bleiben gueltig.
+Finding = LegacyPatternFinding
 
 
 def _detect_constant_value(samples: Sequence[TelegramSample]) -> Finding | None:
@@ -504,10 +535,20 @@ _BUSLOAD_PCT_CRITICAL: Final[float] = 40.0
 _ALARMS_CRITICAL: Final[int] = 5
 
 # Gewichtung der Komponenten (Summe = 1.0).
-_WEIGHT_REPEAT: Final[float] = 0.30
-_WEIGHT_BUSLOAD: Final[float] = 0.30
-_WEIGHT_SILENCE: Final[float] = 0.20
-_WEIGHT_ALARMS: Final[float] = 0.20
+#
+# Iter B3 (Konzept-Schwaeche B3): Repeat-Quote runtergewichtet, weil
+# xknx das ``repeated``-Flag in der Cemi-Frame-Lage praktisch nie
+# liefert. Die echte Wiederholrate waere nur per Bus-Sniffer messbar
+# (BL-D blocked). Frueher hatte dieser KPI 30% Gewicht — der Score zog
+# damit dauerhaft auf ~70 runter, ohne dass real ein Bus-Problem vorlag.
+# Jetzt wird er als Approximation markiert (siehe
+# ``compute_health_score`` -> ``repeat_approximate``) und nimmt nur
+# noch 10% Gewicht ein. Buslast (realistischster KPI) bekommt 40%,
+# Silence + Alarme je 25%.
+_WEIGHT_REPEAT: Final[float] = 0.10
+_WEIGHT_BUSLOAD: Final[float] = 0.40
+_WEIGHT_SILENCE: Final[float] = 0.25
+_WEIGHT_ALARMS: Final[float] = 0.25
 
 # Severity-Schwellen (Score >= X -> Severity).
 _SCORE_GREEN_MIN: Final[int] = 90
@@ -617,6 +658,9 @@ def compute_health_score(input_: HealthScoreInput) -> dict[str, Any]:
     - severity: green/yellow/orange/red
     - components: dict pro Komponente (0..100)
     - findings: list[HealthFinding] mit konkreten Hinweisen
+    - repeat_approximate: bool — Iter B3: signalisiert dem UI, dass
+      die Repeat-Komponente auf einer Approximation beruht (xknx
+      liefert das echte Repeat-Bit nicht — F4/BL-D im Konzept).
     """
     components = {
         "repeat": _component_health(input_.repeat_ratio_pct, _REPEAT_PCT_LIMIT),
@@ -636,4 +680,9 @@ def compute_health_score(input_: HealthScoreInput) -> dict[str, Any]:
         "severity": _severity_for_score(score),
         "components": components,
         "findings": _build_health_findings(input_),
+        # Iter B3: Approximations-Marker fuer das Frontend. Der
+        # Repeat-Bit ist xknx-seitig nicht zuverlaessig sichtbar — bis
+        # ein Sniffer-Side-Channel oder Layer-2-Frame-Pass-Through
+        # ergaenzt wird, ist die Quote eine Schaetzung mit Tendenz 0.
+        "repeat_approximate": True,
     }

@@ -1,13 +1,31 @@
-// Iter UX-2: zwei Bugs in findings-view:
-//  1. _itemKey nicht eindeutig bei bus-weiten Findings (ga=null) mit
-//     gleichem Code + last_seen — alle Eintraege werden gleichzeitig
-//     als selected markiert.
-//  2. Detail-Pane rendert inline statt rechts-fixed, anders als die
-//     anderen Drawer im Repo.
+// Iter UX-2 + Iter D2: Selection-Eindeutigkeit + gemeinsame mh-drawer-
+// Komponente. Drawer ist jetzt das wiederverwendbare ``<mh-drawer>``
+// (siehe components/mh-drawer.ts), gerendert via slotted Content.
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import "../src/components/findings-view.js";
 import type { ApiClient, FindingDto, FindingsListResponse } from "../src/api-client.js";
+
+function findOpenDrawer(host: HTMLElement): HTMLElement | null {
+  // <mh-drawer> rendert nur, wenn open=true. Sein Shadow-DOM enthaelt
+  // [data-test="mh-drawer"]. Wir suchen vom findings-view aus per
+  // Slot-Path.
+  const drawerEl = host.shadowRoot?.querySelector("mh-drawer") ?? null;
+  if (!drawerEl) return null;
+  const aside = drawerEl.shadowRoot?.querySelector<HTMLElement>(
+    '[data-test="mh-drawer"]',
+  );
+  return aside ?? null;
+}
+
+function findBackdrop(host: HTMLElement): HTMLElement | null {
+  const drawerEl = host.shadowRoot?.querySelector("mh-drawer") ?? null;
+  return (
+    drawerEl?.shadowRoot?.querySelector<HTMLElement>(
+      '[data-test="mh-drawer-backdrop"]',
+    ) ?? null
+  );
+}
 
 
 function makeFinding(overrides: Partial<FindingDto>): FindingDto {
@@ -103,12 +121,11 @@ describe("findings-view UX-2 — selection & drawer", () => {
     row.click();
     await settle(el);
 
-    // Drawer: position-fixed + .detail-pane-Klasse, NICHT die alte
-    // inline ".detail"-Klasse.
-    const drawer = el.shadowRoot!.querySelector(".detail-pane");
+    // Iter D2: Drawer ist jetzt <mh-drawer>; sein Shadow-DOM enthaelt
+    // den eigentlichen Drawer + Backdrop.
+    const drawer = findOpenDrawer(el);
     expect(drawer).not.toBeNull();
-    // Backdrop muss vorhanden sein.
-    const backdrop = el.shadowRoot!.querySelector(".detail-backdrop");
+    const backdrop = findBackdrop(el);
     expect(backdrop).not.toBeNull();
   });
 
@@ -119,13 +136,10 @@ describe("findings-view UX-2 — selection & drawer", () => {
     row.click();
     await settle(el);
 
-    const backdrop = el.shadowRoot!.querySelector(
-      ".detail-backdrop",
-    ) as HTMLElement;
+    const backdrop = findBackdrop(el)!;
     backdrop.click();
     await settle(el);
-    expect(el.shadowRoot!.querySelector(".detail-pane")).toBeNull();
-    // Selection ist auch zurueckgesetzt
+    expect(findOpenDrawer(el)).toBeNull();
     expect(
       el.shadowRoot!.querySelector(".item.item--selected"),
     ).toBeNull();
@@ -137,11 +151,11 @@ describe("findings-view UX-2 — selection & drawer", () => {
     const row = el.shadowRoot!.querySelector(".item") as HTMLElement;
     row.click();
     await settle(el);
-    expect(el.shadowRoot!.querySelector(".detail-pane")).not.toBeNull();
+    expect(findOpenDrawer(el)).not.toBeNull();
 
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
     await settle(el);
-    expect(el.shadowRoot!.querySelector(".detail-pane")).toBeNull();
+    expect(findOpenDrawer(el)).toBeNull();
   });
 
   it("Detail-Pane zeigt korrekte Source des angeklickten Eintrags", async () => {
@@ -154,8 +168,9 @@ describe("findings-view UX-2 — selection & drawer", () => {
     const rows = el.shadowRoot!.querySelectorAll(".item");
     (rows[1] as HTMLElement).click();
     await settle(el);
-    const drawerText = el.shadowRoot!.querySelector(".detail-pane")
-      ?.textContent ?? "";
-    expect(drawerText).toContain("1.1.140");
+    // Iter D2: Inhalt sitzt im Slot des <mh-drawer>; also pruefen wir
+    // den findings-view-internen Detail-Block.
+    const detail = el.shadowRoot!.querySelector('[data-test="findings-detail"]');
+    expect(detail?.textContent ?? "").toContain("1.1.140");
   });
 });

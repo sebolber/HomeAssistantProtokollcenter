@@ -33,10 +33,22 @@
       "name": "Añadir mensaje",
       "description": "Añade un mensaje manualmente al message hub.",
       "fields": {
-        "severity": { "name": "Severidad", "description": "Nivel" },
-        "source": { "name": "Fuente", "description": "Origen lógico" },
-        "text": { "name": "Texto", "description": "Texto del mensaje" },
-        "metadata": { "name": "Metadata", "description": "Campos adicionales opcionales" }
+        "severity": {
+          "name": "Severidad",
+          "description": "Nivel"
+        },
+        "source": {
+          "name": "Fuente",
+          "description": "Origen lógico"
+        },
+        "text": {
+          "name": "Texto",
+          "description": "Texto del mensaje"
+        },
+        "metadata": {
+          "name": "Metadata",
+          "description": "Campos adicionales opcionales"
+        }
       }
     }
   },
@@ -54,7 +66,7 @@
     "codes": {
       "DPT_MISMATCH": {
         "title": "Tipo de datos detectado contradice el DPT del proyecto",
-        "description": "El detector automático infirió {inferred_dpt} a partir de {samples} muestras (confianza {confidence}). El DPT del proyecto es {project_dpt}. Los valores probablemente se decodifican incorrectamente — verifica el proyecto ETS.",
+        "description": "El auto-detector infirio {inferred_dpt} de {samples} muestras (confianza {confidence}). DPT del proyecto: {project_dpt}. Los valores podrian decodificarse incorrectamente — verifica el proyecto ETS. Nota: actuadores (DPT 5.001) que solo envian 0% y 100% pueden inferirse erroneamente como 1.001 — establece el override de severity en 'info' si es ese el caso.",
         "help_url": "https://support.knx.org/hc/en-us/articles/115001366044-Group-Addresses-Datapoint-Types"
       },
       "VALUE_OUT_OF_RANGE": {
@@ -111,6 +123,11 @@
         "title": "Telegrama sin eco de estado",
         "description": "El Write a las {write_at} no recibió eco de estado en {status_window_ms} ms en la misma GA. Actuador posiblemente offline, no programado o el estado vive en una GA separada (posible falso positivo).",
         "help_url": "https://support.knx.org/hc/en-us/articles/360019068120-Groups-Diagnostics"
+      },
+      "ANALYSIS_DISABLED": {
+        "title": "El analisis del bus esta desactivado",
+        "description": "El interruptor de analisis del bus esta apagado — el listener ya no registra telegramas en las tablas raw ni counter. Los demas hallazgos estan suprimidos para que esta pestana no de la falsa impresion de 'todo bien'. Activa el interruptor en la pestana de analisis del bus KNX para reanudar la captura de telegramas.",
+        "help_url": ""
       }
     }
   },

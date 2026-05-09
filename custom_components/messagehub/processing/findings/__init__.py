@@ -66,8 +66,6 @@ class Finding:
             Findings (z. B. MULTI_TIME_MASTER ueber Set von Sources).
         source: KNX-Phys-Adresse "x.y.z" der ausloesenden Quelle.
             `None`, wenn keine eindeutige Source identifizierbar.
-        title: Kurzer UI-Titel (durch translations/, vom UI gerendert).
-        description: Ausfuehrliche Beschreibung (durch translations/).
         evidence: Strukturierter Detector-Output, pro Code frei.
         first_seen: Erstes Auftreten dieses Findings.
         last_seen: Letztes Auftreten — gleich first_seen, wenn neu.
@@ -75,6 +73,12 @@ class Finding:
         detector_version: Versionierter Detector-Name, z. B.
             "DPT_MISMATCH/v1". Damit ist nachvollziehbar, welche
             Detector-Iteration den Finding produziert hat.
+
+    Iter B6: ``title`` / ``description`` wurden aus dem Dataclass entfernt.
+    Sie waren in jedem Detector ``""`` und wurden im Frontend ohnehin
+    aus ``translations/*.json`` (Iter E1) gerendert. Backward-Compat
+    fuer DTO-Konsumenten: ``to_dict`` liefert die Felder weiterhin
+    leer mit, ``from_dict`` ignoriert sie (akzeptiert sie aber).
     """
 
     code: str
@@ -82,8 +86,6 @@ class Finding:
     severity: FindingSeverity
     ga: str | None
     source: str | None
-    title: str
-    description: str
     evidence: EvidencePayload = field(default_factory=dict)
     first_seen: datetime = field(default_factory=lambda: datetime.fromtimestamp(0))
     last_seen: datetime = field(default_factory=lambda: datetime.fromtimestamp(0))
@@ -91,15 +93,21 @@ class Finding:
     detector_version: str = ""
 
     def to_dict(self) -> dict[str, Any]:
-        """JSON-kompatibles Dict mit ISO-Datetimes."""
+        """JSON-kompatibles Dict mit ISO-Datetimes.
+
+        Iter B6: ``title``/``description`` werden weiterhin als leere
+        Strings serialisiert, damit alte Frontend-Versionen (vor i18n-
+        Pipeline E1) die DTO-Form akzeptieren. Neue Konsumenten ziehen
+        die Strings aus ``translations/*.json``.
+        """
         return {
             "code": self.code,
             "schema_version": self.schema_version,
             "severity": self.severity,
             "ga": self.ga,
             "source": self.source,
-            "title": self.title,
-            "description": self.description,
+            "title": "",
+            "description": "",
             "evidence": dict(self.evidence),
             "first_seen": self.first_seen.isoformat(),
             "last_seen": self.last_seen.isoformat(),
@@ -113,7 +121,11 @@ class Finding:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Finding:
-        """Inverse zu `to_dict`. ISO-Datetime-Strings werden geparst."""
+        """Inverse zu `to_dict`. ISO-Datetime-Strings werden geparst.
+
+        Iter B6: ``title``/``description`` im Eingabe-Dict werden
+        ignoriert (waren sowieso immer leer).
+        """
         severity = data["severity"]
         if severity not in FINDING_SEVERITIES:
             raise ValueError(
@@ -126,8 +138,6 @@ class Finding:
             severity=severity,
             ga=data.get("ga"),
             source=data.get("source"),
-            title=str(data["title"]),
-            description=str(data["description"]),
             evidence=dict(data.get("evidence") or {}),
             first_seen=_parse_datetime(data["first_seen"]),
             last_seen=_parse_datetime(data["last_seen"]),
@@ -268,8 +278,6 @@ def lift_pattern_findings(
                 severity=severity,
                 ga=ga,
                 source=source,
-                title="",
-                description="",
                 evidence={
                     "kind": legacy_finding.kind,
                     "legacy_text": legacy_finding.text,
@@ -297,8 +305,6 @@ def _build_health_finding(
         severity=severity,
         ga=None,  # bus-weite Findings haben keine GA
         source=None,
-        title="",
-        description="",
         evidence=evidence,
         first_seen=now,
         last_seen=now,

@@ -72,8 +72,6 @@ def detect_send_to_nowhere(
         severity=_SEND_TO_NOWHERE_SEVERITY,
         ga=ga,
         source=write.source or None,
-        title="",
-        description="",
         evidence={
             "write_at": write.ts.isoformat(),
             "status_window_ms": SEND_TO_NOWHERE_STATUS_WINDOW_MS,

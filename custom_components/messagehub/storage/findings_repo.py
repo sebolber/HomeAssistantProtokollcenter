@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any
 from ..const import (
     DEFAULT_KNX_ACK_EXPIRY_DAYS,
     KNX_FINDING_DEFAULT_SEVERITIES,
+    KNX_FINDING_IDENTITY_FIELDS,
 )
 from ..processing.findings import (
     FINDING_SEVERITIES,
@@ -41,9 +42,30 @@ def _canonical_evidence_json(evidence: dict[str, Any]) -> str:
     return json.dumps(evidence, sort_keys=True, default=str, separators=(",", ":"))
 
 
-def _evidence_hash(evidence: dict[str, Any]) -> str:
-    """SHA-256 ueber die kanonische Evidence-Repraesentation."""
-    payload = _canonical_evidence_json(evidence).encode("utf-8")
+def _identity_payload(code: str, evidence: dict[str, Any]) -> dict[str, Any]:
+    """Iter B1: Liefert das Sub-Dict der Identitaets-Felder fuer den Hash.
+
+    Pro Code definieren wir in ``KNX_FINDING_IDENTITY_FIELDS``, welche
+    Evidence-Felder die Identitaet ausmachen. Variable Werte
+    (burst_count, ratio, ...) bleiben in der Evidence selbst, fliessen
+    aber nicht in den Hash ein — der Dedup-Schluessel haelt damit auch
+    bei kontinuierlichen Detektoren.
+    """
+    fields = KNX_FINDING_IDENTITY_FIELDS.get(code, ())
+    if not fields:
+        return {}
+    return {key: evidence.get(key) for key in fields}
+
+
+def _evidence_hash(code: str, evidence: dict[str, Any]) -> str:
+    """SHA-256 ueber die Identitaets-Felder des Findings.
+
+    Iter B1: Vorher ging der Hash ueber die ganze Evidence — bei
+    Detektoren mit variabler Evidence (RECONNECT_STORM, SEND_CYCLE_DRIFT)
+    griff der UNIQUE-Index nicht. Jetzt nur ueber die in
+    ``KNX_FINDING_IDENTITY_FIELDS`` deklarierten Schluessel.
+    """
+    payload = _canonical_evidence_json(_identity_payload(code, evidence)).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
 
 
@@ -62,7 +84,7 @@ class FindingsRepository:
         3. Bei Konflikt: UPDATE last_seen + occurrence_count (Append-only-
            Semantik bleibt: kein DELETE, keine Verlust von first_seen).
         """
-        h = _evidence_hash(finding.evidence)
+        h = _evidence_hash(finding.code, finding.evidence)
         evidence_json = _canonical_evidence_json(finding.evidence)
         now = datetime.now().isoformat(timespec="seconds")
         await self._db.execute(
@@ -73,12 +95,15 @@ class FindingsRepository:
                 first_seen, last_seen, occurrence_count,
                 detector_version, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT (code, COALESCE(ga, ''), evidence_hash, schema_version)
+            ON CONFLICT (
+                code, COALESCE(ga, ''), COALESCE(source, ''),
+                evidence_hash, schema_version
+            )
             DO UPDATE SET
                 last_seen = excluded.last_seen,
                 occurrence_count = knx_findings.occurrence_count + 1,
                 severity = excluded.severity,
-                source = excluded.source,
+                evidence_json = excluded.evidence_json,
                 detector_version = excluded.detector_version,
                 updated_at = excluded.updated_at
             """,
@@ -501,7 +526,9 @@ def _build_where_clause(
 def _row_to_finding(row: dict[str, Any]) -> Finding:
     """Mappt eine DB-Row zur Finding-Dataclass.
 
-    title/description bleiben leer — UI fuellt sie aus translations/.
+    Iter B6: title/description sind nicht mehr Bestandteil des
+    Dataclass-Schemas. UI rendert die Strings aus
+    ``translations/*.json`` (siehe Iter E1).
     """
     evidence: dict[str, Any] = json.loads(row["evidence_json"]) if row["evidence_json"] else {}
     return Finding(
@@ -510,8 +537,6 @@ def _row_to_finding(row: dict[str, Any]) -> Finding:
         severity=row["severity"],
         ga=row["ga"],
         source=row["source"],
-        title="",
-        description="",
         evidence=evidence,
         first_seen=datetime.fromisoformat(row["first_seen"]),
         last_seen=datetime.fromisoformat(row["last_seen"]),

@@ -45,8 +45,6 @@ def detect_stale_ga(
         severity=_STALE_GA_SEVERITY,
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={
             "last_seen": last_seen.isoformat(),
             "days_silent": days_silent,

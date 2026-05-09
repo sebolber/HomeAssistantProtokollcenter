@@ -41,8 +41,6 @@ def _f(*, code: str, severity: str = "error", ga: str = "1/2/3") -> Finding:
         severity=severity,  # type: ignore[arg-type]
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={"k": "v"},
         first_seen=base,
         last_seen=base,

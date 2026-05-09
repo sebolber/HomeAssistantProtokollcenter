@@ -78,8 +78,6 @@ def _make_finding(
         severity=severity,  # type: ignore[arg-type]
         ga=ga,
         source=source,
-        title=f"{code}-Title",
-        description=f"{code}-Beschreibung",
         evidence={"source": source, "sample": "data"},
         first_seen=now,
         last_seen=now,

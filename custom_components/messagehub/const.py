@@ -98,8 +98,14 @@ KNX_RECOMMENDED_RATES_PER_MIN: Final[dict[str, float]] = {
     "11.001": 0.05,  # Date — 1x/Tag reicht
     "13.010": 0.5,  # Energiezaehler Wh
     "13.013": 0.5,  # Energiezaehler kWh
-    "17.001": 1.0,  # Szenenaufruf
-    "18.001": 1.0,  # Szenensteuerung
+    # Iter B7: Szenen-DPTs sind User-Event-getrieben (Tastendruck → genau
+    # 1 Telegramm). Eine "Soll-Rate pro Minute" ist hier inhaltsleer; wir
+    # setzen einen permissiven Wert (60/min), der praktisch nie ueberschritten
+    # wird — damit feuert die Rate-Klassifizierung dort kein false-positives.
+    # Konkrete Anti-Patterns auf Szenen-GAs (Loops, Bursts) erkennen die
+    # spezifischen Detektoren (TOGGLE_LOOP / READ_BURST), nicht die Rate.
+    "17.001": 60.0,  # Szenenaufruf — User-Event, hohes Limit
+    "18.001": 60.0,  # Szenensteuerung — User-Event, hohes Limit
     "_default": 5.0,
 }
 
@@ -177,6 +183,26 @@ DEFAULT_KNX_BUS_ANALYSIS_ENABLED: Final[bool] = True
 
 # Hass-Data-Schluessel fuer den Listener-Guard (in __init__.py gesetzt).
 HASS_KEY_KNX_BUS_ANALYSIS: Final = "_knx_bus_analysis_enabled"
+
+# Iter A1: Listener-Ingest-Worker. Statt pro Telegramm zwei einzelne
+# SQL-Statements (insert_raw + increment_counter) zu feuern, sammelt der
+# Worker Telegramme in einer asyncio-Queue und schreibt sie batched mit
+# `executemany()` in EINEM Commit. Reduziert fsync-Overhead drastisch.
+#
+# Trade-offs:
+# - max_batch_size 100: kompromiss zwischen Latenz (kleine Batches) und
+#   Durchsatz (grosse Batches). Bei 48 Tel/s (TP1-Vollast) ergibt das
+#   ~2 Flushes/s — der User sieht neue Telegramme spaetestens nach
+#   ~50 ms im Stats-Tab.
+# - flush_interval 0.25 s: zweite Flush-Trigger neben Batch-Voll. Bei
+#   leichter Bus-Last (z. B. 5 Tel/s) puffert die Queue ~1 s lang und
+#   flusht trotzdem mind. 4x/s.
+# - max_queue_size 5000: DoS-Schutz. Bei voller TP1-Last (48 Tel/s) und
+#   blockierter DB ueberlebt das ~100 s — danach werden aelteste
+#   Eintraege verworfen. Counter wird inkrementiert ("dropped").
+KNX_INGEST_MAX_BATCH_SIZE: Final[int] = 100
+KNX_INGEST_FLUSH_INTERVAL_SEC: Final[float] = 0.25
+KNX_INGEST_MAX_QUEUE_SIZE: Final[int] = 5000
 
 # Iter 34: Hersteller-spezifische Hinweise fuer Detail-Pane.
 # Erweiterung pflegeleicht: Hersteller-String → kurze Tipps zur ETS-Konfig.
@@ -275,7 +301,14 @@ KNX_DPT_VALUE_RANGES: Final[dict[str, tuple[float, float]]] = {
 
 KNX_FINDING_DEFAULT_SEVERITIES: Final[dict[str, str]] = {
     # Phase 2 — DPT-Validierung
-    "DPT_MISMATCH": "error",
+    # Iter B2: Severity auf ``warning`` heruntergesetzt — die werte-
+    # basierte DPT-Inferenz kann False-Positives produzieren (z. B.
+    # Stellantriebe, die nur an/aus geschaltet werden, und bei denen
+    # nur {0, 100} sichtbar ist). Erst wenn der Befund mit einer
+    # zweiten Quelle (ETS-Soll, xknx-Tracer) bestaetigt ist, sollte
+    # der User auf ``error`` hochstufen — das geht ueber den
+    # ``knx_finding_severity_overrides``-Pfad.
+    "DPT_MISMATCH": "warning",
     "VALUE_OUT_OF_RANGE": "error",
     # Phase 3 — Konfigurations-Klassiker
     "MULTI_RESPONDER": "warning",
@@ -304,4 +337,80 @@ KNX_FINDING_DEFAULT_SEVERITIES: Final[dict[str, str]] = {
     "PATTERN_READ_BURST": "warning",
     "PATTERN_MULTIPLE_RESPONSE": "warning",
     "PATTERN_HEARTBEAT_SPAM": "info",
+    # Iter A3: Bus-Analyse-Toggle abgeschaltet — User-bedienbarer
+    # Sichtbarkeits-Marker, dass der Findings-Tab gerade ohne Datenbasis
+    # laeuft. Severity ``warning`` (nicht ``error``), weil das Abschalten
+    # ein bewusster Akt sein kann.
+    "ANALYSIS_DISABLED": "warning",
+}
+
+
+# Iter B1: Identitaets-Felder pro Finding-Code. Der Dedup-Hash basiert
+# auf einer Teilmenge der Evidence-Felder, NICHT der gesamten Evidence —
+# sonst wuerden kontinuierlich variable Werte (burst_count, factor,
+# ratio, ...) bei jedem Detector-Run einen neuen Hash und damit einen
+# neuen Row erzeugen. ``occurrence_count`` ginge nie hoch.
+#
+# Vertrag:
+# - Schluessel = Finding-Code.
+# - Wert = sortierte Liste der Evidence-Keys, die als ``Identitaet``
+#   dieses Findings gelten. Hash geht ueber Code+GA+Source+Schema-Version
+#   plus diese Felder.
+# - Codes ohne Eintrag fallen auf ``()`` (= reine Code+GA+Source-Identitaet)
+#   zurueck. Damit ist die Voreinstellung "Pro (code, ga, source) genau
+#   ein Finding", was fuer alle Detektoren bis auf VALUE_OUT_OF_RANGE
+#   richtig ist (dort wollen wir pro abweichendem Wert einen Eintrag).
+#
+# Variable Werte stehen weiter in der Evidence — sie werden im UI
+# gerendert und beim Update durch ``record(...)`` ueberschrieben (User
+# sieht den AKTUELLEN Stand). first_seen bleibt erhalten, last_seen +
+# occurrence_count laufen mit.
+KNX_FINDING_IDENTITY_FIELDS: Final[dict[str, tuple[str, ...]]] = {
+    # Phase 2 — DPT-Validierung
+    # DPT_MISMATCH: Soll/Ist sind ueblicherweise stabil; Confidence kann
+    # leicht schwanken. Identitaet = die beiden DPTs, der Rest ist
+    # Observation.
+    "DPT_MISMATCH": ("project_dpt", "inferred_dpt"),
+    # VALUE_OUT_OF_RANGE: jeder neue Out-of-Range-Wert ist ein eigener
+    # Befund — Identitaet enthaelt den Wert.
+    "VALUE_OUT_OF_RANGE": ("dpt", "value"),
+    # Phase 3 — Konfigurations-Klassiker
+    # MULTI_RESPONDER: Identitaet = Set der antwortenden Sources +
+    # Window. count ist Aggregat-Beobachtung.
+    "MULTI_RESPONDER": ("responding_sources", "window_ms"),
+    # READ_NO_RESPONSE: Timeout ist Konfigurations-Konstante.
+    # read_at/expected_until sind variable Beobachtungen.
+    "READ_NO_RESPONSE": ("timeout_sec",),
+    # TOGGLE_LOOP: pro GA EIN Finding (Code+GA reicht); period_ms +
+    # cycles sind Beobachtungen.
+    "TOGGLE_LOOP": (),
+    # MULTI_TIME_MASTER: Identitaet = Source-Set auf der Zeit-GA.
+    "MULTI_TIME_MASTER": ("sources", "clock_dpt"),
+    # Phase 4 — Verhalten ueber Zeit
+    # RECONNECT_STORM: pro Source-IA ein Finding; Burst-Werte sind variabel.
+    "RECONNECT_STORM": (),
+    # SEND_CYCLE_DRIFT: pro GA ein Finding; ratio ist variabel.
+    "SEND_CYCLE_DRIFT": (),
+    # REPEAT_APPROXIMATION: pro GA ein Finding; repeats_per_day variabel.
+    "REPEAT_APPROXIMATION": (),
+    # Phase 5 — Projekt-Integration
+    # ORPHAN_GA: pro GA ein Finding (Period-Strings sind variabel).
+    "ORPHAN_GA": (),
+    # STALE_GA: pro GA ein Finding; days_silent waechst monoton.
+    "STALE_GA": (),
+    # Phase 7 — komplex/letzter
+    # SEND_TO_NOWHERE: pro GA ein Finding; write_at variabel.
+    "SEND_TO_NOWHERE": (),
+    # Iter 5: Bestand
+    "HEALTH_BUSLOAD": (),  # bus-weit, ein Finding
+    "HEALTH_REPEAT_RATE": (),
+    "HEALTH_SILENCE": (),
+    "HEALTH_ALARMS": (),
+    # PATTERN_*: pro GA jeweils ein Finding (kind ist Teil des Codes).
+    "PATTERN_CONSTANT_VALUE": (),
+    "PATTERN_READ_BURST": (),
+    "PATTERN_MULTIPLE_RESPONSE": (),
+    "PATTERN_HEARTBEAT_SPAM": (),
+    # Iter A3
+    "ANALYSIS_DISABLED": (),
 }

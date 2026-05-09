@@ -41,8 +41,6 @@ def detect_orphan_ga(
         severity=_ORPHAN_GA_SEVERITY,
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={
             "period_from": period_from,
             "period_to": period_to,

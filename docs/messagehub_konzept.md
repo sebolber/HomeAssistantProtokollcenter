@@ -1,5 +1,11 @@
 # Konzept: Home Assistant Custom Integration `messagehub`
 
+> **Status: HISTORISCH (Iter H1).** Dieses Dokument ist die V1-Konzept-
+> Skizze. Der **aktuelle Architektur-Stand** ist in
+> [`architecture.md`](architecture.md) dokumentiert. Bei Diskrepanzen
+> ist die ``architecture.md`` massgeblich.
+
+
 **Zweck:** Zentrale Sammelstelle für strukturierte Nachrichten (Info, Warning, Error, Debug) aus beliebigen Quellen, eingehend über konfigurierbare Webhooks, persistent in eigener SQLite-Datenbank, mit gefiltertem Dashboard-Panel direkt in Home Assistant.
 
 **Zielgruppe:** Eigenes Smart Home (KNX + HA), erweiterbar auf Pi-hole, externe Skripte, Geräte mit Webhook-Fähigkeit.

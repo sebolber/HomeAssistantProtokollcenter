@@ -53,8 +53,10 @@ class TestDefaultSeverity:
         missing = expected - configured
         assert not missing, f"Default-Severity fehlt fuer: {missing}"
 
-    def test_dpt_mismatch_default_is_error(self) -> None:
-        assert KNX_FINDING_DEFAULT_SEVERITIES["DPT_MISMATCH"] == "error"
+    def test_dpt_mismatch_default_is_warning(self) -> None:
+        # Iter B2: heruntergesetzt von 'error' auf 'warning' wegen
+        # False-Positive-Risiko der werte-basierten Inferenz.
+        assert KNX_FINDING_DEFAULT_SEVERITIES["DPT_MISMATCH"] == "warning"
 
     def test_multi_responder_default_is_warning(self) -> None:
         assert KNX_FINDING_DEFAULT_SEVERITIES["MULTI_RESPONDER"] == "warning"
@@ -74,24 +76,25 @@ class TestResolveSeverity:
         # Act
         sev = await repo.resolve_severity("DPT_MISMATCH")
 
-        # Assert
-        assert sev == "error"
+        # Assert — Iter B2: Default ist 'warning' (siehe Konzept B2).
+        assert sev == "warning"
 
     @pytest.mark.asyncio
     async def test_severity_override_takes_precedence_over_default(
         self, db: Database
     ) -> None:
-        # Arrange — DPT_MISMATCH default = "error", User setzt auf "warning".
+        # Arrange — DPT_MISMATCH default = "warning" (Iter B2),
+        # User stuft auf "error" hoch, weil sein Projekt-DPT eindeutig ist.
         repo = FindingsRepository(db)
         await repo.set_severity_override(
-            code="DPT_MISMATCH", severity="warning", actor="u", note="Bei mir ok"
+            code="DPT_MISMATCH", severity="error", actor="u", note="ETS sauber"
         )
 
         # Act
         sev = await repo.resolve_severity("DPT_MISMATCH")
 
         # Assert
-        assert sev == "warning"
+        assert sev == "error"
 
     @pytest.mark.asyncio
     async def test_resolve_unknown_code_raises(self, db: Database) -> None:
@@ -173,7 +176,8 @@ class TestSetClearOverride:
         rows = await repo.list_severity_overrides()
         assert len(rows) == 0
         sev = await repo.resolve_severity("DPT_MISMATCH")
-        assert sev == "error"  # default wieder aktiv
+        # Iter B2: Default ist 'warning' (siehe Konzept B2).
+        assert sev == "warning"
 
     @pytest.mark.asyncio
     async def test_set_invalid_severity_raises(self, db: Database) -> None:

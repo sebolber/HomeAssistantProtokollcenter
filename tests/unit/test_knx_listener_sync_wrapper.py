@@ -56,7 +56,12 @@ def test_xknx_callback_is_sync_not_coroutine() -> None:
 def test_callback_scheduled_via_async_create_task() -> None:
     """Wenn der Sync-Callback ein Telegramm bekommt, muss er die echte
     Ingest-Coroutine als Task im HA-Eventloop scheduled — nicht selbst
-    awaiten (das geht im sync-Kontext sowieso nicht)."""
+    awaiten (das geht im sync-Kontext sowieso nicht).
+
+    Iter A1: async_register_knx_listener selbst spawned zusaetzlich einen
+    Worker-Start-Task. Der Test trennt: Setup-Phase (1 Task = worker.start)
+    vs. Telegramm-Phase (1 weiterer Task = telegram-handler).
+    """
     registered_cb: list[Any] = []
 
     class _FakeQueue:
@@ -74,6 +79,14 @@ def test_callback_scheduled_via_async_create_task() -> None:
     fake_hass.async_create_task = scheduled.append
 
     async_register_knx_listener(fake_hass, MagicMock(), MagicMock())
+
+    # Setup-Phase: Worker-Start-Task wurde gescheduled.
+    setup_tasks = list(scheduled)
+    assert len(setup_tasks) == 1, "Setup sollte genau 1 Task spawnen (worker.start)"
+    for t in setup_tasks:
+        if asyncio.iscoroutine(t):
+            t.close()
+    scheduled.clear()
 
     cb = registered_cb[0]
 

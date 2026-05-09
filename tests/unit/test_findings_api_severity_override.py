@@ -60,10 +60,10 @@ class TestListEndpoint:
 
     @pytest.mark.asyncio
     async def test_lists_overrides(self, db: Database) -> None:
-        # Arrange
+        # Arrange — Iter B2: Default ist 'warning', User stuft auf 'error'.
         repo = FindingsRepository(db)
         await repo.set_severity_override(
-            code="DPT_MISMATCH", severity="warning", actor="u"
+            code="DPT_MISMATCH", severity="error", actor="u"
         )
 
         # Act
@@ -71,8 +71,8 @@ class TestListEndpoint:
 
         # Assert
         dpt_item = next(i for i in resp["items"] if i["code"] == "DPT_MISMATCH")
-        assert dpt_item["default_severity"] == "error"
-        assert dpt_item["override_severity"] == "warning"
+        assert dpt_item["default_severity"] == "warning"
+        assert dpt_item["override_severity"] == "error"
 
 
 class TestSetEndpoint:

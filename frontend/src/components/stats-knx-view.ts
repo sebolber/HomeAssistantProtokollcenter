@@ -99,6 +99,27 @@ const PERIOD_PRESETS: ReadonlyArray<{ id: string; label: string; days: number }>
 // Periode-IDs, die Long-Term-Modus aktivieren (Counter-Tabelle statt Raw).
 const LONG_TERM_PERIOD_IDS: ReadonlySet<string> = new Set(["7d", "30d", "365d"]);
 
+// Iter E5: Label-Mapping fuer den API-Error-Banner. Ausgelagert, damit
+// neue Endpoints nicht im Inline-Object verstreut werden — aktuell
+// DE-only, das Mapping kann spaeter per i18n-Pipeline (analog
+// findings-i18n.generated.ts) lokalisiert werden. Unbekannte Keys
+// fallen auf den Raw-Schluessel zurueck (defensiv, kein silent fail).
+const KNX_ENDPOINT_LABELS: Readonly<Record<string, string>> = {
+  "health-score": "Bus-Health-Score",
+  busload: "Buslast-KPI",
+  "long-term": "Long-Term-Sicht",
+  bursts: "Burst-Detector",
+  "sensitive-log": "Sicherheits-Audit",
+  orphans: "Verwaiste GAs",
+  alarms: "Alarme",
+  trend: "Trend-Vergleich",
+  heatmap: "Aktivitäts-Heatmap",
+};
+
+export function labelForKnxEndpoint(key: string): string {
+  return KNX_ENDPOINT_LABELS[key] ?? key;
+}
+
 const TOP_N_OPTIONS = [10, 25, 50, 100, 200] as const;
 // Iter topn-4: Heatmap nutzt eine eigene, kuerzere Optionsliste.
 // CSS-Grid-Lesbarkeit limitiert die Anzahl Zeilen — 30 ist
@@ -431,6 +452,13 @@ export class StatsKnxView extends LitElement {
   @state() private _loading = false;
   @state() private _error = "";
   @state() private _toast = "";
+  // Iter D4: Request-Token gegen parallele _load()-Calls. Bei Filter-
+  // Wechsel kann der User schneller klicken als die Server-Antworten
+  // zurueckkommen — ohne Schutz wird das langsamere Resultat nach dem
+  // schnelleren in den State gehoben (Flicker / inkonsistente Daten).
+  // Vor jedem _load() inkrementieren wir den Token; spaetere Calls
+  // ueberschreiben nur, wenn ihr Token noch der aktuelle ist.
+  private _loadToken = 0;
 
   override async firstUpdated(): Promise<void> {
     await Promise.all([this._loadBusAnalysisState(), this._load()]);
@@ -506,18 +534,12 @@ export class StatsKnxView extends LitElement {
   // wegklicken um die anderen Cards sauber zu sehen.
   private _renderApiErrorBanner(): TemplateResult {
     const failed = Array.from(this._apiErrors.keys()).sort();
-    const labels: Record<string, string> = {
-      "health-score": "Bus-Health-Score",
-      busload: "Buslast-KPI",
-      "long-term": "Long-Term-Sicht",
-      bursts: "Burst-Detector",
-      "sensitive-log": "Sicherheits-Audit",
-      orphans: "Verwaiste GAs",
-      alarms: "Alarme",
-      trend: "Trend-Vergleich",
-      heatmap: "Aktivitäts-Heatmap",
-    };
-    const labeled = failed.map((k) => labels[k] || k).join(", ");
+    // Iter E5: Labels per i18n-Hook — fuer jetzt nur DE/EN-Inline,
+    // kuenftig kann _labelForEndpoint aus translations/ zogen werden
+    // (gleiche Pipeline wie findings-i18n.generated.ts).
+    const labeled = failed
+      .map((k) => labelForKnxEndpoint(k))
+      .join(", ");
     return html`
       <div class="api-error-banner" role="alert">
         <div class="api-error-banner__head">
@@ -603,6 +625,12 @@ export class StatsKnxView extends LitElement {
 
   private async _load(): Promise<void> {
     if (!this.api) return;
+    // Iter D4: Token-basierter Race-Schutz. Wenn der User die Filter
+    // schnell wechselt, gewinnt der LETZTE Aufruf — frueher konnte ein
+    // langsam zurueckkommendes Resultat den State eines spaeteren
+    // Aufrufs ueberschreiben. Token wird nur beim Schreiben verglichen,
+    // damit wir auch bei Timeout-Fehlern sauber abbrechen.
+    const requestToken = ++this._loadToken;
     this._loading = true;
     this._error = "";
     // Iter 51: Fehler-Map pro Load zuruecksetzen — sonst wuerden
@@ -706,6 +734,12 @@ export class StatsKnxView extends LitElement {
           ),
         ),
       ]);
+      // Iter D4: Token-Check vor jedem Schreibzugriff. Wenn der User
+      // waehrend wir geladen haben einen neueren _load() angestossen
+      // hat, ueberlassen wir DEM den State-Update.
+      if (requestToken !== this._loadToken) {
+        return;
+      }
       this._summary = summary;
       this._top = top.items;
       this._topBySource = topBySource.items;
@@ -728,15 +762,23 @@ export class StatsKnxView extends LitElement {
       // liest aus knx_raw_telegrams.
       const topGas = top.items.slice(0, 5).map((r) => r.ga);
       if (topGas.length > 0) {
-        this._timeline = await this.api.getKnxStatsTimeline({
+        const timelineResult = await this.api.getKnxStatsTimeline({
           ...fRaw,
           gas: topGas,
           bucketMinutes: this._suggestBucketMinutes(),
         });
-      } else {
+        // Erneut pruefen: Timeline-Call lief async nach dem Promise.all.
+        if (requestToken === this._loadToken) {
+          this._timeline = timelineResult;
+        }
+      } else if (requestToken === this._loadToken) {
         this._timeline = null;
       }
     } catch (err) {
+      if (requestToken !== this._loadToken) {
+        // Veralteter Aufruf — Fehler nicht mehr darstellen.
+        return;
+      }
       this._error = (err as Error).message;
       this._summary = null;
       this._top = [];
@@ -754,7 +796,10 @@ export class StatsKnxView extends LitElement {
       this._trend = null;
       this._heatmap = null;
     } finally {
-      this._loading = false;
+      // Loading-State nur zuruecksetzen, wenn wir der aktuelle Aufruf sind.
+      if (requestToken === this._loadToken) {
+        this._loading = false;
+      }
     }
   }
 
@@ -1330,11 +1375,23 @@ export class StatsKnxView extends LitElement {
               (key) => {
                 const value = h.components[key];
                 const sev = this._componentSeverity(value);
+                // Iter B3: ``repeat``-KPI ist Approximation, weil xknx
+                // das echte Repeat-Bit nicht zuverlaessig liefert. UI
+                // markiert den KPI mit einem Stern + Tooltip-Hinweis.
+                const isApprox = key === "repeat" && h.repeat_approximate === true;
+                const baseLabel = this._componentLabel(key);
+                const labelText = isApprox ? `${baseLabel} *` : baseLabel;
+                const titleText = isApprox
+                  ? `${baseLabel}: ${value}/100 (${this._healthLabel(sev)}) — Approximation: xknx liefert das Repeat-Bit nicht zuverlaessig (BL-D blocked)`
+                  : `${baseLabel}: ${value}/100 (${this._healthLabel(sev)})`;
                 return html`<div
                   class=${`health-score__badge health-score__badge--${sev}`}
-                  title=${`${this._componentLabel(key)}: ${value}/100 (${this._healthLabel(sev)})`}
+                  title=${titleText}
+                  data-test="health-component"
+                  data-key=${key}
+                  data-approximate=${isApprox ? "true" : "false"}
                 >
-                  <span class="health-score__badge-label">${this._componentLabel(key)}</span>
+                  <span class="health-score__badge-label">${labelText}</span>
                   <span class="health-score__badge-value">${value}</span>
                 </div>`;
               }
@@ -1765,7 +1822,22 @@ export class StatsKnxView extends LitElement {
     const sortKey = this._topSortKey;
     const sortDir = this._topSortDir;
     const sorted = sortTopSender(this._top, sortKey, sortDir);
+    // Iter D8: Wenn der User nach severity / GA / Label sortiert,
+    // kann ein "rotes" GA ausserhalb der Top-N (per Tel/Min) liegen
+    // und damit unsichtbar sein. Hinweis nur, wenn nicht-Default-Sort.
+    const isNonDefaultSort = sortKey !== "rate_per_min" || sortDir !== "desc";
+    const sortHint = isNonDefaultSort
+      ? html`<p
+          class="muted small"
+          data-test="sort-hint"
+          title="Top-N wird vom Backend nach Tel/Min ausgewaehlt — die Sortierung wirkt nur auf diese Auswahl, nicht auf alle GAs."
+        >
+          ⓘ Sortierung wirkt nur auf die Top-${this._filters.topN} nach
+          Tel/Min — andere GAs sind nicht in der Liste.
+        </p>`
+      : null;
     return html`
+      ${sortHint}
       <div class="table-wrap">
         <table>
           <thead>

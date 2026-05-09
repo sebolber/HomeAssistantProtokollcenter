@@ -8,7 +8,9 @@ Iter 15: delete + sources + stats + webhooks
 from __future__ import annotations
 
 import contextlib
+import json
 import logging
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from aiohttp import web
@@ -252,7 +254,27 @@ class WebhooksView(_RequireAdminView):
         if repos is None:
             return self.json_message(_ERR_NOT_INITIALISED_LONG, status_code=503)
         _, wh_repo = repos
-        return self.json({"webhooks": [_wh_to_dict(c) for c in await wh_repo.list_all()]})
+        items = [_wh_to_dict(c) for c in await wh_repo.list_all()]
+        # Iter F5: Export-Variante fuer HA-Backup ohne SQLite-Mitnahme.
+        # ?format=export liefert eine vollstaendige JSON-Form, die der
+        # User ueber das gleiche Schema zurueckspielen kann (siehe
+        # WebhooksImportView, optionaler Folge-Iter).
+        if request.query.get("format") == "export":
+            payload: dict[str, object] = {
+                "schema_version": 1,
+                "exported_at": datetime.now(UTC).isoformat(timespec="seconds"),
+                "webhooks": items,
+            }
+            return web.Response(
+                text=json.dumps(payload, indent=2, ensure_ascii=False),
+                content_type="application/json",
+                headers={
+                    "Content-Disposition": (
+                        'attachment; filename="messagehub-webhooks.json"'
+                    ),
+                },
+            )
+        return self.json({"webhooks": items})
 
     async def post(self, request: web.Request) -> web.Response:
         from .. import async_register_webhook  # noqa: PLC0415

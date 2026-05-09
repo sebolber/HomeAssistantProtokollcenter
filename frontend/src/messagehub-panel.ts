@@ -6,6 +6,9 @@ import { customElement } from "./utils/custom-element.js";
 import { property, state } from "lit/decorators.js";
 import { ApiClient, type MessageDto, type SavedFilterDto } from "./api-client.js";
 import { tokens, buttons } from "./styles/tokens.js";
+import { LiveSubscription } from "./utils/live-subscribe.js";
+import { loadPersisted, savePersisted } from "./utils/persisted-state.js";
+import { parseHashRoute } from "./utils/hash-route.js";
 import "./components/message-table.js";
 import "./components/severity-filter.js";
 import "./components/source-filter.js";
@@ -43,6 +46,11 @@ interface HassLike {
 }
 
 const STORAGE_KEY_FILTERS = "messagehub.filters";
+// Iter E3: versionierter Persistenz-Marker. Bei Schema-Aenderungen
+// (neuer Default fuer hideKnxRead, neue Severity-Enum-Werte, ...)
+// wird hier hochgezogen — Migration kann angehaengt werden.
+const STORAGE_VERSION_FILTERS = "messagehub.filters.version";
+const FILTERS_CURRENT_VERSION = "v1";
 
 interface UiFilters {
   severity: string[];
@@ -84,10 +92,32 @@ export class MessageHubPanel extends LitElement {
   @state() private _savedFiltersOpen = false;
 
   private _api = new ApiClient();
-  private _unsubLive?: () => void;
+  private _liveSub?: LiveSubscription;
+  private _initialized = false;
 
   protected override firstUpdated(): void {
-    if (this.hass?.auth) this._api.setAuth(this.hass.auth.data.access_token);
+    // Iter D3: bei firstUpdated ist `hass` evtl. noch nicht gesetzt
+    // (HA-Lifecycle-Race). Wir initialisieren erst, sobald hass.auth
+    // verfuegbar ist — siehe `updated()`. Bei sofortigem Vorhandensein
+    // greift der Pfad gleich.
+    this._tryInitialize();
+  }
+
+  protected override updated(changed: Map<string, unknown>): void {
+    if (changed.has("hass")) {
+      this._tryInitialize();
+    }
+  }
+
+  private _tryInitialize(): void {
+    if (this._initialized) return;
+    if (!this.hass?.auth?.data?.access_token) {
+      // hass noch nicht voll ausgestattet — Initialisierung wird
+      // beim naechsten updated()-Hook nachgezogen.
+      return;
+    }
+    this._initialized = true;
+    this._api.setAuth(this.hass.auth.data.access_token);
     void this._reload();
     void this._subscribeLive();
     void this._loadSavedFilters();
@@ -102,7 +132,8 @@ export class MessageHubPanel extends LitElement {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._unsubLive?.();
+    void this._liveSub?.stop();
+    this._liveSub = undefined;
     if (typeof window !== "undefined") {
       window.removeEventListener("hashchange", this._onHashChange);
     }
@@ -113,15 +144,9 @@ export class MessageHubPanel extends LitElement {
   // Sub-Path (z. B. settings/mqtt) wird von der jeweiligen Sub-View
   // selbst geparst — wir aendern hier nur den Top-Tab.
   private _initialTabFromHash(): "messages" | "settings" | "stats" | "audit" {
+    // Iter E6: Zentraler Parser in utils/hash-route.ts.
     if (typeof window === "undefined" || !window.location?.hash) return "messages";
-    const hash = window.location.hash.startsWith("#")
-      ? window.location.hash.slice(1)
-      : window.location.hash;
-    if (hash.startsWith("messages")) return "messages";
-    if (hash.startsWith("stats") || hash === "findings" || hash.startsWith("findings?")) return "stats";
-    if (hash.startsWith("settings")) return "settings";
-    if (hash.startsWith("audit")) return "audit";
-    return "messages";
+    return parseHashRoute(window.location.hash).top;
   }
 
   private _onHashChange = (): void => {
@@ -141,17 +166,61 @@ export class MessageHubPanel extends LitElement {
     }
   }
 
+  // Iter D6: Live-Update-Buffer. Bei Reconnect-Storms (Hunderte
+  // Events/s) hat das frueher Lit pro Event re-rendert (Array-Allokation
+  // + DOM-Update in jedem AnimationFrame). Jetzt sammeln wir Events
+  // im _liveBuffer und committen pro requestAnimationFrame-Tick einmal
+  // den State.
+  private _liveBuffer: MessageDto[] = [];
+  private _liveFlushScheduled = false;
+
+  private _flushLiveBuffer = (): void => {
+    this._liveFlushScheduled = false;
+    if (this._liveBuffer.length === 0) return;
+    const batch = this._liveBuffer;
+    this._liveBuffer = [];
+    // Newest-first; auf 200 Items kappen (gleicher Cap wie vorher).
+    const merged = [...batch.reverse(), ...this._items].slice(0, 200);
+    this._items = merged;
+    this._total += batch.length;
+    this._newCount += batch.length;
+    const fadeoutMs = 4000;
+    const newCountSnapshot = batch.length;
+    window.setTimeout(
+      () => (this._newCount = Math.max(0, this._newCount - newCountSnapshot)),
+      fadeoutMs,
+    );
+  };
+
+  private _scheduleLiveFlush(): void {
+    if (this._liveFlushScheduled) return;
+    this._liveFlushScheduled = true;
+    if (typeof window !== "undefined" && window.requestAnimationFrame) {
+      window.requestAnimationFrame(this._flushLiveBuffer);
+    } else {
+      // Test-/Server-Umgebung ohne rAF: minimaler Microtask-Pfad.
+      window.setTimeout(this._flushLiveBuffer, 0);
+    }
+  }
+
   private async _subscribeLive(): Promise<void> {
     if (!this.hass?.connection?.subscribeEvents) return;
-    this._unsubLive = await this.hass.connection.subscribeEvents((ev) => {
-      const newMsg = ev.data as MessageDto;
-      if (this._matchesFilters(newMsg)) {
-        this._items = [newMsg, ...this._items].slice(0, 200);
-        this._total += 1;
-        this._newCount += 1;
-        window.setTimeout(() => (this._newCount = Math.max(0, this._newCount - 1)), 4000);
-      }
-    }, "messagehub_message_added");
+    // Iter D5 + D6: LiveSubscription kapselt Re-Subscribe + Drop-
+    // Resilienz. Eingehende Events werden im _liveBuffer gesammelt
+    // und einmal pro Frame committed — schuetzt vor Re-Render-Storm
+    // bei Bus-Bursts.
+    this._liveSub = new LiveSubscription(
+      this.hass.connection,
+      "messagehub_message_added",
+      (ev: { data: unknown }) => {
+        const newMsg = ev.data as MessageDto;
+        if (this._matchesFilters(newMsg)) {
+          this._liveBuffer.push(newMsg);
+          this._scheduleLiveFlush();
+        }
+      },
+    );
+    await this._liveSub.start();
   }
 
   private _matchesFilters(msg: MessageDto): boolean {
@@ -176,21 +245,26 @@ export class MessageHubPanel extends LitElement {
   }
 
   private _loadFilters(): UiFilters {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY_FILTERS);
-      if (raw) return { ...DEFAULT_FILTERS, ...JSON.parse(raw) };
-    } catch {
-      // ignore
-    }
-    return { ...DEFAULT_FILTERS };
+    // Iter E3: versionierte Persistenz via Helper. Migrations-Block
+    // bleibt heute leer; bei Schema-Bumps (z. B. neue Severity-Werte
+    // oder Filter-Property mit anderem Default) hier ergaenzen.
+    return loadPersisted({
+      key: STORAGE_KEY_FILTERS,
+      versionKey: STORAGE_VERSION_FILTERS,
+      currentVersion: FILTERS_CURRENT_VERSION,
+      defaults: DEFAULT_FILTERS,
+    });
   }
 
   private _persistFilters(): void {
-    try {
-      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(this._filters));
-    } catch {
-      // ignore
-    }
+    savePersisted(
+      {
+        key: STORAGE_KEY_FILTERS,
+        versionKey: STORAGE_VERSION_FILTERS,
+        currentVersion: FILTERS_CURRENT_VERSION,
+      },
+      this._filters,
+    );
   }
 
   private _resetFilters(): void {
@@ -398,11 +472,15 @@ export class MessageHubPanel extends LitElement {
     const name = window.prompt("Filter speichern als:");
     if (name === null || name.trim() === "") return;
     try {
-      await this._api.upsertSavedFilter(
-        name.trim(),
-        "messages",
-        this._filters as unknown as Record<string, unknown>,
-      );
+      // Iter E4: Saved-Filter mit schema_version. Der Server speichert
+      // die Filter-Form direkt, ohne Validierung — bei spaeteren Schema-
+      // Aenderungen kann der Lader (Apply) anhand der Version migrieren
+      // statt unbekannte Felder einfach zu droppen.
+      const payload: Record<string, unknown> = {
+        ...(this._filters as unknown as Record<string, unknown>),
+        schema_version: FILTERS_CURRENT_VERSION,
+      };
+      await this._api.upsertSavedFilter(name.trim(), "messages", payload);
       this._showToast(`Filter „${name.trim()}" gespeichert`);
       await this._loadSavedFilters();
     } catch (err) {
@@ -411,9 +489,25 @@ export class MessageHubPanel extends LitElement {
   }
 
   private _applySavedFilter(item: SavedFilterDto): void {
-    // Vorsichtig mergen: nur bekannte Felder uebernehmen.
-    const incoming = item.filters as Partial<UiFilters>;
-    this._filters = { ...DEFAULT_FILTERS, ...incoming };
+    // Iter E4: ``schema_version`` aus dem gespeicherten Filter ziehen.
+    // Felder, die der aktuelle Code nicht kennt, droppen wir absichtlich
+    // (Defensive Default-Merge); falls noetig, kann hier eine konkrete
+    // Migration zwischen Versionen eingehaengt werden.
+    const incoming = item.filters as Partial<UiFilters> & {
+      schema_version?: string;
+    };
+    // Nur die bekannten UiFilters-Keys ins state heben.
+    // Kuenftige Migrationen koennen anhand `incoming.schema_version`
+    // alte Filter umformen, bevor sie in `sanitized` gehen.
+    const sanitized: Partial<UiFilters> = {};
+    for (const k of Object.keys(DEFAULT_FILTERS) as Array<keyof UiFilters>) {
+      if (k in incoming) {
+        (sanitized as Record<string, unknown>)[k] = (
+          incoming as Record<string, unknown>
+        )[k];
+      }
+    }
+    this._filters = { ...DEFAULT_FILTERS, ...sanitized };
     this._persistFilters();
     this._savedFiltersOpen = false;
     void this._reload();
@@ -727,7 +821,7 @@ export class MessageHubPanel extends LitElement {
         <main>
           ${this._tab === "messages" ? this._renderMessages() : null}
           ${this._tab === "stats"
-            ? html`<stats-view .api=${this._api}></stats-view>`
+            ? html`<stats-view .api=${this._api} .hass=${this.hass}></stats-view>`
             : null}
           ${this._tab === "settings"
             ? html`<settings-view .api=${this._api}></settings-view>`

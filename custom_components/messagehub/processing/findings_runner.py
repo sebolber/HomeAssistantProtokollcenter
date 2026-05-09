@@ -339,8 +339,6 @@ def _replace_severity(finding: Finding, severity: str) -> Finding:
         severity=severity,  # type: ignore[arg-type]
         ga=finding.ga,
         source=finding.source,
-        title=finding.title,
-        description=finding.description,
         evidence=dict(finding.evidence),
         first_seen=finding.first_seen,
         last_seen=finding.last_seen,
@@ -385,6 +383,7 @@ async def run_bus_wide_detectors(
     period_from: str,
     period_to: str,
     now: datetime,
+    bus_analysis_enabled: bool = True,
 ) -> int:
     """Fuehrt alle bus-weiten Detektoren aus und persistiert Findings.
 
@@ -396,9 +395,18 @@ async def run_bus_wide_detectors(
        STALE_GA (Iter 25).
     5. Severity-Resolver + record() — analog zum per-GA-Runner.
 
+    Iter A3: Bei deaktivierter Bus-Analyse (``bus_analysis_enabled=False``)
+    wird genau EIN Finding ``ANALYSIS_DISABLED`` emittiert — alle anderen
+    Detektoren werden uebersprungen, weil ihre Datenquelle
+    (knx_raw_telegrams) leer waere und User keinen falschen "alles OK"-
+    Eindruck bekommen sollen.
+
     Returns: Anzahl persistierter Findings.
     """
     now = _now_naive(now)
+    if not bus_analysis_enabled:
+        finding = build_analysis_disabled_finding(now=now)
+        return await _record_with_severity_override(findings_repo, [finding])
     findings: list[Finding] = []
     findings.extend(await _build_health_findings(stats_repo, period_from, period_to, now))
     addresses = await address_repo.list_all()
@@ -420,6 +428,33 @@ async def run_bus_wide_detectors(
         )
     )
     return await _record_with_severity_override(findings_repo, findings)
+
+
+_ANALYSIS_DISABLED_VERSION = "ANALYSIS_DISABLED/v1"
+
+
+def build_analysis_disabled_finding(*, now: datetime) -> Finding:
+    """Liefert ein Finding, das anzeigt: Bus-Analyse-Toggle ist aus.
+
+    Severity ``warning`` (nicht ``error``), weil das Abschalten ein
+    bewusster Bedienakt sein kann (z. B. waehrend Datenmigration).
+    Der User sieht trotzdem einen klaren Hinweis im Findings-Tab,
+    statt eine leere Liste falsch zu interpretieren.
+    """
+    return Finding(
+        code="ANALYSIS_DISABLED",
+        schema_version=1,
+        severity="warning",
+        ga=None,
+        source=None,
+        evidence={
+            "reason": "bus-analysis toggle disabled — no telegrams recorded",
+        },
+        first_seen=now,
+        last_seen=now,
+        occurrence_count=1,
+        detector_version=_ANALYSIS_DISABLED_VERSION,
+    )
 
 
 async def _build_health_findings(
@@ -467,7 +502,7 @@ async def _build_per_source_findings(
     now: datetime,
 ) -> list[Finding]:
     """RECONNECT_STORM: Pro `dev_source` 30-s-Avg + Burst nach Stille."""
-    sample_rows = await _samples_for_period(stats_repo, period_from, period_to)
+    sample_rows = await stats_repo.samples_for_period_all_gas(period_from, period_to)
     if not sample_rows:
         return []
     by_source: dict[str, list[TelegramSample]] = defaultdict(list)
@@ -579,8 +614,8 @@ async def _build_silent_ga_findings(
 ) -> list[Finding]:
     """ORPHAN_GA + STALE_GA pro Whitelist-Eintrag."""
     out: list[Finding] = []
-    counts = await _counts_per_ga(stats_repo, period_from, period_to)
-    last_seen_map = await _last_seen_per_ga(stats_repo)
+    counts = await stats_repo.counts_per_ga(period_from, period_to)
+    last_seen_map = await stats_repo.last_seen_per_ga()
     for addr in addresses:
         count = counts.get(addr.address, 0)
         orphan = detect_orphan_ga(
@@ -602,71 +637,11 @@ async def _build_silent_ga_findings(
     return out
 
 
-async def _samples_for_period(
-    stats_repo: KnxStatsRepository,
-    period_from: str,
-    period_to: str,
-) -> list[dict[str, Any]]:
-    """Liefert ALLE Samples ueber den Zeitraum (fuer per-Source-Aggregation).
-
-    Ohne explizite GA-Filterung — wir brauchen Samples aller Quellen, um
-    RECONNECT_STORM-Bursts zu erkennen. SQL via direktes Query, weil
-    `ga_samples` strikt pro GA arbeitet.
-    """
-    import contextlib  # noqa: PLC0415
-    import json as _json  # noqa: PLC0415
-    rows = await stats_repo._db.fetch_all(
-        "SELECT timestamp AS ts, destination AS ga, source AS dev_source, "
-        "       value, telegramtype "
-        "FROM knx_raw_telegrams "
-        "WHERE timestamp >= ? AND timestamp < ? "
-        "ORDER BY timestamp ASC",
-        (period_from, period_to),
-    )
-    out: list[dict[str, Any]] = []
-    for row in rows:
-        raw = row["value"]
-        if isinstance(raw, str):
-            with contextlib.suppress(ValueError, TypeError):
-                raw = _json.loads(raw)
-        out.append({
-            "ts": str(row["ts"]),
-            "ga": str(row["ga"]),
-            "dev_source": str(row["dev_source"] or ""),
-            "value": raw,
-            "telegramtype": row["telegramtype"],
-        })
-    return out
-
-
-async def _counts_per_ga(
-    stats_repo: KnxStatsRepository,
-    period_from: str,
-    period_to: str,
-) -> dict[str, int]:
-    rows = await stats_repo._db.fetch_all(
-        "SELECT destination AS ga, COUNT(*) AS n "
-        "FROM knx_raw_telegrams "
-        "WHERE timestamp >= ? AND timestamp < ? "
-        "GROUP BY destination",
-        (period_from, period_to),
-    )
-    return {str(r["ga"]): int(r["n"]) for r in rows}
-
-
-async def _last_seen_per_ga(stats_repo: KnxStatsRepository) -> dict[str, str]:
-    rows = await stats_repo._db.fetch_all(
-        "SELECT destination AS ga, MAX(timestamp) AS last_seen "
-        "FROM knx_raw_telegrams "
-        "GROUP BY destination",
-    )
-    out: dict[str, str] = {}
-    for row in rows:
-        last = row["last_seen"]
-        if last is None:
-            continue
-        out[str(row["ga"])] = str(last)
-    return out
+# Iter A4: Drei frueher-private Helpers (`_samples_for_period`,
+# `_counts_per_ga`, `_last_seen_per_ga`) wurden zu Public-Methoden auf
+# ``KnxStatsRepository`` befoerdert: ``samples_for_period_all_gas``,
+# ``counts_per_ga``, ``last_seen_per_ga``. Aufrufer hier sind direkt
+# umgestellt — keine privaten ``stats_repo._db``-Zugriffe mehr.
 
 
 _MIN_SAMPLES_FOR_RATE = 2

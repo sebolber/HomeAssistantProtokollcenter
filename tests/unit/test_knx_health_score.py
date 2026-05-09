@@ -71,10 +71,11 @@ class TestComputeHealthScorePure:
                 open_alarms=0,
             )
         )
-        # 5% repeats -> repeat_health = 100 - 5*10 = 50, gewichtet 30%
-        # final = 0.30*50 + 0.30*100 + 0.20*100 + 0.20*100 = 15+30+20+20 = 85
-        assert result["score"] == 85
-        assert result["severity"] == "yellow"
+        # Iter B3: weights {repeat: 0.10, busload: 0.40, silence: 0.25, alarms: 0.25}
+        # 5% repeats -> repeat_health = 100 - 5*10 = 50, gewichtet 0.10
+        # final = 0.10*50 + 0.40*100 + 0.25*100 + 0.25*100 = 5+40+25+25 = 95
+        assert result["score"] == 95
+        assert result["severity"] == "green"
         codes = [f["code"] for f in result["findings"]]
         assert "high-repeat-rate" in codes
 
@@ -87,9 +88,9 @@ class TestComputeHealthScorePure:
                 open_alarms=0,
             )
         )
-        # 30% busload -> health = 100 - 30*2 = 40
-        # final = 0.30*100 + 0.30*40 + 0.20*100 + 0.20*100 = 30+12+20+20 = 82
-        assert result["score"] == 82
+        # 30% busload -> health = 100 - 30*2 = 40, gewichtet 0.40
+        # final = 0.10*100 + 0.40*40 + 0.25*100 + 0.25*100 = 10+16+25+25 = 76
+        assert result["score"] == 76
         assert result["severity"] == "yellow"
         codes = [f["code"] for f in result["findings"]]
         assert "high-busload" in codes
@@ -103,9 +104,11 @@ class TestComputeHealthScorePure:
                 open_alarms=0,
             )
         )
-        # 3 silent -> health = 100 - 3*10 = 70, gewichtet 20%
-        # final = 0.30*100 + 0.30*100 + 0.20*70 + 0.20*100 = 30+30+14+20 = 94
-        assert result["score"] == 94
+        # 3 silent -> health = 100 - 3*10 = 70, gewichtet 0.25
+        # final = 0.10*100 + 0.40*100 + 0.25*70 + 0.25*100 = 10+40+17.5+25 = 92.5 → 93 (rounded)
+        # Tatsaechlich: round-Halb-Banker => 92 oder 93 je Implementation; round() nutzt banker's,
+        # 92.5 → 92.
+        assert result["score"] == 92
         assert result["severity"] == "green"
         codes = [f["code"] for f in result["findings"]]
         assert "silent-devices" in codes
@@ -119,9 +122,9 @@ class TestComputeHealthScorePure:
                 open_alarms=4,
             )
         )
-        # 4 alarms -> health = 100 - 4*5 = 80, gewichtet 20%
-        # final = 0.30*100 + 0.30*100 + 0.20*100 + 0.20*80 = 30+30+20+16 = 96
-        assert result["score"] == 96
+        # 4 alarms -> health = 100 - 4*5 = 80, gewichtet 0.25
+        # final = 0.10*100 + 0.40*100 + 0.25*100 + 0.25*80 = 10+40+25+20 = 95
+        assert result["score"] == 95
         assert result["severity"] == "green"
         codes = [f["code"] for f in result["findings"]]
         assert "open-alarms" in codes
@@ -156,14 +159,13 @@ class TestComputeHealthScorePure:
         assert all(c == 0 for c in result["components"].values())
 
     def test_score_severity_thresholds(self) -> None:
-        # Boundary an der Yellow/Green-Grenze: alarm-Komponente hat
-        # genug Granularitaet (Limit 20) um exakte Score-Punkte zu treffen.
-        # 0.30*100+0.30*100+0.20*100+0.20*alarm_health = 80 + 0.2*alarm_health
-        # 10 Alarme -> alarm_health = 50 -> score = 80+10 = 90 (green)
-        # 11 Alarme -> alarm_health = 45 -> score = 80+9  = 89 (yellow)
+        # Iter B3 weights: 0.10*100+0.40*100+0.25*100+0.25*alarm_health
+        # = 75 + 0.25*alarm_health.
+        # alarms=8 -> alarm_health=60 -> score=75+15=90 (green)
+        # alarms=12 -> alarm_health=40 -> score=75+10=85 (yellow)
         for alarms, expected_score, expected_sev in [
-            (10, 90, "green"),
-            (11, 89, "yellow"),
+            (8, 90, "green"),
+            (12, 85, "yellow"),
         ]:
             r = compute_health_score(
                 HealthScoreInput(
@@ -224,12 +226,12 @@ class TestServiceHealthScoreWiring:
             now_iso=_ts(60),
             max_silence_minutes=120,
         )
-        # Repeat ratio = 50% >> limit 10% -> repeat-component=0
-        # Buslast bei 10 Telegrammen in 60min = 0.17/min, sehr niedrig -> 100
-        # Stille: 1 device hat letzte Tel < 120min ago -> kein Alarm
-        # Alarme: 0
-        # Score = 0.30*0 + 0.30*100 + 0.20*100 + 0.20*100 = 70
-        assert result["score"] == 70
-        assert result["severity"] == "yellow"
+        # Iter B3 weights: 0.10*0 + 0.40*100 + 0.25*100 + 0.25*100 = 90.
+        # Repeat-Quote 50% bringt nur noch 10% Score-Verlust statt 30%.
+        # Score 90 = grenze gruen/gelb; >= 90 -> green per
+        # _SCORE_GREEN_MIN. Repeat-KPI ist Approximation; das Finding
+        # ``high-repeat-rate`` bleibt im Output, der User sieht den Hinweis.
+        assert result["score"] == 90
+        assert result["severity"] == "green"
         codes = [f["code"] for f in result["findings"]]
         assert "high-repeat-rate" in codes

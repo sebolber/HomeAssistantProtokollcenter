@@ -22,6 +22,7 @@ import {
   isProjectRelated,
 } from "../utils/findings-i18n.js";
 import "./severity-override-form.js";
+import "./mh-drawer.js";
 
 type SeverityFilter = "" | FindingSeverity;
 
@@ -49,6 +50,10 @@ export class FindingsView extends LitElement {
   // Source-Detail-Pane (via stats-view + URL-Hash). null heisst "kein
   // Filter aktiv" — die Liste zeigt dann alle Findings.
   @property({ attribute: false }) sourceFilter: string | null = null;
+  // Iter E2: hass-Property als Quelle fuer hass.locale.language. Optional —
+  // bei Tests ohne hass faellt _lang() auf document.documentElement.lang
+  // / navigator.language zurueck.
+  @property({ attribute: false }) hass?: { locale?: { language?: string } };
 
   @state() private _items: FindingDto[] = [];
   @state() private _total = 0;
@@ -63,24 +68,8 @@ export class FindingsView extends LitElement {
     await this._load();
   }
 
-  override connectedCallback(): void {
-    super.connectedCallback();
-    // Iter UX-2: Escape schliesst den Detail-Drawer — analog zu
-    // stats-knx-view. window-Level statt document-Level, damit der
-    // Listener im Shadow-DOM zuverlaessig feuert.
-    window.addEventListener("keydown", this._onWindowKeyDown);
-  }
-
-  override disconnectedCallback(): void {
-    window.removeEventListener("keydown", this._onWindowKeyDown);
-    super.disconnectedCallback();
-  }
-
-  private _onWindowKeyDown = (e: KeyboardEvent): void => {
-    if (e.key === "Escape" && this._selectedKey !== null) {
-      this._selectedKey = null;
-    }
-  };
+  // Iter D2: Escape-Handling laeuft jetzt im <mh-drawer>; eigener
+  // window-Listener entfaellt.
 
   override updated(changed: Map<string, unknown>): void {
     // Iter H: bei echter Aenderung der sourceFilter-Property neu laden.
@@ -188,8 +177,33 @@ export class FindingsView extends LitElement {
     this._loading = true;
     this._error = null;
     try {
-      for (const ga of gas) {
-        await this.api.refreshFindings(ga);
+      // Iter D7: parallel mit Concurrency-Cap. Sequentiell waren bei
+      // 50 GAs 50 sequentielle HTTP-Calls — bei 200 ms Latenz pro Call
+      // = 10 s Wartezeit. Mit Cap=5 parallel + Promise.allSettled
+      // brauchts nur ~2 s.
+      const concurrency = 5;
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
+      const apiClient = this.api;
+      const queue = [...gas];
+      const errors: string[] = [];
+      const worker = async (): Promise<void> => {
+        while (queue.length > 0) {
+          const ga = queue.shift();
+          if (ga === undefined) return;
+          try {
+            await apiClient.refreshFindings(ga);
+          } catch (err) {
+            errors.push(`${ga}: ${(err as Error).message}`);
+          }
+        }
+      };
+      await Promise.all(
+        Array.from({ length: Math.min(concurrency, gas.length) }, () => worker()),
+      );
+      if (errors.length > 0) {
+        this._error =
+          `${errors.length} GA(s) konnten nicht aktualisiert werden: ` +
+          errors.slice(0, 3).join("; ");
       }
       await this._load();
     } catch (err) {
@@ -399,10 +413,15 @@ export class FindingsView extends LitElement {
   }
 
   private _lang(): string {
-    // Iter 14: Sprache via Browser. HA-Theme-Sprache wuerde via
-    // hass.locale.language kommen, aber das Panel hat aktuell keinen
-    // Hass-Bus-Hook fuer Locale — nehmen wir document.documentElement.lang
-    // (HA setzt das im html-Tag). Fallback: navigator.language.
+    // Iter E2: hass.locale.language ist die kanonische HA-Quelle. Wenn
+    // verfuegbar, hat sie Vorrang — der User waehlt seine Panel-Sprache
+    // in HA-Profile-Settings, und Reloads sind nicht noetig. Fallbacks:
+    // document.documentElement.lang (HA setzt das im <html>) und
+    // navigator.language fuer reine Test-/Standalone-Faelle.
+    const fromHass = this.hass?.locale?.language;
+    if (typeof fromHass === "string" && fromHass.length > 0) {
+      return fromHass;
+    }
     if (typeof document !== "undefined" && document.documentElement.lang) {
       return document.documentElement.lang;
     }
@@ -414,8 +433,16 @@ export class FindingsView extends LitElement {
 
   private _renderDetailPane(): TemplateResult | typeof nothing {
     const selected = this._currentSelection();
-    if (selected === null) return nothing;
     const lang = this._lang();
+    const open = selected !== null;
+    if (!open) {
+      // Iter D2: Drawer wird trotzdem gerendert (open=false rendert nothing),
+      // damit Lit den Komponenten-State stabil haelt.
+      return html`<mh-drawer
+        .open=${false}
+        @mh-drawer-close=${this._onDrawerClose}
+      ></mh-drawer>`;
+    }
     const title = getFindingTitle(selected.code, lang) || selected.code;
     const description = getFindingDescription(
       selected.code,
@@ -423,41 +450,20 @@ export class FindingsView extends LitElement {
       selected.evidence
     );
     const helpUrl = getFindingHelpUrl(selected.code);
-    const close = (): void => {
-      this._selectedKey = null;
-    };
-    // Iter UX-2 Bug-Fix: rechts-fixed Drawer + Backdrop, identisch zum
-    // Source-/GA-Detail-Pane in stats-knx-view. Vorher rendete der
-    // Detail-Block inline ans Listenende und scrollte den Bildschirm.
     return html`
-      <div
-        class="detail-backdrop"
-        @click=${close}
-        aria-hidden="true"
-      ></div>
-      <aside
-        class="detail-pane mh-card"
-        role="dialog"
-        aria-modal="true"
-        aria-label=${title}
-        data-test="findings-detail"
+      <mh-drawer
+        .open=${true}
+        .label=${title}
+        data-test-id="findings-detail"
+        @mh-drawer-close=${this._onDrawerClose}
       >
-        <header class="detail-header">
+        <span slot="header" class="drawer-header-content">
           <span class=${PILL_CLASS_FOR_SEVERITY[selected.severity]}>
             ${selected.severity}
           </span>
           <span class="detail-code" title=${selected.code}>${title}</span>
-          <button
-            class="mh-btn mh-btn--ghost mh-btn--icon"
-            type="button"
-            aria-label="Schliessen"
-            title="Schliessen (Escape)"
-            @click=${close}
-          >
-            ✕
-          </button>
-        </header>
-        <div class="detail-body">
+        </span>
+        <div data-test="findings-detail">
           ${description
             ? html`<p
                 class="detail-description"
@@ -515,9 +521,13 @@ export class FindingsView extends LitElement {
                 </button>`}
           </div>
         </div>
-      </aside>
+      </mh-drawer>
     `;
   }
+
+  private _onDrawerClose = (): void => {
+    this._selectedKey = null;
+  };
 
   private _renderEvidenceEntries(
     evidence: Record<string, unknown>

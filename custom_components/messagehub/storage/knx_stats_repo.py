@@ -899,24 +899,146 @@ class KnxStatsRepository:
 
         value wird als String serialisiert (json-konvertierter Repr).
         """
+        await self.insert_raw_batch(
+            [
+                {
+                    "timestamp": timestamp,
+                    "destination": destination,
+                    "source": source,
+                    "telegramtype": telegramtype,
+                    "value": value,
+                    "repeated": repeated,
+                }
+            ]
+        )
+
+    async def insert_raw_batch(self, rows: list[dict[str, Any]]) -> None:
+        """Iter A1: Batch-Insert per executemany() — ein Commit fuer N Rows.
+
+        Erwartet pro Row die gleichen Felder wie ``insert_raw``: timestamp,
+        destination, source, telegramtype, value, repeated. Werte werden
+        als JSON serialisiert (gleiches Format wie ``insert_raw``), damit
+        ``ga_samples`` weiterhin decodieren kann.
+
+        Hot-Path: brauchts oft, daher ``json``-Import lokal nur einmal.
+        """
         import json as _json  # noqa: PLC0415
 
-        try:
-            value_str = _json.dumps(value, default=str, ensure_ascii=False)
-        except (TypeError, ValueError):
-            value_str = str(value)
-        await self._db.execute(
+        if not rows:
+            return
+        params: list[tuple[Any, ...]] = []
+        for row in rows:
+            value: Any = row.get("value")
+            try:
+                value_str = _json.dumps(value, default=str, ensure_ascii=False)
+            except (TypeError, ValueError):
+                value_str = str(value)
+            params.append(
+                (
+                    row["timestamp"],
+                    row["destination"],
+                    row.get("source") or "",
+                    row.get("telegramtype"),
+                    value_str,
+                    1 if row.get("repeated") else 0,
+                )
+            )
+        await self._db.executemany(
             "INSERT INTO knx_raw_telegrams "
             "(timestamp, destination, source, telegramtype, value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
-            (
-                timestamp,
-                destination,
-                source or "",
-                telegramtype,
-                value_str,
-                1 if repeated else 0,
-            ),
+            params,
+        )
+
+    async def samples_for_period_all_gas(
+        self, from_iso: str, to_iso: str
+    ) -> list[dict[str, Any]]:
+        """Iter A4: Public-Methode fuer GA-uebergreifende Samples.
+
+        Liefert ``ts``, ``ga``, ``dev_source``, ``value`` (Python-decoded),
+        ``telegramtype`` ueber den Zeitraum, sortiert nach ts ASC.
+        ``ga_samples`` ist strikt pro GA — hier brauchen wir alle, fuer
+        bus-weite Detektoren wie ``RECONNECT_STORM``.
+        """
+        import contextlib  # noqa: PLC0415
+        import json as _json  # noqa: PLC0415
+
+        rows = await self._db.fetch_all(
+            "SELECT timestamp AS ts, destination AS ga, source AS dev_source, "
+            "       value, telegramtype "
+            "FROM knx_raw_telegrams "
+            "WHERE timestamp >= ? AND timestamp < ? "
+            "ORDER BY timestamp ASC",
+            (from_iso, to_iso),
+        )
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            raw: Any = row["value"]
+            if isinstance(raw, str):
+                with contextlib.suppress(ValueError, TypeError):
+                    raw = _json.loads(raw)
+            out.append(
+                {
+                    "ts": str(row["ts"]),
+                    "ga": str(row["ga"]),
+                    "dev_source": str(row["dev_source"] or ""),
+                    "value": raw,
+                    "telegramtype": row["telegramtype"],
+                }
+            )
+        return out
+
+    async def counts_per_ga(
+        self, from_iso: str, to_iso: str
+    ) -> dict[str, int]:
+        """Iter A4: Public-Methode — Telegramm-Anzahl pro GA im Zeitraum."""
+        rows = await self._db.fetch_all(
+            "SELECT destination AS ga, COUNT(*) AS n "
+            "FROM knx_raw_telegrams "
+            "WHERE timestamp >= ? AND timestamp < ? "
+            "GROUP BY destination",
+            (from_iso, to_iso),
+        )
+        return {str(r["ga"]): int(r["n"]) for r in rows}
+
+    async def last_seen_per_ga(self) -> dict[str, str]:
+        """Iter A4: Public-Methode — letztes Telegramm pro GA, ueber den
+        gesamten Retention-Zeitraum (kein Period-Filter, weil Aufrufer
+        wissen muss, ob eine GA ueberhaupt jemals gesehen wurde)."""
+        rows = await self._db.fetch_all(
+            "SELECT destination AS ga, MAX(timestamp) AS last_seen "
+            "FROM knx_raw_telegrams "
+            "GROUP BY destination",
+        )
+        out: dict[str, str] = {}
+        for row in rows:
+            last = row["last_seen"]
+            if last is None:
+                continue
+            out[str(row["ga"])] = str(last)
+        return out
+
+    async def increment_counter_batch(
+        self, items: list[tuple[str, str]]
+    ) -> None:
+        """Iter A1: Batch-UPSERT auf knx_telegram_counters.
+
+        SQLite erlaubt ``executemany`` auf INSERT ... ON CONFLICT, weil
+        jede Zeile ihre eigene Affinitaet behaelt. Damit landen mehrere
+        Increments fuer dieselbe ``(ga, hour_bucket)``-Kombi in einem
+        Commit — die Reihenfolge bleibt erhalten, der Counter zaehlt
+        sequentiell hoch.
+        """
+        if not items:
+            return
+        await self._db.executemany(
+            """
+            INSERT INTO knx_telegram_counters (ga, hour_bucket, count)
+            VALUES (?, ?, 1)
+            ON CONFLICT(ga, hour_bucket) DO UPDATE SET
+                count = count + 1
+            """,
+            items,
         )
 
     # --- Schatten-Counter (Iter 16, Phase-2-Vorbereitung) -------------------

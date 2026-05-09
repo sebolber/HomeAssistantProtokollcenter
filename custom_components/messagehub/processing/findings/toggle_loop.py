@@ -58,8 +58,6 @@ def detect_toggle_loop(
         severity=_TOGGLE_LOOP_SEVERITY,
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={"period_ms": period_ms, "cycles": cycles},
         first_seen=now,
         last_seen=now,

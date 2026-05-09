@@ -4,19 +4,24 @@ Vertrag aus `docs/messagehub_knx_konfigurationsfehler_recherche.md`
 §9.2 + §9.3. Vergleicht das vom User/ETS gepflegte Soll
 (`knx_group_addresses.dpt`) mit dem vom Auto-Erkenner gelieferten Ist
 (`knx_group_addresses.dpt_inferred`). Erzeugt einen `Finding` mit
-Severity `error`, sobald die DPTs ueber der Confidence-Schwelle
-auseinanderlaufen.
+Severity `warning` (Iter B2 — vorher ``error``), sobald die DPTs
+ueber der Confidence-Schwelle auseinanderlaufen.
 
 Decision: Confidence-Schwelle 0.85 (statt 0.80). False-Positives bei
 DPT 9.x mit < 50 Samples gehaeufter — der Auto-Erkenner liefert dort
 oft generisches "9.x", das wir bei kleineren Sample-Mengen nicht als
-Soll-Mismatch werten wollen. Trade-off Sensitivity vs. Praezision
-zugunsten Praezision, weil Severity=error bei False-Positives die
-groessere User-Irritation waere als ein paar verpasste True-Positives.
+Soll-Mismatch werten wollen.
+
+Iter B2: Severity heruntergesetzt auf ``warning``. Der DPT-Auto-
+Erkenner ist werte-basiert und kann False-Positives produzieren —
+typisch bei Stellantrieben mit DPT 5.001, die nur 0% und 100% senden,
+die der frueherer ``_classify_int_samples`` faelschlich als 1.001
+inferiert hat. Heuristik wurde gehaertet (Wert-Diversitaet erforderlich),
+aber bis ein zweiter unabhaengiger Indikator (xknx-Tracer, ETS-Soll)
+verfuegbar ist, bleibt das Severity-Default ``warning``.
 
 `detect_dpt_mismatch` ist eine reine Funktion — Persistenz via
-FindingsRepository.record macht der Aufrufer (Service-Layer in einer
-spaeteren Iter; aktuell sind die Test-Calls direkt).
+FindingsRepository.record macht der Aufrufer.
 """
 
 from __future__ import annotations
@@ -31,8 +36,8 @@ DPT_MISMATCH_CONFIDENCE_THRESHOLD: Final[float] = 0.85
 
 Begruendung in der Modul-Docstring oben."""
 
-_DPT_MISMATCH_SEVERITY: Final[FindingSeverity] = "error"
-_DPT_MISMATCH_VERSION: Final[str] = "DPT_MISMATCH/v1"
+_DPT_MISMATCH_SEVERITY: Final[FindingSeverity] = "warning"
+_DPT_MISMATCH_VERSION: Final[str] = "DPT_MISMATCH/v2"
 _GENERIC_FLOAT_DPT: Final[str] = "9.x"
 
 
@@ -65,12 +70,14 @@ def detect_dpt_mismatch(
         return None
     return Finding(
         code="DPT_MISMATCH",
-        schema_version=1,
+        # Iter B2: schema_version=2, weil die Detector-Heuristik
+        # (Wert-Diversitaet) sich gegenueber v1 geaendert hat. Alte
+        # Acks gegen v1-Findings bleiben gueltig — siehe
+        # docs/messagehub_knx_konfigurationsfehler_recherche.md §9.5.
+        schema_version=2,
         severity=_DPT_MISMATCH_SEVERITY,
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={
             "project_dpt": project_dpt,
             "inferred_dpt": inferred_dpt,

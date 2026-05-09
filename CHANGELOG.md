@@ -6,6 +6,355 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Bus-Health-KPI
+
+- **Iter B3 / Repeat-Quote rebalanciert + als Approximation markiert.**
+  Der Repeat-KPI im Bus-Health-Score basiert auf
+  ``knx_raw_telegrams.repeated`` — einem Flag, das xknx in der
+  Cemi-Frame-Lage praktisch nie liefert (siehe Konzept §3.1 F4 / BL-D).
+  Frueher hatte der KPI 30% Gewicht; in einer realen Anlage zog er den
+  Score systematisch auf ~70 runter, ohne dass real ein Problem vorlag.
+  Jetzt:
+  * Gewichte rebalanciert: ``_WEIGHT_REPEAT 0.30→0.10``,
+    ``_WEIGHT_BUSLOAD 0.30→0.40``, ``_WEIGHT_SILENCE 0.20→0.25``,
+    ``_WEIGHT_ALARMS 0.20→0.25``. Buslast ist der realistischste KPI
+    und bekommt am meisten Gewicht.
+  * Score-DTO trägt ``repeat_approximate: true`` mit; Frontend rendert
+    in der Komponenten-Karte einen Stern (`*`) hinter "Wiederholungen"
+    und einen Tooltip mit Erklärung "xknx liefert das Repeat-Bit nicht
+    zuverlaessig (BL-D blocked)".
+  Sechs neue Pytests (Gewichte, Score-Werte, Approximations-Marker)
+  plus zwei Frontend-Tests; bestehende Health-Tests an die neuen
+  Score-Erwartungen angepasst.
+
+### Storage / Skalierung
+
+- **Iter A2 / WAL-Checkpoint im Cleanup-Tick.** SQLite laeuft mit
+  ``journal_mode=WAL``, der Schreib-Operationen in einer Sidecar-Datei
+  puffert. Ohne periodisches ``PRAGMA wal_checkpoint(TRUNCATE)`` konnte
+  das WAL bei voller KNX-Bus-Last (~48 Tel/s) auf mehrere GB wachsen,
+  bevor SQLite intern selbst checkpointet — Disk-Verbrauch und
+  langsamere Reads. Jetzt feuert der KNX-Stats-Cleanup-Tick (alle 6 h)
+  nach Loeschungen einen TRUNCATE-Checkpoint, der die WAL-Datei auf
+  0 Byte schrumpft. Neuer Helper ``processing.retention.run_wal_checkpoint``
+  + zwei Pytests (Smoke + Idempotenz).
+
+### Architektur-Doku + CI
+
+- **Iter H1 / Architecture-Doku.** Neuer
+  ``docs/architecture.md`` ist jetzt Single-Source-of-Truth fuer den
+  aktuellen Aufbau (v0.25.x): Datenmodell mit Speicher-Verantwortung,
+  Hot-Path-Diagramm, Findings-Pipeline mit Dedup-Vertrag, Recommendation-
+  4-Layer, Frontend-Component-Tree. ``docs/messagehub_konzept.md`` ist
+  als HISTORISCH markiert.
+- **Iter F4 / Bundle-CI-Konsistenz.** Neuer Frontend-Job in
+  ``.github/workflows/ci.yml``: typecheck + vitest + ``npm run build``
+  und anschliessend ``git diff --quiet`` auf
+  ``custom_components/messagehub/frontend_dist/``. Ein PR mit
+  Frontend-Aenderungen ohne committed Bundle wird damit aktiv
+  blockiert — kein stiller Drift mehr.
+- **Iter G2 / Bulk-Cap im Frontend.** ``ApiClient.bulkPatchKnxAddresses``
+  splittet grosse Listen in Chunks von 200; Backend-Cap (500) bleibt
+  davon unangetastet, aber HA-aiohttp bekommt nie einen Megabyte-Body.
+- **Iter G3 / API-Key-Leak-Snapshot-Test.** ``test_api_key_leak_snapshot.py``
+  fuettert einen eindeutigen Test-Key in ``ProviderConfig`` und prueft,
+  dass ``redact_for_response`` und ``make_cache_key`` ihn niemals
+  durchlassen. Vier Pytests grün; ``__repr__`` der Config bleibt als
+  ``xfail`` dokumentiert (bewusster Trade-off, Folgemassnahme dokumentiert).
+- **Iter E5 / Endpoint-Banner-Labels ausgelagert.** ``KNX_ENDPOINT_LABELS``
+  + ``labelForKnxEndpoint`` als modulare Helper — neue Endpoints landen
+  jetzt an einer Stelle, kein Hardcoded-Inline-Object mehr.
+- **Iter E6 / Hash-Router zentralisiert.** Neuer
+  ``utils/hash-route.ts`` parst Top-Tab + Sub-Tab + Query in EINER
+  Funktion. ``messagehub-panel`` und ``stats-view`` nutzen ihn beide;
+  Drift zwischen den Parsern (z. B. ``#findings``-Alias nur an einer
+  Stelle erkannt) ist ausgeschlossen. Sieben Vitest decken alle
+  Routes ab.
+
+### Wartbarkeit / Cleanup
+
+- **Iter E3 / Versionierter localStorage-Helper.** Neuer
+  ``utils/persisted-state.ts`` kapselt das Pattern: Daten + Versions-
+  Marker; bei Mismatch optional Migration. Panel-Filter sind darauf
+  umgestellt; sechs neue Vitest decken den Helper ab.
+- **Iter E4 / Saved-Filter mit `schema_version`.** Beim Speichern wird
+  die aktuelle Filter-Schema-Version mitgeschrieben. Beim Anwenden
+  werden nur bekannte Keys ins state gehoben (sanitized merge), sodass
+  alte Saved-Filter neue Default-Werte fuer unbekannte Felder kriegen.
+- **Iter F2 / Repair-Issue ``knx_unavailable`` konditional.** Frueher
+  feuerte das Issue immer beim Setup ohne xknx — auch wenn der User
+  KNX gar nicht nutzt. Jetzt nur, wenn mindestens eine GA mit
+  ``log_enabled=1`` konfiguriert ist. Drei neue Pytests.
+- **Iter F3 / Cache-Buster aus Bundle-Hash.** ``_bundle_cache_buster``
+  hashed jetzt den Bundle-Inhalt (sha256 Prefix 12) statt mtime.
+  Reproducible bei Git-Clone / HACS-Update; verhindert sowohl
+  unnoetige Cache-Misses als auch stille Doppel-Belegung. Tests
+  angepasst.
+- **Iter F5 / Webhook-Export-Endpoint.** ``GET /api/messagehub/webhooks?format=export``
+  liefert eine JSON-Datei mit allen Webhook-Configs (inkl. Field-Map),
+  damit Backups ohne SQLite-Mitnahme moeglich sind.
+- **Iter F6 / Lifecycle-Hooks Auto-Cleanup.** ``async_unload_entry``
+  iteriert nicht mehr ueber eine handgeschriebene Liste, sondern
+  automatisch alle ``state``-Schluessel mit ``unsub_``/``_unsub``-
+  Konvention. Neue Listener werden ohne Aenderung am Cleanup-Pfad
+  erfasst.
+- **Iter B7 / Szenen-DPTs aus Rate-Klassifizierung neutralisiert.**
+  DPT 17.001 / 18.001 sind User-Event-getrieben — eine "Soll-Rate
+  pro Minute" ist inhaltsleer. Limit auf 60/min gesetzt, sodass die
+  Rate-Ampel dort kein false-positives mehr feuert; spezifische
+  Anti-Patterns laufen weiter ueber TOGGLE_LOOP/READ_BURST.
+- **Iter C2 / LLM-Cache-Key mit API-Key-Fingerprint.** Wechsel zwischen
+  Free-Tier- und Pro-Key fuer denselben Provider/Model haben frueher
+  stale Cache-Eintraege geliefert. ``make_cache_key`` nimmt jetzt einen
+  optionalen ``api_key``-Parameter, dessen sha256-Prefix in den Key
+  eingeht. ``_apply_llm_fallback`` reicht den Wert durch.
+- **Iter D8 / Sortier-UX-Hinweis.** Wenn der User die Top-Sender-Tabelle
+  nach severity / GA / Label sortiert, kann ein "rotes" GA ausserhalb
+  der Top-N (per Tel/Min) sein und damit unsichtbar. Hinweis-Banner
+  klaert das auf.
+- **Iter H2 / `LegacyPatternFinding` umbenannt.** Die Anti-Pattern-
+  Dataclass in ``knx_stats.py`` hiess gleich wie der erweiterte
+  Findings-Vertrag in ``processing.findings``. Umbenannt mit Backward-
+  Compat-Alias ``Finding`` — bestehende Imports brechen nicht.
+
+### Wartbarkeit
+
+- **Iter B4 / Severity zur Laufzeit auflösen.** Bisher kam die Severity
+  beim List-Endpoint direkt aus der DB-Row — User-Overrides oder ein
+  Default-Wechsel im Code wirkten damit nur auf NEU geschriebene
+  Rows; alte Rows behielten ihre alte Severity, der Findings-Tab
+  sortierte inkonsistent (z. B. nach Iter B2 hatten alte
+  ``DPT_MISMATCH``-Rows weiter ``error``, neue ``warning``). Jetzt:
+  ``list_findings_response`` ruft pro Item-Code ``repo.resolve_severity``
+  auf (mit Per-Code-Cache, kein N+1) und uebernimmt das Ergebnis ins
+  DTO. Drei neue Pytests (Override greift; Default greift; Cache
+  kollabiert N-Calls auf 1).
+
+- **Iter A4 / Repository-Pattern in ``findings_runner`` repariert.**
+  Drei Helper-Queries (``_samples_for_period``, ``_counts_per_ga``,
+  ``_last_seen_per_ga``) griffen direkt auf ``stats_repo._db.fetch_all``
+  zu — Inline-SQL ausserhalb des Repositories, also Vertragsbruch.
+  Jetzt sind sie als Public-Methoden auf ``KnxStatsRepository``:
+  ``samples_for_period_all_gas``, ``counts_per_ga``, ``last_seen_per_ga``.
+  Vier neue Pytests (Smoke + Empty-DB).
+
+### Findings-Vertrag
+
+- **Iter B6 / `title`/`description` aus dem ``Finding``-Dataclass entfernt.**
+  Die zwei Felder waren Pflicht-Argumente am ``Finding``-Init, wurden
+  aber von jedem der 13 Detektoren als ``""`` gesetzt — das eigentliche
+  Rendering passiert seit Iter E1 ueber ``translations/*.json``. Jetzt
+  kann der Detector-Code knapp bleiben:
+  * ``title`` und ``description`` sind aus dem Dataclass entfernt;
+    ``to_dict`` liefert sie weiterhin als leere Strings, damit alte
+    Frontend-Versionen die DTO-Form akzeptieren.
+  * 13 Detector-Module bereinigt (knapp 30 redundante Init-Argumente
+    weg). Bestand-Tests entsprechend angepasst.
+  * Reasoning-Text in der Recommendation-Engine nutzt nur noch den
+    Code als Marker, weil der Detector-seitige ``title`` ohnehin leer
+    war.
+
+### Frontend / i18n
+
+- **Iter E1 / Single Source of Truth: ``translations/*.json``.** Bisher
+  pflegten wir Findings-Strings in zwei parallelen Quellen — die
+  Backend-``translations/*.json`` (6 Sprachen) und die hartcodierte
+  ``STRINGS``-Tabelle in ``frontend/src/utils/findings-i18n.ts`` (nur
+  DE+EN). User mit HA in IT/FR/ES/NL sahen englische Findings, obwohl
+  die Backend-Translations vorhanden waren. Jetzt:
+  * Neuer Generator ``scripts/generate-findings-i18n.mjs`` liest
+    ``custom_components/messagehub/translations/*.json`` und schreibt
+    ``frontend/src/utils/findings-i18n.generated.ts`` mit allen 6
+    Sprachen + Code-Tabelle.
+  * Generator validiert Vollstaendigkeit: pro Code muessen alle
+    Sprachen ``title``, ``description`` und ``help_url`` liefern;
+    fehlende Codes werfen eine Build-Fehlermeldung.
+  * Frontend-Modul ``findings-i18n.ts`` nutzt das generierte Modul,
+    ``_resolveLang`` deckt jetzt alle 6 Sprachen ab (vorher: nur
+    DE/EN, Rest fiel auf EN zurueck).
+  * Pre-Build-Hook in ``frontend/package.json``: ``prebuild`` /
+    ``pretypecheck`` / ``pretest`` rufen den Generator. Der Hook
+    ist auch via ``npm run i18n:generate`` direkt anstossbar.
+  * Backend-seitiger Vollstaendigkeitstest
+    ``tests/unit/test_translations_completeness.py`` (4 Pytests):
+    alle 6 Sprachen muessen die gleichen Codes liefern; jeder Code
+    aus ``KNX_FINDING_DEFAULT_SEVERITIES`` braucht DE+EN-Strings.
+
+### Frontend / Robustheit
+
+- **Iter D3 / Auth-Race in `firstUpdated` aufgeloest.** Wenn `hass`
+  zur firstUpdated-Zeit noch nicht gesetzt ist (HA-Lifecycle-Race),
+  feuerte ``_reload()`` ohne Auth → 401, kein Retry, leeres Panel.
+  Jetzt wartet die Initialisierung in ``_tryInitialize`` auf
+  ``hass.auth.data.access_token`` und laeuft erst dann; via
+  ``updated()`` wird sie nachgezogen, sobald hass nachgereicht wird.
+  Drei Vitest decken den Race ab (kein Init ohne hass; Init bei
+  Nachreichung; nicht-doppelt-Init).
+
+- **Iter D4 / `_load()`-Race-Schutz im stats-knx-view.** Bei schnellen
+  Filter-Wechseln konnten parallele ``_load()``-Calls in der falschen
+  Reihenfolge in den State zurueckkommen — der User sah Daten zu
+  Filter A statt B. Jetzt inkrementiert jeder ``_load()`` ein
+  Request-Token und schreibt nur in den State, wenn das Token noch
+  der aktuelle ist. Spaetere Resultate werden verworfen. Ein Vitest
+  verifiziert, dass die zweite (schnellere) Antwort die erste
+  (langsamere) nicht ueberschreibt.
+
+- **Iter D6 / Live-Update-Buffer mit rAF-Throttling.** Frueher rief
+  jeder ``messagehub_message_added``-Event direkt einen Lit-Re-Render
+  aus. Bei Reconnect-Storms (Hunderte Events/s) hat das DOM in jedem
+  Frame neu gebaut. Jetzt sammelt ``_liveBuffer`` die Events pro
+  ``requestAnimationFrame``-Tick und committet einmal — das DOM-Update
+  bleibt unter 60 fps stabil.
+
+- **Iter D7 / `_refreshAll` mit Concurrency-Cap parallelisiert.** Der
+  "Aktualisieren"-Button im Findings-Tab feuerte vorher 50 sequentielle
+  HTTP-Calls bei 50 GAs (~10 s bei 200 ms Latenz). Jetzt laufen 5
+  parallel via Promise-Worker-Loop; Fehler einzelner GAs werden
+  gesammelt und im UI als Banner angezeigt — der Lauf wird nicht
+  abgebrochen.
+
+- **Iter E2 / `_lang()` priorisiert `hass.locale.language`.** Vorher
+  laß die i18n-Aufloesung primaer aus ``document.documentElement.lang``;
+  beim HA-Sprach-Wechsel ohne Reload haengte sie. Jetzt ist
+  ``hass.locale.language`` die kanonische Quelle (Fallback-Kette:
+  hass.locale → document.lang → navigator.language → "en"). hass-
+  Property wird vom Panel an stats-view + findings-view durchgereicht.
+
+### Frontend / Komponenten-Architektur
+
+- **Iter D2 / `<mh-drawer>` als wiederverwendbare Detail-Pane-Komponente.**
+  ``stats-knx-view`` und ``findings-view`` hatten je einen eigenen
+  Drawer (Backdrop, Animation, Escape-Handler) — ~250 Zeilen
+  Duplikat-Code mit divergentem Verhalten. Jetzt:
+  * Neue Komponente ``components/mh-drawer.ts`` mit Slot-API:
+    ``<mh-drawer .open=${bool} @mh-drawer-close=${...}>`` rendert
+    Backdrop + position:fixed-Drawer, Escape-Handler im Window-Layer,
+    prefers-reduced-motion-Schutz, mobile Vollbreite.
+  * ``findings-view`` migriert auf ``<mh-drawer>``; eigener
+    ``_onWindowKeyDown`` entfaellt. Bestandstests an die neue
+    Shadow-DOM-Topologie angepasst.
+  * Sieben neue Vitest fuer ``<mh-drawer>`` selbst (rendert nicht bei
+    open=false; rendert vollstaendig bei open=true; Backdrop-Click /
+    Close-Btn / Escape feuern jeweils mh-drawer-close; Escape ohne
+    open ist no-op; aria-label durchgereicht).
+
+  ``stats-knx-view`` migriert in einer Folge-Iter — der Lift dort ist
+  groesser, weil zwei verschachtelte Drawer existieren (Source-Detail
+  + GA-Detail) und der Refactor mit der D1-Aufteilung zusammenfaellt.
+
+### Frontend / Live-Updates
+
+- **Iter D5 / WebSocket-Reconnect-Re-Subscribe.** Vorher rief das Panel
+  ``hass.connection.subscribeEvents`` einmal in ``firstUpdated`` und
+  haengte sich nie wieder an. Bei einem WebSocket-Drop (HA-Update,
+  Network-Glitch) blieb die Subscription tot — der User merkte erst
+  beim Reload, dass keine Live-Updates mehr ankommen. Jetzt:
+  * Neuer Wrapper ``LiveSubscription`` (``utils/live-subscribe.ts``).
+    Haengt sich an ``connection.addEventListener("ready")`` und ruft
+    bei jedem Reconnect ``subscribeEvents()`` neu auf.
+  * Saubere Lifecycle-Methoden: ``start()`` / ``stop()`` mit Idempotenz.
+    Beim Reconnect wird die alte Subscription unsubed, die neue
+    ersetzt sie atomar.
+  * Fallback fuer alte HA-Versionen ohne ``addEventListener``: greift
+    nicht ein, ein-malige Subscription bleibt wie bisher.
+  Fuenf neue Vitest (Single-Subscribe, Re-Subscribe-bei-Ready,
+  Event-Forwarding nach Reconnect, Stop-Idempotenz, Backward-Compat).
+
+### Findings-Pipeline
+
+- **Iter B2 / DPT_MISMATCH-Severity + Inferenz haerten.** Bisher lief
+  ``DPT_MISMATCH`` mit Severity ``error``. Die werte-basierte Inferenz
+  ``infer_dpt_from_samples`` lieferte aber 1.001, sobald alle Werte
+  in {0, 1} liegen — ein DPT-5.001-Stellantrieb, der bewusst nur an/aus
+  geschaltet wird, sendet aber {0, 100} und konnte je nach Telegramm-
+  Verteilung false-positiv als 1.001 inferiert werden. Jetzt:
+  * Heuristik ``_classify_int_samples`` haerter:
+    * 1.001 nur, wenn die Werte BEIDE 0 UND 1 enthalten (Wert-Diversitaet).
+      Sequenzen ausschliesslich 0 oder ausschliesslich 1 sind NICHT
+      mehr 1.001 — sie sind nicht entscheidbar.
+    * 5.001 nur bei Werten, die >= 2 sind (sonst koennten es 1.001 sein).
+  * Default-Severity ``DPT_MISMATCH`` heruntergesetzt von ``error`` auf
+    ``warning``. Wer sein ETS-Projekt sauber pflegt, kann via
+    ``knx_finding_severity_overrides`` auf ``error`` hochstufen.
+  * Detector-Version auf ``DPT_MISMATCH/v2`` + ``schema_version=2`` —
+    alte v1-Acks bleiben gueltig (siehe Konzept §9.5).
+  * i18n-Beschreibung in 6 Sprachen erweitert: erklaert das
+    Stellantrieb-Edge-Case und schlaegt den Override-Pfad vor.
+  Acht neue Pytests fuer die Inferenz-Haertung; bestehende Override-
+  Tests an den neuen Default angepasst.
+
+- **Iter B1 / Dedup-Hash auf Identitaets-Felder umgestellt.** Detektoren
+  mit kontinuierlich variabler Evidence (RECONNECT_STORM,
+  SEND_CYCLE_DRIFT, REPEAT_APPROXIMATION, ...) hashten frueher die
+  komplette Evidence — der Hash wechselte pro Detector-Run, der UNIQUE-
+  Index griff nicht, ``occurrence_count`` blieb bei 1, die
+  ``knx_findings``-Tabelle wuchs unkontrolliert. Jetzt:
+  * Neue Konstante ``KNX_FINDING_IDENTITY_FIELDS`` definiert pro Code,
+    welche Evidence-Schluessel die Identitaet ausmachen. Variable Werte
+    bleiben in der Evidence (UI rendert sie), fliessen aber nicht in
+    den Hash ein.
+  * SQL-Migration ``0031_knx_findings_source_dedup.sql`` baut den
+    UNIQUE-Index neu auf inkl. ``COALESCE(source, '')`` — Source-
+    bezogene Findings (RECONNECT_STORM mit ga=NULL, IA-spezifisch)
+    werden jetzt korrekt unterschieden. Vorhandene Duplikate werden
+    in der Migration entfernt (jeweils juengste behalten).
+  * UPSERT-Block aktualisiert ``evidence_json`` mit dem neuen Stand,
+    damit der User immer die aktuellen Werte sieht (nicht den ersten
+    Sample).
+  Sechs neue Pytests (Repeat-Run mit wechselnder Evidence dedups; mehrere
+  Sources bleiben getrennt; mehrere Codes kollidieren nicht; Per-GA-Dedup
+  fuer REPEAT_APPROXIMATION + SEND_CYCLE_DRIFT; Evidence-Overwrite zeigt
+  AKTUELLEN Wert).
+
+### Sicherheit / Sichtbarkeit
+
+- **Iter A3 / ANALYSIS_DISABLED-Finding.** Bisher konnte der User den
+  Bus-Analyse-Toggle abschalten und trotzdem in den leeren Findings-
+  Tab schauen — der Eindruck "alles OK" war falsch, weil die
+  Datenquelle (knx_raw_telegrams) gar nicht beschrieben wurde. Jetzt:
+  * ``run_bus_wide_detectors(bus_analysis_enabled=False)`` ueberspringt
+    alle Detektoren und emittiert genau ein Finding mit Code
+    ``ANALYSIS_DISABLED`` (severity ``warning``).
+  * Periodischer Job (``_run_findings_bus_wide_tick``) liest den Toggle
+    aus ``hass.data[DOMAIN][HASS_KEY_KNX_BUS_ANALYSIS]`` und reicht ihn
+    durch — keine zusaetzliche Setup-Aenderung noetig.
+  * i18n-Strings fuer 6 Sprachen (de/en/es/fr/it/nl) plus Frontend-
+    Konstante in ``findings-i18n.ts``. Beschreibungstexte erklaeren,
+    wie der Toggle wieder aktiviert wird.
+  Drei neue Pytests (Default-Severity, runner-disabled, runner-enabled)
+  plus ein Tick-Test plus vier Frontend-Tests fuer i18n-Vollstaendigkeit.
+
+### Performance / Hot-Path
+
+- **Iter A1 / Listener-Worker-Queue + Batching.** KNX-Telegramm-
+  Erfassung lief bisher synchron pro Telegramm: pro empfangenem
+  Telegramm wurden ``insert_raw`` + ``increment_counter`` mit jeweils
+  eigenem ``commit()`` gegen die SQLite-DB gefeuert. Bei Reconnect-
+  Storms (~48 Tel/s auf TP1-Vollast) blockierte das den HA-Eventloop
+  und das Lovelace-Panel wurde traege. Jetzt:
+  * Neuer ``KnxIngestWorker`` mit asyncio-Queue (Hard-Cap 5000) und
+    Background-Task. Listener-Hot-Path ruft nur noch ``worker.enqueue``
+    (synchron, nicht-blockierend).
+  * Worker flusht in Bulks von max. 100 Telegrammen pro Commit, oder
+    spaetestens alle 250 ms (was zuerst eintritt). Bei Volllast ergibt
+    das ~2 Flushes/s statt 48 fsyncs/s.
+  * Neue Repo-Methoden ``KnxStatsRepository.insert_raw_batch`` und
+    ``increment_counter_batch`` nutzen ``executemany()`` — ein einziger
+    Commit deckt alle Rows ab. ``insert_raw`` bleibt als Backward-
+    Compat-Wrapper erhalten.
+  * DoS-Schutz: bei voller Queue werden aelteste Eintraege verworfen
+    (``KnxIngestWorker.dropped_count``); der Hot-Path blockiert nie.
+  * Listener-Unload (``_unsub_xknx`` / ``_unsub_event``) stoppt den
+    Worker sauber und flusht pending Telegramme — kein Datenverlust
+    beim HA-Reload.
+  Sechs neue Pytests (Worker-Lifecycle, Batch-Trigger, Disable-Flag,
+  Crash-Resilienz, Queue-Overflow, Final-Flush) plus fuenf Repo-Batch-
+  Tests. ``async_register_knx_listener`` wurde in drei Helper
+  zerlegt (``_make_ingest_callback``, ``_try_register_xknx_hook``,
+  ``_register_knx_event_fallback``), Cognitive Complexity sinkt unter
+  die Sonar-/Ruff-Schwelle.
+
 ### Hinzugefuegt (UX)
 - **Iter UX-6 / Recommendation-Card — Quellen-Pill + Prompt-Legende.**
   Bisher war die Quelle einer GA-Empfehlung nur als Text-Praefix

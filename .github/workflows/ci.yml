@@ -39,3 +39,41 @@ jobs:
 
       - name: pytest with coverage
         run: pytest --cov=custom_components/messagehub --cov-report=term-missing --cov-fail-under=75
+
+  frontend:
+    name: Frontend (typecheck + tests + bundle-consistency)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefix frontend
+
+      - name: Typecheck
+        run: npm run typecheck --prefix frontend
+
+      - name: Vitest
+        run: npm test --prefix frontend -- --run
+
+      # Iter F4: Bundle-CI-Konsistenz. HACS hat keinen Build-Step, das
+      # Bundle wird committet. Hier verifizieren wir, dass der committet
+      # Stand dem aktuellen Source entspricht — sonst laeuft der User
+      # mit veralteter Frontend-Logik gegen neuen Backend-Code.
+      - name: Build bundle
+        run: npm run build --prefix frontend
+
+      - name: Verify committed bundle matches source
+        run: |
+          if ! git diff --quiet -- custom_components/messagehub/frontend_dist/; then
+            echo "::error::Frontend-Bundle ist nicht aktuell. Bitte 'npm run build --prefix frontend' lokal ausfuehren und das Bundle committen."
+            git --no-pager diff --stat -- custom_components/messagehub/frontend_dist/
+            exit 1
+          fi
+          echo "Bundle ist konsistent mit dem Source-Stand."

@@ -56,8 +56,6 @@ def detect_send_cycle_drift(
         severity=_SEND_CYCLE_DRIFT_SEVERITY,
         ga=ga,
         source=None,
-        title="",
-        description="",
         evidence={
             "recent_median_dt": recent_median_dt_sec,
             "baseline_median_dt": baseline_median_dt_sec,

@@ -117,7 +117,14 @@ async def _run_anomaly_tick(
 
 
 async def _run_knx_stats_cleanup(database: Any) -> None:
-    """Iter 24: cleanup-Job fuer knx_raw_telegrams + knx_telegram_counters."""
+    """Iter 24: cleanup-Job fuer knx_raw_telegrams + knx_telegram_counters.
+
+    Iter A2: nach den Loeschungen wird ``PRAGMA wal_checkpoint(TRUNCATE)``
+    ausgeloest, damit das WAL nicht ueber die Cleanups hinaus wachsen
+    bleibt. Bei voller TP1-Last ohne Checkpoint hat das WAL frueher
+    >1 GB erreicht.
+    """
+    from ..processing.retention import run_wal_checkpoint  # noqa: PLC0415
     from ..storage.knx_stats_repo import KnxStatsRepository  # noqa: PLC0415
 
     repo = KnxStatsRepository(database)
@@ -139,16 +146,24 @@ async def _run_knx_stats_cleanup(database: Any) -> None:
                 deleted_capped,
                 deleted_counter,
             )
+        # Iter A2: WAL-Checkpoint nach Cleanup — nutzt die Gelegenheit,
+        # dass die DB gerade einen kohaerenten Zustand hat.
+        await run_wal_checkpoint(database)
     except (ValueError, RuntimeError) as err:
         _LOGGER.warning("knx-stats cleanup failed: %s", err)
 
 
-async def _run_findings_bus_wide_tick(database: Any) -> None:
+async def _run_findings_bus_wide_tick(hass: HomeAssistant, database: Any) -> None:
     """Iter 29b: triggert run_bus_wide_detectors periodisch.
+
+    Iter A3: Liest den Bus-Analyse-Toggle aus ``hass.data`` und reicht ihn
+    an den Runner durch. Bei OFF emittiert der Runner ein
+    ``ANALYSIS_DISABLED``-Finding statt aller anderen Detektoren.
 
     Faengt Exceptions defensiv ab und loggt sie, damit ein einzelner
     fehlerhafter Tick den HA-Job-Scheduler nicht stoert.
     """
+    from ..const import DOMAIN, HASS_KEY_KNX_BUS_ANALYSIS  # noqa: PLC0415
     from ..processing.findings_runner import (  # noqa: PLC0415
         run_bus_wide_detectors,
     )
@@ -159,6 +174,10 @@ async def _run_findings_bus_wide_tick(database: Any) -> None:
     now = datetime.now(UTC)
     period_to = now
     period_from = now - timedelta(days=DEFAULT_KNX_FINDINGS_BUS_WIDE_PERIOD_DAYS)
+    domain_data = hass.data.get(DOMAIN, {})
+    bus_analysis_enabled = bool(
+        domain_data.get(HASS_KEY_KNX_BUS_ANALYSIS, True)
+    )
     try:
         recorded = await run_bus_wide_detectors(
             findings_repo=FindingsRepository(database),
@@ -167,6 +186,7 @@ async def _run_findings_bus_wide_tick(database: Any) -> None:
             period_from=period_from.isoformat(timespec="seconds"),
             period_to=period_to.isoformat(timespec="seconds"),
             now=now,
+            bus_analysis_enabled=bus_analysis_enabled,
         )
         if recorded:
             _LOGGER.info("knx-findings bus-wide tick: %d Findings persistiert", recorded)
@@ -194,7 +214,7 @@ def async_register_periodic_jobs(hass: HomeAssistant, database: Any, repository:
         await _run_knx_stats_cleanup(database)
 
     async def _findings_bus_wide_tick(_now: Any) -> None:
-        await _run_findings_bus_wide_tick(database)
+        await _run_findings_bus_wide_tick(hass, database)
 
     unsub_hb = async_track_time_interval(hass, _heartbeat_tick, timedelta(seconds=60))
     unsub_an = async_track_time_interval(hass, _anomaly_tick, timedelta(seconds=60))
