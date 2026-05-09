@@ -8,6 +8,7 @@ import { customElement } from "../utils/custom-element.js";
 import { property, state } from "lit/decorators.js";
 import type { ApiClient } from "../api-client.js";
 import { tokens } from "../styles/tokens.js";
+import { parseHashRoute } from "../utils/hash-route.js";
 import "./stats-live-view.js";
 import "./stats-knx-view.js";
 import "./findings-view.js";
@@ -78,30 +79,16 @@ export class StatsView extends LitElement {
   // Andere Hashes bleiben unbeachtet (#settings/... gehoert zu
   // settings-view, nicht zu uns).
   private _handleHash(rawHash: string): void {
-    const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
-    let tabPart = "";
-    let queryPart = "";
-
-    // Hash splitten: foo/bar?baz -> path="foo/bar", query="baz"
-    const queryStart = hash.indexOf("?");
-    const pathPart = queryStart === -1 ? hash : hash.slice(0, queryStart);
-    queryPart = queryStart === -1 ? "" : hash.slice(queryStart + 1);
-
-    if (pathPart === "findings") {
-      // Backwards-Compat: #findings (Iter H)
-      tabPart = "findings";
-    } else if (pathPart.startsWith("stats/")) {
-      tabPart = pathPart.slice("stats/".length);
-    } else {
-      return;
-    }
-
+    // Iter E6: Zentraler Parser. Aliases (z. B. ``#findings`` ->
+    // ``stats/findings``) werden im Helper aufgeloest.
+    const route = parseHashRoute(rawHash);
+    if (route.top !== "stats") return;
+    const tabPart = route.sub;
     if (tabPart === "live" || tabPart === "knx" || tabPart === "findings") {
       this._setTab(tabPart);
     }
     if (tabPart === "findings") {
-      const params = new URLSearchParams(queryPart);
-      const source = params.get("source");
+      const source = route.query.get("source");
       this._findingsSourceFilter = source && source.length > 0 ? source : null;
     } else {
       this._findingsSourceFilter = null;

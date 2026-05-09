@@ -384,6 +384,12 @@ export class ApiClient {
   // Iter 47 (N4): intelligenter Abgleich mit Vorschau (apply=false) +
   // Anwendung (apply=true). Aenderungen siehe Backend-Doc-String.
   // Iter 56: Bulk-Patch fuer mehrere KNX-GAs in einem Request.
+  // Iter G2: Frontend-seitiger Hard-Cap (200) + Auto-Chunking. Bei
+  // sehr grossen Listen (z. B. ETS-Reimport) hatte ein einzelner POST
+  // einen Body in der Megabyte-Region geschickt; HA-aiohttp sperrt
+  // das ab und der Bulk-Edit wirkt nur teilweise. Backend-Cap liegt
+  // bei 500 (BULK_MAX_ADDRESSES); wir gehen mit 200 vorsichtshalber
+  // darunter, damit es zukunftssicher ist und der Server nie blockiert.
   async bulkPatchKnxAddresses(
     addresses: string[],
     patch: {
@@ -393,13 +399,25 @@ export class ApiClient {
       severity_on_false?: string | null;
     }
   ): Promise<{ updated: number; address_count: number }> {
-    const res = await fetch(`${this.baseUrl}/api/messagehub/knx-addresses/bulk`, {
-      method: "POST",
-      headers: this.headers(),
-      body: JSON.stringify({ addresses, patch }),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-    return (await res.json()) as { updated: number; address_count: number };
+    const CHUNK = 200;
+    let updatedTotal = 0;
+    let addressTotal = 0;
+    for (let i = 0; i < addresses.length; i += CHUNK) {
+      const batch = addresses.slice(i, i + CHUNK);
+      const res = await fetch(
+        `${this.baseUrl}/api/messagehub/knx-addresses/bulk`,
+        {
+          method: "POST",
+          headers: this.headers(),
+          body: JSON.stringify({ addresses: batch, patch }),
+        },
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const body = (await res.json()) as { updated: number; address_count: number };
+      updatedTotal += body.updated;
+      addressTotal += body.address_count;
+    }
+    return { updated: updatedTotal, address_count: addressTotal };
   }
 
   async syncKnxProject(

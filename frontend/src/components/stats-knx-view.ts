@@ -99,6 +99,27 @@ const PERIOD_PRESETS: ReadonlyArray<{ id: string; label: string; days: number }>
 // Periode-IDs, die Long-Term-Modus aktivieren (Counter-Tabelle statt Raw).
 const LONG_TERM_PERIOD_IDS: ReadonlySet<string> = new Set(["7d", "30d", "365d"]);
 
+// Iter E5: Label-Mapping fuer den API-Error-Banner. Ausgelagert, damit
+// neue Endpoints nicht im Inline-Object verstreut werden — aktuell
+// DE-only, das Mapping kann spaeter per i18n-Pipeline (analog
+// findings-i18n.generated.ts) lokalisiert werden. Unbekannte Keys
+// fallen auf den Raw-Schluessel zurueck (defensiv, kein silent fail).
+const KNX_ENDPOINT_LABELS: Readonly<Record<string, string>> = {
+  "health-score": "Bus-Health-Score",
+  busload: "Buslast-KPI",
+  "long-term": "Long-Term-Sicht",
+  bursts: "Burst-Detector",
+  "sensitive-log": "Sicherheits-Audit",
+  orphans: "Verwaiste GAs",
+  alarms: "Alarme",
+  trend: "Trend-Vergleich",
+  heatmap: "Aktivitäts-Heatmap",
+};
+
+export function labelForKnxEndpoint(key: string): string {
+  return KNX_ENDPOINT_LABELS[key] ?? key;
+}
+
 const TOP_N_OPTIONS = [10, 25, 50, 100, 200] as const;
 // Iter topn-4: Heatmap nutzt eine eigene, kuerzere Optionsliste.
 // CSS-Grid-Lesbarkeit limitiert die Anzahl Zeilen — 30 ist
@@ -513,18 +534,12 @@ export class StatsKnxView extends LitElement {
   // wegklicken um die anderen Cards sauber zu sehen.
   private _renderApiErrorBanner(): TemplateResult {
     const failed = Array.from(this._apiErrors.keys()).sort();
-    const labels: Record<string, string> = {
-      "health-score": "Bus-Health-Score",
-      busload: "Buslast-KPI",
-      "long-term": "Long-Term-Sicht",
-      bursts: "Burst-Detector",
-      "sensitive-log": "Sicherheits-Audit",
-      orphans: "Verwaiste GAs",
-      alarms: "Alarme",
-      trend: "Trend-Vergleich",
-      heatmap: "Aktivitäts-Heatmap",
-    };
-    const labeled = failed.map((k) => labels[k] || k).join(", ");
+    // Iter E5: Labels per i18n-Hook — fuer jetzt nur DE/EN-Inline,
+    // kuenftig kann _labelForEndpoint aus translations/ zogen werden
+    // (gleiche Pipeline wie findings-i18n.generated.ts).
+    const labeled = failed
+      .map((k) => labelForKnxEndpoint(k))
+      .join(", ");
     return html`
       <div class="api-error-banner" role="alert">
         <div class="api-error-banner__head">

@@ -39,6 +39,38 @@ Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
   0 Byte schrumpft. Neuer Helper ``processing.retention.run_wal_checkpoint``
   + zwei Pytests (Smoke + Idempotenz).
 
+### Architektur-Doku + CI
+
+- **Iter H1 / Architecture-Doku.** Neuer
+  ``docs/architecture.md`` ist jetzt Single-Source-of-Truth fuer den
+  aktuellen Aufbau (v0.25.x): Datenmodell mit Speicher-Verantwortung,
+  Hot-Path-Diagramm, Findings-Pipeline mit Dedup-Vertrag, Recommendation-
+  4-Layer, Frontend-Component-Tree. ``docs/messagehub_konzept.md`` ist
+  als HISTORISCH markiert.
+- **Iter F4 / Bundle-CI-Konsistenz.** Neuer Frontend-Job in
+  ``.github/workflows/ci.yml``: typecheck + vitest + ``npm run build``
+  und anschliessend ``git diff --quiet`` auf
+  ``custom_components/messagehub/frontend_dist/``. Ein PR mit
+  Frontend-Aenderungen ohne committed Bundle wird damit aktiv
+  blockiert — kein stiller Drift mehr.
+- **Iter G2 / Bulk-Cap im Frontend.** ``ApiClient.bulkPatchKnxAddresses``
+  splittet grosse Listen in Chunks von 200; Backend-Cap (500) bleibt
+  davon unangetastet, aber HA-aiohttp bekommt nie einen Megabyte-Body.
+- **Iter G3 / API-Key-Leak-Snapshot-Test.** ``test_api_key_leak_snapshot.py``
+  fuettert einen eindeutigen Test-Key in ``ProviderConfig`` und prueft,
+  dass ``redact_for_response`` und ``make_cache_key`` ihn niemals
+  durchlassen. Vier Pytests grün; ``__repr__`` der Config bleibt als
+  ``xfail`` dokumentiert (bewusster Trade-off, Folgemassnahme dokumentiert).
+- **Iter E5 / Endpoint-Banner-Labels ausgelagert.** ``KNX_ENDPOINT_LABELS``
+  + ``labelForKnxEndpoint`` als modulare Helper — neue Endpoints landen
+  jetzt an einer Stelle, kein Hardcoded-Inline-Object mehr.
+- **Iter E6 / Hash-Router zentralisiert.** Neuer
+  ``utils/hash-route.ts`` parst Top-Tab + Sub-Tab + Query in EINER
+  Funktion. ``messagehub-panel`` und ``stats-view`` nutzen ihn beide;
+  Drift zwischen den Parsern (z. B. ``#findings``-Alias nur an einer
+  Stelle erkannt) ist ausgeschlossen. Sieben Vitest decken alle
+  Routes ab.
+
 ### Wartbarkeit / Cleanup
 
 - **Iter E3 / Versionierter localStorage-Helper.** Neuer

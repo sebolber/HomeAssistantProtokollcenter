@@ -8,6 +8,7 @@ import { ApiClient, type MessageDto, type SavedFilterDto } from "./api-client.js
 import { tokens, buttons } from "./styles/tokens.js";
 import { LiveSubscription } from "./utils/live-subscribe.js";
 import { loadPersisted, savePersisted } from "./utils/persisted-state.js";
+import { parseHashRoute } from "./utils/hash-route.js";
 import "./components/message-table.js";
 import "./components/severity-filter.js";
 import "./components/source-filter.js";
@@ -143,15 +144,9 @@ export class MessageHubPanel extends LitElement {
   // Sub-Path (z. B. settings/mqtt) wird von der jeweiligen Sub-View
   // selbst geparst — wir aendern hier nur den Top-Tab.
   private _initialTabFromHash(): "messages" | "settings" | "stats" | "audit" {
+    // Iter E6: Zentraler Parser in utils/hash-route.ts.
     if (typeof window === "undefined" || !window.location?.hash) return "messages";
-    const hash = window.location.hash.startsWith("#")
-      ? window.location.hash.slice(1)
-      : window.location.hash;
-    if (hash.startsWith("messages")) return "messages";
-    if (hash.startsWith("stats") || hash === "findings" || hash.startsWith("findings?")) return "stats";
-    if (hash.startsWith("settings")) return "settings";
-    if (hash.startsWith("audit")) return "audit";
-    return "messages";
+    return parseHashRoute(window.location.hash).top;
   }
 
   private _onHashChange = (): void => {
