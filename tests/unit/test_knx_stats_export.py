@@ -52,8 +52,18 @@ def test_csv_has_header() -> None:
 
 def test_csv_writes_one_row_per_sample() -> None:
     samples = [
-        {"ts": "2026-05-02T10:00:00", "value": 21.5, "dev_source": "1.1.5", "telegramtype": "GroupValueWrite"},
-        {"ts": "2026-05-02T10:01:00", "value": 22.0, "dev_source": "1.1.5", "telegramtype": "GroupValueWrite"},
+        {
+            "ts": "2026-05-02T10:00:00",
+            "value": 21.5,
+            "dev_source": "1.1.5",
+            "telegramtype": "GroupValueWrite",
+        },
+        {
+            "ts": "2026-05-02T10:01:00",
+            "value": 22.0,
+            "dev_source": "1.1.5",
+            "telegramtype": "GroupValueWrite",
+        },
     ]
     out = format_ga_export_csv("1/3/5", samples)
     rows = list(csv.reader(io.StringIO(out)))
@@ -66,7 +76,12 @@ def test_csv_writes_one_row_per_sample() -> None:
 def test_csv_quotes_values_with_commas_and_quotes() -> None:
     # Wert mit Komma + Anfuehrungszeichen — csv.writer muss korrekt quoten.
     samples = [
-        {"ts": "2026-05-02T10:00:00", "value": 'foo, "bar"', "dev_source": "1.1.5", "telegramtype": "GroupValueWrite"},
+        {
+            "ts": "2026-05-02T10:00:00",
+            "value": 'foo, "bar"',
+            "dev_source": "1.1.5",
+            "telegramtype": "GroupValueWrite",
+        },
     ]
     out = format_ga_export_csv("1/2/3", samples)
     rows = list(csv.reader(io.StringIO(out)))
@@ -75,7 +90,12 @@ def test_csv_quotes_values_with_commas_and_quotes() -> None:
 
 def test_csv_handles_dict_value_as_json() -> None:
     samples = [
-        {"ts": "2026-05-02T10:00:00", "value": {"red": 255, "green": 0, "blue": 128}, "dev_source": "1.1.5", "telegramtype": "GroupValueWrite"},
+        {
+            "ts": "2026-05-02T10:00:00",
+            "value": {"red": 255, "green": 0, "blue": 128},
+            "dev_source": "1.1.5",
+            "telegramtype": "GroupValueWrite",
+        },
     ]
     out = format_ga_export_csv("1/2/3", samples)
     rows = list(csv.reader(io.StringIO(out)))
@@ -85,7 +105,12 @@ def test_csv_handles_dict_value_as_json() -> None:
 
 def test_csv_handles_none_value_as_empty_cell() -> None:
     samples = [
-        {"ts": "2026-05-02T10:00:00", "value": None, "dev_source": "1.1.5", "telegramtype": "GroupValueWrite"},
+        {
+            "ts": "2026-05-02T10:00:00",
+            "value": None,
+            "dev_source": "1.1.5",
+            "telegramtype": "GroupValueWrite",
+        },
     ]
     out = format_ga_export_csv("1/2/3", samples)
     rows = list(csv.reader(io.StringIO(out)))
@@ -93,7 +118,10 @@ def test_csv_handles_none_value_as_empty_cell() -> None:
 
 
 def test_csv_respects_export_max_samples() -> None:
-    samples = [{"ts": str(i), "value": i, "dev_source": "1.1.5", "telegramtype": "GroupValueWrite"} for i in range(EXPORT_MAX_SAMPLES + 50)]
+    samples = [
+        {"ts": str(i), "value": i, "dev_source": "1.1.5", "telegramtype": "GroupValueWrite"}
+        for i in range(EXPORT_MAX_SAMPLES + 50)
+    ]
     out = format_ga_export_csv("1/2/3", samples)
     rows = list(csv.reader(io.StringIO(out)))
     assert len(rows) == EXPORT_MAX_SAMPLES + 1  # Header inklusive
@@ -122,9 +150,7 @@ def test_csv_lineterminator_is_lf_not_crlf() -> None:
 
 
 def test_json_returns_valid_wrapper() -> None:
-    out = format_ga_export_json(
-        "1/2/3", "2026-05-02T00:00:00", "2026-05-02T23:59:59", []
-    )
+    out = format_ga_export_json("1/2/3", "2026-05-02T00:00:00", "2026-05-02T23:59:59", [])
     parsed = json.loads(out)
     assert parsed["ga"] == "1/2/3"
     assert parsed["from"] == "2026-05-02T00:00:00"

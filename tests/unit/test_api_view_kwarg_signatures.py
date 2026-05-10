@@ -85,8 +85,7 @@ def _http_methods(cls: ast.ClassDef) -> list[ast.AsyncFunctionDef | ast.Function
     return [
         stmt
         for stmt in cls.body
-        if isinstance(stmt, (ast.AsyncFunctionDef, ast.FunctionDef))
-        and stmt.name in _HTTP_METHODS
+        if isinstance(stmt, (ast.AsyncFunctionDef, ast.FunctionDef)) and stmt.name in _HTTP_METHODS
     ]
 
 
@@ -112,9 +111,7 @@ def test_view_method_accepts_url_path_param(
     unexpected keyword argument ...``.
     """
     tree = ast.parse((_API_DIR / file_name).read_text(encoding="utf-8"))
-    cls = next(
-        n for n in ast.walk(tree) if isinstance(n, ast.ClassDef) and n.name == class_name
-    )
+    cls = next(n for n in ast.walk(tree) if isinstance(n, ast.ClassDef) and n.name == class_name)
     method = next(m for m in _http_methods(cls) if m.name == method_name)
     assert _method_accepts(method, param), (
         f"{file_name}::{class_name}.{method_name} akzeptiert "

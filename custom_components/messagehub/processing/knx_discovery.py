@@ -315,10 +315,7 @@ async def discover_knx_devices(hass: HomeAssistant) -> dict[str, dict[str, Any]]
             if project is not None:
                 raw = find_raw_devices(project)
                 if _safe_truthy(raw):
-                    result = {
-                        entry["individual_address"]: entry
-                        for entry in extract_devices(raw)
-                    }
+                    result = {entry["individual_address"]: entry for entry in extract_devices(raw)}
     except _DISCOVERY_SAFE_EXCEPTIONS as err:
         _LOGGER.debug("knx device discovery failed, returning empty: %s", err)
         result = {}

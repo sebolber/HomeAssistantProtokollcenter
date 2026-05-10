@@ -19,7 +19,6 @@ from custom_components.messagehub.storage.database import Database
 from custom_components.messagehub.storage.knx_stats_repo import KnxStatsRepository
 from custom_components.messagehub.storage.migrations import MigrationRunner
 
-
 _NOW = datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC)
 
 
@@ -59,8 +58,12 @@ async def _insert_silence_test_data(db: Database) -> None:
             "(timestamp, destination, source, telegramtype, value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
-                _ts(-2 * 86400), ga, "1.1.10",
-                "GroupValueWrite", json.dumps(21.5), 0,
+                _ts(-2 * 86400),
+                ga,
+                "1.1.10",
+                "GroupValueWrite",
+                json.dumps(21.5),
+                0,
             ),
         )
 
@@ -77,12 +80,15 @@ async def test_enrich_silence_adds_manufacturer_and_gas(
     await _insert_silence_test_data(db)
     svc = KnxStatsService(KnxStatsRepository(db))
     rows = await KnxStatsRepository(db).silence_detect(
-        _ts(-3 * 86400), _ts(60),
-        now_iso=_ts(0), max_silence_minutes=1440,
+        _ts(-3 * 86400),
+        _ts(60),
+        now_iso=_ts(0),
+        max_silence_minutes=1440,
     )
     enriched = await svc.enrich_silence_with_devices(
         rows,
-        from_iso=_ts(-3 * 86400), to_iso=_ts(60),
+        from_iso=_ts(-3 * 86400),
+        to_iso=_ts(60),
         ets_devices={
             "1.1.10": {
                 "manufacturer": "hoermann",
@@ -110,11 +116,15 @@ async def test_enrich_silence_without_ets_keeps_none_fields(
     await _insert_silence_test_data(db)
     svc = KnxStatsService(KnxStatsRepository(db))
     rows = await KnxStatsRepository(db).silence_detect(
-        _ts(-3 * 86400), _ts(60),
-        now_iso=_ts(0), max_silence_minutes=1440,
+        _ts(-3 * 86400),
+        _ts(60),
+        now_iso=_ts(0),
+        max_silence_minutes=1440,
     )
     enriched = await svc.enrich_silence_with_devices(
-        rows, from_iso=_ts(-3 * 86400), to_iso=_ts(60),
+        rows,
+        from_iso=_ts(-3 * 86400),
+        to_iso=_ts(60),
         ets_devices=None,
     )
     entry = next(r for r in enriched if r["dev_source"] == "1.1.10")
@@ -130,12 +140,16 @@ async def test_enrich_silence_does_not_mutate_input(
     await _insert_silence_test_data(db)
     svc = KnxStatsService(KnxStatsRepository(db))
     rows = await KnxStatsRepository(db).silence_detect(
-        _ts(-3 * 86400), _ts(60),
-        now_iso=_ts(0), max_silence_minutes=1440,
+        _ts(-3 * 86400),
+        _ts(60),
+        now_iso=_ts(0),
+        max_silence_minutes=1440,
     )
     original_keys = set(rows[0].keys())
     await svc.enrich_silence_with_devices(
-        rows, from_iso=_ts(-3 * 86400), to_iso=_ts(60),
+        rows,
+        from_iso=_ts(-3 * 86400),
+        to_iso=_ts(60),
     )
     # Originale Liste hat keine neuen Felder bekommen
     assert set(rows[0].keys()) == original_keys
@@ -153,7 +167,8 @@ async def test_silence_alarm_includes_device_details(
     await _insert_silence_test_data(db)
     svc = KnxStatsService(KnxStatsRepository(db))
     alarms = await svc.evaluate_alarms(
-        _ts(-3 * 86400), _ts(60),
+        _ts(-3 * 86400),
+        _ts(60),
         busload_pct_threshold=99.0,
         repeat_rate_pct_threshold=99.0,
         silence_count_threshold=1,
@@ -184,7 +199,8 @@ async def test_silence_alarm_details_empty_when_no_alarms(
     """Keine stillen Geraete im Period → details.devices ist leer."""
     svc = KnxStatsService(KnxStatsRepository(db))
     alarms = await svc.evaluate_alarms(
-        _ts(-3600), _ts(60),
+        _ts(-3600),
+        _ts(60),
         busload_pct_threshold=99.0,
         repeat_rate_pct_threshold=99.0,
         silence_count_threshold=1,
@@ -214,8 +230,7 @@ async def test_silence_alarm_details_skip_for_unalarmed_sources(
         "INSERT INTO knx_group_addresses "
         "(address, label, dpt, created_at, updated_at) "
         "VALUES (?, ?, ?, ?, ?)",
-        ("1/2/3", "Wohnzimmer Temp", "9.001",
-         real_now_iso, real_now_iso),
+        ("1/2/3", "Wohnzimmer Temp", "9.001", real_now_iso, real_now_iso),
     )
     # Source A: stumm (Telegramm vor 2 Tagen, real-relativ)
     a_ts = (real_now - timedelta(days=2)).isoformat(timespec="seconds")
@@ -223,8 +238,7 @@ async def test_silence_alarm_details_skip_for_unalarmed_sources(
         "INSERT INTO knx_raw_telegrams "
         "(timestamp, destination, source, telegramtype, value, repeated) "
         "VALUES (?, ?, ?, ?, ?, ?)",
-        (a_ts, "1/2/3", "1.1.10",
-         "GroupValueWrite", json.dumps(21.5), 0),
+        (a_ts, "1/2/3", "1.1.10", "GroupValueWrite", json.dumps(21.5), 0),
     )
     # Source B: aktiv (Telegramm vor 5 Min, real-relativ)
     b_ts = (real_now - timedelta(minutes=5)).isoformat(timespec="seconds")
@@ -232,18 +246,14 @@ async def test_silence_alarm_details_skip_for_unalarmed_sources(
         "INSERT INTO knx_raw_telegrams "
         "(timestamp, destination, source, telegramtype, value, repeated) "
         "VALUES (?, ?, ?, ?, ?, ?)",
-        (b_ts, "1/2/3", "1.1.20",
-         "GroupValueWrite", json.dumps(22.0), 0),
+        (b_ts, "1/2/3", "1.1.20", "GroupValueWrite", json.dumps(22.0), 0),
     )
-    from_iso = (
-        real_now - timedelta(days=3)
-    ).isoformat(timespec="seconds")
-    to_iso = (
-        real_now + timedelta(minutes=1)
-    ).isoformat(timespec="seconds")
+    from_iso = (real_now - timedelta(days=3)).isoformat(timespec="seconds")
+    to_iso = (real_now + timedelta(minutes=1)).isoformat(timespec="seconds")
     svc = KnxStatsService(KnxStatsRepository(db))
     alarms = await svc.evaluate_alarms(
-        from_iso, to_iso,
+        from_iso,
+        to_iso,
         busload_pct_threshold=99.0,
         repeat_rate_pct_threshold=99.0,
         silence_count_threshold=1,

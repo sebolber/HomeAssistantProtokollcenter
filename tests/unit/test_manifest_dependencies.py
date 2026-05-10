@@ -17,9 +17,7 @@ import json
 import re
 from pathlib import Path
 
-_PKG_DIR = (
-    Path(__file__).resolve().parents[2] / "custom_components" / "messagehub"
-)
+_PKG_DIR = Path(__file__).resolve().parents[2] / "custom_components" / "messagehub"
 _MANIFEST = _PKG_DIR / "manifest.json"
 
 
@@ -39,9 +37,7 @@ def test_manifest_keeps_required_deps() -> None:
     manifest = json.loads(_MANIFEST.read_text(encoding="utf-8"))
     deps = manifest.get("dependencies", [])
     for required in ("http", "frontend", "webhook"):
-        assert required in deps, (
-            f"Pflicht-Dependency {required!r} fehlt — HA-Setup wuerde brechen."
-        )
+        assert required in deps, f"Pflicht-Dependency {required!r} fehlt — HA-Setup wuerde brechen."
 
 
 def test_no_websocket_api_decorator_used() -> None:

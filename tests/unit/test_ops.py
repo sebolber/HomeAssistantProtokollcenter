@@ -153,12 +153,10 @@ def test_iter80_jsonl_per_row_matches_full_export() -> None:
 def test_iter80_message_to_csv_line_quotes_special_characters() -> None:
     from custom_components.messagehub.api.export import message_to_csv_line
 
-    m = Message(
-        severity=Severity.INFO, source="x", text='line with, comma and "quote"'
-    )
+    m = Message(severity=Severity.INFO, source="x", text='line with, comma and "quote"')
     line = message_to_csv_line(m)
     # CSV-Quoting: Komma und " innerhalb Werten muessen escapet sein.
-    assert "\"line with, comma and \"\"quote\"\"\"" in line
+    assert '"line with, comma and ""quote"""' in line
 
 
 def test_forensic_bundle_contains_all_artifacts() -> None:

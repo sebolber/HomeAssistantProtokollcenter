@@ -71,32 +71,24 @@ class TestAggregateFindingTotal:
         # Act — Service-Aggregation (das ruft MetricsView.get auf).
         finding_total = await aggregate_finding_total(repo)
         text = format_prometheus_metrics(
-            total=0, severity_total={}, severity_24h={},
+            total=0,
+            severity_total={},
+            severity_24h={},
             finding_total=finding_total,
         )
 
         # Assert
-        assert (
-            'messagehub_knx_finding_total{code="DPT_MISMATCH",severity="error"} 2'
-            in text
-        )
-        assert (
-            'messagehub_knx_finding_total{code="MULTI_RESPONDER",severity="warning"} 1'
-            in text
-        )
+        assert 'messagehub_knx_finding_total{code="DPT_MISMATCH",severity="error"} 2' in text
+        assert 'messagehub_knx_finding_total{code="MULTI_RESPONDER",severity="warning"} 1' in text
 
     @pytest.mark.asyncio
-    async def test_aggregate_returns_empty_dict_for_empty_repo(
-        self, db: Database
-    ) -> None:
+    async def test_aggregate_returns_empty_dict_for_empty_repo(self, db: Database) -> None:
         repo = FindingsRepository(db)
         result = await aggregate_finding_total(repo)
         assert result == {}
 
     @pytest.mark.asyncio
-    async def test_aggregate_groups_by_code_and_severity_independently(
-        self, db: Database
-    ) -> None:
+    async def test_aggregate_groups_by_code_and_severity_independently(self, db: Database) -> None:
         # Same code, different severity => zwei getrennte Buckets.
         repo = FindingsRepository(db)
         await repo.record(_f(code="DPT_MISMATCH", severity="error"))

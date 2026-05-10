@@ -78,11 +78,17 @@ class FindingsListView(RequireAdminView):
                 severity=_parse_severity(request.query.get("severity")),
                 source=request.query.get("source"),
                 limit=parse_int_param(
-                    request.query, "limit", DEFAULT_LIMIT,
-                    min_value=1, max_value=HARD_CAP_LIMIT,
+                    request.query,
+                    "limit",
+                    DEFAULT_LIMIT,
+                    min_value=1,
+                    max_value=HARD_CAP_LIMIT,
                 ),
                 offset=parse_int_param(
-                    request.query, "offset", 0, min_value=0,
+                    request.query,
+                    "offset",
+                    0,
+                    min_value=0,
                 ),
             )
         except ValueError as err:
@@ -95,9 +101,7 @@ def _parse_severity(raw: str | None) -> Any:
     if raw is None:
         return None
     if raw not in FINDING_SEVERITIES:
-        raise ValueError(
-            f"Invalid severity {raw!r}; expected one of {FINDING_SEVERITIES}"
-        )
+        raise ValueError(f"Invalid severity {raw!r}; expected one of {FINDING_SEVERITIES}")
     return raw
 
 
@@ -149,7 +153,10 @@ class FindingsAckDetailView(RequireAdminView):
             return self.json_message(ERR_NOT_INITIALISED, status_code=503)
         try:
             payload = await unack_finding_response(
-                repo, ga=ga, code=code, actor=actor(request),
+                repo,
+                ga=ga,
+                code=code,
+                actor=actor(request),
             )
         except ValueError as err:
             raise web.HTTPBadRequest(reason=str(err)) from err
@@ -208,7 +215,9 @@ class FindingsSeverityOverrideDetailView(RequireAdminView):
             return self.json_message(ERR_NOT_INITIALISED, status_code=503)
         try:
             payload = await clear_severity_override_response(
-                repo, code=code, actor=actor(request),
+                repo,
+                code=code,
+                actor=actor(request),
             )
         except ValueError as err:
             raise web.HTTPBadRequest(reason=str(err)) from err

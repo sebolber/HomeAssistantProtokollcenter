@@ -28,9 +28,7 @@ def _ts(seconds: float) -> datetime:
 
 
 def _w(t: float, source: str = "1.1.5") -> TelegramSample:
-    return TelegramSample(
-        ts=_ts(t), value=1, telegramtype="GroupValueWrite", source=source
-    )
+    return TelegramSample(ts=_ts(t), value=1, telegramtype="GroupValueWrite", source=source)
 
 
 class TestReconnectStormDetector:
@@ -65,7 +63,9 @@ class TestReconnectStormDetector:
 
         # Act
         finding = detect_reconnect_storm(
-            source="1.1.5", samples=samples, now=_ts(60.0),
+            source="1.1.5",
+            samples=samples,
+            now=_ts(60.0),
             normal_avg_per_30s=2.0,
         )
 
@@ -79,7 +79,9 @@ class TestReconnectStormDetector:
 
         # Act
         finding = detect_reconnect_storm(
-            source="1.1.5", samples=samples, now=_ts(60.0),
+            source="1.1.5",
+            samples=samples,
+            now=_ts(60.0),
             normal_avg_per_30s=2.0,
         )
 
@@ -94,7 +96,9 @@ class TestReconnectStormDetector:
 
         # Act
         finding = detect_reconnect_storm(
-            source="1.1.5", samples=samples, now=_ts(150.0),
+            source="1.1.5",
+            samples=samples,
+            now=_ts(150.0),
             normal_avg_per_30s=10.0,
         )
 
@@ -107,7 +111,9 @@ class TestReconnectStormDetector:
 
         # Act
         finding = detect_reconnect_storm(
-            source="1.1.5", samples=samples, now=_ts(150.0),
+            source="1.1.5",
+            samples=samples,
+            now=_ts(150.0),
             normal_avg_per_30s=0.0,
         )
 
@@ -127,7 +133,9 @@ class TestReconnectStormDetector:
 
         # Act
         finding = detect_reconnect_storm(
-            source="1.1.5", samples=samples, now=_ts(150.0),
+            source="1.1.5",
+            samples=samples,
+            now=_ts(150.0),
             normal_avg_per_30s=2.0,
         )
 

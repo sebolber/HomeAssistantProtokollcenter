@@ -31,7 +31,9 @@ class TestConstantValueDetector:
 
     def test_varying_values_not_flagged(self) -> None:
         samples = [
-            TelegramSample(ts=_ts(i), value=20.0 + i * 0.5, telegramtype="GroupValueWrite", source="1.1.5")
+            TelegramSample(
+                ts=_ts(i), value=20.0 + i * 0.5, telegramtype="GroupValueWrite", source="1.1.5"
+            )
             for i in range(15)
         ]
         findings = detect_patterns(samples, dpt="9.001")
@@ -95,10 +97,18 @@ class TestMultipleResponseDetector:
     def test_multiple_responses_close_in_time_flagged(self) -> None:
         samples = [
             TelegramSample(ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.6"),
-            TelegramSample(ts=_ts(0.05), value=1, telegramtype="GroupValueResponse", source="1.1.11"),
-            TelegramSample(ts=_ts(0.08), value=1, telegramtype="GroupValueResponse", source="1.1.11"),
-            TelegramSample(ts=_ts(0.11), value=1, telegramtype="GroupValueResponse", source="1.1.11"),
-            TelegramSample(ts=_ts(0.13), value=1, telegramtype="GroupValueResponse", source="1.1.11"),
+            TelegramSample(
+                ts=_ts(0.05), value=1, telegramtype="GroupValueResponse", source="1.1.11"
+            ),
+            TelegramSample(
+                ts=_ts(0.08), value=1, telegramtype="GroupValueResponse", source="1.1.11"
+            ),
+            TelegramSample(
+                ts=_ts(0.11), value=1, telegramtype="GroupValueResponse", source="1.1.11"
+            ),
+            TelegramSample(
+                ts=_ts(0.13), value=1, telegramtype="GroupValueResponse", source="1.1.11"
+            ),
         ]
         findings = detect_patterns(samples, dpt="1.001")
         kinds = {f.kind for f in findings}
@@ -107,9 +117,13 @@ class TestMultipleResponseDetector:
     def test_single_response_not_flagged(self) -> None:
         samples = [
             TelegramSample(ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.6"),
-            TelegramSample(ts=_ts(0.05), value=1, telegramtype="GroupValueResponse", source="1.1.11"),
+            TelegramSample(
+                ts=_ts(0.05), value=1, telegramtype="GroupValueResponse", source="1.1.11"
+            ),
             TelegramSample(ts=_ts(60), value=None, telegramtype="GroupValueRead", source="1.1.6"),
-            TelegramSample(ts=_ts(60.05), value=1, telegramtype="GroupValueResponse", source="1.1.11"),
+            TelegramSample(
+                ts=_ts(60.05), value=1, telegramtype="GroupValueResponse", source="1.1.11"
+            ),
         ]
         findings = detect_patterns(samples, dpt="1.001")
         kinds = {f.kind for f in findings}

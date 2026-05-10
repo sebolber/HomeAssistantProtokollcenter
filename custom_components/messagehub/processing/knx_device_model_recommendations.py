@@ -90,8 +90,7 @@ KNX_DEVICE_MODEL_RECOMMENDATIONS: Final[list[ModelRecommendation]] = [
                 hysteresis="Sendebremse >= 1 s",
                 max_rate_per_min=1.0,
                 rationale=(
-                    "DALI-Gateway-Status: Sendebremse via ETS-App auf "
-                    ">= 1 s konfigurieren."
+                    "DALI-Gateway-Status: Sendebremse via ETS-App auf >= 1 s konfigurieren."
                 ),
             ),
         },
@@ -125,8 +124,7 @@ KNX_DEVICE_MODEL_RECOMMENDATIONS: Final[list[ModelRecommendation]] = [
                 hysteresis=None,
                 max_rate_per_min=1.0,
                 rationale=(
-                    "Hager-Schaltaktor: Status nur bei Aenderung, "
-                    "zyklisches Senden meist unnoetig."
+                    "Hager-Schaltaktor: Status nur bei Aenderung, zyklisches Senden meist unnoetig."
                 ),
             ),
         },
@@ -144,8 +142,7 @@ KNX_DEVICE_MODEL_RECOMMENDATIONS: Final[list[ModelRecommendation]] = [
                 hysteresis=">= 50 lux",
                 max_rate_per_min=2.0,
                 rationale=(
-                    "Gira-Wetterstation: Helligkeits-Hysterese >= 50 Lux, "
-                    "Sendezyklus >= 5 Min."
+                    "Gira-Wetterstation: Helligkeits-Hysterese >= 50 Lux, Sendezyklus >= 5 Min."
                 ),
             ),
         },
@@ -182,8 +179,7 @@ KNX_DEVICE_MODEL_RECOMMENDATIONS: Final[list[ModelRecommendation]] = [
                 hysteresis="diskrete Schwellwerte",
                 max_rate_per_min=2.0,
                 rationale=(
-                    "Theben-Praesenzmelder: Helligkeits-Schwellwerte "
-                    "mit Hysterese, nicht gleitend."
+                    "Theben-Praesenzmelder: Helligkeits-Schwellwerte mit Hysterese, nicht gleitend."
                 ),
             ),
         },
@@ -200,10 +196,7 @@ KNX_DEVICE_MODEL_RECOMMENDATIONS: Final[list[ModelRecommendation]] = [
                 cycle_minutes_max=15,
                 hysteresis=">= 0.2 K",
                 max_rate_per_min=2.0,
-                rationale=(
-                    "Busch-Jaeger Raum-Thermostat: Temperatur mit "
-                    "Hysterese >= 0.2 K."
-                ),
+                rationale=("Busch-Jaeger Raum-Thermostat: Temperatur mit Hysterese >= 0.2 K."),
             ),
         },
         rationale="Busch-Jaeger Raum-Thermostat: Hysterese 0.2 K.",

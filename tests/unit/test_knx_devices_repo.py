@@ -33,15 +33,19 @@ async def db(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_migration_creates_knx_devices_table(db: Database) -> None:
     rows = await db.fetch_all(
-        "SELECT name FROM sqlite_master "
-        "WHERE type='table' AND name='knx_devices'"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='knx_devices'"
     )
     assert rows
     cols = await db.fetch_all("PRAGMA table_info(knx_devices)")
     col_names = {row["name"] for row in cols}
     expected = {
-        "dev_source", "manufacturer", "model", "notes",
-        "last_seen", "created_at", "updated_at",
+        "dev_source",
+        "manufacturer",
+        "model",
+        "notes",
+        "last_seen",
+        "created_at",
+        "updated_at",
     }
     assert expected.issubset(col_names)
 
@@ -51,8 +55,7 @@ async def test_migration_creates_manufacturer_model_index(
     db: Database,
 ) -> None:
     rows = await db.fetch_all(
-        "SELECT name FROM sqlite_master "
-        "WHERE type='index' AND tbl_name='knx_devices'"
+        "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='knx_devices'"
     )
     names = {r["name"] for r in rows}
     assert "idx_knx_devices_manufacturer_model" in names
@@ -92,9 +95,7 @@ class TestRepoUpsert:
         assert result["created_at"] == result["updated_at"]
 
     @pytest.mark.asyncio
-    async def test_update_only_changes_provided_fields(
-        self, db: Database
-    ) -> None:
+    async def test_update_only_changes_provided_fields(self, db: Database) -> None:
         repo = KnxDeviceRepository(db)
         await repo.upsert(
             dev_source="1.1.220",
@@ -107,9 +108,7 @@ class TestRepoUpsert:
         assert result["model"] == "garage-pro"
 
     @pytest.mark.asyncio
-    async def test_empty_string_clears_field_to_null(
-        self, db: Database
-    ) -> None:
+    async def test_empty_string_clears_field_to_null(self, db: Database) -> None:
         repo = KnxDeviceRepository(db)
         await repo.upsert(
             dev_source="1.1.220",
@@ -130,23 +129,17 @@ class TestRepoUpsert:
 
 class TestRepoLastSeen:
     @pytest.mark.asyncio
-    async def test_update_last_seen_on_existing_row(
-        self, db: Database
-    ) -> None:
+    async def test_update_last_seen_on_existing_row(self, db: Database) -> None:
         repo = KnxDeviceRepository(db)
         await repo.upsert(dev_source="1.1.220")
-        ok = await repo.update_last_seen(
-            "1.1.220", "2026-05-03T08:00:00"
-        )
+        ok = await repo.update_last_seen("1.1.220", "2026-05-03T08:00:00")
         assert ok is True
         entry = await repo.get("1.1.220")
         assert entry is not None
         assert entry["last_seen"] == "2026-05-03T08:00:00"
 
     @pytest.mark.asyncio
-    async def test_update_last_seen_on_missing_returns_false(
-        self, db: Database
-    ) -> None:
+    async def test_update_last_seen_on_missing_returns_false(self, db: Database) -> None:
         repo = KnxDeviceRepository(db)
         ok = await repo.update_last_seen("9.9.9", "2026-05-03T08:00:00")
         assert ok is False
@@ -177,7 +170,9 @@ class TestRepoList:
         await repo.upsert(dev_source="2.1.5", manufacturer="abb")
         items = await repo.list_all()
         assert [i["dev_source"] for i in items] == [
-            "1.1.10", "1.1.220", "2.1.5",
+            "1.1.10",
+            "1.1.220",
+            "2.1.5",
         ]
 
 

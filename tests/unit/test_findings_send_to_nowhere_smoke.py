@@ -93,20 +93,23 @@ class TestSendToNowhereSmoke:
 
         # Assert — Finding sichtbar via API.
         resp = await list_findings_response(
-            FindingsRepository(db), ga=ga, code="SEND_TO_NOWHERE",
+            FindingsRepository(db),
+            ga=ga,
+            code="SEND_TO_NOWHERE",
         )
         assert resp["total"] == 1, resp
         assert resp["items"][0]["code"] == "SEND_TO_NOWHERE"
 
     @pytest.mark.asyncio
-    async def test_no_finding_when_write_followed_by_status(
-        self, db: Database
-    ) -> None:
+    async def test_no_finding_when_write_followed_by_status(self, db: Database) -> None:
         ga = "13/0/1"
         await _insert_ga(db, ga=ga)
         await _insert_telegram(db, ga=ga, ts=_ts(0), value=1)
         await _insert_telegram(
-            db, ga=ga, ts=_ts(1), value=0,
+            db,
+            ga=ga,
+            ts=_ts(1),
+            value=0,
             source="1.1.20",
         )
 
@@ -121,6 +124,8 @@ class TestSendToNowhereSmoke:
         )
 
         resp = await list_findings_response(
-            FindingsRepository(db), ga=ga, code="SEND_TO_NOWHERE",
+            FindingsRepository(db),
+            ga=ga,
+            code="SEND_TO_NOWHERE",
         )
         assert resp["total"] == 0

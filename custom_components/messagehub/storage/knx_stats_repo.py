@@ -295,9 +295,7 @@ class KnxStatsRepository:
             "last_seen": str(row["last_seen"]),
         }
 
-    async def total_by_ga_for_period(
-        self, from_iso: str, to_iso: str
-    ) -> list[dict[str, Any]]:
+    async def total_by_ga_for_period(self, from_iso: str, to_iso: str) -> list[dict[str, Any]]:
         """Iter 67 / WR-I: Liefert COUNT pro GA + Label + DPT fuer einen
         Zeitraum, ohne LIMIT. Aufrufer im Service merged zwei Perioden
         zum Trend-Vergleich.
@@ -326,9 +324,7 @@ class KnxStatsRepository:
         kuerzeren Perioden bleibt es bei der Raw-Quelle (feinere
         Granularitaet, in Retention).
         """
-        rows = await self._db.fetch_all(
-            _TOTAL_BY_GA_FROM_COUNTER_SQL, (hour_floor, hour_ceil)
-        )
+        rows = await self._db.fetch_all(_TOTAL_BY_GA_FROM_COUNTER_SQL, (hour_floor, hour_ceil))
         return [
             {
                 "ga": str(row["ga"]),
@@ -751,9 +747,7 @@ class KnxStatsRepository:
             for row in rows
         ]
 
-    async def last_seen_for_source(
-        self, dev_source: str
-    ) -> str | None:
+    async def last_seen_for_source(self, dev_source: str) -> str | None:
         """Liefert den ISO-Timestamp des letzten Telegramms einer Source.
 
         Iter A (Detail-Panes-Konzept): Source-Detail braucht einen
@@ -770,8 +764,7 @@ class KnxStatsRepository:
         if not dev_source:
             return None
         row = await self._db.fetch_one(
-            "SELECT MAX(timestamp) AS last_seen "
-            "FROM knx_raw_telegrams WHERE source = ?",
+            "SELECT MAX(timestamp) AS last_seen FROM knx_raw_telegrams WHERE source = ?",
             (dev_source,),
         )
         if row is None:
@@ -779,9 +772,7 @@ class KnxStatsRepository:
         value = row["last_seen"]
         return str(value) if value is not None else None
 
-    async def count_for_source(
-        self, dev_source: str, from_iso: str, to_iso: str
-    ) -> int:
+    async def count_for_source(self, dev_source: str, from_iso: str, to_iso: str) -> int:
         """Telegramm-Anzahl einer Source im Zeitraum.
 
         Iter A: Source-Detail liefert den Bus-Anteil als
@@ -950,9 +941,7 @@ class KnxStatsRepository:
             params,
         )
 
-    async def samples_for_period_all_gas(
-        self, from_iso: str, to_iso: str
-    ) -> list[dict[str, Any]]:
+    async def samples_for_period_all_gas(self, from_iso: str, to_iso: str) -> list[dict[str, Any]]:
         """Iter A4: Public-Methode fuer GA-uebergreifende Samples.
 
         Liefert ``ts``, ``ga``, ``dev_source``, ``value`` (Python-decoded),
@@ -988,9 +977,7 @@ class KnxStatsRepository:
             )
         return out
 
-    async def counts_per_ga(
-        self, from_iso: str, to_iso: str
-    ) -> dict[str, int]:
+    async def counts_per_ga(self, from_iso: str, to_iso: str) -> dict[str, int]:
         """Iter A4: Public-Methode — Telegramm-Anzahl pro GA im Zeitraum."""
         rows = await self._db.fetch_all(
             "SELECT destination AS ga, COUNT(*) AS n "
@@ -1018,9 +1005,7 @@ class KnxStatsRepository:
             out[str(row["ga"])] = str(last)
         return out
 
-    async def increment_counter_batch(
-        self, items: list[tuple[str, str]]
-    ) -> None:
+    async def increment_counter_batch(self, items: list[tuple[str, str]]) -> None:
         """Iter A1: Batch-UPSERT auf knx_telegram_counters.
 
         SQLite erlaubt ``executemany`` auf INSERT ... ON CONFLICT, weil

@@ -37,9 +37,7 @@ async def db(tmp_path: Path):
 
 class TestAckEndpoint:
     @pytest.mark.asyncio
-    async def test_ack_endpoint_persists_and_creates_audit_entry(
-        self, db: Database
-    ) -> None:
+    async def test_ack_endpoint_persists_and_creates_audit_entry(self, db: Database) -> None:
         # Arrange
         repo = FindingsRepository(db)
 
@@ -59,9 +57,7 @@ class TestAckEndpoint:
         assert rows[0]["ga"] == "1/2/3"
         assert rows[0]["finding_code"] == "DPT_MISMATCH"
         # Assert — Audit-Log
-        audit = await db.fetch_all(
-            "SELECT * FROM audit_log WHERE target_type = 'knx_finding_ack'"
-        )
+        audit = await db.fetch_all("SELECT * FROM audit_log WHERE target_type = 'knx_finding_ack'")
         assert len(audit) == 1
         assert str(audit[0]["actor"]) == "user_x"
         # Assert — Response
@@ -75,14 +71,10 @@ class TestAckEndpoint:
         repo = FindingsRepository(db)
 
         # Act
-        await ack_finding_response(
-            repo, ga="1/2/3", code="DPT_MISMATCH", actor="u", sticky=True
-        )
+        await ack_finding_response(repo, ga="1/2/3", code="DPT_MISMATCH", actor="u", sticky=True)
 
         # Assert
-        row = await db.fetch_one(
-            "SELECT expires_at FROM knx_finding_acknowledgements"
-        )
+        row = await db.fetch_one("SELECT expires_at FROM knx_finding_acknowledgements")
         assert row is not None
         assert row["expires_at"] is None
 
@@ -102,9 +94,7 @@ class TestAckEndpoint:
 
         # Act / Assert
         with pytest.raises(ValueError, match="code"):
-            await ack_finding_response(
-                repo, ga="1/2/3", code="UNKNOWN_CODE", actor="u"
-            )
+            await ack_finding_response(repo, ga="1/2/3", code="UNKNOWN_CODE", actor="u")
 
 
 class TestUnackEndpoint:
@@ -112,21 +102,15 @@ class TestUnackEndpoint:
     async def test_unack_endpoint_removes_row_and_audit(self, db: Database) -> None:
         # Arrange
         repo = FindingsRepository(db)
-        await ack_finding_response(
-            repo, ga="1/2/3", code="DPT_MISMATCH", actor="u"
-        )
+        await ack_finding_response(repo, ga="1/2/3", code="DPT_MISMATCH", actor="u")
 
         # Act
-        resp = await unack_finding_response(
-            repo, ga="1/2/3", code="DPT_MISMATCH", actor="u"
-        )
+        resp = await unack_finding_response(repo, ga="1/2/3", code="DPT_MISMATCH", actor="u")
 
         # Assert
         rows = await repo.list_acknowledgements()
         assert rows == []
-        unack_audit = await db.fetch_all(
-            "SELECT * FROM audit_log WHERE action = 'unack-finding'"
-        )
+        unack_audit = await db.fetch_all("SELECT * FROM audit_log WHERE action = 'unack-finding'")
         assert len(unack_audit) == 1
         assert resp["acknowledged"] is False
 
@@ -136,9 +120,7 @@ class TestUnackEndpoint:
         repo = FindingsRepository(db)
 
         # Act
-        resp = await unack_finding_response(
-            repo, ga="1/2/3", code="DPT_MISMATCH", actor="u"
-        )
+        resp = await unack_finding_response(repo, ga="1/2/3", code="DPT_MISMATCH", actor="u")
 
         # Assert — kein Fehler, Audit wird trotzdem geschrieben (siehe Iter 3).
         assert resp["acknowledged"] is False
@@ -148,12 +130,7 @@ class TestAckEndpointRegistered:
     """AST-Check: FindingsAckView + FindingsAckDetailView muessen registriert sein."""
 
     def _api_dir(self) -> Path:
-        return (
-            Path(__file__).resolve().parents[2]
-            / "custom_components"
-            / "messagehub"
-            / "api"
-        )
+        return Path(__file__).resolve().parents[2] / "custom_components" / "messagehub" / "api"
 
     def test_ack_views_in_messages_register(self) -> None:
         src = (self._api_dir() / "messages.py").read_text(encoding="utf-8")
@@ -179,7 +156,4 @@ class TestAckEndpointRegistered:
                 ):
                     urls[node.name] = str(stmt.value.value)
         assert urls.get("FindingsAckView") == "/api/messagehub/findings/ack"
-        assert (
-            urls.get("FindingsAckDetailView")
-            == "/api/messagehub/findings/ack/{ga}/{code}"
-        )
+        assert urls.get("FindingsAckDetailView") == "/api/messagehub/findings/ack/{ga}/{code}"

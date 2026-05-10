@@ -25,9 +25,7 @@ def _now_iso() -> str:
 
 
 def _expires_at(ttl_days: int = _DEFAULT_TTL_DAYS) -> str:
-    return (
-        datetime.now(UTC) + timedelta(days=ttl_days)
-    ).isoformat(timespec="seconds")
+    return (datetime.now(UTC) + timedelta(days=ttl_days)).isoformat(timespec="seconds")
 
 
 def _hash_api_key_fingerprint(api_key: str | None) -> str:
@@ -151,8 +149,7 @@ class RecommendationCacheRepository:
         """Loescht alle abgelaufenen Eintraege. Returns Loeschanzahl
         (fuer Metriken)."""
         rows = await self._db.fetch_all(
-            "SELECT cache_key FROM knx_recommendation_cache "
-            "WHERE expires_at <= ?",
+            "SELECT cache_key FROM knx_recommendation_cache WHERE expires_at <= ?",
             (_now_iso(),),
         )
         if not rows:

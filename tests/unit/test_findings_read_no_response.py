@@ -28,15 +28,11 @@ class TestReadNoResponseDetector:
     def test_read_no_response_emits_finding_after_timeout_window(self) -> None:
         # Arrange — Read um t=0, kein Response, "now" = 5 s spaeter (>3 s).
         samples = [
-            TelegramSample(
-                ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"
-            ),
+            TelegramSample(ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"),
         ]
 
         # Act
-        findings = detect_read_no_response(
-            ga="1/2/3", samples=samples, now=_ts(5.0)
-        )
+        findings = detect_read_no_response(ga="1/2/3", samples=samples, now=_ts(5.0))
 
         # Assert
         assert len(findings) == 1
@@ -47,25 +43,20 @@ class TestReadNoResponseDetector:
         assert f.ga == "1/2/3"
         assert f.evidence["read_at"] == _ts(0).isoformat()
         # expected_until = read_at + Timeout
-        assert f.evidence["expected_until"] == (
-            _ts(0) + timedelta(seconds=READ_NO_RESPONSE_TIMEOUT_SEC)
-        ).isoformat()
+        assert (
+            f.evidence["expected_until"]
+            == (_ts(0) + timedelta(seconds=READ_NO_RESPONSE_TIMEOUT_SEC)).isoformat()
+        )
 
     def test_no_finding_when_response_within_window(self) -> None:
         # Arrange — Response folgt rechtzeitig.
         samples = [
-            TelegramSample(
-                ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"
-            ),
-            TelegramSample(
-                ts=_ts(0.5), value=1, telegramtype="GroupValueResponse", source="1.1.6"
-            ),
+            TelegramSample(ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"),
+            TelegramSample(ts=_ts(0.5), value=1, telegramtype="GroupValueResponse", source="1.1.6"),
         ]
 
         # Act
-        findings = detect_read_no_response(
-            ga="1/2/3", samples=samples, now=_ts(5.0)
-        )
+        findings = detect_read_no_response(ga="1/2/3", samples=samples, now=_ts(5.0))
 
         # Assert
         assert findings == []
@@ -73,15 +64,11 @@ class TestReadNoResponseDetector:
     def test_no_finding_when_window_not_yet_elapsed(self) -> None:
         # Arrange — Read um t=0, "now" 1 s spaeter (Window = 3 s nicht abgelaufen).
         samples = [
-            TelegramSample(
-                ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"
-            ),
+            TelegramSample(ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"),
         ]
 
         # Act
-        findings = detect_read_no_response(
-            ga="1/2/3", samples=samples, now=_ts(1.0)
-        )
+        findings = detect_read_no_response(ga="1/2/3", samples=samples, now=_ts(1.0))
 
         # Assert — noch nicht ausgewertet (Response koennte gleich kommen).
         assert findings == []
@@ -89,21 +76,13 @@ class TestReadNoResponseDetector:
     def test_finding_per_unanswered_read(self) -> None:
         # Arrange — drei separate Reads, keiner beantwortet.
         samples = [
-            TelegramSample(
-                ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"
-            ),
-            TelegramSample(
-                ts=_ts(10.0), value=None, telegramtype="GroupValueRead", source="1.1.5"
-            ),
-            TelegramSample(
-                ts=_ts(20.0), value=None, telegramtype="GroupValueRead", source="1.1.5"
-            ),
+            TelegramSample(ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"),
+            TelegramSample(ts=_ts(10.0), value=None, telegramtype="GroupValueRead", source="1.1.5"),
+            TelegramSample(ts=_ts(20.0), value=None, telegramtype="GroupValueRead", source="1.1.5"),
         ]
 
         # Act
-        findings = detect_read_no_response(
-            ga="1/2/3", samples=samples, now=_ts(30.0)
-        )
+        findings = detect_read_no_response(ga="1/2/3", samples=samples, now=_ts(30.0))
 
         # Assert
         assert len(findings) == 3
@@ -112,22 +91,18 @@ class TestReadNoResponseDetector:
         # Arrange — zwei Reads (t=0, t=10), Response nur bei t=11
         # (innerhalb der Antwort-Spanne des zweiten Reads, NICHT des ersten).
         samples = [
+            TelegramSample(ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"),
+            TelegramSample(ts=_ts(10.0), value=None, telegramtype="GroupValueRead", source="1.1.5"),
             TelegramSample(
-                ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"
-            ),
-            TelegramSample(
-                ts=_ts(10.0), value=None, telegramtype="GroupValueRead", source="1.1.5"
-            ),
-            TelegramSample(
-                ts=_ts(11.0), value=1, telegramtype="GroupValueResponse",
+                ts=_ts(11.0),
+                value=1,
+                telegramtype="GroupValueResponse",
                 source="1.1.6",
             ),
         ]
 
         # Act
-        findings = detect_read_no_response(
-            ga="1/2/3", samples=samples, now=_ts(20.0)
-        )
+        findings = detect_read_no_response(ga="1/2/3", samples=samples, now=_ts(20.0))
 
         # Assert — nur der erste Read bleibt unbeantwortet.
         assert len(findings) == 1
@@ -136,18 +111,12 @@ class TestReadNoResponseDetector:
     def test_writes_do_not_count_as_response(self) -> None:
         # Arrange — Read + GroupValueWrite (kein Response).
         samples = [
-            TelegramSample(
-                ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"
-            ),
-            TelegramSample(
-                ts=_ts(0.5), value=1, telegramtype="GroupValueWrite", source="1.1.6"
-            ),
+            TelegramSample(ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"),
+            TelegramSample(ts=_ts(0.5), value=1, telegramtype="GroupValueWrite", source="1.1.6"),
         ]
 
         # Act
-        findings = detect_read_no_response(
-            ga="1/2/3", samples=samples, now=_ts(5.0)
-        )
+        findings = detect_read_no_response(ga="1/2/3", samples=samples, now=_ts(5.0))
 
         # Assert
         assert len(findings) == 1

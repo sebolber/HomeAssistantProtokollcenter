@@ -46,27 +46,21 @@ def format_prometheus_metrics(
     lines.append(f"messagehub_total {total}")
 
     # Pro Severity, all-time
-    lines.append(
-        "# HELP messagehub_messages_total Messages by severity (all-time)"
-    )
+    lines.append("# HELP messagehub_messages_total Messages by severity (all-time)")
     lines.append("# TYPE messagehub_messages_total counter")
     for sev in _SEVERITIES:
         count = int(severity_total.get(sev, 0))
         lines.append(f'messagehub_messages_total{{severity="{sev}"}} {count}')
 
     # Pro Severity, letzte 24h
-    lines.append(
-        "# HELP messagehub_messages_24h Messages by severity (last 24 hours)"
-    )
+    lines.append("# HELP messagehub_messages_24h Messages by severity (last 24 hours)")
     lines.append("# TYPE messagehub_messages_24h gauge")
     for sev in _SEVERITIES:
         count = int(severity_24h.get(sev, 0))
         lines.append(f'messagehub_messages_24h{{severity="{sev}"}} {count}')
 
     # KNX-Telegramme
-    lines.append(
-        "# HELP messagehub_knx_telegrams_total KNX telegrams logged (whitelist)"
-    )
+    lines.append("# HELP messagehub_knx_telegrams_total KNX telegrams logged (whitelist)")
     lines.append("# TYPE messagehub_knx_telegrams_total counter")
     lines.append(f"messagehub_knx_telegrams_total {knx_total}")
 
@@ -76,9 +70,7 @@ def format_prometheus_metrics(
     lines.append(f"messagehub_webhooks_total {webhook_total}")
 
     # Iter 81 / CR-30: Audit-Schreibfehler-Counter.
-    lines.append(
-        "# HELP messagehub_audit_failures_total Audit-log writes that failed"
-    )
+    lines.append("# HELP messagehub_audit_failures_total Audit-log writes that failed")
     lines.append("# TYPE messagehub_audit_failures_total counter")
     lines.append(f"messagehub_audit_failures_total {audit_failure_total}")
 
@@ -87,15 +79,13 @@ def format_prometheus_metrics(
     # "Anzahl error-Findings ist sprunghaft gestiegen". Sortiert fuer
     # reproduzierbaren Scrape (siehe §9.8).
     lines.append(
-        "# HELP messagehub_knx_finding_total KNX configuration findings"
-        " by code and severity"
+        "# HELP messagehub_knx_finding_total KNX configuration findings by code and severity"
     )
     lines.append("# TYPE messagehub_knx_finding_total counter")
     if finding_total:
         for (code, severity), count in sorted(finding_total.items()):
             lines.append(
-                f'messagehub_knx_finding_total{{code="{code}",'
-                f'severity="{severity}"}} {int(count)}'
+                f'messagehub_knx_finding_total{{code="{code}",severity="{severity}"}} {int(count)}'
             )
 
     return "\n".join(lines) + "\n"

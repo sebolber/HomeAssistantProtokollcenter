@@ -1,6 +1,8 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.9
+    # Identisch zu requirements_dev.txt:ruff — sonst Drift zwischen
+    # lokal (pre-commit) und CI (pip install).
+    rev: v0.15.12
     hooks:
       - id: ruff
         args: [--fix]

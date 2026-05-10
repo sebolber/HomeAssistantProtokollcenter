@@ -13,10 +13,7 @@ from pathlib import Path
 from custom_components.messagehub.const import KNX_FINDING_DEFAULT_SEVERITIES
 
 _TRANS_DIR = (
-    Path(__file__).parent.parent.parent
-    / "custom_components"
-    / "messagehub"
-    / "translations"
+    Path(__file__).parent.parent.parent / "custom_components" / "messagehub" / "translations"
 )
 
 
@@ -41,12 +38,8 @@ def test_all_languages_have_same_finding_codes() -> None:
         codes = set(_load(lang))
         missing = de_codes - codes
         extra = codes - de_codes
-        assert not missing, (
-            f"Sprache {lang} fehlt Codes (vs. de): {sorted(missing)}"
-        )
-        assert not extra, (
-            f"Sprache {lang} hat zusaetzliche Codes (vs. de): {sorted(extra)}"
-        )
+        assert not missing, f"Sprache {lang} fehlt Codes (vs. de): {sorted(missing)}"
+        assert not extra, f"Sprache {lang} hat zusaetzliche Codes (vs. de): {sorted(extra)}"
 
 
 def test_each_code_has_title_description_help_url() -> None:

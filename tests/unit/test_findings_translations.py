@@ -12,10 +12,7 @@ from pathlib import Path
 import pytest
 
 _TRANSLATIONS_DIR = (
-    Path(__file__).resolve().parents[2]
-    / "custom_components"
-    / "messagehub"
-    / "translations"
+    Path(__file__).resolve().parents[2] / "custom_components" / "messagehub" / "translations"
 )
 _PHASE2_CODES = ("DPT_MISMATCH", "VALUE_OUT_OF_RANGE")
 _PHASE3_CODES = (
@@ -46,9 +43,7 @@ def test_translations_valid_json(lang: str) -> None:
     "code",
     _PHASE2_CODES + _PHASE3_CODES + _PHASE4_CODES + _PHASE7_CODES,
 )
-def test_finding_translation_has_required_keys_for_each_lang(
-    lang: str, code: str
-) -> None:
+def test_finding_translation_has_required_keys_for_each_lang(lang: str, code: str) -> None:
     path = _TRANSLATIONS_DIR / f"{lang}.json"
     data = json.loads(path.read_text(encoding="utf-8"))
     codes = data.get("findings", {}).get("codes", {})
@@ -99,21 +94,26 @@ def test_finding_translation_resolves_all_phase4_codes() -> None:
     en = json.loads((_TRANSLATIONS_DIR / "en.json").read_text(encoding="utf-8"))
     expected_placeholders = {
         "RECONNECT_STORM": (
-            "{silence_until}", "{burst_count}", "{normal_avg}", "{factor}",
+            "{silence_until}",
+            "{burst_count}",
+            "{normal_avg}",
+            "{factor}",
         ),
         "SEND_CYCLE_DRIFT": (
-            "{recent_median_dt}", "{baseline_median_dt}", "{ratio}",
+            "{recent_median_dt}",
+            "{baseline_median_dt}",
+            "{ratio}",
         ),
         "REPEAT_APPROXIMATION": (
-            "{total_repeats}", "{period_days}", "{repeats_per_day}",
+            "{total_repeats}",
+            "{period_days}",
+            "{repeats_per_day}",
         ),
     }
     for code, placeholders in expected_placeholders.items():
         de_entry = de["findings"]["codes"][code]
         en_entry = en["findings"]["codes"][code]
-        assert de_entry["title"] != en_entry["title"], (
-            f"{code} hat identische Titel in DE und EN"
-        )
+        assert de_entry["title"] != en_entry["title"], f"{code} hat identische Titel in DE und EN"
         for placeholder in placeholders:
             assert placeholder in de_entry["description"], (
                 f"DE.{code} fehlt Platzhalter {placeholder}"

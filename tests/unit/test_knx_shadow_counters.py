@@ -27,9 +27,7 @@ class TestIncrementCounter:
     async def test_initial_increment_creates_row(self, db: Database) -> None:
         repo = KnxStatsRepository(db)
         await repo.increment_counter("1/2/3", "2026-05-02T12:00:00")
-        n = await repo.counter_total_for_ga(
-            "1/2/3", "2026-05-02T00:00:00", "2026-05-02T23:00:00"
-        )
+        n = await repo.counter_total_for_ga("1/2/3", "2026-05-02T00:00:00", "2026-05-02T23:00:00")
         assert n == 1
 
     @pytest.mark.asyncio
@@ -37,22 +35,16 @@ class TestIncrementCounter:
         repo = KnxStatsRepository(db)
         for _ in range(5):
             await repo.increment_counter("1/2/3", "2026-05-02T12:00:00")
-        n = await repo.counter_total_for_ga(
-            "1/2/3", "2026-05-02T00:00:00", "2026-05-02T23:00:00"
-        )
+        n = await repo.counter_total_for_ga("1/2/3", "2026-05-02T00:00:00", "2026-05-02T23:00:00")
         assert n == 5
 
     @pytest.mark.asyncio
-    async def test_different_buckets_not_summed_in_short_range(
-        self, db: Database
-    ) -> None:
+    async def test_different_buckets_not_summed_in_short_range(self, db: Database) -> None:
         repo = KnxStatsRepository(db)
         await repo.increment_counter("1/2/3", "2026-05-02T12:00:00")
         await repo.increment_counter("1/2/3", "2026-05-02T14:00:00")
         # Range deckt nur 12:00 - 13:00 ab
-        n = await repo.counter_total_for_ga(
-            "1/2/3", "2026-05-02T12:00:00", "2026-05-02T13:00:00"
-        )
+        n = await repo.counter_total_for_ga("1/2/3", "2026-05-02T12:00:00", "2026-05-02T13:00:00")
         assert n == 1
 
     @pytest.mark.asyncio
@@ -60,9 +52,7 @@ class TestIncrementCounter:
         repo = KnxStatsRepository(db)
         await repo.increment_counter("1/2/3", "2026-05-02T12:00:00")
         await repo.increment_counter("5/2/14", "2026-05-02T12:00:00")
-        n_a = await repo.counter_total_for_ga(
-            "1/2/3", "2026-05-02T00:00:00", "2026-05-02T23:00:00"
-        )
+        n_a = await repo.counter_total_for_ga("1/2/3", "2026-05-02T00:00:00", "2026-05-02T23:00:00")
         n_b = await repo.counter_total_for_ga(
             "5/2/14", "2026-05-02T00:00:00", "2026-05-02T23:00:00"
         )

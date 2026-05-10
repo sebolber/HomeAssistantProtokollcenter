@@ -44,8 +44,7 @@ def _finding(
         severity=severity,  # type: ignore[arg-type]
         ga=ga,
         source=source,
-        evidence=evidence
-        or {"project_dpt": "9.001", "inferred_dpt": "1.001", "confidence": 0.94},
+        evidence=evidence or {"project_dpt": "9.001", "inferred_dpt": "1.001", "confidence": 0.94},
         first_seen=base_time,
         last_seen=base_time,
         occurrence_count=1,
@@ -97,12 +96,8 @@ class TestFindingsRepoDedup:
     async def test_distinct_evidence_creates_separate_rows(self, db: Database) -> None:
         # Arrange — gleiche GA + Code, andere Evidence -> zwei Rows.
         repo = FindingsRepository(db)
-        await repo.record(
-            _finding(evidence={"project_dpt": "9.001", "inferred_dpt": "1.001"})
-        )
-        await repo.record(
-            _finding(evidence={"project_dpt": "9.001", "inferred_dpt": "5.001"})
-        )
+        await repo.record(_finding(evidence={"project_dpt": "9.001", "inferred_dpt": "1.001"}))
+        await repo.record(_finding(evidence={"project_dpt": "9.001", "inferred_dpt": "5.001"}))
 
         # Act
         rows = await repo.list_findings()
@@ -171,9 +166,7 @@ class TestFindingsRepoListFilters:
     async def test_list_orders_by_last_seen_desc(self, db: Database) -> None:
         # Arrange — neueres Finding muss zuerst kommen.
         repo = FindingsRepository(db)
-        old = _finding(
-            ga="1/2/3", when=datetime(2026, 5, 1, 8, 0, 0, tzinfo=UTC)
-        )
+        old = _finding(ga="1/2/3", when=datetime(2026, 5, 1, 8, 0, 0, tzinfo=UTC))
         new = _finding(
             ga="1/2/4",
             code="MULTI_RESPONDER",
@@ -192,9 +185,7 @@ class TestFindingsRepoListFilters:
 
 class TestFindingsRepoSchemaVersion:
     @pytest.mark.asyncio
-    async def test_same_evidence_different_schema_version_not_deduped(
-        self, db: Database
-    ) -> None:
+    async def test_same_evidence_different_schema_version_not_deduped(self, db: Database) -> None:
         # Arrange — Tuning eines Detectors -> schema_version=2; alte
         # v1-Findings bleiben sichtbar, neue v2 daneben (siehe §9.5).
         repo = FindingsRepository(db)

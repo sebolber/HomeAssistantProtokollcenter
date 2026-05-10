@@ -37,9 +37,7 @@ async def _insert(
     repeated: bool = False,
     label: str = "Test",
 ) -> None:
-    await insert_raw_telegram(
-        db, ts=ts, ga=ga, label=label, dpt="1.001", repeated=repeated
-    )
+    await insert_raw_telegram(db, ts=ts, ga=ga, label=label, dpt="1.001", repeated=repeated)
 
 
 class TestBusHealth:
@@ -89,9 +87,7 @@ class TestBusHealthPerGa:
         assert rows[0]["ratio_pct"] == 75.0
 
     @pytest.mark.asyncio
-    async def test_limit_above_100_returns_more_than_100_gas(
-        self, db: Database
-    ) -> None:
+    async def test_limit_above_100_returns_more_than_100_gas(self, db: Database) -> None:
         """Iter topn-3: Repo-Cap muss limit > 100 zulassen.
 
         Vorher: bus_health_per_ga cappte limit intern via min(limit, 100)

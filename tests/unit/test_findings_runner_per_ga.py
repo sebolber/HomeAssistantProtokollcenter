@@ -62,9 +62,7 @@ async def _insert_telegram(
     )
 
 
-async def _insert_ga(
-    db: Database, *, ga: str, dpt: str, label: str = "Sensor"
-) -> None:
+async def _insert_ga(db: Database, *, ga: str, dpt: str, label: str = "Sensor") -> None:
     now = _ts(0)
     await db.execute(
         "INSERT INTO knx_group_addresses "
@@ -91,7 +89,10 @@ class TestPerGaDetectorRunnerSmoke:
         await _insert_ga(db, ga=ga, dpt="9.001", label="Temperatur Bad")
         for i in range(30):
             await _insert_telegram(
-                db, ga=ga, ts=_ts(i), value=i % 2,
+                db,
+                ga=ga,
+                ts=_ts(i),
+                value=i % 2,
             )
 
         repo = FindingsRepository(db)
@@ -123,9 +124,7 @@ class TestPerGaDetectorRunnerSmoke:
         assert item["evidence"]["confidence"] >= 0.85
 
     @pytest.mark.asyncio
-    async def test_set_dpt_inferred_persisted_after_runner(
-        self, db: Database
-    ) -> None:
+    async def test_set_dpt_inferred_persisted_after_runner(self, db: Database) -> None:
         """Iter 11-Wiring: Runner persistiert das Inferenz-Ergebnis."""
         ga = "1/2/4"
         await _insert_ga(db, ga=ga, dpt="9.001")
@@ -180,9 +179,7 @@ class TestPerGaDetectorRunnerSmoke:
         assert resp["items"][0]["evidence"]["value"] == 200.0
 
     @pytest.mark.asyncio
-    async def test_severity_override_applied_when_set(
-        self, db: Database
-    ) -> None:
+    async def test_severity_override_applied_when_set(self, db: Database) -> None:
         """Iter 4-Wiring: User-Override greift im Runner via resolve_severity."""
         # Arrange — User setzt VALUE_OUT_OF_RANGE Default-Severity error
         # ueber auf info.
@@ -192,7 +189,9 @@ class TestPerGaDetectorRunnerSmoke:
 
         repo = FindingsRepository(db)
         await repo.set_severity_override(
-            code="VALUE_OUT_OF_RANGE", severity="info", actor="testuser",
+            code="VALUE_OUT_OF_RANGE",
+            severity="info",
+            actor="testuser",
         )
 
         knx_repo = KnxAddressRepository(db)
@@ -213,9 +212,7 @@ class TestPerGaDetectorRunnerSmoke:
         assert resp["items"][0]["severity"] == "info"
 
     @pytest.mark.asyncio
-    async def test_runner_safe_for_unknown_ga_without_telegrams(
-        self, db: Database
-    ) -> None:
+    async def test_runner_safe_for_unknown_ga_without_telegrams(self, db: Database) -> None:
         """Defensiv: GA ohne Telegramme darf den Runner nicht crashen."""
         repo = FindingsRepository(db)
         knx_repo = KnxAddressRepository(db)
@@ -237,9 +234,7 @@ class TestRefreshFindingsResponse:
     """Iter 29a: Service-Layer fuer POST /findings/refresh."""
 
     @pytest.mark.asyncio
-    async def test_refresh_endpoint_runs_runner_and_reports_count(
-        self, db: Database
-    ) -> None:
+    async def test_refresh_endpoint_runs_runner_and_reports_count(self, db: Database) -> None:
         from custom_components.messagehub.processing.findings_service import (
             refresh_findings_response,
         )

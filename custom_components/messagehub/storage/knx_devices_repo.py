@@ -104,16 +104,8 @@ class KnxDeviceRepository:
                 if manufacturer is not None
                 else existing["manufacturer"]
             )
-            new_model = (
-                _empty_to_null(model)
-                if model is not None
-                else existing["model"]
-            )
-            new_notes = (
-                _empty_to_null(notes)
-                if notes is not None
-                else existing["notes"]
-            )
+            new_model = _empty_to_null(model) if model is not None else existing["model"]
+            new_notes = _empty_to_null(notes) if notes is not None else existing["notes"]
             await self._db.execute(
                 "UPDATE knx_devices SET "
                 "manufacturer = ?, model = ?, notes = ?, updated_at = ? "
@@ -137,8 +129,7 @@ class KnxDeviceRepository:
         if existing is None:
             return False
         await self._db.execute(
-            "UPDATE knx_devices SET last_seen = ?, updated_at = ? "
-            "WHERE dev_source = ?",
+            "UPDATE knx_devices SET last_seen = ?, updated_at = ? WHERE dev_source = ?",
             (ts_iso, _now_iso(), dev_source),
         )
         return True

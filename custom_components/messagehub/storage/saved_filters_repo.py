@@ -30,9 +30,7 @@ _MAX_NAME_LEN = 80
 
 def _validate_scope(scope: str) -> None:
     if scope not in _VALID_SCOPES:
-        raise ValueError(
-            f"invalid scope {scope!r} — must be one of {sorted(_VALID_SCOPES)}"
-        )
+        raise ValueError(f"invalid scope {scope!r} — must be one of {sorted(_VALID_SCOPES)}")
 
 
 class SavedFiltersRepository:
@@ -59,9 +57,7 @@ class SavedFiltersRepository:
             return None
         return self._row_to_filter(rows[0])
 
-    async def upsert(
-        self, *, name: str, scope: str, filters: dict[str, Any]
-    ) -> SavedFilter:
+    async def upsert(self, *, name: str, scope: str, filters: dict[str, Any]) -> SavedFilter:
         """Anlegen oder Aktualisieren — UNIQUE(scope, name) verhindert
         Duplikate."""
         _validate_scope(scope)
@@ -98,9 +94,7 @@ class SavedFiltersRepository:
         )
         if not rows:
             return False
-        await self._db.execute(
-            "DELETE FROM saved_filters WHERE id = ?", (filter_id,)
-        )
+        await self._db.execute("DELETE FROM saved_filters WHERE id = ?", (filter_id,))
         return True
 
     @staticmethod

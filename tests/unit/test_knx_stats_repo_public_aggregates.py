@@ -66,9 +66,7 @@ async def _seed(repo: KnxStatsRepository) -> None:
 @pytest.mark.asyncio
 async def test_samples_for_period_all_gas(repo: KnxStatsRepository) -> None:
     await _seed(repo)
-    rows = await repo.samples_for_period_all_gas(
-        "2026-05-08T00:00:00", "2026-05-09T00:00:00"
-    )
+    rows = await repo.samples_for_period_all_gas("2026-05-08T00:00:00", "2026-05-09T00:00:00")
     assert len(rows) == 3
     # Reihenfolge nach ts ASC; Werte als Python-Typen decoded.
     assert rows[0]["ga"] == "1/2/3"
@@ -80,9 +78,7 @@ async def test_samples_for_period_all_gas(repo: KnxStatsRepository) -> None:
 @pytest.mark.asyncio
 async def test_counts_per_ga(repo: KnxStatsRepository) -> None:
     await _seed(repo)
-    counts = await repo.counts_per_ga(
-        "2026-05-08T00:00:00", "2026-05-09T00:00:00"
-    )
+    counts = await repo.counts_per_ga("2026-05-08T00:00:00", "2026-05-09T00:00:00")
     assert counts == {"1/2/3": 2, "1/2/4": 1}
 
 
@@ -96,13 +92,9 @@ async def test_last_seen_per_ga(repo: KnxStatsRepository) -> None:
 
 @pytest.mark.asyncio
 async def test_aggregates_handle_empty_db(repo: KnxStatsRepository) -> None:
-    rows = await repo.samples_for_period_all_gas(
-        "2026-05-08T00:00:00", "2026-05-09T00:00:00"
-    )
+    rows = await repo.samples_for_period_all_gas("2026-05-08T00:00:00", "2026-05-09T00:00:00")
     assert rows == []
-    counts = await repo.counts_per_ga(
-        "2026-05-08T00:00:00", "2026-05-09T00:00:00"
-    )
+    counts = await repo.counts_per_ga("2026-05-08T00:00:00", "2026-05-09T00:00:00")
     assert counts == {}
     map_ = await repo.last_seen_per_ga()
     assert map_ == {}

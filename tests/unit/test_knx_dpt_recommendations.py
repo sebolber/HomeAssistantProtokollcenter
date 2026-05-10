@@ -12,8 +12,8 @@ import pytest
 from custom_components.messagehub.processing.knx_dpt_recommendations import (
     KNX_DPT_RECOMMENDATIONS,
     DptRecommendation,
-    recommend_for_dpt,
     reasoning_source,
+    recommend_for_dpt,
 )
 
 

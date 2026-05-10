@@ -12,11 +12,7 @@ import ast
 from pathlib import Path
 
 _API = (
-    Path(__file__).resolve().parents[2]
-    / "custom_components"
-    / "messagehub"
-    / "api"
-    / "messages.py"
+    Path(__file__).resolve().parents[2] / "custom_components" / "messagehub" / "api" / "messages.py"
 )
 
 
@@ -25,11 +21,7 @@ def test_webhook_detail_view_keeps_get_method() -> None:
     tree = ast.parse(_API.read_text(encoding="utf-8"))
     for node in ast.walk(tree):
         if isinstance(node, ast.ClassDef) and node.name == "WebhookDetailView":
-            method_names = {
-                sub.name
-                for sub in node.body
-                if isinstance(sub, ast.AsyncFunctionDef)
-            }
+            method_names = {sub.name for sub in node.body if isinstance(sub, ast.AsyncFunctionDef)}
             assert "get" in method_names, (
                 "WebhookDetailView.get wurde entfernt — sollte aber laut "
                 "F-007-Entscheidung erhalten bleiben (externe Skripte / "

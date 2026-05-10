@@ -88,9 +88,7 @@ def _make_finding(
 
 class TestSourceDetailFindings:
     @pytest.mark.asyncio
-    async def test_source_detail_includes_findings_for_source(
-        self, db: Database
-    ) -> None:
+    async def test_source_detail_includes_findings_for_source(self, db: Database) -> None:
         # Arrange: ein Telegramm + ein Finding fuer dieselbe Source.
         await _insert_telegram(db, ga="1/1/1", ts=_ts(0), source="1.1.10")
         findings_repo = FindingsRepository(db)
@@ -106,7 +104,8 @@ class TestSourceDetailFindings:
         )
 
         svc = KnxStatsService(
-            KnxStatsRepository(db), findings_repo=findings_repo,
+            KnxStatsRepository(db),
+            findings_repo=findings_repo,
         )
         from_iso, to_iso = _from_to()
 
@@ -122,9 +121,7 @@ class TestSourceDetailFindings:
             assert f.source == "1.1.10"
 
     @pytest.mark.asyncio
-    async def test_source_detail_findings_empty_when_repo_not_provided(
-        self, db: Database
-    ) -> None:
+    async def test_source_detail_findings_empty_when_repo_not_provided(self, db: Database) -> None:
         # Service ohne findings_repo: findings sollte [] sein, NICHT crashen.
         await _insert_telegram(db, ga="1/1/1", ts=_ts(0), source="1.1.10")
         svc = KnxStatsService(KnxStatsRepository(db))
@@ -135,9 +132,7 @@ class TestSourceDetailFindings:
         assert detail.findings == []
 
     @pytest.mark.asyncio
-    async def test_source_detail_findings_empty_when_no_findings_match(
-        self, db: Database
-    ) -> None:
+    async def test_source_detail_findings_empty_when_no_findings_match(self, db: Database) -> None:
         # FindingsRepo vorhanden, aber kein Finding fuer 1.1.10.
         await _insert_telegram(db, ga="1/1/1", ts=_ts(0), source="1.1.10")
         findings_repo = FindingsRepository(db)
@@ -146,7 +141,8 @@ class TestSourceDetailFindings:
         )
 
         svc = KnxStatsService(
-            KnxStatsRepository(db), findings_repo=findings_repo,
+            KnxStatsRepository(db),
+            findings_repo=findings_repo,
         )
         from_iso, to_iso = _from_to()
         detail = await svc.compute_source_detail("1.1.10", from_iso, to_iso)
@@ -157,16 +153,15 @@ class TestSourceDetailFindings:
 
 class TestSourceDetailFindingsSerialisation:
     @pytest.mark.asyncio
-    async def test_source_detail_to_dict_includes_findings_key(
-        self, db: Database
-    ) -> None:
+    async def test_source_detail_to_dict_includes_findings_key(self, db: Database) -> None:
         await _insert_telegram(db, ga="1/1/1", ts=_ts(0), source="1.1.10")
         findings_repo = FindingsRepository(db)
         await findings_repo.record(
             _make_finding(source="1.1.10", code="RECONNECT_STORM"),
         )
         svc = KnxStatsService(
-            KnxStatsRepository(db), findings_repo=findings_repo,
+            KnxStatsRepository(db),
+            findings_repo=findings_repo,
         )
         from_iso, to_iso = _from_to()
         detail = await svc.compute_source_detail("1.1.10", from_iso, to_iso)

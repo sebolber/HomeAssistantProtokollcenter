@@ -57,9 +57,7 @@ def test_webhook_invalid_scheme_blocked() -> None:
 
 def test_webhook_too_long_url_blocked() -> None:
     with pytest.raises(ChannelConfigError):
-        validate_channel_config(
-            "webhook", {"url": "https://" + "a" * 2000 + ".com/"}
-        )
+        validate_channel_config("webhook", {"url": "https://" + "a" * 2000 + ".com/"})
 
 
 def test_webhook_missing_url_blocked() -> None:
@@ -81,9 +79,7 @@ def test_telegram_valid_token_passes() -> None:
 def test_telegram_invalid_token_format_blocked() -> None:
     for token in ("not-a-token", "12345", "abc:def", "1234:short"):
         with pytest.raises(ChannelConfigError):
-            validate_channel_config(
-                "telegram", {"bot_token": token, "chat_id": "1"}
-            )
+            validate_channel_config("telegram", {"bot_token": token, "chat_id": "1"})
 
 
 def test_telegram_missing_chat_id_blocked() -> None:
@@ -107,9 +103,7 @@ def test_pushover_valid_keys_pass() -> None:
 
 def test_pushover_short_key_blocked() -> None:
     with pytest.raises(ChannelConfigError):
-        validate_channel_config(
-            "pushover", {"user_key": "short", "api_token": "a" * 30}
-        )
+        validate_channel_config("pushover", {"user_key": "short", "api_token": "a" * 30})
 
 
 # ----------------------------------------------------------------------
@@ -121,16 +115,12 @@ def test_ntfy_default_server_passes() -> None:
 
 
 def test_ntfy_self_hosted_public_server_passes() -> None:
-    validate_channel_config(
-        "ntfy", {"server": "https://ntfy.example.com", "topic": "x"}
-    )
+    validate_channel_config("ntfy", {"server": "https://ntfy.example.com", "topic": "x"})
 
 
 def test_ntfy_localhost_server_blocked() -> None:
     with pytest.raises(ChannelConfigError):
-        validate_channel_config(
-            "ntfy", {"server": "http://localhost:8080", "topic": "x"}
-        )
+        validate_channel_config("ntfy", {"server": "http://localhost:8080", "topic": "x"})
 
 
 def test_ntfy_missing_topic_blocked() -> None:
@@ -150,9 +140,7 @@ def test_notify_dotted_service_blocked() -> None:
     # User schickt "notify.mobile_app_phone" — wir wollen nur den
     # Service-Namen ohne Domain.
     with pytest.raises(ChannelConfigError):
-        validate_channel_config(
-            "notify", {"service": "notify.mobile_app_phone"}
-        )
+        validate_channel_config("notify", {"service": "notify.mobile_app_phone"})
 
 
 def test_notify_missing_service_blocked() -> None:

@@ -58,14 +58,10 @@ def _ensure_public_url(url: str) -> None:
         if host_lower in ("localhost", "ip6-localhost"):
             raise ChannelConfigError("url cannot point to localhost") from None
         if host_lower.endswith(".local"):
-            raise ChannelConfigError(
-                "url cannot point to .local hostnames"
-            ) from None
+            raise ChannelConfigError("url cannot point to .local hostnames") from None
         return
     if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified:
-        raise ChannelConfigError(
-            f"url cannot point to private/internal address ({ip})"
-        )
+        raise ChannelConfigError(f"url cannot point to private/internal address ({ip})")
 
 
 def _validate_webhook(config: dict[str, Any]) -> None:
@@ -79,9 +75,7 @@ def _validate_telegram(config: dict[str, Any]) -> None:
     token = config.get("bot_token") or config.get("token")
     chat_id = config.get("chat_id")
     if not isinstance(token, str) or not _TELEGRAM_TOKEN_RE.match(token):
-        raise ChannelConfigError(
-            "telegram channel requires bot_token in format '<id>:<chars>'"
-        )
+        raise ChannelConfigError("telegram channel requires bot_token in format '<id>:<chars>'")
     if not isinstance(chat_id, (str, int)):
         raise ChannelConfigError("telegram channel requires chat_id (str or int)")
 
@@ -90,13 +84,9 @@ def _validate_pushover(config: dict[str, Any]) -> None:
     user = config.get("user_key") or config.get("user")
     token = config.get("api_token") or config.get("token")
     if not isinstance(user, str) or not _PUSHOVER_KEY_RE.match(user):
-        raise ChannelConfigError(
-            "pushover channel requires user_key (30 alphanumeric chars)"
-        )
+        raise ChannelConfigError("pushover channel requires user_key (30 alphanumeric chars)")
     if not isinstance(token, str) or not _PUSHOVER_KEY_RE.match(token):
-        raise ChannelConfigError(
-            "pushover channel requires api_token (30 alphanumeric chars)"
-        )
+        raise ChannelConfigError("pushover channel requires api_token (30 alphanumeric chars)")
 
 
 def _validate_ntfy(config: dict[str, Any]) -> None:
@@ -112,9 +102,7 @@ def _validate_notify(config: dict[str, Any]) -> None:
     # Wir validieren das Format, kein URL-Check noetig.
     service = config.get("service")
     if not isinstance(service, str) or "." in service or not service:
-        raise ChannelConfigError(
-            "notify channel requires non-empty 'service' name without dots"
-        )
+        raise ChannelConfigError("notify channel requires non-empty 'service' name without dots")
 
 
 _VALIDATORS = {

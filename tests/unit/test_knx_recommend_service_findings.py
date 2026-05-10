@@ -19,7 +19,6 @@ from custom_components.messagehub.storage.findings_repo import FindingsRepositor
 from custom_components.messagehub.storage.knx_stats_repo import KnxStatsRepository
 from custom_components.messagehub.storage.migrations import MigrationRunner
 
-
 _NOW = datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC)
 
 
@@ -68,6 +67,7 @@ def _build_ga_reco(ga: str = "1/2/3", severity: str = "warn") -> object:
         GaRecommendation,
         SendModeObservation,
     )
+
     obs = SendModeObservation(
         mode="cyclic",
         confidence="high",
@@ -125,7 +125,7 @@ def test_relevant_codes_pinned() -> None:
         "TOGGLE_LOOP",
         "MULTI_RESPONDER",
     }
-    assert RELEVANT_FINDING_CODES_FOR_RECOMMENDATIONS == frozenset(expected)
+    assert frozenset(expected) == RELEVANT_FINDING_CODES_FOR_RECOMMENDATIONS
 
 
 # ---------------------------------------------------------------------------
@@ -147,8 +147,12 @@ async def _seed_temperature(db: Database, *, ga: str, source: str) -> None:
             "(timestamp, destination, source, telegramtype, value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
-                _ts(-3600 + i * 60), ga, source,
-                "GroupValueWrite", json.dumps(21.5), 0,
+                _ts(-3600 + i * 60),
+                ga,
+                source,
+                "GroupValueWrite",
+                json.dumps(21.5),
+                0,
             ),
         )
 
@@ -174,7 +178,10 @@ async def test_active_finding_promotes_severity(db: Database) -> None:
     )
 
     reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         findings_repo=findings_repo,
     )
 
@@ -182,10 +189,7 @@ async def test_active_finding_promotes_severity(db: Database) -> None:
     ga = reco.ga_recommendations[0]
     assert ga.severity == "deviation"
     # Reasoning enthaelt Finding-Marker
-    assert any(
-        "Layer 3" in r and "SEND_CYCLE_DRIFT" in r
-        for r in reco.reasoning
-    )
+    assert any("Layer 3" in r and "SEND_CYCLE_DRIFT" in r for r in reco.reasoning)
 
 
 @pytest.mark.asyncio
@@ -215,7 +219,10 @@ async def test_acknowledged_finding_does_not_override(db: Database) -> None:
     )
 
     reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         findings_repo=findings_repo,
     )
 
@@ -245,7 +252,10 @@ async def test_irrelevant_finding_code_ignored(db: Database) -> None:
     )
 
     reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         findings_repo=findings_repo,
     )
 
@@ -277,7 +287,10 @@ async def test_multiple_findings_listed_in_reasoning(db: Database) -> None:
         )
 
     reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         findings_repo=findings_repo,
     )
 
@@ -294,7 +307,10 @@ async def test_no_findings_repo_skips_layer3(db: Database) -> None:
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
     )
 
     assert reco is not None

@@ -27,10 +27,10 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, Final, Literal
 
 if TYPE_CHECKING:  # nur fuer Type-Hints, vermeidet Zirkular-Imports.
-    from .knx_stats import (
+    from ..knx_stats import (
         Finding as LegacyPatternFinding,
     )
-    from .knx_stats import (
+    from ..knx_stats import (
         HealthScoreInput,
     )
 
@@ -129,8 +129,7 @@ class Finding:
         severity = data["severity"]
         if severity not in FINDING_SEVERITIES:
             raise ValueError(
-                f"Unknown FindingSeverity {severity!r}; "
-                f"expected one of {FINDING_SEVERITIES}"
+                f"Unknown FindingSeverity {severity!r}; expected one of {FINDING_SEVERITIES}"
             )
         return cls(
             code=str(data["code"]),
@@ -157,9 +156,7 @@ def _parse_datetime(value: Any) -> datetime:
         return value
     if isinstance(value, str):
         return datetime.fromisoformat(value)
-    raise TypeError(
-        f"first_seen/last_seen must be datetime or ISO string, got {type(value)!r}"
-    )
+    raise TypeError(f"first_seen/last_seen must be datetime or ISO string, got {type(value)!r}")
 
 
 # =============================================================================

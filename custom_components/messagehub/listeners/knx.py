@@ -149,9 +149,7 @@ def _build_knx_message(cfg: Any, data: dict[str, Any] | KnxTelegramData) -> Any:
     )
 
 
-def _build_listener_state(
-    hass: HomeAssistant, database: Any
-) -> tuple[Any, Any, KnxIngestWorker]:
+def _build_listener_state(hass: HomeAssistant, database: Any) -> tuple[Any, Any, KnxIngestWorker]:
     """Initialisiert Whitelist-Cache + Schatten-Counter-Repo + Ingest-Worker.
 
     Iter A1: Der Worker wird hier instanziiert und im hass.data abgelegt,
@@ -266,9 +264,7 @@ class KnxIngestWorker:
             try:
                 # Wartet auf Wake-Signal ODER flush_interval.
                 with contextlib.suppress(TimeoutError):
-                    await asyncio.wait_for(
-                        self._wake.wait(), timeout=self._flush_interval
-                    )
+                    await asyncio.wait_for(self._wake.wait(), timeout=self._flush_interval)
                 self._wake.clear()
                 await self._flush_once()
             except asyncio.CancelledError:

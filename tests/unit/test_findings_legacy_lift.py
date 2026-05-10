@@ -134,9 +134,7 @@ class TestPatternFindingLift:
         legacy = detect_patterns(samples, dpt="9.001")
 
         # Act
-        lifted = lift_pattern_findings(
-            legacy, ga="1/2/3", source="1.1.220", now=_ts(15)
-        )
+        lifted = lift_pattern_findings(legacy, ga="1/2/3", source="1.1.220", now=_ts(15))
 
         # Assert
         codes = [f.code for f in lifted]

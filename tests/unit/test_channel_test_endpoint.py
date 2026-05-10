@@ -48,7 +48,7 @@ def test_channel_test_limiter_refills_over_time() -> None:
         limiter.allow("ch:1")
     assert limiter.allow("ch:1") is False
     # Bucket "rueckdatieren" — simulierte 30 s spaeter sollten 1.5 Token frei sein
-    bucket = limiter._buckets["ch:1"]  # noqa: SLF001 — bewusster White-Box-Test
+    bucket = limiter._buckets["ch:1"]
     bucket.last_refill = time.monotonic() - 30.0
     assert limiter.allow("ch:1") is True
 

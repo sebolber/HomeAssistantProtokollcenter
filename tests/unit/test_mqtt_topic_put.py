@@ -15,11 +15,7 @@ import ast
 from pathlib import Path
 
 _SRC = (
-    Path(__file__).resolve().parents[2]
-    / "custom_components"
-    / "messagehub"
-    / "api"
-    / "messages.py"
+    Path(__file__).resolve().parents[2] / "custom_components" / "messagehub" / "api" / "messages.py"
 )
 
 
@@ -48,9 +44,7 @@ def test_mqtt_topic_detail_view_exists() -> None:
 
 def test_mqtt_topic_put_handler_present() -> None:
     cls = _find_class("MqttTopicDetailView")
-    methods = {
-        sub.name for sub in cls.body if isinstance(sub, ast.AsyncFunctionDef)
-    }
+    methods = {sub.name for sub in cls.body if isinstance(sub, ast.AsyncFunctionDef)}
     assert "put" in methods, "PUT-Handler fuer MQTT-Topic-Edit fehlt"
     assert "delete" in methods, "DELETE-Handler darf durch Iter +1 nicht entfernt sein"
 
@@ -58,9 +52,7 @@ def test_mqtt_topic_put_handler_present() -> None:
 def test_mqtt_topic_put_takes_topic_id_kwarg() -> None:
     cls = _find_class("MqttTopicDetailView")
     put = next(
-        sub
-        for sub in cls.body
-        if isinstance(sub, ast.AsyncFunctionDef) and sub.name == "put"
+        sub for sub in cls.body if isinstance(sub, ast.AsyncFunctionDef) and sub.name == "put"
     )
     arg_names = {a.arg for a in put.args.args}
     assert "topic_id" in arg_names, "PUT-Handler muss topic_id als Parameter nehmen"
@@ -69,9 +61,7 @@ def test_mqtt_topic_put_takes_topic_id_kwarg() -> None:
 def test_mqtt_topic_put_has_admin_check() -> None:
     cls = _find_class("MqttTopicDetailView")
     put = next(
-        sub
-        for sub in cls.body
-        if isinstance(sub, ast.AsyncFunctionDef) and sub.name == "put"
+        sub for sub in cls.body if isinstance(sub, ast.AsyncFunctionDef) and sub.name == "put"
     )
     body_src = ast.unparse(put)
     assert "_check_admin" in body_src, "PUT-Handler muss Admin-Check haben"
@@ -80,9 +70,7 @@ def test_mqtt_topic_put_has_admin_check() -> None:
 def test_mqtt_topic_put_logs_audit() -> None:
     cls = _find_class("MqttTopicDetailView")
     put = next(
-        sub
-        for sub in cls.body
-        if isinstance(sub, ast.AsyncFunctionDef) and sub.name == "put"
+        sub for sub in cls.body if isinstance(sub, ast.AsyncFunctionDef) and sub.name == "put"
     )
     body_src = ast.unparse(put)
     assert "mqtt_topic_update" in body_src, (
@@ -94,9 +82,7 @@ def test_mqtt_topic_put_validates_id_format() -> None:
     """ID-Validation gegen ValueError -> 400-Response."""
     cls = _find_class("MqttTopicDetailView")
     put = next(
-        sub
-        for sub in cls.body
-        if isinstance(sub, ast.AsyncFunctionDef) and sub.name == "put"
+        sub for sub in cls.body if isinstance(sub, ast.AsyncFunctionDef) and sub.name == "put"
     )
     body_src = ast.unparse(put)
     # int(topic_id) -> ValueError -> json_message(... 400)

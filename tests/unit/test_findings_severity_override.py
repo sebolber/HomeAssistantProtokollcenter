@@ -67,9 +67,7 @@ class TestDefaultSeverity:
 
 class TestResolveSeverity:
     @pytest.mark.asyncio
-    async def test_resolve_returns_default_when_no_override(
-        self, db: Database
-    ) -> None:
+    async def test_resolve_returns_default_when_no_override(self, db: Database) -> None:
         # Arrange
         repo = FindingsRepository(db)
 
@@ -80,9 +78,7 @@ class TestResolveSeverity:
         assert sev == "warning"
 
     @pytest.mark.asyncio
-    async def test_severity_override_takes_precedence_over_default(
-        self, db: Database
-    ) -> None:
+    async def test_severity_override_takes_precedence_over_default(self, db: Database) -> None:
         # Arrange — DPT_MISMATCH default = "warning" (Iter B2),
         # User stuft auf "error" hoch, weil sein Projekt-DPT eindeutig ist.
         repo = FindingsRepository(db)
@@ -129,32 +125,23 @@ class TestSetClearOverride:
         repo = FindingsRepository(db)
 
         # Act
-        await repo.set_severity_override(
-            code="DPT_MISMATCH", severity="info", actor="u"
-        )
+        await repo.set_severity_override(code="DPT_MISMATCH", severity="info", actor="u")
 
         # Assert
         audit = await db.fetch_all(
-            "SELECT * FROM audit_log "
-            "WHERE target_type = 'knx_finding_severity_override'"
+            "SELECT * FROM audit_log WHERE target_type = 'knx_finding_severity_override'"
         )
         assert len(audit) == 1
         assert "DPT_MISMATCH" in str(audit[0]["target_id"])
 
     @pytest.mark.asyncio
-    async def test_set_severity_override_updates_existing_row(
-        self, db: Database
-    ) -> None:
+    async def test_set_severity_override_updates_existing_row(self, db: Database) -> None:
         # Arrange
         repo = FindingsRepository(db)
-        await repo.set_severity_override(
-            code="DPT_MISMATCH", severity="info", actor="u"
-        )
+        await repo.set_severity_override(code="DPT_MISMATCH", severity="info", actor="u")
 
         # Act
-        await repo.set_severity_override(
-            code="DPT_MISMATCH", severity="warning", actor="u2"
-        )
+        await repo.set_severity_override(code="DPT_MISMATCH", severity="warning", actor="u2")
 
         # Assert
         rows = await repo.list_severity_overrides()
@@ -165,9 +152,7 @@ class TestSetClearOverride:
     async def test_clear_severity_override_removes_row(self, db: Database) -> None:
         # Arrange
         repo = FindingsRepository(db)
-        await repo.set_severity_override(
-            code="DPT_MISMATCH", severity="info", actor="u"
-        )
+        await repo.set_severity_override(code="DPT_MISMATCH", severity="info", actor="u")
 
         # Act
         await repo.clear_severity_override(code="DPT_MISMATCH", actor="u")

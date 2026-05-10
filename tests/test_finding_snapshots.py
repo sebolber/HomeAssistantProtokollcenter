@@ -66,9 +66,7 @@ def _wide_period() -> tuple[str, str]:
     )
 
 
-async def _run_per_ga(
-    db: Database, ga: str, *, period: tuple[str, str] | None = None
-) -> None:
+async def _run_per_ga(db: Database, ga: str, *, period: tuple[str, str] | None = None) -> None:
     period_from, period_to = period or _wide_period()
     await run_per_ga_detectors(
         ga=ga,

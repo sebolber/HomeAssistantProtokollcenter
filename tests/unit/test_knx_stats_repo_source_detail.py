@@ -95,25 +95,19 @@ class TestLastSeenForSource:
         assert result.startswith("2026-05-03T08:02")
 
     @pytest.mark.asyncio
-    async def test_last_seen_returns_none_for_unknown_source(
-        self, db: Database
-    ) -> None:
+    async def test_last_seen_returns_none_for_unknown_source(self, db: Database) -> None:
         repo = KnxStatsRepository(db)
         assert await repo.last_seen_for_source("9.9.9") is None
 
     @pytest.mark.asyncio
-    async def test_last_seen_returns_none_for_empty_dev_source(
-        self, db: Database
-    ) -> None:
+    async def test_last_seen_returns_none_for_empty_dev_source(self, db: Database) -> None:
         repo = KnxStatsRepository(db)
         assert await repo.last_seen_for_source("") is None
 
 
 class TestCountForSource:
     @pytest.mark.asyncio
-    async def test_count_includes_only_in_period_telegrams(
-        self, db: Database
-    ) -> None:
+    async def test_count_includes_only_in_period_telegrams(self, db: Database) -> None:
         # Arrange — eines im Period, eines davor, eines danach.
         await _insert_telegram(db, ga="1/1/1", ts=_ts(-10), source="1.1.10")
         await _insert_telegram(db, ga="1/1/1", ts=_ts(60), source="1.1.10")
@@ -121,7 +115,9 @@ class TestCountForSource:
 
         repo = KnxStatsRepository(db)
         result = await repo.count_for_source(
-            "1.1.10", _ts(0), _ts(3600),
+            "1.1.10",
+            _ts(0),
+            _ts(3600),
         )
 
         assert result == 1
@@ -141,20 +137,24 @@ class TestCountForSource:
 
 class TestRepeatRatioForSource:
     @pytest.mark.asyncio
-    async def test_repeat_ratio_pct_with_mixed_repeated_flag(
-        self, db: Database
-    ) -> None:
+    async def test_repeat_ratio_pct_with_mixed_repeated_flag(self, db: Database) -> None:
         # 4 Telegramme, davon 1 repeated -> 25%.
         await _insert_telegram(db, ga="1/1/1", ts=_ts(0), source="1.1.10")
         await _insert_telegram(db, ga="1/1/1", ts=_ts(60), source="1.1.10")
         await _insert_telegram(
-            db, ga="1/1/1", ts=_ts(120), source="1.1.10", repeated=True,
+            db,
+            ga="1/1/1",
+            ts=_ts(120),
+            source="1.1.10",
+            repeated=True,
         )
         await _insert_telegram(db, ga="1/1/1", ts=_ts(180), source="1.1.10")
 
         repo = KnxStatsRepository(db)
         result = await repo.repeat_ratio_for_source(
-            "1.1.10", _ts(-1), _ts(3600),
+            "1.1.10",
+            _ts(-1),
+            _ts(3600),
         )
 
         assert result["total"] == 4
@@ -162,29 +162,33 @@ class TestRepeatRatioForSource:
         assert result["ratio_pct"] == 25.0
 
     @pytest.mark.asyncio
-    async def test_repeat_ratio_zero_when_no_telegrams(
-        self, db: Database
-    ) -> None:
+    async def test_repeat_ratio_zero_when_no_telegrams(self, db: Database) -> None:
         repo = KnxStatsRepository(db)
         result = await repo.repeat_ratio_for_source(
-            "9.9.9", _ts(0), _ts(3600),
+            "9.9.9",
+            _ts(0),
+            _ts(3600),
         )
         assert result == {"total": 0, "repeated": 0, "ratio_pct": 0.0}
 
     @pytest.mark.asyncio
-    async def test_repeat_ratio_filters_other_sources(
-        self, db: Database
-    ) -> None:
+    async def test_repeat_ratio_filters_other_sources(self, db: Database) -> None:
         # Eine Source mit allen normalen, eine mit allen repeated —
         # darf nicht gemischt werden.
         await _insert_telegram(db, ga="1/1/1", ts=_ts(0), source="1.1.10")
         await _insert_telegram(
-            db, ga="1/1/1", ts=_ts(60), source="1.1.20", repeated=True,
+            db,
+            ga="1/1/1",
+            ts=_ts(60),
+            source="1.1.20",
+            repeated=True,
         )
 
         repo = KnxStatsRepository(db)
         result = await repo.repeat_ratio_for_source(
-            "1.1.10", _ts(-1), _ts(3600),
+            "1.1.10",
+            _ts(-1),
+            _ts(3600),
         )
         assert result["total"] == 1
         assert result["repeated"] == 0
@@ -192,9 +196,7 @@ class TestRepeatRatioForSource:
 
 class TestGasForSourceExtended:
     @pytest.mark.asyncio
-    async def test_gas_for_source_returns_dpt_and_last_seen(
-        self, db: Database
-    ) -> None:
+    async def test_gas_for_source_returns_dpt_and_last_seen(self, db: Database) -> None:
         await _insert_ga(db, ga="1/1/1", label="Schalter", dpt="1.001")
         await _insert_telegram(db, ga="1/1/1", ts=_ts(0), source="1.1.10")
         await _insert_telegram(db, ga="1/1/1", ts=_ts(60), source="1.1.10")
@@ -212,9 +214,7 @@ class TestGasForSourceExtended:
         assert row["last_seen"].startswith("2026-05-03T08:01")
 
     @pytest.mark.asyncio
-    async def test_gas_for_source_handles_missing_whitelist(
-        self, db: Database
-    ) -> None:
+    async def test_gas_for_source_handles_missing_whitelist(self, db: Database) -> None:
         # GA ohne Whitelist-Eintrag -> dpt + label = None.
         await _insert_telegram(db, ga="1/1/9", ts=_ts(0), source="1.1.10")
 

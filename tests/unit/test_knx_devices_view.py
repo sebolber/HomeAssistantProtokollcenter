@@ -14,7 +14,6 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-
 _SRC = (
     Path(__file__).resolve().parents[2]
     / "custom_components"
@@ -53,10 +52,7 @@ class TestListView:
 
     def test_get_calls_check_admin(self) -> None:
         cls = _find_class("KnxDeviceListView")
-        get = next(
-            n for n in cls.body
-            if isinstance(n, ast.AsyncFunctionDef) and n.name == "get"
-        )
+        get = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "get")
         assert "_check_admin" in ast.unparse(get)
 
 
@@ -71,38 +67,28 @@ class TestDetailView:
             and isinstance(n.targets[0], ast.Name)
             and isinstance(n.value, ast.Constant)
         }
-        assert assigns.get("url") == (
-            "/api/messagehub/knx-devices/{dev_source}"
-        )
+        assert assigns.get("url") == ("/api/messagehub/knx-devices/{dev_source}")
 
     def test_has_get_put_delete(self) -> None:
         cls = _find_class("KnxDeviceDetailView")
-        methods = {
-            n.name for n in cls.body if isinstance(n, ast.AsyncFunctionDef)
-        }
+        methods = {n.name for n in cls.body if isinstance(n, ast.AsyncFunctionDef)}
         assert {"get", "put", "delete"}.issubset(methods)
 
     def test_each_method_calls_check_admin_and_validates_dev_source(self) -> None:
         cls = _find_class("KnxDeviceDetailView")
         for method_name in ("get", "put", "delete"):
             method = next(
-                n for n in cls.body
-                if isinstance(n, ast.AsyncFunctionDef) and n.name == method_name
+                n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == method_name
             )
             body_src = ast.unparse(method)
-            assert "_check_admin" in body_src, (
-                f"{method_name} fehlt _check_admin"
-            )
+            assert "_check_admin" in body_src, f"{method_name} fehlt _check_admin"
             assert "validate_knx_individual_address" in body_src, (
                 f"{method_name} fehlt dev_source-Validation"
             )
 
     def test_put_writes_audit_log(self) -> None:
         cls = _find_class("KnxDeviceDetailView")
-        put = next(
-            n for n in cls.body
-            if isinstance(n, ast.AsyncFunctionDef) and n.name == "put"
-        )
+        put = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "put")
         body_src = ast.unparse(put)
         assert "audit(" in body_src
         assert "knx_device_set" in body_src
@@ -110,8 +96,7 @@ class TestDetailView:
     def test_delete_writes_audit_log(self) -> None:
         cls = _find_class("KnxDeviceDetailView")
         delete = next(
-            n for n in cls.body
-            if isinstance(n, ast.AsyncFunctionDef) and n.name == "delete"
+            n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "delete"
         )
         body_src = ast.unparse(delete)
         assert "audit(" in body_src
@@ -119,10 +104,7 @@ class TestDetailView:
 
     def test_put_validates_note_for_each_field(self) -> None:
         cls = _find_class("KnxDeviceDetailView")
-        put = next(
-            n for n in cls.body
-            if isinstance(n, ast.AsyncFunctionDef) and n.name == "put"
-        )
+        put = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "put")
         body_src = ast.unparse(put)
         assert "validate_note" in body_src
         assert "max_length=" in body_src
@@ -130,8 +112,7 @@ class TestDetailView:
     def test_delete_returns_404_when_missing(self) -> None:
         cls = _find_class("KnxDeviceDetailView")
         delete = next(
-            n for n in cls.body
-            if isinstance(n, ast.AsyncFunctionDef) and n.name == "delete"
+            n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "delete"
         )
         body_src = ast.unparse(delete)
         assert "ERR_NOT_FOUND" in body_src
@@ -139,18 +120,14 @@ class TestDetailView:
 
     def test_put_flushes_recommendation_cache(self) -> None:
         cls = _find_class("KnxDeviceDetailView")
-        put = next(
-            n for n in cls.body
-            if isinstance(n, ast.AsyncFunctionDef) and n.name == "put"
-        )
+        put = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "put")
         body_src = ast.unparse(put)
         assert "_flush_recommendation_cache_for" in body_src
 
     def test_delete_flushes_recommendation_cache(self) -> None:
         cls = _find_class("KnxDeviceDetailView")
         delete = next(
-            n for n in cls.body
-            if isinstance(n, ast.AsyncFunctionDef) and n.name == "delete"
+            n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "delete"
         )
         body_src = ast.unparse(delete)
         assert "_flush_recommendation_cache_for" in body_src
@@ -160,10 +137,7 @@ class TestDetailView:
         ``ets``-Block, sodass der Frontend-Editor sie als Default
         anzeigen kann — kein User-Pflegeaufwand fuer den 99%-Fall."""
         cls = _find_class("KnxDeviceDetailView")
-        get = next(
-            n for n in cls.body
-            if isinstance(n, ast.AsyncFunctionDef) and n.name == "get"
-        )
+        get = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "get")
         body_src = ast.unparse(get)
         assert "discover_knx_devices" in body_src
         assert "'ets'" in body_src or '"ets"' in body_src
@@ -172,10 +146,7 @@ class TestDetailView:
         """Iter L2.5: Auto-Inferenz aus Labels wurde entfernt —
         ETS ist die kanonische Quelle."""
         cls = _find_class("KnxDeviceDetailView")
-        get = next(
-            n for n in cls.body
-            if isinstance(n, ast.AsyncFunctionDef) and n.name == "get"
-        )
+        get = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "get")
         body_src = ast.unparse(get)
         assert "infer_manufacturer_from_labels" not in body_src
         assert "inferred" not in body_src
@@ -189,6 +160,6 @@ def test_views_registered_in_api_messages() -> None:
 
 def test_views_registered_in_register_knx_stats_views() -> None:
     src = _SRC.read_text(encoding="utf-8")
-    register_section = src[src.index("def register_knx_stats_views"):]
+    register_section = src[src.index("def register_knx_stats_views") :]
     assert "KnxDeviceListView()" in register_section
     assert "KnxDeviceDetailView()" in register_section

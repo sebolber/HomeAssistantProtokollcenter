@@ -11,11 +11,7 @@ import ast
 from pathlib import Path
 
 _SRC = (
-    Path(__file__).resolve().parents[2]
-    / "custom_components"
-    / "messagehub"
-    / "api"
-    / "messages.py"
+    Path(__file__).resolve().parents[2] / "custom_components" / "messagehub" / "api" / "messages.py"
 )
 
 
@@ -35,18 +31,14 @@ def test_remediation_detail_view_has_put() -> None:
 
 def test_remediation_put_takes_hook_id_kwarg() -> None:
     cls = _find_class("RemediationHookDetailView")
-    put = next(
-        s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "put"
-    )
+    put = next(s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "put")
     arg_names = {a.arg for a in put.args.args}
     assert "hook_id" in arg_names
 
 
 def test_remediation_put_admin_protected() -> None:
     cls = _find_class("RemediationHookDetailView")
-    put = next(
-        s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "put"
-    )
+    put = next(s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "put")
     assert "_check_admin" in ast.unparse(put)
 
 
@@ -59,9 +51,7 @@ def test_remediation_put_audit_log() -> None:
 
 def test_remediation_put_validates_id() -> None:
     cls = _find_class("RemediationHookDetailView")
-    put = next(
-        s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "put"
-    )
+    put = next(s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "put")
     body_src = ast.unparse(put)
     assert "int(hook_id)" in body_src
     assert "ERR_INVALID_ID" in body_src
@@ -69,9 +59,7 @@ def test_remediation_put_validates_id() -> None:
 
 def test_remediation_put_returns_404_for_missing_hook() -> None:
     cls = _find_class("RemediationHookDetailView")
-    put = next(
-        s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "put"
-    )
+    put = next(s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "put")
     body_src = ast.unparse(put)
     # Ein 404-Pfad muss ueber ERR_NOT_FOUND moeglich sein
     assert "ERR_NOT_FOUND" in body_src

@@ -59,8 +59,12 @@ async def _insert_telegram(
         "(timestamp, destination, source, telegramtype, value, repeated) "
         "VALUES (?, ?, ?, ?, ?, ?)",
         (
-            ts, ga, dev_source, telegramtype,
-            json.dumps(value, default=str), 1 if repeated else 0,
+            ts,
+            ga,
+            dev_source,
+            telegramtype,
+            json.dumps(value, default=str),
+            1 if repeated else 0,
         ),
     )
 
@@ -142,15 +146,13 @@ class TestBusWideDetectorRunnerSmoke:
         assert resp["items"][0]["ga"] == "2/0/0"
 
     @pytest.mark.asyncio
-    async def test_stale_ga_finding_for_long_silent_address(
-        self, db: Database
-    ) -> None:
+    async def test_stale_ga_finding_for_long_silent_address(self, db: Database) -> None:
         """Iter 25-Wiring: GA mit altem letzten Telegramm -> STALE_GA."""
         # Arrange — GA mit letztem Telegramm vor 40 Tagen.
         await _insert_ga(db, ga="3/0/0", dpt="1.001", label="Letztes mal aktiv")
-        forty_days_ago = (
-            datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC) - timedelta(days=40)
-        ).isoformat(timespec="seconds")
+        forty_days_ago = (datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC) - timedelta(days=40)).isoformat(
+            timespec="seconds"
+        )
         await _insert_telegram(db, ga="3/0/0", ts=forty_days_ago)
 
         repo = FindingsRepository(db)
@@ -160,9 +162,9 @@ class TestBusWideDetectorRunnerSmoke:
             findings_repo=repo,
             address_repo=knx_repo,
             stats_repo=stats_repo,
-            period_from=(
-                datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC) - timedelta(days=60)
-            ).isoformat(timespec="seconds"),
+            period_from=(datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC) - timedelta(days=60)).isoformat(
+                timespec="seconds"
+            ),
             period_to=_ts(3600),
             now=datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC),
         )
@@ -226,18 +228,14 @@ class _FakeHass:
             HASS_KEY_KNX_BUS_ANALYSIS,
         )
 
-        self.data = {
-            DOMAIN: {HASS_KEY_KNX_BUS_ANALYSIS: bus_analysis_enabled}
-        }
+        self.data = {DOMAIN: {HASS_KEY_KNX_BUS_ANALYSIS: bus_analysis_enabled}}
 
 
 class TestBusWideJobTick:
     """Iter 29b: periodischer Job-Wrapper schluckt Exceptions."""
 
     @pytest.mark.asyncio
-    async def test_tick_calls_runner_and_records_findings(
-        self, db: Database
-    ) -> None:
+    async def test_tick_calls_runner_and_records_findings(self, db: Database) -> None:
         from custom_components.messagehub.jobs.periodic import (
             _run_findings_bus_wide_tick,
         )
@@ -268,9 +266,7 @@ class TestBusWideJobTick:
             await db.open()
 
     @pytest.mark.asyncio
-    async def test_tick_emits_analysis_disabled_when_toggle_off(
-        self, db: Database
-    ) -> None:
+    async def test_tick_emits_analysis_disabled_when_toggle_off(self, db: Database) -> None:
         """Iter A3: Wenn Bus-Analyse-Toggle aus ist, soll der Tick nur
         ein ANALYSIS_DISABLED-Finding schreiben — nicht alle Detektoren
         durchlaufen."""
@@ -280,9 +276,7 @@ class TestBusWideJobTick:
 
         await _insert_ga(db, ga="5/0/0", dpt="1.001")  # Trigger ORPHAN
 
-        await _run_findings_bus_wide_tick(
-            _FakeHass(bus_analysis_enabled=False), db
-        )
+        await _run_findings_bus_wide_tick(_FakeHass(bus_analysis_enabled=False), db)
 
         repo = FindingsRepository(db)
         resp = await list_findings_response(repo)

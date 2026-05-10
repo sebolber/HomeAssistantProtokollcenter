@@ -28,9 +28,7 @@ def cap_samples(samples: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
     return list(samples[:EXPORT_MAX_SAMPLES])
 
 
-def format_ga_export_csv(
-    ga: str, samples: Sequence[dict[str, Any]]
-) -> str:
+def format_ga_export_csv(ga: str, samples: Sequence[dict[str, Any]]) -> str:
     """Liefert den Werteverlauf als CSV-String.
 
     Spalten: ts, ga, dev_source, telegramtype, value.

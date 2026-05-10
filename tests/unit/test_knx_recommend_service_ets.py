@@ -20,7 +20,6 @@ from custom_components.messagehub.storage.knx_devices_repo import (
 from custom_components.messagehub.storage.knx_stats_repo import KnxStatsRepository
 from custom_components.messagehub.storage.migrations import MigrationRunner
 
-
 _NOW = datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC)
 
 
@@ -40,7 +39,9 @@ def _ts(offset_s: float) -> str:
 
 
 async def _seed_garage_door(
-    db: Database, *, dev_source: str = "1.1.220",
+    db: Database,
+    *,
+    dev_source: str = "1.1.220",
 ) -> None:
     now = _ts(0)
     await db.execute(
@@ -55,8 +56,12 @@ async def _seed_garage_door(
             "(timestamp, destination, source, telegramtype, value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
-                _ts(-3600 + i * 60), "1/0/1", dev_source,
-                "GroupValueWrite", json.dumps(0.0), 0,
+                _ts(-3600 + i * 60),
+                "1/0/1",
+                dev_source,
+                "GroupValueWrite",
+                json.dumps(0.0),
+                0,
             ),
         )
 
@@ -70,7 +75,10 @@ async def test_ets_discovery_alone_triggers_layer2_override(
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.220", _ts(-3700), _ts(60),
+        repo,
+        "1.1.220",
+        _ts(-3700),
+        _ts(60),
         ets_devices={
             "1.1.220": {
                 "manufacturer": "hoermann",
@@ -85,10 +93,7 @@ async def test_ets_discovery_alone_triggers_layer2_override(
     # Layer-2-Override greift fuer DPT 9.001 → on_change.
     assert ga.recommended_mode == "on_change"
     # Reasoning enthaelt ETS-Marker
-    assert any(
-        "Layer 2" in r and "ETS-Projekt" in r
-        for r in reco.reasoning
-    )
+    assert any("Layer 2" in r and "ETS-Projekt" in r for r in reco.reasoning)
 
 
 @pytest.mark.asyncio
@@ -106,7 +111,10 @@ async def test_user_override_wins_over_ets(db: Database) -> None:
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.220", _ts(-3700), _ts(60),
+        repo,
+        "1.1.220",
+        _ts(-3700),
+        _ts(60),
         devices_repo=devices,
         ets_devices={
             "1.1.220": {
@@ -131,7 +139,10 @@ async def test_no_ets_no_user_no_layer2(db: Database) -> None:
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.220", _ts(-3700), _ts(60),
+        repo,
+        "1.1.220",
+        _ts(-3700),
+        _ts(60),
         ets_devices=None,
     )
 
@@ -147,7 +158,10 @@ async def test_ets_unknown_manufacturer_adds_hint(db: Database) -> None:
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.220", _ts(-3700), _ts(60),
+        repo,
+        "1.1.220",
+        _ts(-3700),
+        _ts(60),
         ets_devices={
             "1.1.220": {
                 "manufacturer": "acme",
@@ -177,7 +191,10 @@ async def test_user_profile_with_only_notes_does_not_block_ets(
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.220", _ts(-3700), _ts(60),
+        repo,
+        "1.1.220",
+        _ts(-3700),
+        _ts(60),
         devices_repo=devices,
         ets_devices={
             "1.1.220": {
@@ -191,7 +208,4 @@ async def test_user_profile_with_only_notes_does_not_block_ets(
     assert reco is not None
     ga = reco.ga_recommendations[0]
     assert ga.recommended_mode == "on_change"  # Hoermann-Override aus ETS
-    assert any(
-        "Layer 2" in r and "ETS-Projekt" in r
-        for r in reco.reasoning
-    )
+    assert any("Layer 2" in r and "ETS-Projekt" in r for r in reco.reasoning)

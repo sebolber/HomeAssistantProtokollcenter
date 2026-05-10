@@ -21,7 +21,6 @@ from custom_components.messagehub.storage.database import Database
 from custom_components.messagehub.storage.knx_stats_repo import KnxStatsRepository
 from custom_components.messagehub.storage.migrations import MigrationRunner
 
-
 _NOW = datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC)
 
 
@@ -40,9 +39,7 @@ def _ts(offset_s: float) -> str:
     return (_NOW + timedelta(seconds=offset_s)).isoformat(timespec="seconds")
 
 
-async def _insert_ga(
-    db: Database, *, ga: str, dpt: str | None, label: str = "GA"
-) -> None:
+async def _insert_ga(db: Database, *, ga: str, dpt: str | None, label: str = "GA") -> None:
     now = _ts(0)
     await db.execute(
         "INSERT INTO knx_group_addresses "
@@ -72,9 +69,7 @@ async def _seed_cyclic_temperature(db: Database, *, ga: str, source: str = "1.1.
     """Sender simuliert: alle 60 s identische 21.5 deg, > 30 Telegramme."""
     await _insert_ga(db, ga=ga, dpt="9.001", label="Wohnzimmer Temperatur")
     for i in range(40):
-        await _insert_telegram(
-            db, ga=ga, ts=_ts(-3600 + i * 60), source=source, value=21.5
-        )
+        await _insert_telegram(db, ga=ga, ts=_ts(-3600 + i * 60), source=source, value=21.5)
 
 
 async def _seed_on_change_switch(db: Database, *, ga: str, source: str = "1.1.10") -> None:
@@ -82,48 +77,44 @@ async def _seed_on_change_switch(db: Database, *, ga: str, source: str = "1.1.10
     await _insert_ga(db, ga=ga, dpt="1.001", label="Wohnzimmer Licht")
     base = -86400  # 24 h zurueck
     pattern = [
-        (10, 1), (20, 0),  # Burst
-        (3600, 1), (3700, 0),  # 1h Pause
-        (7200, 1), (7300, 0),
-        (10800, 1), (10900, 0),
-        (14400, 1), (14500, 0),
-        (18000, 1), (18100, 0),
+        (10, 1),
+        (20, 0),  # Burst
+        (3600, 1),
+        (3700, 0),  # 1h Pause
+        (7200, 1),
+        (7300, 0),
+        (10800, 1),
+        (10900, 0),
+        (14400, 1),
+        (14500, 0),
+        (18000, 1),
+        (18100, 0),
     ]
     for offset, val in pattern:
-        await _insert_telegram(
-            db, ga=ga, ts=_ts(base + offset), source=source, value=val
-        )
+        await _insert_telegram(db, ga=ga, ts=_ts(base + offset), source=source, value=val)
 
 
 class TestComputeDeviceRecommendation:
     @pytest.mark.asyncio
     async def test_unknown_source_returns_none(self, db: Database) -> None:
         repo = KnxStatsRepository(db)
-        result = await compute_device_recommendation(
-            repo, "9.9.9", _ts(-86400), _ts(0)
-        )
+        result = await compute_device_recommendation(repo, "9.9.9", _ts(-86400), _ts(0))
         assert result is None
 
     @pytest.mark.asyncio
     async def test_empty_source_returns_none(self, db: Database) -> None:
         repo = KnxStatsRepository(db)
-        result = await compute_device_recommendation(
-            repo, "", _ts(-86400), _ts(0)
-        )
+        result = await compute_device_recommendation(repo, "", _ts(-86400), _ts(0))
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_cyclic_temperature_flagged_as_deviation_to_hybrid(
-        self, db: Database
-    ) -> None:
+    async def test_cyclic_temperature_flagged_as_deviation_to_hybrid(self, db: Database) -> None:
         """Konstante 21.5 deg alle 60 s → cyclic. DPT 9.001 empfiehlt
         hybrid → severity=warn (cyclic vs hybrid)."""
         await _seed_cyclic_temperature(db, ga="1/2/3")
         repo = KnxStatsRepository(db)
 
-        result = await compute_device_recommendation(
-            repo, "1.1.10", _ts(-3700), _ts(60)
-        )
+        result = await compute_device_recommendation(repo, "1.1.10", _ts(-3700), _ts(60))
 
         assert result is not None
         assert result.dev_source == "1.1.10"
@@ -141,17 +132,13 @@ class TestComputeDeviceRecommendation:
         assert ga.source == "dpt_standard"
 
     @pytest.mark.asyncio
-    async def test_on_change_switch_matches_recommendation(
-        self, db: Database
-    ) -> None:
+    async def test_on_change_switch_matches_recommendation(self, db: Database) -> None:
         """Schalt-GA mit Wertwechsel → on_change. DPT 1.001 empfiehlt
         on_change → severity=ok."""
         await _seed_on_change_switch(db, ga="1/2/3")
         repo = KnxStatsRepository(db)
 
-        result = await compute_device_recommendation(
-            repo, "1.1.10", _ts(-86400), _ts(0)
-        )
+        result = await compute_device_recommendation(repo, "1.1.10", _ts(-86400), _ts(0))
 
         assert result is not None
         ga = result.ga_recommendations[0]
@@ -160,18 +147,14 @@ class TestComputeDeviceRecommendation:
         assert ga.recommended_mode == "on_change"
 
     @pytest.mark.asyncio
-    async def test_silent_source_when_no_recent_telegrams(
-        self, db: Database
-    ) -> None:
+    async def test_silent_source_when_no_recent_telegrams(self, db: Database) -> None:
         """GA in Whitelist aber keine Telegramme im Periode -> beim
         gas_for_source-Aufruf (Live-Quelle) werden gar keine GAs
         zurueckgegeben — Service liefert None."""
         await _insert_ga(db, ga="1/2/3", dpt="1.001")
         repo = KnxStatsRepository(db)
 
-        result = await compute_device_recommendation(
-            repo, "1.1.10", _ts(-86400), _ts(0)
-        )
+        result = await compute_device_recommendation(repo, "1.1.10", _ts(-86400), _ts(0))
         assert result is None
 
     @pytest.mark.asyncio
@@ -183,14 +166,10 @@ class TestComputeDeviceRecommendation:
         await _insert_ga(db, ga="1/2/5", dpt="9.005", label="Wind")
         for ga, value in (("1/2/3", 21.5), ("1/2/4", 250), ("1/2/5", 3.2)):
             for i in range(40):
-                await _insert_telegram(
-                    db, ga=ga, ts=_ts(-3600 + i * 60), value=value
-                )
+                await _insert_telegram(db, ga=ga, ts=_ts(-3600 + i * 60), value=value)
         repo = KnxStatsRepository(db)
 
-        result = await compute_device_recommendation(
-            repo, "1.1.10", _ts(-3700), _ts(60)
-        )
+        result = await compute_device_recommendation(repo, "1.1.10", _ts(-3700), _ts(60))
 
         assert result is not None
         assert len(result.ga_recommendations) == 3
@@ -202,19 +181,13 @@ class TestComputeDeviceRecommendation:
         assert any("dpt_standard" in r for r in result.reasoning)
 
     @pytest.mark.asyncio
-    async def test_unknown_dpt_no_recommendation_info_severity(
-        self, db: Database
-    ) -> None:
+    async def test_unknown_dpt_no_recommendation_info_severity(self, db: Database) -> None:
         await _insert_ga(db, ga="1/2/3", dpt="99.999", label="Unbekannt")
         for i in range(40):
-            await _insert_telegram(
-                db, ga="1/2/3", ts=_ts(-3600 + i * 60), value=1
-            )
+            await _insert_telegram(db, ga="1/2/3", ts=_ts(-3600 + i * 60), value=1)
         repo = KnxStatsRepository(db)
 
-        result = await compute_device_recommendation(
-            repo, "1.1.10", _ts(-3700), _ts(60)
-        )
+        result = await compute_device_recommendation(repo, "1.1.10", _ts(-3700), _ts(60))
 
         assert result is not None
         ga = result.ga_recommendations[0]
@@ -227,9 +200,7 @@ class TestComputeDeviceRecommendation:
         JSON-serialisierbares Dict (Schema-Contract fuer Frontend)."""
         await _seed_cyclic_temperature(db, ga="1/2/3")
         repo = KnxStatsRepository(db)
-        result = await compute_device_recommendation(
-            repo, "1.1.10", _ts(-3700), _ts(60)
-        )
+        result = await compute_device_recommendation(repo, "1.1.10", _ts(-3700), _ts(60))
         assert result is not None
 
         as_dict = device_recommendation_to_dict(result)
@@ -246,14 +217,25 @@ class TestComputeDeviceRecommendation:
         ga_dict = decoded["ga_recommendations"][0]
         # Pruefen aller wichtigen Schluessel — Frontend-Vertrag
         for key in (
-            "ga", "label", "dpt", "observed", "recommended_mode",
-            "recommended_cycle_minutes", "recommended_hysteresis",
-            "severity", "rationale", "source",
+            "ga",
+            "label",
+            "dpt",
+            "observed",
+            "recommended_mode",
+            "recommended_cycle_minutes",
+            "recommended_hysteresis",
+            "severity",
+            "rationale",
+            "source",
         ):
             assert key in ga_dict
         for key in (
-            "mode", "confidence", "sample_count", "value_changes",
-            "median_interval_s", "median_interval_minutes",
+            "mode",
+            "confidence",
+            "sample_count",
+            "value_changes",
+            "median_interval_s",
+            "median_interval_minutes",
         ):
             assert key in ga_dict["observed"]
 
@@ -261,17 +243,13 @@ class TestComputeDeviceRecommendation:
     async def test_generated_at_is_iso_string(self, db: Database) -> None:
         await _seed_cyclic_temperature(db, ga="1/2/3")
         repo = KnxStatsRepository(db)
-        result = await compute_device_recommendation(
-            repo, "1.1.10", _ts(-3700), _ts(60)
-        )
+        result = await compute_device_recommendation(repo, "1.1.10", _ts(-3700), _ts(60))
         assert result is not None
         # iso-Format mit Sekunden, naive oder aware
         datetime.fromisoformat(result.generated_at)
 
     @pytest.mark.asyncio
-    async def test_confidence_is_low_when_any_ga_low(
-        self, db: Database
-    ) -> None:
+    async def test_confidence_is_low_when_any_ga_low(self, db: Database) -> None:
         """Pessimist-Aggregation: eine GA mit < 10 Telegrammen drueckt
         die Geraets-Konfidenz auf low, auch wenn andere GAs high sind."""
         # GA 1: 40 Telegramme (high)
@@ -284,9 +262,7 @@ class TestComputeDeviceRecommendation:
             await _insert_telegram(db, ga="1/2/4", ts=_ts(-300 + i * 60))
         repo = KnxStatsRepository(db)
 
-        result = await compute_device_recommendation(
-            repo, "1.1.10", _ts(-3700), _ts(60)
-        )
+        result = await compute_device_recommendation(repo, "1.1.10", _ts(-3700), _ts(60))
 
         assert result is not None
         # GA 2 ist insufficient, GA 1 ist cyclic — Konfidenz wird low,

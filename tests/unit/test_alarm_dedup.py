@@ -19,10 +19,7 @@ def test_second_call_same_minute_does_not_fire() -> None:
     assert cache.should_fire("busload", now=now) is False
     # Auch leicht spaetere Sekunden in derselben Minute zaehlen als
     # selbe Bucket -> kein Fire.
-    assert (
-        cache.should_fire("busload", now=now + timedelta(seconds=30))
-        is False
-    )
+    assert cache.should_fire("busload", now=now + timedelta(seconds=30)) is False
 
 
 def test_different_rules_independent() -> None:

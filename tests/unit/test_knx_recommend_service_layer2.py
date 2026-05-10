@@ -18,7 +18,6 @@ from custom_components.messagehub.storage.knx_devices_repo import (
 from custom_components.messagehub.storage.knx_stats_repo import KnxStatsRepository
 from custom_components.messagehub.storage.migrations import MigrationRunner
 
-
 _NOW = datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC)
 
 
@@ -37,9 +36,7 @@ def _ts(offset_s: float) -> str:
     return (_NOW + timedelta(seconds=offset_s)).isoformat(timespec="seconds")
 
 
-async def _seed_garage_door(
-    db: Database, *, dev_source: str, dpt: str = "9.001"
-) -> None:
+async def _seed_garage_door(db: Database, *, dev_source: str, dpt: str = "9.001") -> None:
     """Hoermann-Tor-Profil: GA mit DPT 9.001 (Klima-Temp), 40 Telegramme,
     konstanter Wert 0.0 — typisches Hoermann-Default-Verhalten ohne
     angeschlossene Sensorik."""
@@ -56,8 +53,12 @@ async def _seed_garage_door(
             "(timestamp, destination, source, telegramtype, value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
-                _ts(-3600 + i * 60), "1/0/1", dev_source,
-                "GroupValueWrite", json.dumps(0.0), 0,
+                _ts(-3600 + i * 60),
+                "1/0/1",
+                dev_source,
+                "GroupValueWrite",
+                json.dumps(0.0),
+                0,
             ),
         )
 
@@ -79,7 +80,10 @@ async def test_layer2_override_changes_recommendation_for_known_model(
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.220", _ts(-3700), _ts(60),
+        repo,
+        "1.1.220",
+        _ts(-3700),
+        _ts(60),
         devices_repo=devices,
     )
 
@@ -107,7 +111,10 @@ async def test_layer2_falls_back_to_layer1_when_no_devices_repo(
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.220", _ts(-3700), _ts(60),
+        repo,
+        "1.1.220",
+        _ts(-3700),
+        _ts(60),
     )
 
     assert reco is not None
@@ -126,7 +133,10 @@ async def test_layer2_falls_back_to_layer1_when_no_device_profile(
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.220", _ts(-3700), _ts(60),
+        repo,
+        "1.1.220",
+        _ts(-3700),
+        _ts(60),
         devices_repo=devices,
     )
 
@@ -153,17 +163,17 @@ async def test_layer2_unknown_model_adds_hint_to_reasoning(
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.220", _ts(-3700), _ts(60),
+        repo,
+        "1.1.220",
+        _ts(-3700),
+        _ts(60),
         devices_repo=devices,
     )
 
     assert reco is not None
     ga = reco.ga_recommendations[0]
     assert ga.recommended_mode == "hybrid"  # Layer 1
-    assert any(
-        "Layer 2" in r and "kuratierten Override" in r
-        for r in reco.reasoning
-    )
+    assert any("Layer 2" in r and "kuratierten Override" in r for r in reco.reasoning)
 
 
 @pytest.mark.asyncio
@@ -194,8 +204,12 @@ async def test_layer2_only_overrides_matching_dpts(db: Database) -> None:
                 " value, repeated) "
                 "VALUES (?, ?, ?, ?, ?, ?)",
                 (
-                    _ts(-3600 + i * 60), ga, "1.1.220",
-                    "GroupValueWrite", json.dumps(0.0), 0,
+                    _ts(-3600 + i * 60),
+                    ga,
+                    "1.1.220",
+                    "GroupValueWrite",
+                    json.dumps(0.0),
+                    0,
                 ),
             )
 
@@ -208,7 +222,10 @@ async def test_layer2_only_overrides_matching_dpts(db: Database) -> None:
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.220", _ts(-3700), _ts(60),
+        repo,
+        "1.1.220",
+        _ts(-3700),
+        _ts(60),
         devices_repo=devices,
     )
 
@@ -234,7 +251,10 @@ async def test_layer2_reasoning_lists_layers_in_order(db: Database) -> None:
     repo = KnxStatsRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.220", _ts(-3700), _ts(60),
+        repo,
+        "1.1.220",
+        _ts(-3700),
+        _ts(60),
         devices_repo=devices,
     )
 

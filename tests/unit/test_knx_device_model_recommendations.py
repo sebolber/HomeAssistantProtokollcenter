@@ -4,11 +4,9 @@ from __future__ import annotations
 
 from custom_components.messagehub.processing.knx_device_model_recommendations import (
     KNX_DEVICE_MODEL_RECOMMENDATIONS,
-    ModelRecommendation,
     find_model_recommendation,
     reasoning_source,
 )
-
 
 # ---------------------------------------------------------------------------
 # Lookup-Verhalten
@@ -59,9 +57,7 @@ def test_empty_strings_return_none() -> None:
 
 
 def test_whitespace_strip() -> None:
-    assert find_model_recommendation(
-        "  hoermann  ", "  garage-control  "
-    ) is not None
+    assert find_model_recommendation("  hoermann  ", "  garage-control  ") is not None
 
 
 # ---------------------------------------------------------------------------
@@ -87,9 +83,7 @@ def test_all_entries_have_rationale() -> None:
     """Reasoning-Eintrag ist Pflicht — Layer-2-Marker im Frontend zeigt
     sonst leere Bullets."""
     for entry in KNX_DEVICE_MODEL_RECOMMENDATIONS:
-        assert entry.rationale, (
-            f"Eintrag {entry.manufacturer}/{entry.model_glob} ohne rationale"
-        )
+        assert entry.rationale, f"Eintrag {entry.manufacturer}/{entry.model_glob} ohne rationale"
 
 
 def test_dataclass_immutable() -> None:

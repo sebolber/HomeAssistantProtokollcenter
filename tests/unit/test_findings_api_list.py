@@ -79,9 +79,7 @@ class TestFindingsListResponse:
         assert {item["ga"] for item in resp["items"]} == {"1/2/3", "1/2/4"}
 
     @pytest.mark.asyncio
-    async def test_findings_endpoint_filters_by_severity_and_paginates(
-        self, db: Database
-    ) -> None:
+    async def test_findings_endpoint_filters_by_severity_and_paginates(self, db: Database) -> None:
         # Arrange — 5x error, 3x warning, 2x info
         repo = FindingsRepository(db)
         for i in range(5):
@@ -148,9 +146,7 @@ class TestFindingsListResponse:
             await list_findings_response(repo, severity="bogus")  # type: ignore[arg-type]
 
     @pytest.mark.asyncio
-    async def test_response_items_serialise_finding_to_dict(
-        self, db: Database
-    ) -> None:
+    async def test_response_items_serialise_finding_to_dict(self, db: Database) -> None:
         # Arrange
         repo = FindingsRepository(db)
         await repo.record(_f(evidence={"a": 1, "b": "x"}))
@@ -238,24 +234,14 @@ class TestFindingsApiViewRegistered:
     """
 
     def test_findings_list_view_is_registered(self) -> None:
-        api_dir = (
-            Path(__file__).resolve().parents[2]
-            / "custom_components"
-            / "messagehub"
-            / "api"
-        )
+        api_dir = Path(__file__).resolve().parents[2] / "custom_components" / "messagehub" / "api"
         src = (api_dir / "messages.py").read_text(encoding="utf-8")
         assert "FindingsListView" in src, (
             "FindingsListView fehlt in messages.async_register_views — Frontend bekommt 404."
         )
 
     def test_findings_module_exists(self) -> None:
-        api_dir = (
-            Path(__file__).resolve().parents[2]
-            / "custom_components"
-            / "messagehub"
-            / "api"
-        )
+        api_dir = Path(__file__).resolve().parents[2] / "custom_components" / "messagehub" / "api"
         findings_module = api_dir / "findings.py"
         assert findings_module.exists(), "api/findings.py muss existieren"
         # AST: `class FindingsListView` mit `url = "/api/messagehub/findings"`.
@@ -279,9 +265,7 @@ class TestFindingsApiViewRegistered:
                 and isinstance(stmt.value, ast.Constant)
             ):
                 url = str(stmt.value.value)
-        assert url == "/api/messagehub/findings", (
-            f"FindingsListView hat falsche URL: {url!r}"
-        )
+        assert url == "/api/messagehub/findings", f"FindingsListView hat falsche URL: {url!r}"
 
 
 class TestRepoCount:

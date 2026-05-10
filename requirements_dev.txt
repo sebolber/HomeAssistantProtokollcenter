@@ -7,6 +7,11 @@ pytest-asyncio>=0.23
 pytest-cov>=5.0
 pytest-homeassistant-custom-component>=0.13
 # Hinweis: pytest-homeassistant-custom-component zieht homeassistant als Dep.
+# manifest.json deklariert dependencies=[http, frontend, webhook]; die HA-Komponente
+# `frontend` braucht das compiled-UI-Paket. Pin entspricht dem von HA 2026.2.x
+# verlangten constraint. ACHTUNG: Paket erfordert Python>=3.13, daher kann CI
+# nur 3.13 testen (siehe ci.yml).
+home-assistant-frontend==20260128.6
 
 # Runtime-Dependencies (parallel zu manifest.json)
 # Werden hier wiederholt, damit Tests ohne HA-Container laufen können.
@@ -14,8 +19,12 @@ aiosqlite>=0.20
 jsonpath-ng>=1.6
 
 # Code quality
-ruff>=0.6
-mypy>=1.10
+# Hart pinnen: loose `>=` fuehrte zu Drift zwischen lokalem pre-commit
+# (rev v0.6.9) und CI (`pip install ruff>=0.6` -> 0.15.x) — Format-Spec
+# hat sich zwischendrin geaendert, CI war rot. Iter 02 prueft, ob
+# Compatibilities-Bumps notwendig werden.
+ruff==0.15.12
+mypy==2.0.0
 pre-commit>=3.7
 
 # Optional: für Smoke-Tests gegen laufende Dev-HA

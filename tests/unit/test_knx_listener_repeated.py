@@ -57,9 +57,7 @@ class TestRepeatedFlag:
         assert td.repeated is False
 
     def test_from_event_data_explicit_true(self) -> None:
-        td = KnxTelegramData.from_event_data(
-            {"destination": "1/2/3", "repeated": True}
-        )
+        td = KnxTelegramData.from_event_data({"destination": "1/2/3", "repeated": True})
         assert td.repeated is True
 
 

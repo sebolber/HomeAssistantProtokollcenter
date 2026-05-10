@@ -62,9 +62,7 @@ class TestListEndpoint:
     async def test_lists_overrides(self, db: Database) -> None:
         # Arrange — Iter B2: Default ist 'warning', User stuft auf 'error'.
         repo = FindingsRepository(db)
-        await repo.set_severity_override(
-            code="DPT_MISMATCH", severity="error", actor="u"
-        )
+        await repo.set_severity_override(code="DPT_MISMATCH", severity="error", actor="u")
 
         # Act
         resp = await list_severity_overrides_response(repo)
@@ -77,9 +75,7 @@ class TestListEndpoint:
 
 class TestSetEndpoint:
     @pytest.mark.asyncio
-    async def test_severity_override_endpoint_creates_and_updates(
-        self, db: Database
-    ) -> None:
+    async def test_severity_override_endpoint_creates_and_updates(self, db: Database) -> None:
         # Arrange
         repo = FindingsRepository(db)
 
@@ -146,14 +142,11 @@ class TestSetEndpoint:
         repo = FindingsRepository(db)
 
         # Act
-        await set_severity_override_response(
-            repo, code="DPT_MISMATCH", severity="info", actor="u"
-        )
+        await set_severity_override_response(repo, code="DPT_MISMATCH", severity="info", actor="u")
 
         # Assert
         audit = await db.fetch_all(
-            "SELECT * FROM audit_log "
-            "WHERE target_type = 'knx_finding_severity_override'"
+            "SELECT * FROM audit_log WHERE target_type = 'knx_finding_severity_override'"
         )
         assert len(audit) == 1
 
@@ -163,14 +156,10 @@ class TestClearEndpoint:
     async def test_clear_removes_override(self, db: Database) -> None:
         # Arrange
         repo = FindingsRepository(db)
-        await set_severity_override_response(
-            repo, code="DPT_MISMATCH", severity="info", actor="u"
-        )
+        await set_severity_override_response(repo, code="DPT_MISMATCH", severity="info", actor="u")
 
         # Act
-        resp = await clear_severity_override_response(
-            repo, code="DPT_MISMATCH", actor="u"
-        )
+        resp = await clear_severity_override_response(repo, code="DPT_MISMATCH", actor="u")
 
         # Assert
         assert resp["cleared"] is True
@@ -183,9 +172,7 @@ class TestClearEndpoint:
         repo = FindingsRepository(db)
 
         # Act / Assert — kein Fehler.
-        resp = await clear_severity_override_response(
-            repo, code="DPT_MISMATCH", actor="u"
-        )
+        resp = await clear_severity_override_response(repo, code="DPT_MISMATCH", actor="u")
         assert resp["cleared"] is True
 
 
@@ -193,12 +180,7 @@ class TestEndpointRegistered:
     """AST-Check: Severity-Override-Views muessen registriert sein."""
 
     def _api_dir(self) -> Path:
-        return (
-            Path(__file__).resolve().parents[2]
-            / "custom_components"
-            / "messagehub"
-            / "api"
-        )
+        return Path(__file__).resolve().parents[2] / "custom_components" / "messagehub" / "api"
 
     def test_views_in_messages_register(self) -> None:
         src = (self._api_dir() / "messages.py").read_text(encoding="utf-8")

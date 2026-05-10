@@ -41,7 +41,9 @@ DETERMINISTIC_TEST_CONTEXT: dict[str, Any] = {
 }
 
 ErrorCategory = Literal[
-    "incomplete_config", "exception", "invalid_response",
+    "incomplete_config",
+    "exception",
+    "invalid_response",
 ]
 
 
@@ -52,8 +54,7 @@ _INVALID_RESPONSE_MESSAGE = (
 )
 
 _INCOMPLETE_CONFIG_MESSAGE = (
-    "Konfiguration unvollstaendig — base_url, model "
-    "und api_key sind Pflicht."
+    "Konfiguration unvollstaendig — base_url, model und api_key sind Pflicht."
 )
 
 
