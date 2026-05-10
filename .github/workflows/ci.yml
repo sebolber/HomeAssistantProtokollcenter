@@ -13,7 +13,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        # 3.12 ist out-of-scope: home-assistant-frontend ab 20250129 verlangt
+        # Python>=3.13, und HA 2026.2.x pinnt genau dieses Constraint.
+        # pyproject.toml:requires-python bleibt >=3.12 als pip-Untergrenze;
+        # primary-Target ist 3.13 (DEVELOPMENT.md). Iter 02 prueft, ob
+        # requires-python noch enger gezogen werden sollte.
+        python-version: ["3.13"]
     steps:
       - uses: actions/checkout@v5
 

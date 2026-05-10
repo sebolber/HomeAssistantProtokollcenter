@@ -76,7 +76,11 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.mypy]
-python_version = "3.12"
+# 3.13 als check-target, weil HA 2026.2.x im installed package PEP 696
+# (Type Parameter Defaults) nutzt — mypy mit python_version=3.12 kann
+# `homeassistant/config_entries.py` nicht parsen. CI testet nur 3.13
+# (Matrix-Begruendung in ci.yml).
+python_version = "3.13"
 strict = true
 warn_unused_configs = true
 warn_unused_ignores = true
@@ -89,8 +93,10 @@ files = ["custom_components/messagehub"]
 module = [
     "jsonpath_ng.*",
     "aiosqlite.*",
-    "pytest_homeassistant_custom_component.*",
     "homeassistant.*",
+    # geoip2 ist optionale Runtime-Dep (manifest fuehrt sie nicht).
+    # processing/geoip.py ist runtime-defensiv, falls die DB-Datei fehlt.
+    "geoip2.*",
 ]
 ignore_missing_imports = true
 
