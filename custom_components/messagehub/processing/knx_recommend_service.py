@@ -627,6 +627,98 @@ async def _fetch_active_findings_for_source(
     ]
 
 
+def _device_profile_strings(profile: dict[str, Any] | None) -> tuple[str, str]:
+    if profile is None:
+        return "", ""
+    return str(profile.get("manufacturer") or ""), str(profile.get("model") or "")
+
+
+async def _lookup_dpt_in_cache(
+    cache_repo: RecommendationCacheRepository | None,
+    cache_key: str,
+) -> DptRecommendation | None:
+    if cache_repo is None:
+        return None
+    cached = await cache_repo.get(cache_key)
+    if cached is None:
+        return None
+    response = cached["response"]
+    if not isinstance(response, dict):
+        return None
+    return _dpt_recommendation_from_dict(response)
+
+
+async def _resolve_dpt_via_llm(
+    *,
+    ga: GaRecommendation,
+    provider: RecommendationProvider,
+    cache_repo: RecommendationCacheRepository | None,
+    provider_name: str,
+    model_name: str,
+    manufacturer: str,
+    device_model: str,
+    api_key: str | None,
+) -> DptRecommendation | None:
+    """Cache-First-Lookup, sonst Provider-Fetch (mit Cache-Write bei Treffer)."""
+    # Iter C2: api_key-Fingerprint geht in den Cache-Key, damit
+    # zwei verschiedene Provider-Schluessel (Free/Pro) NICHT
+    # denselben Eintrag teilen.
+    from ..storage.recommendation_cache_repo import (  # noqa: PLC0415
+        make_cache_key,
+    )
+
+    cache_key = make_cache_key(
+        provider=provider_name,
+        model=model_name,
+        dpt=ga.dpt,
+        manufacturer=manufacturer or None,
+        device_model=device_model or None,
+        api_key=api_key,
+    )
+    cached_reco = await _lookup_dpt_in_cache(cache_repo, cache_key)
+    if cached_reco is not None:
+        return cached_reco
+    fresh = await provider.fetch(
+        dpt=ga.dpt,
+        manufacturer=manufacturer or None,
+        model=device_model or None,
+        context={
+            "observed_mode": ga.observed.mode,
+            "median_interval_minutes": (ga.observed.median_interval_minutes or 0.0),
+            "sample_count": ga.observed.sample_count,
+        },
+    )
+    if fresh is not None and cache_repo is not None:
+        await cache_repo.set(
+            cache_key=cache_key,
+            response=_dpt_recommendation_to_dict(fresh),
+            provider=provider_name,
+            model=model_name,
+        )
+    return fresh
+
+
+def _ga_with_llm_recommendation(
+    ga: GaRecommendation, dpt_reco: DptRecommendation
+) -> GaRecommendation:
+    """Setzt die LLM-Empfehlung in einen ``GaRecommendation`` ein."""
+    cycle: tuple[int, int] | None = None
+    if dpt_reco.cycle_minutes_min is not None:
+        assert dpt_reco.cycle_minutes_max is not None
+        cycle = (dpt_reco.cycle_minutes_min, dpt_reco.cycle_minutes_max)
+    # Iter UX-6: kein "[KI]"-Praefix mehr — der explizite
+    # ``source``-Marker wird im Frontend als Pill gerendert.
+    return replace(
+        ga,
+        recommended_mode=dpt_reco.mode,
+        recommended_cycle_minutes=cycle,
+        recommended_hysteresis=dpt_reco.hysteresis,
+        rationale=dpt_reco.rationale,
+        severity=_severity_for(dpt_reco.mode, ga.observed.mode),
+        source="llm",
+    )
+
+
 async def _apply_llm_fallback(
     ga_recos: list[GaRecommendation],
     *,
@@ -648,78 +740,27 @@ async def _apply_llm_fallback(
 
     Returns: (modifizierte Liste, Anzahl der GAs mit LLM-Befuellung).
     """
-    from ..storage.recommendation_cache_repo import (  # noqa: PLC0415
-        make_cache_key,
-    )
-
-    manufacturer = (
-        str(device_profile.get("manufacturer") or "") if device_profile is not None else ""
-    )
-    device_model = str(device_profile.get("model") or "") if device_profile is not None else ""
-
+    manufacturer, device_model = _device_profile_strings(device_profile)
     new_recos: list[GaRecommendation] = []
     filled = 0
     for ga in ga_recos:
         if ga.recommended_mode is not None:
             new_recos.append(ga)
             continue
-        # Layer 1+2 hatten kein Match — Fallback auf LLM
-        # Iter C2: api_key-Fingerprint geht in den Cache-Key, damit
-        # zwei verschiedene Provider-Schluessel (Free/Pro) NICHT
-        # denselben Eintrag teilen.
-        cache_key = make_cache_key(
-            provider=provider_name,
-            model=model_name,
-            dpt=ga.dpt,
-            manufacturer=manufacturer or None,
-            device_model=device_model or None,
+        dpt_reco = await _resolve_dpt_via_llm(
+            ga=ga,
+            provider=provider,
+            cache_repo=cache_repo,
+            provider_name=provider_name,
+            model_name=model_name,
+            manufacturer=manufacturer,
+            device_model=device_model,
             api_key=api_key,
         )
-        dpt_reco: DptRecommendation | None = None
-        if cache_repo is not None:
-            cached = await cache_repo.get(cache_key)
-            if cached is not None:
-                cached_response = cached["response"]
-                if isinstance(cached_response, dict):
-                    dpt_reco = _dpt_recommendation_from_dict(cached_response)
-        if dpt_reco is None:
-            dpt_reco = await provider.fetch(
-                dpt=ga.dpt,
-                manufacturer=manufacturer or None,
-                model=device_model or None,
-                context={
-                    "observed_mode": ga.observed.mode,
-                    "median_interval_minutes": (ga.observed.median_interval_minutes or 0.0),
-                    "sample_count": ga.observed.sample_count,
-                },
-            )
-            if dpt_reco is not None and cache_repo is not None:
-                await cache_repo.set(
-                    cache_key=cache_key,
-                    response=_dpt_recommendation_to_dict(dpt_reco),
-                    provider=provider_name,
-                    model=model_name,
-                )
         if dpt_reco is None:
             new_recos.append(ga)
             continue
-        cycle: tuple[int, int] | None = None
-        if dpt_reco.cycle_minutes_min is not None:
-            assert dpt_reco.cycle_minutes_max is not None
-            cycle = (dpt_reco.cycle_minutes_min, dpt_reco.cycle_minutes_max)
-        new_recos.append(
-            replace(
-                ga,
-                recommended_mode=dpt_reco.mode,
-                recommended_cycle_minutes=cycle,
-                recommended_hysteresis=dpt_reco.hysteresis,
-                # Iter UX-6: kein "[KI]"-Praefix mehr — der explizite
-                # ``source``-Marker wird im Frontend als Pill gerendert.
-                rationale=dpt_reco.rationale,
-                severity=_severity_for(dpt_reco.mode, ga.observed.mode),
-                source="llm",
-            )
-        )
+        new_recos.append(_ga_with_llm_recommendation(ga, dpt_reco))
         filled += 1
     return new_recos, filled
 
