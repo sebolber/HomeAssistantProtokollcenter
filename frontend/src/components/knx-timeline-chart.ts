@@ -138,7 +138,7 @@ export class KnxTimelineChart extends LitElement {
   private _allBuckets(): string[] {
     const set = new Set<string>();
     for (const p of this.items) set.add(p.bucket);
-    return Array.from(set).sort();
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
   }
 
   private _buildSeries(): Array<{ ga: string; values: number[] }> {
