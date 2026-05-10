@@ -150,6 +150,30 @@ async def test_queue_overflow_drops_oldest() -> None:
 
 
 @pytest.mark.asyncio
+async def test_external_cancel_results_in_cancelled_task_state() -> None:
+    """Externer ``task.cancel()`` muss den Worker als CANCELLED beenden,
+    nicht als FINISHED. Sonar S7497 / async-best-practice: ein gefangenes
+    ``CancelledError`` muss re-raised werden, sonst bricht die Cancel-
+    Propagation an Task-Grenzen ab."""
+    from custom_components.messagehub.listeners.knx import KnxIngestWorker
+
+    worker = KnxIngestWorker(_RecordingRepo(), max_batch_size=10, flush_interval_sec=10.0)
+    await worker.start()
+    task = worker._task
+    assert task is not None
+    # Task in den await-Point von _run() laufen lassen, sonst trifft das
+    # cancel() einen PENDING-Task und der Body wird nie betreten.
+    await asyncio.sleep(0.05)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert task.cancelled(), (
+        "Worker-Task muss CANCELLED-Status haben, nicht FINISHED — "
+        "sonst hat _run() das CancelledError verschluckt."
+    )
+
+
+@pytest.mark.asyncio
 async def test_stop_flushes_pending_telegrams() -> None:
     """Beim Shutdown muessen pending Telegramme noch raus, damit kein
     Datenverlust beim HA-Reload entsteht."""
