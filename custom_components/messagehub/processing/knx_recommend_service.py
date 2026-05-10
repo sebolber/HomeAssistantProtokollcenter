@@ -809,7 +809,225 @@ async def _avg_busload_pct(
     return sum(pcts) / len(pcts)
 
 
-async def compute_device_recommendation(  # noqa: PLR0912, PLR0915
+@dataclass(frozen=True)
+class _DeviceProfile:
+    """Geloeste Geraete-Identitaet fuer Layer-2/Layer-4-Lookups."""
+
+    profile: dict[str, Any] | None
+    source: str  # "user_override" | "ets_discovery" | ""
+    manufacturer: str | None
+    model: str | None
+
+
+async def _resolve_device_profile(
+    *,
+    devices_repo: KnxDeviceRepository | None,
+    ets_devices: dict[str, dict[str, Any]] | None,
+    dev_source: str,
+) -> _DeviceProfile:
+    """Layer-2-Lookup mit klarer Quellen-Reihenfolge.
+
+    1. User-Override aus knx_devices (manuell gepflegt, hat Vorrang)
+    2. ETS-Discovery-Daten (Hersteller + Produkt direkt aus dem
+       KNX-Projekt — Standardquelle, kein Pflegeaufwand fuer den User)
+    3. Leeres Profil — kein Modell-Override
+    """
+    user_profile = await _fetch_user_profile(devices_repo, dev_source)
+    if user_profile is not None:
+        return user_profile
+    ets_profile = _fetch_ets_profile(ets_devices, dev_source)
+    if ets_profile is not None:
+        return ets_profile
+    return _DeviceProfile(profile=None, source="", manufacturer=None, model=None)
+
+
+async def _fetch_user_profile(
+    devices_repo: KnxDeviceRepository | None, dev_source: str
+) -> _DeviceProfile | None:
+    if devices_repo is None:
+        return None
+    user_profile = await devices_repo.get(dev_source)
+    if user_profile is None:
+        return None
+    if not (user_profile.get("manufacturer") or user_profile.get("model")):
+        return None
+    profile = dict(user_profile)
+    manufacturer = str(profile["manufacturer"]) if profile.get("manufacturer") else None
+    model = str(profile["model"]) if profile.get("model") else None
+    return _DeviceProfile(
+        profile=profile,
+        source="user_override",
+        manufacturer=manufacturer,
+        model=model,
+    )
+
+
+def _fetch_ets_profile(
+    ets_devices: dict[str, dict[str, Any]] | None, dev_source: str
+) -> _DeviceProfile | None:
+    if ets_devices is None:
+        return None
+    ets_entry = ets_devices.get(dev_source)
+    if ets_entry is None:
+        return None
+    manufacturer = (ets_entry.get("manufacturer") or "").strip() or None
+    model = (ets_entry.get("product") or "").strip() or None
+    if manufacturer is None and model is None:
+        return None
+    return _DeviceProfile(
+        profile={"manufacturer": manufacturer, "model": model},
+        source="ets_discovery",
+        manufacturer=manufacturer,
+        model=model,
+    )
+
+
+async def _classify_gas(
+    *,
+    repo: KnxStatsRepository,
+    ga_rows: list[dict[str, Any]],
+    from_iso: str,
+    to_iso: str,
+    model_override: ModelRecommendation | None,
+) -> list[GaRecommendation]:
+    """Klassifiziert pro GA-Zeile Sample-Verlauf -> ``GaRecommendation``."""
+    ga_recos: list[GaRecommendation] = []
+    for row in ga_rows:
+        ga = str(row["ga"])
+        samples = await repo.samples_for_ga_classification(ga, from_iso, to_iso)
+        timestamps = [s["timestamp"] for s in samples]
+        values = [s["value"] for s in samples]
+        observation = classify_send_mode(
+            intervals_from_timestamps(timestamps),
+            sample_count=len(samples),
+            value_changes=count_value_changes(values),
+        )
+        ga_recos.append(
+            _ga_recommendation(
+                ga=ga,
+                label=row.get("label"),
+                dpt=row.get("dpt"),
+                observation=observation,
+                model_override=model_override,
+            )
+        )
+    return ga_recos
+
+
+def _layer1_reasoning(ga_recos: list[GaRecommendation]) -> str | None:
+    if not any(r.recommended_mode is not None for r in ga_recos):
+        return None
+    return (
+        f"Layer 1 ({reasoning_source()}) — DPT-Standard-Empfehlung "
+        "je GA aus knx_dpt_recommendations."
+    )
+
+
+def _layer2_reasoning(
+    profile: _DeviceProfile, model_override: ModelRecommendation | None
+) -> str | None:
+    source_label = "User-Override" if profile.source == "user_override" else "ETS-Projekt"
+    if model_override is not None:
+        # Layer-2-Marker mit Hersteller-/Modell-Begruendung + Doc-URL +
+        # Quellen-Marker (ETS oder User-Override).
+        doc_suffix = f" ({model_override.doc_url})" if model_override.doc_url else ""
+        return (
+            f"Layer 2 ({model_reasoning_source()}, {source_label}) — "
+            f"{model_override.manufacturer}/{model_override.model_glob}: "
+            f"{model_override.rationale}{doc_suffix}"
+        )
+    if profile.profile is not None and profile.manufacturer:
+        return (
+            f"Layer 2 (device_model, {source_label}) — Hersteller "
+            f"'{profile.manufacturer}' (Modell: {profile.model or 'unbekannt'}) "
+            "hat noch keinen kuratierten Override in der Tabelle."
+        )
+    return None
+
+
+def _layer3_busload_reasoning(busload_overridden: bool, avg_busload: float) -> str | None:
+    if not busload_overridden:
+        return None
+    return (
+        f"Layer 3 (live_anomaly) — Bus-Avg-Last {avg_busload:.1f} % "
+        f">= {BUSLOAD_OVERRIDE_THRESHOLD_PCT:.0f} % → empfohlene "
+        f"Zyklen um Faktor {BUSLOAD_OVERRIDE_FACTOR} verlaengert."
+    )
+
+
+def _layer3_findings_reasoning(findings: list[Finding]) -> list[str]:
+    out: list[str] = []
+    for finding in findings:
+        ga_label = f"auf {finding.ga}" if finding.ga is not None else "(bus-weit)"
+        # Iter B6: title kommt nicht mehr aus dem Finding selbst —
+        # die UI rendert die Translation zur Laufzeit. Im Reasoning-
+        # Text reicht der Code als maschinenlesbarer Marker; das
+        # Frontend (oder ein nachgelagerter Service) ersetzt ihn ggf.
+        # mit dem lokalisierten Titel.
+        out.append(f"Layer 3 (live_anomaly) — Finding {finding.code} {ga_label} aktiv")
+    return out
+
+
+def _layer4_reasoning(llm_filled_count: int) -> str | None:
+    if not llm_filled_count:
+        return None
+    return (
+        f"Layer 4 (llm) — {llm_filled_count} GA(s) ohne DPT-/Modell-"
+        "Treffer durch LLM-Vorschlag ergaenzt. Bitte manuell pruefen."
+    )
+
+
+def _summary_reasoning(ga_recos: list[GaRecommendation]) -> list[str]:
+    out: list[str] = []
+    silent_count = sum(1 for r in ga_recos if r.observed.mode == "silent")
+    if silent_count:
+        out.append(
+            f"{silent_count} GA(s) stumm in der Periode — "
+            "Klassifikation als 'silent' ohne weitere Wertung."
+        )
+    insufficient_count = sum(1 for r in ga_recos if r.observed.mode == "insufficient")
+    if insufficient_count:
+        out.append(
+            f"{insufficient_count} GA(s) mit zu wenig Telegrammen — "
+            "low confidence, lange Beobachtungsperiode empfohlen."
+        )
+    deviation_count = sum(1 for r in ga_recos if r.severity == "deviation")
+    if deviation_count:
+        out.append(
+            f"{deviation_count} GA(s) zeigen klare Abweichung "
+            "vom DPT-Default — siehe Detail-Tabelle."
+        )
+    return out
+
+
+def _build_reasoning(
+    *,
+    ga_recos: list[GaRecommendation],
+    profile: _DeviceProfile,
+    model_override: ModelRecommendation | None,
+    llm_filled_count: int,
+    busload_overridden: bool,
+    avg_busload: float,
+    active_findings: list[Finding],
+) -> list[str]:
+    """Setzt die einzelnen Reasoning-Zeilen aus den Layer-Helfern zusammen.
+
+    Reihenfolge bewusst stabil — die UI verlaesst sich darauf, dass
+    Layer 1 vor Layer 2 vor Layer 4 vor Layer 3 vor Summary steht.
+    """
+    candidates: list[str | None] = [
+        _layer1_reasoning(ga_recos),
+        _layer2_reasoning(profile, model_override),
+        _layer4_reasoning(llm_filled_count),
+        _layer3_busload_reasoning(busload_overridden, avg_busload),
+    ]
+    reasoning = [line for line in candidates if line]
+    reasoning.extend(_layer3_findings_reasoning(active_findings))
+    reasoning.extend(_summary_reasoning(ga_recos))
+    return reasoning
+
+
+async def compute_device_recommendation(
     repo: KnxStatsRepository,
     dev_source: str,
     from_iso: str,
@@ -837,76 +1055,24 @@ async def compute_device_recommendation(  # noqa: PLR0912, PLR0915
     """
     if not dev_source:
         return None
-    ga_rows = await repo.gas_for_source(
-        dev_source,
-        from_iso,
-        to_iso,
-        limit=100,
-    )
+    ga_rows = await repo.gas_for_source(dev_source, from_iso, to_iso, limit=100)
     if not ga_rows:
         return None
 
-    # Iter L2.5: Layer-2-Lookup mit klarer Quellen-Reihenfolge.
-    # 1. User-Override aus knx_devices (manuell gepflegt, hat Vorrang)
-    # 2. ETS-Discovery-Daten (Hersteller + Produkt direkt aus dem
-    #    KNX-Projekt — Standardquelle, kein Pflegeaufwand fuer den User)
-    # 3. None — kein Modell-Override
-    device_profile: dict[str, Any] | None = None
-    profile_source: str = ""
-    manufacturer: str | None = None
-    device_model: str | None = None
-    if devices_repo is not None:
-        user_profile = await devices_repo.get(dev_source)
-        if user_profile is not None and (
-            user_profile.get("manufacturer") or user_profile.get("model")
-        ):
-            device_profile = dict(user_profile)
-            profile_source = "user_override"
-            manufacturer = (
-                str(device_profile["manufacturer"]) if device_profile.get("manufacturer") else None
-            )
-            device_model = str(device_profile["model"]) if device_profile.get("model") else None
-    if manufacturer is None and ets_devices is not None:
-        ets_entry = ets_devices.get(dev_source)
-        if ets_entry is not None:
-            ets_manufacturer = (ets_entry.get("manufacturer") or "").strip()
-            ets_product = (ets_entry.get("product") or "").strip()
-            if ets_manufacturer or ets_product:
-                manufacturer = ets_manufacturer or None
-                device_model = ets_product or None
-                device_profile = {
-                    "manufacturer": manufacturer,
-                    "model": device_model,
-                }
-                profile_source = "ets_discovery"
-    model_override = find_model_recommendation(manufacturer, device_model)
+    profile = await _resolve_device_profile(
+        devices_repo=devices_repo,
+        ets_devices=ets_devices,
+        dev_source=dev_source,
+    )
+    model_override = find_model_recommendation(profile.manufacturer, profile.model)
 
-    ga_recos: list[GaRecommendation] = []
-    for row in ga_rows:
-        ga = str(row["ga"])
-        samples = await repo.samples_for_ga_classification(
-            ga,
-            from_iso,
-            to_iso,
-        )
-        timestamps = [s["timestamp"] for s in samples]
-        values = [s["value"] for s in samples]
-        intervals = intervals_from_timestamps(timestamps)
-        value_changes = count_value_changes(values)
-        observation = classify_send_mode(
-            intervals,
-            sample_count=len(samples),
-            value_changes=value_changes,
-        )
-        ga_recos.append(
-            _ga_recommendation(
-                ga=ga,
-                label=row.get("label"),
-                dpt=row.get("dpt"),
-                observation=observation,
-                model_override=model_override,
-            )
-        )
+    ga_recos = await _classify_gas(
+        repo=repo,
+        ga_rows=ga_rows,
+        from_iso=from_iso,
+        to_iso=to_iso,
+        model_override=model_override,
+    )
 
     # Iter L4.x: Layer 4 — LLM-Fallback fuer GAs ohne L1/L2-Treffer.
     # KEIN Override fuer GAs mit existierender Empfehlung; Layer 4 ist
@@ -920,7 +1086,7 @@ async def compute_device_recommendation(  # noqa: PLR0912, PLR0915
             cache_repo=llm_cache_repo,
             provider_name=llm_provider_name,
             model_name=llm_model,
-            device_profile=device_profile,
+            device_profile=profile.profile,
             api_key=llm_api_key,
         )
 
@@ -933,79 +1099,22 @@ async def compute_device_recommendation(  # noqa: PLR0912, PLR0915
     # Source schaerfen die Severity der betroffenen GAs auf 'deviation'.
     active_findings: list[Finding] = []
     if findings_repo is not None:
-        active_findings = await _fetch_active_findings_for_source(
-            findings_repo,
-            dev_source,
-        )
+        active_findings = await _fetch_active_findings_for_source(findings_repo, dev_source)
         if active_findings:
-            ga_recos = _apply_findings_override(
-                ga_recos,
-                active_findings=active_findings,
-            )
+            ga_recos = _apply_findings_override(ga_recos, active_findings=active_findings)
 
     headline_mode, confidence = _aggregate_headline(ga_recos)
     headline_text = _build_headline_text(headline_mode, ga_recos)
 
-    reasoning: list[str] = []
-    if any(r.recommended_mode is not None for r in ga_recos):
-        reasoning.append(
-            f"Layer 1 ({reasoning_source()}) — DPT-Standard-Empfehlung "
-            f"je GA aus knx_dpt_recommendations."
-        )
-    if model_override is not None:
-        # Layer-2-Marker mit Hersteller-/Modell-Begruendung + Doc-URL +
-        # Quellen-Marker (ETS oder User-Override).
-        source_label = "User-Override" if profile_source == "user_override" else "ETS-Projekt"
-        reasoning.append(
-            f"Layer 2 ({model_reasoning_source()}, {source_label}) — "
-            f"{model_override.manufacturer}/{model_override.model_glob}: "
-            f"{model_override.rationale}"
-            + (f" ({model_override.doc_url})" if model_override.doc_url else "")
-        )
-    elif device_profile is not None and manufacturer:
-        source_label = "User-Override" if profile_source == "user_override" else "ETS-Projekt"
-        reasoning.append(
-            f"Layer 2 (device_model, {source_label}) — Hersteller "
-            f"'{manufacturer}' (Modell: {device_model or 'unbekannt'}) "
-            "hat noch keinen kuratierten Override in der Tabelle."
-        )
-    if llm_filled_count:
-        reasoning.append(
-            f"Layer 4 (llm) — {llm_filled_count} GA(s) ohne DPT-/Modell-"
-            "Treffer durch LLM-Vorschlag ergaenzt. Bitte manuell pruefen."
-        )
-    if busload_overridden:
-        reasoning.append(
-            f"Layer 3 (live_anomaly) — Bus-Avg-Last {avg_busload:.1f} % "
-            f">= {BUSLOAD_OVERRIDE_THRESHOLD_PCT:.0f} % → empfohlene "
-            f"Zyklen um Faktor {BUSLOAD_OVERRIDE_FACTOR} verlaengert."
-        )
-    for finding in active_findings:
-        ga_label = f"auf {finding.ga}" if finding.ga is not None else "(bus-weit)"
-        # Iter B6: title kommt nicht mehr aus dem Finding selbst —
-        # die UI rendert die Translation zur Laufzeit. Im Reasoning-
-        # Text reicht der Code als maschinenlesbarer Marker; das
-        # Frontend (oder ein nachgelagerter Service) ersetzt ihn ggf.
-        # mit dem lokalisierten Titel.
-        reasoning.append(f"Layer 3 (live_anomaly) — Finding {finding.code} {ga_label} aktiv")
-    silent_count = sum(1 for r in ga_recos if r.observed.mode == "silent")
-    if silent_count:
-        reasoning.append(
-            f"{silent_count} GA(s) stumm in der Periode — "
-            "Klassifikation als 'silent' ohne weitere Wertung."
-        )
-    insufficient_count = sum(1 for r in ga_recos if r.observed.mode == "insufficient")
-    if insufficient_count:
-        reasoning.append(
-            f"{insufficient_count} GA(s) mit zu wenig Telegrammen — "
-            "low confidence, lange Beobachtungsperiode empfohlen."
-        )
-    deviation_count = sum(1 for r in ga_recos if r.severity == "deviation")
-    if deviation_count:
-        reasoning.append(
-            f"{deviation_count} GA(s) zeigen klare Abweichung "
-            "vom DPT-Default — siehe Detail-Tabelle."
-        )
+    reasoning = _build_reasoning(
+        ga_recos=ga_recos,
+        profile=profile,
+        model_override=model_override,
+        llm_filled_count=llm_filled_count,
+        busload_overridden=busload_overridden,
+        avg_busload=avg_busload,
+        active_findings=active_findings,
+    )
 
     return DeviceRecommendation(
         dev_source=dev_source,
