@@ -50,6 +50,10 @@ async def test_add_message_service_persists_and_fires_event(hass: HomeAssistant)
         },
         blocking=True,
     )
+    # blocking=True wartet auf den Service-Handler, aber die Bus-Listener
+    # laufen als separate Tasks auf dem Eventloop — async_block_till_done
+    # spuelt sie, damit `received` befuellt ist.
+    await hass.async_block_till_done()
 
     assert len(received) == 1
     payload = received[0].data

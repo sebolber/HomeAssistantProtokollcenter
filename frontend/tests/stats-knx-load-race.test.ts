@@ -33,11 +33,16 @@ describe("stats-knx-view: _load() race-protection (Iter D4)", () => {
       getKnxStatsSummary: async (): Promise<unknown> => {
         summarySeq += 1;
         const myValue = summarySeq;
+        const base = {
+          from: "", to: "",
+          estimated_busload_pct: 0,
+          counts_by_severity: { red: 0, orange: 0, yellow: 0, green: 0 },
+        };
         // Erste Antwort: lange Verzoegerung. Zweite: kurz.
         if (myValue === 1) {
-          return delayed({ total_telegrams: 1, active_gas: 1, active_devices: 1 }, 80);
+          return delayed({ ...base, total_telegrams: 1, active_gas: 1, active_devices: 1 }, 80);
         }
-        return delayed({ total_telegrams: 2, active_gas: 2, active_devices: 2 }, 5);
+        return delayed({ ...base, total_telegrams: 2, active_gas: 2, active_devices: 2 }, 5);
       },
       getKnxStatsTop: async () => ({
         from: "", to: "", items: [], total: 0,
@@ -50,13 +55,35 @@ describe("stats-knx-view: _load() race-protection (Iter D4)", () => {
         summary: { total: 0, repeated: 0, ratio_pct: 0 },
         per_ga: [],
       }),
-      getKnxStatsSilence: async () => ({ from: "", to: "", items: [] }),
-      getKnxStatsOrphans: async () => ({ project_only: [], runtime_only: [] }),
+      getKnxStatsSilence: async () => ({
+        from: "", to: "",
+        max_silence_minutes: 0,
+        items: [],
+        alarm_count: 0,
+      }),
+      getKnxStatsOrphans: async () => ({
+        from: "", to: "",
+        missing_in_log: [],
+        extra_in_log: [],
+        project_total: 0,
+        log_total: 0,
+        discovery_status: "ok",
+      }),
       getKnxStatsAlarms: async () => ({ from: "", to: "", items: [] }),
-      getKnxStatsBusload: async () => ({ buckets: [], from: "", to: "" }),
+      getKnxStatsBusload: async () => ({
+        from: "", to: "",
+        bucket_seconds: 60,
+        summary: { current_pct: 0, max_pct: 0, avg_pct: 0, total_telegrams: 0, buckets: 0 },
+        series: [],
+      }),
       getKnxStatsHealthScore: async () => null,
       getKnxStatsLongTerm: async () => null,
-      getKnxStatsBursts: async () => ({ items: [], from: "", to: "" }),
+      getKnxStatsBursts: async () => ({
+        from: "", to: "",
+        window_seconds: 60,
+        threshold_pct: 0,
+        bursts: [],
+      }),
       getKnxStatsSensitiveLog: async () => null,
       getKnxStatsTrend: async () => null,
       getKnxStatsHeatmap: async () => null,
