@@ -34,7 +34,9 @@ class TestStaleGaDetector:
 
         # Act
         finding = detect_stale_ga(
-            ga="1/2/3", last_seen=last_seen, now=now,
+            ga="1/2/3",
+            last_seen=last_seen,
+            now=now,
         )
 
         # Assert
@@ -49,7 +51,9 @@ class TestStaleGaDetector:
         # Arrange — last_seen vor 5 Tagen (unter Schwelle).
         now = datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC)
         finding = detect_stale_ga(
-            ga="1/2/3", last_seen=_ts(5.0, now), now=now,
+            ga="1/2/3",
+            last_seen=_ts(5.0, now),
+            now=now,
         )
         assert finding is None
 

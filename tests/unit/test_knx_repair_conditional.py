@@ -48,9 +48,7 @@ async def db(tmp_path):  # type: ignore[no-untyped-def]
 
 
 @pytest.mark.asyncio
-async def test_no_issue_when_no_logged_addresses(
-    monkeypatch, db: Database
-) -> None:
+async def test_no_issue_when_no_logged_addresses(monkeypatch, db: Database) -> None:
     """Frisch installierte Anlage ohne GA-Whitelist → kein Repair-Issue."""
     called: list[bool] = []
     monkeypatch.setattr(
@@ -58,16 +56,12 @@ async def test_no_issue_when_no_logged_addresses(
         lambda _hass: called.append(True),
     )
     repo = KnxAddressRepository(db)
-    await _report_knx_repair_if_user_wants_it(
-        _IssueRecordingHass(), repo
-    )
+    await _report_knx_repair_if_user_wants_it(_IssueRecordingHass(), repo)
     assert called == []
 
 
 @pytest.mark.asyncio
-async def test_issue_when_at_least_one_log_enabled_address(
-    monkeypatch, db: Database
-) -> None:
+async def test_issue_when_at_least_one_log_enabled_address(monkeypatch, db: Database) -> None:
     """User hat eine GA aktiv geloggt → Repair-Issue greift."""
     called: list[bool] = []
     monkeypatch.setattr(
@@ -82,9 +76,7 @@ async def test_issue_when_at_least_one_log_enabled_address(
             log_enabled=True,
         )
     )
-    await _report_knx_repair_if_user_wants_it(
-        _IssueRecordingHass(), repo
-    )
+    await _report_knx_repair_if_user_wants_it(_IssueRecordingHass(), repo)
     assert called == [True]
 
 
@@ -107,7 +99,5 @@ async def test_no_issue_when_addresses_exist_but_none_log_enabled(
             log_enabled=False,
         )
     )
-    await _report_knx_repair_if_user_wants_it(
-        _IssueRecordingHass(), repo
-    )
+    await _report_knx_repair_if_user_wants_it(_IssueRecordingHass(), repo)
     assert called == []

@@ -26,9 +26,7 @@ from custom_components.messagehub.listeners.knx import KnxTelegramData
 
 class _FakeHass:
     def __init__(self, bus_analysis: bool = True) -> None:
-        self.data: dict[str, Any] = {
-            DOMAIN: {HASS_KEY_KNX_BUS_ANALYSIS: bus_analysis}
-        }
+        self.data: dict[str, Any] = {DOMAIN: {HASS_KEY_KNX_BUS_ANALYSIS: bus_analysis}}
 
 
 class _RecordingRepo:
@@ -59,9 +57,7 @@ async def test_worker_flushes_batched_telegrams_to_repo() -> None:
     from custom_components.messagehub.listeners.knx import KnxIngestWorker
 
     repo = _RecordingRepo()
-    worker = KnxIngestWorker(
-        repo, max_batch_size=10, flush_interval_sec=0.05
-    )
+    worker = KnxIngestWorker(repo, max_batch_size=10, flush_interval_sec=0.05)
     await worker.start()
     try:
         for i in range(5):
@@ -82,9 +78,7 @@ async def test_worker_flushes_when_batch_size_reached() -> None:
     from custom_components.messagehub.listeners.knx import KnxIngestWorker
 
     repo = _RecordingRepo()
-    worker = KnxIngestWorker(
-        repo, max_batch_size=3, flush_interval_sec=10.0
-    )
+    worker = KnxIngestWorker(repo, max_batch_size=3, flush_interval_sec=10.0)
     await worker.start()
     try:
         for i in range(3):
@@ -101,9 +95,7 @@ async def test_disabled_flag_drops_telegram_silently() -> None:
     from custom_components.messagehub.listeners.knx import KnxIngestWorker
 
     repo = _RecordingRepo()
-    worker = KnxIngestWorker(
-        repo, max_batch_size=10, flush_interval_sec=0.05
-    )
+    worker = KnxIngestWorker(repo, max_batch_size=10, flush_interval_sec=0.05)
     await worker.start()
     try:
         worker.enqueue(_FakeHass(bus_analysis=False), _make_telegram())
@@ -123,14 +115,10 @@ async def test_repo_crash_does_not_propagate() -> None:
         async def insert_raw_batch(self, rows: list[dict[str, Any]]) -> None:
             raise RuntimeError("simulated DB lock")
 
-        async def increment_counter_batch(
-            self, items: list[tuple[str, str]]
-        ) -> None:
+        async def increment_counter_batch(self, items: list[tuple[str, str]]) -> None:
             pass
 
-    worker = KnxIngestWorker(
-        _CrashingRepo(), max_batch_size=10, flush_interval_sec=0.05
-    )
+    worker = KnxIngestWorker(_CrashingRepo(), max_batch_size=10, flush_interval_sec=0.05)
     await worker.start()
     try:
         worker.enqueue(_FakeHass(), _make_telegram())
@@ -168,9 +156,7 @@ async def test_stop_flushes_pending_telegrams() -> None:
     from custom_components.messagehub.listeners.knx import KnxIngestWorker
 
     repo = _RecordingRepo()
-    worker = KnxIngestWorker(
-        repo, max_batch_size=100, flush_interval_sec=10.0
-    )
+    worker = KnxIngestWorker(repo, max_batch_size=100, flush_interval_sec=10.0)
     await worker.start()
     for i in range(7):
         worker.enqueue(_FakeHass(), _make_telegram(ga=f"1/2/{i}"))

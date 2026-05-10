@@ -65,8 +65,10 @@ def _make_clock(values: list[float]) -> Any:
     """Mini-Klock-Generator: konsumiert Werte aus der Liste in
     Aufruf-Reihenfolge (deterministische Latenz fuer Tests).
     """
+
     def _next() -> float:
         return values.pop(0)
+
     return _next
 
 
@@ -91,7 +93,11 @@ class TestDeterministicInputs:
         # Kein dev_source, kein GA, kein customer label — nur generische
         # Stats. Das ist der Datenschutz-Vertrag des Test-Endpoints.
         forbidden_keys = {
-            "dev_source", "ga", "customer", "user_id", "label",
+            "dev_source",
+            "ga",
+            "customer",
+            "user_id",
+            "label",
         }
         present = set(DETERMINISTIC_TEST_CONTEXT.keys())
         assert present.isdisjoint(forbidden_keys)
@@ -115,7 +121,8 @@ class TestRunProviderTest:
         )
         provider = _FakeProvider(response=recommendation)
         result = await run_provider_test(
-            provider, monotonic=_make_clock([100.0, 100.234]),
+            provider,
+            monotonic=_make_clock([100.0, 100.234]),
         )
         assert result.ok is True
         assert result.response == recommendation
@@ -127,7 +134,8 @@ class TestRunProviderTest:
     async def test_provider_returns_none_yields_invalid_response(self) -> None:
         provider = _FakeProvider(response=None)
         result = await run_provider_test(
-            provider, monotonic=_make_clock([0.0, 0.5]),
+            provider,
+            monotonic=_make_clock([0.0, 0.5]),
         )
         assert result.ok is False
         assert result.error_category == "invalid_response"
@@ -139,7 +147,8 @@ class TestRunProviderTest:
     async def test_exception_yields_exception_category(self) -> None:
         provider = _FakeProvider(raises=RuntimeError)
         result = await run_provider_test(
-            provider, monotonic=_make_clock([0.0, 0.05]),
+            provider,
+            monotonic=_make_clock([0.0, 0.05]),
         )
         assert result.ok is False
         assert result.error_category == "exception"
@@ -190,8 +199,11 @@ class TestSerializeTestResult:
             rationale="x",
         )
         result = ProviderTestResult(
-            ok=True, latency_ms=42.0, response=recommendation,
-            error=None, error_category=None,
+            ok=True,
+            latency_ms=42.0,
+            response=recommendation,
+            error=None,
+            error_category=None,
         )
         payload = serialize_test_result(result)
         assert payload["ok"] is True
@@ -209,8 +221,11 @@ class TestSerializeTestResult:
 
     def test_response_null_when_absent(self) -> None:
         result = ProviderTestResult(
-            ok=False, latency_ms=0.0, response=None,
-            error="x", error_category="exception",
+            ok=False,
+            latency_ms=0.0,
+            response=None,
+            error="x",
+            error_category="exception",
         )
         payload = serialize_test_result(result)
         assert payload["response"] is None
@@ -220,10 +235,17 @@ class TestSerializeTestResult:
     def test_schema_contract_keys(self) -> None:
         # Frontend baut auf diesen Keys — Vertrag pinnen.
         result = ProviderTestResult(
-            ok=False, latency_ms=0.0, response=None,
-            error=None, error_category=None,
+            ok=False,
+            latency_ms=0.0,
+            response=None,
+            error=None,
+            error_category=None,
         )
         payload = serialize_test_result(result)
         assert set(payload.keys()) == {
-            "ok", "latency_ms", "response", "error", "error_category",
+            "ok",
+            "latency_ms",
+            "response",
+            "error",
+            "error_category",
         }

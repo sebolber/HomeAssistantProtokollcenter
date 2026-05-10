@@ -225,7 +225,10 @@ def _per_sample_findings(
         if row.get("telegramtype") == "GroupValueRead":
             continue
         finding = detect_value_out_of_range(
-            ga=ga, dpt=project_dpt, value=row.get("value"), now=now,
+            ga=ga,
+            dpt=project_dpt,
+            value=row.get("value"),
+            now=now,
         )
         if finding is not None:
             findings.append(finding)
@@ -266,7 +269,10 @@ def _per_ga_findings(
     period_days = _period_days(period_from, period_to)
     if period_days > 0:
         repeat = detect_repeat_approximation(
-            ga=ga, samples=samples, period_days=period_days, now=now,
+            ga=ga,
+            samples=samples,
+            period_days=period_days,
+            now=now,
         )
         if repeat is not None:
             out.append(repeat)
@@ -319,8 +325,7 @@ async def _record_with_severity_override(
             )
             severity = finding.severity
         finding_with_resolved = (
-            finding if severity == finding.severity
-            else _replace_severity(finding, severity)
+            finding if severity == finding.severity else _replace_severity(finding, severity)
         )
         await repo.record(finding_with_resolved)
         count += 1
@@ -411,20 +416,24 @@ async def run_bus_wide_detectors(
     findings.extend(await _build_health_findings(stats_repo, period_from, period_to, now))
     addresses = await address_repo.list_all()
 
-    findings.extend(
-        await _build_per_source_findings(stats_repo, period_from, period_to, now)
-    )
+    findings.extend(await _build_per_source_findings(stats_repo, period_from, period_to, now))
     findings.extend(
         await _build_clock_master_findings(
-            stats_repo, addresses, period_from, period_to, now,
+            stats_repo,
+            addresses,
+            period_from,
+            period_to,
+            now,
         )
     )
-    findings.extend(
-        await _build_drift_findings(stats_repo, addresses, period_to, now)
-    )
+    findings.extend(await _build_drift_findings(stats_repo, addresses, period_to, now))
     findings.extend(
         await _build_silent_ga_findings(
-            stats_repo, addresses, period_from, period_to, now,
+            stats_repo,
+            addresses,
+            period_from,
+            period_to,
+            now,
         )
     )
     return await _record_with_severity_override(findings_repo, findings)
@@ -472,9 +481,8 @@ async def _build_health_findings(
     # gespeicherten `timestamp`-Spalte passen — die Tests/Snapshots nutzen
     # `+00:00`, also liefern wir den UTC-aware-String.
     from datetime import UTC as _UTC  # noqa: PLC0415
-    now_for_silence = (
-        now if now.tzinfo is not None else now.replace(tzinfo=_UTC)
-    )
+
+    now_for_silence = now if now.tzinfo is not None else now.replace(tzinfo=_UTC)
     silence = await stats_repo.silence_detect(
         period_from,
         period_to,
@@ -550,11 +558,16 @@ async def _build_clock_master_findings(
         if addr.dpt not in CLOCK_DPTS:
             continue
         samples_raw = await stats_repo.ga_samples(
-            addr.address, period_from, period_to,
+            addr.address,
+            period_from,
+            period_to,
         )
         samples = _samples_from_raw(samples_raw)
         finding = detect_multi_time_master(
-            ga=addr.address, dpt=addr.dpt, samples=samples, now=now,
+            ga=addr.address,
+            dpt=addr.dpt,
+            samples=samples,
+            now=now,
         )
         if finding is not None:
             out.append(finding)
@@ -574,6 +587,7 @@ async def _build_drift_findings(
     except ValueError:
         return []
     from datetime import timedelta as _td  # noqa: PLC0415
+
     recent_from = period_to_dt - _td(days=_DRIFT_RECENT_DAYS)
     baseline_to = recent_from
     baseline_from = baseline_to - _td(days=_DRIFT_BASELINE_DAYS)
@@ -668,6 +682,7 @@ def _median_dt_seconds(samples: list[TelegramSample]) -> float:
         return 0.0
     import statistics  # noqa: PLC0415
     from itertools import pairwise  # noqa: PLC0415
+
     sorted_samples = sorted(samples, key=lambda s: s.ts)
     deltas = [(b.ts - a.ts).total_seconds() for a, b in pairwise(sorted_samples)]
     return float(statistics.median(deltas))

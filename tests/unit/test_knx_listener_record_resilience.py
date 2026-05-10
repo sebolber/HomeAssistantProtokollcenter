@@ -56,9 +56,7 @@ async def test_runtime_error_in_increment_does_not_crash() -> None:
         async def increment_counter(self, *_args: Any, **_kwargs: Any) -> None:
             raise RuntimeError("counter table corrupt")
 
-    await _record_bus_activity(
-        _FakeHass(), _PartiallyCrashingRepo(), _make_telegram()
-    )
+    await _record_bus_activity(_FakeHass(), _PartiallyCrashingRepo(), _make_telegram())
 
 
 @pytest.mark.asyncio

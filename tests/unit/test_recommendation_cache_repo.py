@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -35,8 +34,7 @@ async def db(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_migration_creates_cache_table(db: Database) -> None:
     rows = await db.fetch_all(
-        "SELECT name FROM sqlite_master "
-        "WHERE type='table' AND name='knx_recommendation_cache'"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='knx_recommendation_cache'"
     )
     assert rows
 
@@ -44,8 +42,7 @@ async def test_migration_creates_cache_table(db: Database) -> None:
 @pytest.mark.asyncio
 async def test_migration_creates_expires_index(db: Database) -> None:
     rows = await db.fetch_all(
-        "SELECT name FROM sqlite_master "
-        "WHERE type='index' AND tbl_name='knx_recommendation_cache'"
+        "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='knx_recommendation_cache'"
     )
     names = {r["name"] for r in rows}
     assert "idx_knx_reco_cache_expires" in names
@@ -93,32 +90,47 @@ class TestCacheKey:
 
     def test_different_provider_different_key(self) -> None:
         a = make_cache_key(
-            provider="openai_chat", model="x",
-            dpt="1.001", manufacturer=None, device_model=None,
+            provider="openai_chat",
+            model="x",
+            dpt="1.001",
+            manufacturer=None,
+            device_model=None,
         )
         b = make_cache_key(
-            provider="ollama", model="x",
-            dpt="1.001", manufacturer=None, device_model=None,
+            provider="ollama",
+            model="x",
+            dpt="1.001",
+            manufacturer=None,
+            device_model=None,
         )
         assert a != b
 
     def test_prompt_version_invalidates(self) -> None:
         a = make_cache_key(
-            provider="x", model="y",
-            dpt="1.001", manufacturer=None, device_model=None,
+            provider="x",
+            model="y",
+            dpt="1.001",
+            manufacturer=None,
+            device_model=None,
             prompt_version="v1",
         )
         b = make_cache_key(
-            provider="x", model="y",
-            dpt="1.001", manufacturer=None, device_model=None,
+            provider="x",
+            model="y",
+            dpt="1.001",
+            manufacturer=None,
+            device_model=None,
             prompt_version="v2",
         )
         assert a != b
 
     def test_keys_are_hex_sha256(self) -> None:
         key = make_cache_key(
-            provider="x", model="y", dpt=None,
-            manufacturer=None, device_model=None,
+            provider="x",
+            model="y",
+            dpt=None,
+            manufacturer=None,
+            device_model=None,
         )
         assert len(key) == 64
         int(key, 16)  # MUSS valid hex sein
@@ -161,12 +173,16 @@ class TestRepoSet:
     async def test_set_overwrites_same_key(self, db: Database) -> None:
         repo = RecommendationCacheRepository(db)
         await repo.set(
-            cache_key="abc", response={"v": 1},
-            provider="openai_chat", model="x",
+            cache_key="abc",
+            response={"v": 1},
+            provider="openai_chat",
+            model="x",
         )
         await repo.set(
-            cache_key="abc", response={"v": 2},
-            provider="openai_chat", model="x",
+            cache_key="abc",
+            response={"v": 2},
+            provider="openai_chat",
+            model="x",
         )
         got = await repo.get("abc")
         assert got is not None
@@ -183,7 +199,8 @@ class TestRepoSet:
             (
                 "expired",
                 json.dumps({"v": 1}),
-                "x", "y",
+                "x",
+                "y",
                 "2020-01-01T00:00:00+00:00",
                 "2020-02-01T00:00:00+00:00",
             ),
@@ -197,8 +214,10 @@ class TestRepoCleanup:
         repo = RecommendationCacheRepository(db)
         # Frisch
         await repo.set(
-            cache_key="fresh", response={"v": 1},
-            provider="x", model="y",
+            cache_key="fresh",
+            response={"v": 1},
+            provider="x",
+            model="y",
         )
         # Abgelaufen direkt in die DB
         await db.execute(
@@ -208,7 +227,8 @@ class TestRepoCleanup:
             (
                 "expired",
                 json.dumps({"v": 1}),
-                "x", "y",
+                "x",
+                "y",
                 "2020-01-01T00:00:00+00:00",
                 "2020-02-01T00:00:00+00:00",
             ),
@@ -229,10 +249,16 @@ class TestRepoClear:
     async def test_clear_removes_all(self, db: Database) -> None:
         repo = RecommendationCacheRepository(db)
         await repo.set(
-            cache_key="a", response={}, provider="x", model="y",
+            cache_key="a",
+            response={},
+            provider="x",
+            model="y",
         )
         await repo.set(
-            cache_key="b", response={}, provider="x", model="y",
+            cache_key="b",
+            response={},
+            provider="x",
+            model="y",
         )
         await repo.clear()
         assert await repo.get("a") is None
@@ -248,6 +274,7 @@ def test_provider_config_is_frozen() -> None:
     from custom_components.messagehub.processing.recommendation_provider import (
         ProviderConfig,
     )
+
     cfg = ProviderConfig(
         enabled=False,
         base_url="https://api.openai.com/v1",
@@ -262,8 +289,12 @@ def test_provider_config_default_timeout_15s() -> None:
     from custom_components.messagehub.processing.recommendation_provider import (
         ProviderConfig,
     )
+
     cfg = ProviderConfig(
-        enabled=False, base_url="x", model="y", api_key="z",
+        enabled=False,
+        base_url="x",
+        model="y",
+        api_key="z",
     )
     assert cfg.timeout_s == 15.0
     assert cfg.max_tokens == 800

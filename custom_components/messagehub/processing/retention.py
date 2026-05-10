@@ -105,6 +105,8 @@ async def run_wal_checkpoint(database: Database) -> tuple[int, int, int]:
     if busy or checkpointed:
         _LOGGER.debug(
             "wal_checkpoint: busy=%d log=%d checkpointed=%d",
-            busy, log, checkpointed,
+            busy,
+            log,
+            checkpointed,
         )
     return (busy, log, checkpointed)

@@ -53,5 +53,3 @@ def lookup_label(text: str, lookup: dict[str, str]) -> str | None:
     if ga is None:
         return None
     return lookup.get(ga)
-
-

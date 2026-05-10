@@ -33,9 +33,7 @@ async def db(tmp_path: Path):
 
 class TestDptInferredPersistence:
     @pytest.mark.asyncio
-    async def test_dpt_inferred_persists_with_confidence(
-        self, db: Database
-    ) -> None:
+    async def test_dpt_inferred_persists_with_confidence(self, db: Database) -> None:
         # Arrange — eine GA mit Soll-DPT.
         repo = KnxAddressRepository(db)
         await repo.upsert(KnxAddress(address="1/2/3", label="Sensor", dpt="9.001"))
@@ -62,9 +60,7 @@ class TestDptInferredPersistence:
         assert row["dpt_inferred_at"] == now
 
     @pytest.mark.asyncio
-    async def test_set_dpt_inferred_creates_row_if_missing(
-        self, db: Database
-    ) -> None:
+    async def test_set_dpt_inferred_creates_row_if_missing(self, db: Database) -> None:
         # Arrange — keine GA in der Whitelist.
         repo = KnxAddressRepository(db)
 
@@ -79,48 +75,51 @@ class TestDptInferredPersistence:
         # Assert — Row mit Default-Label angelegt; Auto-Erkenner findet GAs
         # auch ausserhalb der Whitelist (knx_raw_telegrams).
         row = await db.fetch_one(
-            "SELECT label, dpt_inferred FROM knx_group_addresses "
-            "WHERE address = ?",
+            "SELECT label, dpt_inferred FROM knx_group_addresses WHERE address = ?",
             ("1/2/4",),
         )
         assert row is not None
         assert row["dpt_inferred"] == "1.001"
 
     @pytest.mark.asyncio
-    async def test_set_dpt_inferred_validates_confidence_range(
-        self, db: Database
-    ) -> None:
+    async def test_set_dpt_inferred_validates_confidence_range(self, db: Database) -> None:
         # Arrange
         repo = KnxAddressRepository(db)
 
         # Act / Assert — Confidence ausserhalb [0.0, 1.0] -> ValueError.
         with pytest.raises(ValueError, match="confidence"):
             await repo.set_dpt_inferred(
-                address="1/2/3", dpt_inferred="1.001",
-                confidence=1.5, at="2026-05-03T08:00:00+00:00",
+                address="1/2/3",
+                dpt_inferred="1.001",
+                confidence=1.5,
+                at="2026-05-03T08:00:00+00:00",
             )
         with pytest.raises(ValueError, match="confidence"):
             await repo.set_dpt_inferred(
-                address="1/2/3", dpt_inferred="1.001",
-                confidence=-0.1, at="2026-05-03T08:00:00+00:00",
+                address="1/2/3",
+                dpt_inferred="1.001",
+                confidence=-0.1,
+                at="2026-05-03T08:00:00+00:00",
             )
 
     @pytest.mark.asyncio
-    async def test_set_dpt_inferred_idempotent_replaces_previous(
-        self, db: Database
-    ) -> None:
+    async def test_set_dpt_inferred_idempotent_replaces_previous(self, db: Database) -> None:
         # Arrange
         repo = KnxAddressRepository(db)
         await repo.upsert(KnxAddress(address="1/2/3", label="Sensor", dpt="9.001"))
         await repo.set_dpt_inferred(
-            address="1/2/3", dpt_inferred="1.001",
-            confidence=0.5, at="2026-05-03T08:00:00+00:00",
+            address="1/2/3",
+            dpt_inferred="1.001",
+            confidence=0.5,
+            at="2026-05-03T08:00:00+00:00",
         )
 
         # Act — neue Inferenz mit hoeherer Confidence.
         await repo.set_dpt_inferred(
-            address="1/2/3", dpt_inferred="1.001",
-            confidence=0.95, at="2026-05-03T08:30:00+00:00",
+            address="1/2/3",
+            dpt_inferred="1.001",
+            confidence=0.95,
+            at="2026-05-03T08:30:00+00:00",
         )
 
         # Assert
@@ -139,8 +138,10 @@ class TestDptInferredPersistence:
         repo = KnxAddressRepository(db)
         await repo.upsert(KnxAddress(address="1/2/3", label="Sensor", dpt="9.001"))
         await repo.set_dpt_inferred(
-            address="1/2/3", dpt_inferred="1.001",
-            confidence=0.9, at="2026-05-03T08:00:00+00:00",
+            address="1/2/3",
+            dpt_inferred="1.001",
+            confidence=0.9,
+            at="2026-05-03T08:00:00+00:00",
         )
 
         # Act
@@ -150,9 +151,7 @@ class TestDptInferredPersistence:
         assert result == ("1.001", 0.9, "2026-05-03T08:00:00+00:00")
 
     @pytest.mark.asyncio
-    async def test_get_dpt_inferred_returns_none_when_unset(
-        self, db: Database
-    ) -> None:
+    async def test_get_dpt_inferred_returns_none_when_unset(self, db: Database) -> None:
         # Arrange
         repo = KnxAddressRepository(db)
         await repo.upsert(KnxAddress(address="1/2/3", label="Sensor", dpt="9.001"))

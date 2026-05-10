@@ -41,9 +41,7 @@ def detect_multi_time_master(
     """Liefert ein Finding, wenn mehr als eine Source auf der GA schreibt."""
     if dpt not in CLOCK_DPTS:
         return None
-    sources = {
-        s.source for s in samples if s.telegramtype != "GroupValueRead"
-    }
+    sources = {s.source for s in samples if s.telegramtype != "GroupValueRead"}
     if len(sources) < _MULTI_TIME_MASTER_MIN_SOURCES:
         return None
     return Finding(

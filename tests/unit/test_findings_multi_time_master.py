@@ -43,9 +43,7 @@ class TestMultiTimeMasterDetector:
         samples = [_w("1.1.5", 0.0), _w("1.1.6", 60.0)]
 
         # Act
-        finding = detect_multi_time_master(
-            ga="0/0/2", dpt="10.001", samples=samples, now=_ts(60.0)
-        )
+        finding = detect_multi_time_master(ga="0/0/2", dpt="10.001", samples=samples, now=_ts(60.0))
 
         # Assert
         assert isinstance(finding, Finding)
@@ -64,26 +62,20 @@ class TestMultiTimeMasterDetector:
 
     def test_no_finding_for_non_clock_dpt(self) -> None:
         samples = [_w("1.1.5", 0.0), _w("1.1.6", 1.0)]
-        finding = detect_multi_time_master(
-            ga="1/2/3", dpt="9.001", samples=samples, now=_ts(1.0)
-        )
+        finding = detect_multi_time_master(ga="1/2/3", dpt="9.001", samples=samples, now=_ts(1.0))
         assert finding is None
 
     def test_finding_for_dpt_11001_date(self) -> None:
         # Arrange — DPT 11.001 = Datum.
         samples = [_w("1.1.5", 0.0), _w("1.1.6", 60.0)]
-        finding = detect_multi_time_master(
-            ga="0/0/1", dpt="11.001", samples=samples, now=_ts(60.0)
-        )
+        finding = detect_multi_time_master(ga="0/0/1", dpt="11.001", samples=samples, now=_ts(60.0))
         assert finding is not None
         assert finding.evidence["clock_dpt"] == "11.001"
 
     def test_finding_for_dpt_19001_datetime(self) -> None:
         # Arrange — DPT 19.001 = Datum+Uhrzeit kombiniert.
         samples = [_w("1.1.5", 0.0), _w("1.1.6", 60.0)]
-        finding = detect_multi_time_master(
-            ga="0/0/3", dpt="19.001", samples=samples, now=_ts(60.0)
-        )
+        finding = detect_multi_time_master(ga="0/0/3", dpt="19.001", samples=samples, now=_ts(60.0))
         assert finding is not None
         assert finding.evidence["clock_dpt"] == "19.001"
 
@@ -91,17 +83,19 @@ class TestMultiTimeMasterDetector:
         # Arrange — Reads von zwei Sources zaehlen NICHT.
         samples = [
             TelegramSample(
-                ts=_ts(0.0), value=None,
-                telegramtype="GroupValueRead", source="1.1.5",
+                ts=_ts(0.0),
+                value=None,
+                telegramtype="GroupValueRead",
+                source="1.1.5",
             ),
             TelegramSample(
-                ts=_ts(1.0), value=None,
-                telegramtype="GroupValueRead", source="1.1.6",
+                ts=_ts(1.0),
+                value=None,
+                telegramtype="GroupValueRead",
+                source="1.1.6",
             ),
         ]
-        finding = detect_multi_time_master(
-            ga="0/0/2", dpt="10.001", samples=samples, now=_ts(1.0)
-        )
+        finding = detect_multi_time_master(ga="0/0/2", dpt="10.001", samples=samples, now=_ts(1.0))
         assert finding is None
 
     def test_clock_dpts_constant(self) -> None:

@@ -34,9 +34,7 @@ def _now() -> datetime:
     return datetime(2026, 5, 8, 12, 0, 0)
 
 
-def _reconnect_storm_finding(
-    *, source: str, burst_count: int, factor: float
-) -> Finding:
+def _reconnect_storm_finding(*, source: str, burst_count: int, factor: float) -> Finding:
     """Builder fuer RECONNECT_STORM mit variabler Evidence."""
     return Finding(
         code="RECONNECT_STORM",
@@ -78,9 +76,7 @@ async def test_repeat_record_with_changing_evidence_dedups(
     persistiert werden."""
     for burst, factor in [(50, 10.0), (62, 12.4), (48, 9.6)]:
         await repo.record(
-            _reconnect_storm_finding(
-                source="1.1.5", burst_count=burst, factor=factor
-            )
+            _reconnect_storm_finding(source="1.1.5", burst_count=burst, factor=factor)
         )
     items = await repo.list_findings(code="RECONNECT_STORM")
     assert len(items) == 1
@@ -93,12 +89,8 @@ async def test_different_sources_yield_separate_findings(
     repo: FindingsRepository,
 ) -> None:
     """Verschiedene Source-IAs sind unterschiedliche Identitaeten."""
-    await repo.record(
-        _reconnect_storm_finding(source="1.1.5", burst_count=50, factor=10.0)
-    )
-    await repo.record(
-        _reconnect_storm_finding(source="1.1.6", burst_count=80, factor=15.0)
-    )
+    await repo.record(_reconnect_storm_finding(source="1.1.5", burst_count=50, factor=10.0))
+    await repo.record(_reconnect_storm_finding(source="1.1.6", burst_count=80, factor=15.0))
     items = await repo.list_findings(code="RECONNECT_STORM")
     assert len(items) == 2
     sources = {it.source for it in items}
@@ -109,9 +101,7 @@ async def test_different_sources_yield_separate_findings(
 async def test_different_codes_dont_collide(repo: FindingsRepository) -> None:
     """RECONNECT_STORM und HEALTH_BUSLOAD auf gleicher (ga, source)
     bleiben getrennt."""
-    finding_a = _reconnect_storm_finding(
-        source="1.1.5", burst_count=50, factor=10.0
-    )
+    finding_a = _reconnect_storm_finding(source="1.1.5", burst_count=50, factor=10.0)
     finding_b = Finding(
         code="HEALTH_BUSLOAD",
         schema_version=1,
@@ -166,12 +156,8 @@ async def test_evidence_overwrites_with_latest_values(
 ) -> None:
     """Beim Re-Insert sollen die neuen Evidence-Werte sichtbar sein —
     der User will den AKTUELLEN Stand sehen, nicht das Erst-Sample."""
-    await repo.record(
-        _reconnect_storm_finding(source="1.1.5", burst_count=50, factor=10.0)
-    )
-    await repo.record(
-        _reconnect_storm_finding(source="1.1.5", burst_count=80, factor=16.0)
-    )
+    await repo.record(_reconnect_storm_finding(source="1.1.5", burst_count=50, factor=10.0))
+    await repo.record(_reconnect_storm_finding(source="1.1.5", burst_count=80, factor=16.0))
     items = await repo.list_findings(code="RECONNECT_STORM")
     assert len(items) == 1
     assert items[0].evidence["burst_count"] == 80

@@ -99,8 +99,7 @@ KNX_DPT_RECOMMENDATIONS: Final[dict[str, DptRecommendation]] = {
         hysteresis=None,
         max_rate_per_min=1.0,
         rationale=(
-            "Bewegungserkennung: Trigger-only. Heartbeat-Telegramme "
-            "verschleiern echte Bewegung."
+            "Bewegungserkennung: Trigger-only. Heartbeat-Telegramme verschleiern echte Bewegung."
         ),
     ),
     "1.x": DptRecommendation(

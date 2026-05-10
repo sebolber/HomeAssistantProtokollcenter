@@ -287,13 +287,13 @@ KNX_MANUFACTURER_HINTS: Final[dict[str, dict[str, list[str] | str]]] = {
 # §6 der KNX-Konfigurationsfehler-Recherche. Werte ausserhalb dieser
 # Range deuten auf falsch konfigurierte DPTs oder fehlerhafte Sensorik.
 KNX_DPT_VALUE_RANGES: Final[dict[str, tuple[float, float]]] = {
-    "5.001": (0.0, 100.0),                 # Prozent (Dimmwert/Stellgroesse)
-    "5.003": (0.0, 360.0),                 # Winkel (Grad)
-    "5.004": (0.0, 255.0),                 # Counter Pulses (8-bit unsigned)
-    "9.001": (-273.0, 670760.96),          # Temperatur (Celsius, DPT-Spec)
-    "9.005": (0.0, 670760.96),             # Wind (m/s, nicht-negativ)
-    "9.007": (0.0, 100.0),                 # Feuchte (Prozent)
-    "9.008": (0.0, 670760.96),             # CO2 (ppm, nicht-negativ)
+    "5.001": (0.0, 100.0),  # Prozent (Dimmwert/Stellgroesse)
+    "5.003": (0.0, 360.0),  # Winkel (Grad)
+    "5.004": (0.0, 255.0),  # Counter Pulses (8-bit unsigned)
+    "9.001": (-273.0, 670760.96),  # Temperatur (Celsius, DPT-Spec)
+    "9.005": (0.0, 670760.96),  # Wind (m/s, nicht-negativ)
+    "9.007": (0.0, 100.0),  # Feuchte (Prozent)
+    "9.008": (0.0, 670760.96),  # CO2 (ppm, nicht-negativ)
     "13.010": (-2_147_483_648.0, 2_147_483_647.0),  # Energie (int32)
     "13.013": (-2_147_483_648.0, 2_147_483_647.0),  # Energie kWh (int32)
 }

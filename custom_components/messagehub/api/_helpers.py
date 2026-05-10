@@ -20,7 +20,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import web
-from homeassistant.components.http import HomeAssistantView
+from homeassistant.helpers.http import HomeAssistantView
 
 from ..const import DOMAIN
 

@@ -68,7 +68,9 @@ async def test_response_severity_picks_up_override(
     die API soll ``error`` liefern."""
     await repo.record(_record(severity="warning"))
     await repo.set_severity_override(
-        code="DPT_MISMATCH", severity="error", actor="u",
+        code="DPT_MISMATCH",
+        severity="error",
+        actor="u",
     )
 
     resp = await list_findings_response(repo)

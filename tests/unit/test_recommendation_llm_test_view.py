@@ -16,7 +16,6 @@ from custom_components.messagehub.processing.recommendation_provider import (
     ProviderConfig,
 )
 
-
 _SRC = (
     Path(__file__).resolve().parents[2]
     / "custom_components"
@@ -62,27 +61,19 @@ def test_view_url_and_name() -> None:
 
 def test_view_uses_post_method() -> None:
     cls = _find_class("KnxRecommendationLlmTestView")
-    methods = {
-        n.name for n in cls.body if isinstance(n, ast.AsyncFunctionDef)
-    }
+    methods = {n.name for n in cls.body if isinstance(n, ast.AsyncFunctionDef)}
     assert "post" in methods
 
 
 def test_view_calls_check_admin() -> None:
     cls = _find_class("KnxRecommendationLlmTestView")
-    post = next(
-        n for n in cls.body
-        if isinstance(n, ast.AsyncFunctionDef) and n.name == "post"
-    )
+    post = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "post")
     assert "_check_admin" in ast.unparse(post)
 
 
 def test_view_uses_rate_limiter() -> None:
     cls = _find_class("KnxRecommendationLlmTestView")
-    post = next(
-        n for n in cls.body
-        if isinstance(n, ast.AsyncFunctionDef) and n.name == "post"
-    )
+    post = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "post")
     body_src = ast.unparse(post)
     assert "_llm_test_limiter" in body_src
     assert ".allow(" in body_src
@@ -91,10 +82,7 @@ def test_view_uses_rate_limiter() -> None:
 
 def test_view_writes_audit_log_with_redacted_key() -> None:
     cls = _find_class("KnxRecommendationLlmTestView")
-    post = next(
-        n for n in cls.body
-        if isinstance(n, ast.AsyncFunctionDef) and n.name == "post"
-    )
+    post = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "post")
     body_src = ast.unparse(post)
     assert "audit(" in body_src
     assert "knx_recommend_llm_test" in body_src
@@ -108,10 +96,7 @@ def test_view_delegates_to_test_runner() -> None:
     Modul-Konstanten-Vertrag (separat getestet).
     """
     cls = _find_class("KnxRecommendationLlmTestView")
-    post = next(
-        n for n in cls.body
-        if isinstance(n, ast.AsyncFunctionDef) and n.name == "post"
-    )
+    post = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "post")
     body_src = ast.unparse(post)
     assert "run_provider_test" in body_src
     assert "serialize_test_result" in body_src
@@ -120,12 +105,13 @@ def test_view_delegates_to_test_runner() -> None:
 
 def test_runner_pins_deterministic_inputs() -> None:
     """Pinning: kein User-Datenleck zum LLM. Inputs muessen statisch sein."""
-    from custom_components.messagehub.processing.recommendation_test_runner import (  # noqa: PLC0415
+    from custom_components.messagehub.processing.recommendation_test_runner import (
         DETERMINISTIC_TEST_CONTEXT,
         DETERMINISTIC_TEST_DPT,
         DETERMINISTIC_TEST_MANUFACTURER,
         DETERMINISTIC_TEST_MODEL,
     )
+
     assert DETERMINISTIC_TEST_DPT == "9.001"
     assert DETERMINISTIC_TEST_MANUFACTURER == "test"
     assert DETERMINISTIC_TEST_MODEL == "test"
@@ -134,10 +120,7 @@ def test_runner_pins_deterministic_inputs() -> None:
 
 def test_view_returns_400_for_incomplete_config() -> None:
     cls = _find_class("KnxRecommendationLlmTestView")
-    post = next(
-        n for n in cls.body
-        if isinstance(n, ast.AsyncFunctionDef) and n.name == "post"
-    )
+    post = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "post")
     body_src = ast.unparse(post)
     assert "incomplete_config" in body_src
 
@@ -147,9 +130,7 @@ def test_view_registered() -> None:
     assert src.count("KnxRecommendationLlmTestView") >= 2
 
     self_src = _SRC.read_text(encoding="utf-8")
-    register_section = self_src[
-        self_src.index("def register_knx_stats_views"):
-    ]
+    register_section = self_src[self_src.index("def register_knx_stats_views") :]
     assert "KnxRecommendationLlmTestView()" in register_section
 
 
@@ -182,6 +163,7 @@ class TestResolveTestConfig:
         from custom_components.messagehub.processing.recommendation_settings import (
             merge_test_config as _resolve_test_config,
         )
+
         result = _resolve_test_config(_stored(), {})
         assert result.base_url == "https://api.openai.com/v1"
         assert result.api_key == "sk-stored"
@@ -191,6 +173,7 @@ class TestResolveTestConfig:
         from custom_components.messagehub.processing.recommendation_settings import (
             merge_test_config as _resolve_test_config,
         )
+
         result = _resolve_test_config(
             _stored(),
             {"base_url": "https://api.groq.com/openai/v1"},
@@ -203,6 +186,7 @@ class TestResolveTestConfig:
         from custom_components.messagehub.processing.recommendation_settings import (
             merge_test_config as _resolve_test_config,
         )
+
         result = _resolve_test_config(
             _stored(),
             {"base_url": "https://other.com/v1"},
@@ -213,6 +197,7 @@ class TestResolveTestConfig:
         from custom_components.messagehub.processing.recommendation_settings import (
             merge_test_config as _resolve_test_config,
         )
+
         result = _resolve_test_config(_stored(), {"api_key": ""})
         assert result.api_key == ""
 
@@ -220,6 +205,7 @@ class TestResolveTestConfig:
         from custom_components.messagehub.processing.recommendation_settings import (
             merge_test_config as _resolve_test_config,
         )
+
         with pytest.raises(ValueError, match="scheme"):
             _resolve_test_config(
                 _stored(),
@@ -230,6 +216,7 @@ class TestResolveTestConfig:
         from custom_components.messagehub.processing.recommendation_settings import (
             merge_test_config as _resolve_test_config,
         )
+
         result = _resolve_test_config(
             _stored(),
             {"base_url": "http://localhost:11434/v1"},

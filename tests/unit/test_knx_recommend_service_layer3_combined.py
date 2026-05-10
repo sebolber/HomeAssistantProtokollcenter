@@ -27,7 +27,6 @@ from custom_components.messagehub.storage.knx_devices_repo import (
 from custom_components.messagehub.storage.knx_stats_repo import KnxStatsRepository
 from custom_components.messagehub.storage.migrations import MigrationRunner
 
-
 _NOW = datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC)
 
 
@@ -71,8 +70,12 @@ async def test_buslast_and_finding_both_present_in_reasoning(
             "value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
-                _ts(-60 + i * 1.5), "1/2/3", "1.1.10",
-                "GroupValueWrite", json.dumps(21.5), 0,
+                _ts(-60 + i * 1.5),
+                "1/2/3",
+                "1.1.10",
+                "GroupValueWrite",
+                json.dumps(21.5),
+                0,
             ),
         )
     # Buslast-Spam ueber 60 s
@@ -83,8 +86,12 @@ async def test_buslast_and_finding_both_present_in_reasoning(
             "value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
-                _ts(-60 + i * 0.04), "9/9/9", "1.1.99",
-                "GroupValueWrite", json.dumps(0), 0,
+                _ts(-60 + i * 0.04),
+                "9/9/9",
+                "1.1.99",
+                "GroupValueWrite",
+                json.dumps(0),
+                0,
             ),
         )
     # Aktives Finding
@@ -106,7 +113,10 @@ async def test_buslast_and_finding_both_present_in_reasoning(
     devices_repo = KnxDeviceRepository(db)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-60), _ts(1),
+        repo,
+        "1.1.10",
+        _ts(-60),
+        _ts(1),
         devices_repo=devices_repo,
         findings_repo=findings_repo,
     )
@@ -146,8 +156,12 @@ async def test_dto_serialization_with_layer3_overrides(
             "value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
-                _ts(-3600 + i * 60), "1/2/3", "1.1.10",
-                "GroupValueWrite", json.dumps(21.5), 0,
+                _ts(-3600 + i * 60),
+                "1/2/3",
+                "1.1.10",
+                "GroupValueWrite",
+                json.dumps(21.5),
+                0,
             ),
         )
 
@@ -167,7 +181,10 @@ async def test_dto_serialization_with_layer3_overrides(
     )
 
     reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         findings_repo=findings_repo,
     )
     assert reco is not None
@@ -176,6 +193,4 @@ async def test_dto_serialization_with_layer3_overrides(
     encoded = json.dumps(payload)
     decoded = json.loads(encoded)
     assert decoded["ga_recommendations"][0]["severity"] == "deviation"
-    assert any(
-        "REPEAT_APPROXIMATION" in r for r in decoded["reasoning"]
-    )
+    assert any("REPEAT_APPROXIMATION" in r for r in decoded["reasoning"])

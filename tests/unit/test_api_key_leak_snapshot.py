@@ -25,7 +25,6 @@ from custom_components.messagehub.storage.recommendation_cache_repo import (
     make_cache_key,
 )
 
-
 _LEAK_TOKEN = "TESTKEY-DONOTLEAK-3f8c1a47-9b2d-4e6f-8a0b-1c5d3e7f2a91"
 
 

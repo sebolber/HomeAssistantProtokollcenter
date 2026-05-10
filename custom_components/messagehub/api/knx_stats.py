@@ -107,6 +107,7 @@ def _service(hass: Any) -> KnxStatsService | None:
     # mitliefern kann. Lokaler Import vermeidet Circular-Import beim
     # Modul-Laden (FindingsRepository -> processing -> knx_stats_service).
     from ..storage.findings_repo import FindingsRepository  # noqa: PLC0415
+
     return KnxStatsService(
         KnxStatsRepository(db),
         findings_repo=FindingsRepository(db),
@@ -120,9 +121,9 @@ def _first_entry_options(hass: Any) -> dict[str, Any]:
     Defensiv: bei nicht-initialisiertem ConfigEntry-Stack gibt's leeres
     Dict — Aufrufer fallen auf hardcoded Defaults zurueck.
     """
-    entries = list(hass.config_entries.async_entries(DOMAIN)) if hasattr(
-        hass, "config_entries"
-    ) else []
+    entries = (
+        list(hass.config_entries.async_entries(DOMAIN)) if hasattr(hass, "config_entries") else []
+    )
     if not entries:
         return {}
     return dict(entries[0].options or {})
@@ -299,7 +300,9 @@ class KnxStatsSourceDetailView(RequireAdminView):
             max_value=129600,  # 90 Tage in Minuten
         )
         detail = await svc.compute_source_detail(
-            dev_source, from_iso, to_iso,
+            dev_source,
+            from_iso,
+            to_iso,
             max_silence_minutes=max_silence,
         )
         if detail is None:
@@ -392,11 +395,11 @@ class KnxStatsGaExportView(RequireAdminView):
         is_sensitive = await repo.is_sensitive(ga)
         samples = await repo.ga_samples(ga, from_iso, to_iso)
         capped = cap_samples(samples)
-        audit(
+        await audit(
             request.app["hass"],
-            "knx_stats_ga_export"
-            if not is_sensitive
-            else "knx_stats_ga_export_sensitive",
+            request,
+            action=("knx_stats_ga_export" if not is_sensitive else "knx_stats_ga_export_sensitive"),
+            target_type="knx_ga",
             target_id=ga,
             details={
                 "format": fmt,
@@ -444,9 +447,7 @@ class KnxStatsHeatmapView(RequireAdminView):
         from_iso, to_iso = parse_iso_period(
             request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
         )
-        top_n = parse_int_param(
-            request.query, "top_n", 10, min_value=1, max_value=30
-        )
+        top_n = parse_int_param(request.query, "top_n", 10, min_value=1, max_value=30)
         bucket = parse_int_param(
             request.query,
             "bucket",
@@ -455,9 +456,7 @@ class KnxStatsHeatmapView(RequireAdminView):
             max_value=_HARD_BUCKET_MIN,
         )
         return self.json(
-            await svc.compute_heatmap(
-                from_iso, to_iso, top_n=top_n, bucket_minutes=bucket
-            )
+            await svc.compute_heatmap(from_iso, to_iso, top_n=top_n, bucket_minutes=bucket)
         )
 
 
@@ -484,9 +483,7 @@ class KnxStatsTrendView(RequireAdminView):
             default_days=DEFAULT_KNX_STATS_PERIOD_DAYS,
             max_days=DEFAULT_KNX_COUNTER_RETENTION_DAYS,
         )
-        top_n = parse_int_param(
-            request.query, "top_n", 10, min_value=1, max_value=50
-        )
+        top_n = parse_int_param(request.query, "top_n", 10, min_value=1, max_value=50)
         return self.json(await svc.compute_trend(from_iso, to_iso, top_n=top_n))
 
 
@@ -507,9 +504,7 @@ class KnxStatsAlarmsView(RequireAdminView):
         # Iter 65 / P2-3: Rate-Limit pro User-ID gegen Eventbus-Spam.
         # Vor allem anderen Validation-Aufwand pruefen — DoS-Resistenz.
         user = request.get("hass_user")
-        rate_key = (
-            f"user:{user.id}" if user is not None and getattr(user, "id", None) else "anon"
-        )
+        rate_key = f"user:{user.id}" if user is not None and getattr(user, "id", None) else "anon"
         if not _alarms_limiter.allow(rate_key):
             # Refill-Rate: 1 Token pro 5 s. Retry-After konservativ 5 s.
             # web.json_response statt self.json_message, weil letzteres
@@ -539,9 +534,7 @@ class KnxStatsAlarmsView(RequireAdminView):
         opt_repeat = float(
             opts.get(OPT_KNX_ALARM_REPEAT_RATE_PCT, KNX_ALARM_REPEAT_RATE_PCT_DEFAULT)
         )
-        opt_silence = int(
-            opts.get(OPT_KNX_ALARM_SILENCE_COUNT, KNX_ALARM_SILENCE_COUNT_DEFAULT)
-        )
+        opt_silence = int(opts.get(OPT_KNX_ALARM_SILENCE_COUNT, KNX_ALARM_SILENCE_COUNT_DEFAULT))
         try:
             busload_th = float(request.query.get("busload_threshold", opt_busload))
             repeat_th = float(request.query.get("repeat_threshold", opt_repeat))
@@ -565,6 +558,7 @@ class KnxStatsAlarmsView(RequireAdminView):
         # Block. Lazy-Import wie an anderen Stellen, damit der View-
         # Modul-Import HA-frei testbar bleibt.
         from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
+
         ets_devices = await discover_knx_devices(request.app["hass"])
         alarms = await svc.evaluate_alarms(
             from_iso,
@@ -971,9 +965,7 @@ class KnxStatsBusHealthView(RequireAdminView):
         from_iso, to_iso = parse_iso_period(
             request.query, default_days=DEFAULT_KNX_STATS_PERIOD_DAYS
         )
-        limit = parse_int_param(
-            request.query, "limit", 20, min_value=1, max_value=_HARD_TOP_LIMIT
-        )
+        limit = parse_int_param(request.query, "limit", 20, min_value=1, max_value=_HARD_TOP_LIMIT)
         repo = KnxStatsRepository(db)
         summary = await repo.bus_health(from_iso, to_iso)
         per_ga = await repo.bus_health_per_ga(from_iso, to_iso, limit=limit)
@@ -1185,13 +1177,18 @@ class KnxStatsSourceRecommendationView(RequireAdminView):
         devices_repo = KnxDeviceRepository(db)
         # Iter L3.1: FindingsRepository fuer Layer-3-Override.
         from ..storage.findings_repo import FindingsRepository  # noqa: PLC0415
+
         findings_repo = FindingsRepository(db)
         # Iter L2.5: ETS-Discovery als Layer-2-Default. User-Override
         # (knx_devices) hat trotzdem Vorrang im Service-Pfad.
         from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
+
         ets_devices = await discover_knx_devices(request.app["hass"])
         # Iter L4.2: optionalen LLM-Provider laden (default Stub).
         from ..processing.openai_chat_provider import OpenAIChatProvider  # noqa: PLC0415
+        from ..processing.recommendation_provider import (  # noqa: PLC0415
+            RecommendationProvider,
+        )
         from ..processing.recommendation_settings import (  # noqa: PLC0415
             load_provider_config,
             stub_provider,
@@ -1202,6 +1199,8 @@ class KnxStatsSourceRecommendationView(RequireAdminView):
         from ..storage.settings_repo import SettingsRepository  # noqa: PLC0415
 
         config = await load_provider_config(SettingsRepository(db))
+        llm_provider: RecommendationProvider
+        llm_cache_repo: RecommendationCacheRepository | None
         if config.enabled:
             llm_provider = OpenAIChatProvider(config)
             llm_cache_repo = RecommendationCacheRepository(db)
@@ -1209,7 +1208,10 @@ class KnxStatsSourceRecommendationView(RequireAdminView):
             llm_provider = stub_provider()
             llm_cache_repo = None
         reco = await compute_device_recommendation(
-            repo, dev_source, from_iso, to_iso,
+            repo,
+            dev_source,
+            from_iso,
+            to_iso,
             devices_repo=devices_repo,
             ets_devices=ets_devices,
             findings_repo=findings_repo,
@@ -1281,7 +1283,9 @@ class KnxDeviceDetailView(RequireAdminView):
     name = "api:messagehub:knx-devices:detail"
 
     async def get(
-        self, request: web.Request, dev_source: str,
+        self,
+        request: web.Request,
+        dev_source: str,
     ) -> web.Response:
         from ..processing.knx_discovery import discover_knx_devices  # noqa: PLC0415
 
@@ -1298,19 +1302,11 @@ class KnxDeviceDetailView(RequireAdminView):
         ets_devices = await discover_knx_devices(request.app["hass"])
         ets_entry = ets_devices.get(dev_source)
         ets_block: dict[str, Any] | None = None
-        if ets_entry is not None and (
-            ets_entry.get("manufacturer") or ets_entry.get("product")
-        ):
+        if ets_entry is not None and (ets_entry.get("manufacturer") or ets_entry.get("product")):
             ets_block = {
-                "manufacturer": (
-                    str(ets_entry.get("manufacturer") or "").strip() or None
-                ),
-                "model": (
-                    str(ets_entry.get("product") or "").strip() or None
-                ),
-                "name": (
-                    str(ets_entry.get("name") or "").strip() or None
-                ),
+                "manufacturer": (str(ets_entry.get("manufacturer") or "").strip() or None),
+                "model": (str(ets_entry.get("product") or "").strip() or None),
+                "name": (str(ets_entry.get("name") or "").strip() or None),
             }
         if entry is not None:
             entry["ets"] = ets_block
@@ -1328,7 +1324,9 @@ class KnxDeviceDetailView(RequireAdminView):
         return self.json(body)
 
     async def put(
-        self, request: web.Request, dev_source: str,
+        self,
+        request: web.Request,
+        dev_source: str,
     ) -> web.Response:
         self._check_admin(request)
         db = get_database(request.app["hass"])
@@ -1368,7 +1366,9 @@ class KnxDeviceDetailView(RequireAdminView):
         return self.json(result)
 
     async def delete(
-        self, request: web.Request, dev_source: str,
+        self,
+        request: web.Request,
+        dev_source: str,
     ) -> web.Response:
         self._check_admin(request)
         db = get_database(request.app["hass"])
@@ -1464,25 +1464,16 @@ class KnxRecommendationLlmSettingsView(RequireAdminView):
         if api_key_raw is None:
             api_key_value: str | None = None
         else:
-            api_key_value = (
-                validate_note(api_key_raw, max_length=2000) or ""
-            )
+            api_key_value = validate_note(api_key_raw, max_length=2000) or ""
         timeout_raw = data.get("timeout_s")
         timeout_s = (
-            float(timeout_raw)
-            if isinstance(timeout_raw, (int, float))
-            else DEFAULT_LLM_TIMEOUT_S
+            float(timeout_raw) if isinstance(timeout_raw, (int, float)) else DEFAULT_LLM_TIMEOUT_S
         )
         max_tokens_raw = data.get("max_tokens")
         max_tokens = (
-            int(max_tokens_raw)
-            if isinstance(max_tokens_raw, int)
-            else DEFAULT_LLM_MAX_TOKENS
+            int(max_tokens_raw) if isinstance(max_tokens_raw, int) else DEFAULT_LLM_MAX_TOKENS
         )
-        system_prompt = (
-            validate_note(data.get("system_prompt_override"), max_length=4000)
-            or ""
-        )
+        system_prompt = validate_note(data.get("system_prompt_override"), max_length=4000) or ""
         try:
             await save_provider_config(
                 SettingsRepository(db),
@@ -1588,11 +1579,7 @@ class KnxRecommendationLlmTestView(RequireAdminView):
 
         # Rate-Limit pro User (anonym -> "anon"-Bucket).
         user = request.get("hass_user")
-        rate_key = (
-            f"user:{user.id}"
-            if user is not None and getattr(user, "id", None)
-            else "anon"
-        )
+        rate_key = f"user:{user.id}" if user is not None and getattr(user, "id", None) else "anon"
         if not _llm_test_limiter.allow(rate_key):
             return web.json_response(
                 {"message": "rate limit exceeded — bitte etwas warten"},
@@ -1668,10 +1655,7 @@ def _flush_recommendation_cache_for(dev_source: str) -> None:
     (Cache-max_entries) ist das O(n) und vernachlaessigbar.
     """
     prefix = f"{dev_source}:"
-    keys_to_drop = [
-        k for k in list(_recommendation_cache._store.keys())
-        if k.startswith(prefix)
-    ]
+    keys_to_drop = [k for k in list(_recommendation_cache._store.keys()) if k.startswith(prefix)]
     for k in keys_to_drop:
         _recommendation_cache._store.pop(k, None)
 

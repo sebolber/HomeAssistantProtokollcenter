@@ -140,9 +140,7 @@ class FindingsRepository:
         Offset/Limit fuer API-Pagination (Iter 6).
         """
         if severity is not None and severity not in FINDING_SEVERITIES:
-            raise ValueError(
-                f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}"
-            )
+            raise ValueError(f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}")
         sql, params = _build_list_query(code=code, ga=ga, severity=severity, source=source)
         sql += " ORDER BY last_seen DESC, id DESC LIMIT ? OFFSET ?"
         params = (*params, limit, offset)
@@ -159,9 +157,7 @@ class FindingsRepository:
     ) -> int:
         """Gesamtzahl der Findings fuer einen Filter — fuer Pagination-UI."""
         if severity is not None and severity not in FINDING_SEVERITIES:
-            raise ValueError(
-                f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}"
-            )
+            raise ValueError(f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}")
         sql, params = _build_count_query(code=code, ga=ga, severity=severity, source=source)
         row = await self._db.fetch_one(sql, params)
         if row is None:
@@ -223,8 +219,7 @@ class FindingsRepository:
         Versuch, was bei UI-Doppelklicks und Race-Conditions hilfreich ist.
         """
         await self._db.execute(
-            "DELETE FROM knx_finding_acknowledgements "
-            "WHERE ga = ? AND finding_code = ?",
+            "DELETE FROM knx_finding_acknowledgements WHERE ga = ? AND finding_code = ?",
             (ga, code),
         )
         await self._write_ack_audit(
@@ -297,10 +292,7 @@ class FindingsRepository:
         `target_type='knx_finding_severity_override'`.
         """
         if severity not in FINDING_SEVERITIES:
-            raise ValueError(
-                f"Invalid severity {severity!r}; "
-                f"expected one of {FINDING_SEVERITIES}"
-            )
+            raise ValueError(f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}")
         now = datetime.now(UTC).isoformat(timespec="seconds")
         await self._db.execute(
             """
@@ -315,8 +307,11 @@ class FindingsRepository:
             (code, severity, note, now, now),
         )
         await self._write_severity_audit(
-            actor=actor, action="set-severity-override",
-            code=code, severity=severity, note=note,
+            actor=actor,
+            action="set-severity-override",
+            code=code,
+            severity=severity,
+            note=note,
         )
 
     async def clear_severity_override(self, *, code: str, actor: str) -> None:
@@ -326,15 +321,17 @@ class FindingsRepository:
             (code,),
         )
         await self._write_severity_audit(
-            actor=actor, action="clear-severity-override",
-            code=code, severity=None, note=None,
+            actor=actor,
+            action="clear-severity-override",
+            code=code,
+            severity=None,
+            note=None,
         )
 
     async def get_severity_override(self, code: str) -> FindingSeverity | None:
         """Liefert den Override fuer einen Code oder None."""
         row = await self._db.fetch_one(
-            "SELECT severity FROM knx_finding_severity_overrides "
-            "WHERE finding_code = ?",
+            "SELECT severity FROM knx_finding_severity_overrides WHERE finding_code = ?",
             (code,),
         )
         if row is None:
@@ -342,7 +339,7 @@ class FindingsRepository:
         sev = str(row["severity"])
         if sev not in FINDING_SEVERITIES:
             return None
-        return sev  # type: ignore[return-value]
+        return sev
 
     async def list_severity_overrides(self) -> list[dict[str, Any]]:
         rows = await self._db.fetch_all(
@@ -463,9 +460,7 @@ def _build_count_query(
     source: str | None,
 ) -> tuple[str, tuple[Any, ...]]:
     """Baut die COUNT(*)-Variante des Filters fuer `count_findings`."""
-    where, params = _build_where_clause(
-        code=code, ga=ga, severity=severity, source=source
-    )
+    where, params = _build_where_clause(code=code, ga=ga, severity=severity, source=source)
     sql = "SELECT COUNT(*) AS c FROM knx_findings"
     if where:
         sql += " WHERE " + where
@@ -484,9 +479,7 @@ def _build_list_query(
     Helfer, weil die Bedingungen optional kombinierbar sind und sonst
     die `list_findings`-Methode kognitive Komplexitaet > 15 ueberschreitet.
     """
-    where, params = _build_where_clause(
-        code=code, ga=ga, severity=severity, source=source
-    )
+    where, params = _build_where_clause(code=code, ga=ga, severity=severity, source=source)
     sql = (
         "SELECT id, code, schema_version, severity, ga, source, "
         "       evidence_json, first_seen, last_seen, occurrence_count, "

@@ -37,9 +37,7 @@ def _find_class(class_name: str) -> ast.ClassDef:
 def test_bus_health_view_get_uses_parse_int_param_for_limit() -> None:
     """View muss `limit` per parse_int_param aus der Query lesen."""
     cls = _find_class("KnxStatsBusHealthView")
-    get = next(
-        s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "get"
-    )
+    get = next(s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "get")
     body_src = ast.unparse(get)
     # ast.unparse normalisiert Strings auf single-quotes — beide
     # Schreibweisen akzeptieren, falls jemand den Source-Code mal direkt
@@ -57,23 +55,18 @@ def test_bus_health_view_passes_limit_to_repo() -> None:
     """Der gelesene `limit`-Wert muss an `bus_health_per_ga` durchgereicht
     werden — nicht der hardcoded Default."""
     cls = _find_class("KnxStatsBusHealthView")
-    get = next(
-        s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "get"
-    )
+    get = next(s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "get")
     body_src = ast.unparse(get)
     assert "bus_health_per_ga" in body_src
     assert "limit=limit" in body_src, (
-        "Repo-Aufruf muss limit=<aus-Query-gelesen> bekommen, nicht "
-        "hardcoded 20."
+        "Repo-Aufruf muss limit=<aus-Query-gelesen> bekommen, nicht hardcoded 20."
     )
 
 
 def test_bus_health_view_admin_protected() -> None:
     """View bleibt _check_admin-protected (Regression-Schutz)."""
     cls = _find_class("KnxStatsBusHealthView")
-    get = next(
-        s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "get"
-    )
+    get = next(s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "get")
     assert "_check_admin" in ast.unparse(get)
 
 
@@ -81,9 +74,7 @@ def test_bus_health_view_max_limit_500() -> None:
     """max_value soll _HARD_TOP_LIMIT (500) sein — konsistent mit anderen
     Top-N-Endpunkten (Bursts, LongTerm, Top, TopBySource)."""
     cls = _find_class("KnxStatsBusHealthView")
-    get = next(
-        s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "get"
-    )
+    get = next(s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "get")
     body_src = ast.unparse(get)
     assert "max_value=_HARD_TOP_LIMIT" in body_src or "max_value=500" in body_src, (
         "limit max_value muss _HARD_TOP_LIMIT (500) sein — sonst kann "

@@ -47,12 +47,8 @@ async def test_upsert_creates_new_filter(repo: SavedFiltersRepository) -> None:
 async def test_upsert_updates_existing_by_unique_scope_name(
     repo: SavedFiltersRepository,
 ) -> None:
-    first = await repo.upsert(
-        name="Tag", scope="messages", filters={"tag": "x"}
-    )
-    second = await repo.upsert(
-        name="Tag", scope="messages", filters={"tag": "y"}
-    )
+    first = await repo.upsert(name="Tag", scope="messages", filters={"tag": "x"})
+    second = await repo.upsert(name="Tag", scope="messages", filters={"tag": "y"})
     # Gleiche ID, aktualisierte Filter.
     assert first.id == second.id
     assert second.filters == {"tag": "y"}
@@ -108,9 +104,7 @@ async def test_non_dict_filters_rejected(
 async def test_delete_existing_returns_true(
     repo: SavedFiltersRepository,
 ) -> None:
-    item = await repo.upsert(
-        name="x", scope="messages", filters={}
-    )
+    item = await repo.upsert(name="x", scope="messages", filters={})
     assert item.id is not None
     assert await repo.delete(item.id) is True
     assert await repo.delete(item.id) is False  # zweites Mal: not found
@@ -118,9 +112,7 @@ async def test_delete_existing_returns_true(
 
 @pytest.mark.asyncio
 async def test_get_by_id(repo: SavedFiltersRepository) -> None:
-    item = await repo.upsert(
-        name="x", scope="messages", filters={"a": 1}
-    )
+    item = await repo.upsert(name="x", scope="messages", filters={"a": 1})
     assert item.id is not None
     fetched = await repo.get(item.id)
     assert fetched is not None

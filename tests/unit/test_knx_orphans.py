@@ -49,7 +49,8 @@ class TestComputeOrphans:
         # GA 1/2/3 ist im Projekt, aber kein Telegramm gesehen
         svc = KnxStatsService(KnxStatsRepository(db))
         out = await svc.compute_orphans(
-            _ts(0), _ts(60),
+            _ts(0),
+            _ts(60),
             project_gas=[{"address": "1/2/3", "name": "Wohnzimmer", "dpt": "1.001"}],
         )
         assert len(out["missing_in_log"]) == 1
@@ -61,9 +62,7 @@ class TestComputeOrphans:
         # GA 5/2/14 wurde gesehen, ist aber nicht im Projekt
         await _insert(db, ts=_ts(10), ga="5/2/14")
         svc = KnxStatsService(KnxStatsRepository(db))
-        out = await svc.compute_orphans(
-            _ts(0), _ts(60), project_gas=[]
-        )
+        out = await svc.compute_orphans(_ts(0), _ts(60), project_gas=[])
         assert out["missing_in_log"] == []
         assert len(out["extra_in_log"]) == 1
         assert out["extra_in_log"][0]["address"] == "5/2/14"
@@ -73,7 +72,8 @@ class TestComputeOrphans:
         await _insert(db, ts=_ts(10), ga="1/2/3", label="Wohnzimmer")
         svc = KnxStatsService(KnxStatsRepository(db))
         out = await svc.compute_orphans(
-            _ts(0), _ts(60),
+            _ts(0),
+            _ts(60),
             project_gas=[{"address": "1/2/3", "name": "Wohnzimmer", "dpt": "1.001"}],
         )
         assert out["missing_in_log"] == []

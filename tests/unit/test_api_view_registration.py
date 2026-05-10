@@ -77,9 +77,7 @@ class TestKnxStatsViewRegistration:
         registered = _registered_view_class_names()
         defined = set(_knx_stats_view_classes().keys())
         missing = defined - registered
-        assert not missing, (
-            f"KnxStats-Views ohne Registrierung -> 404 im Panel: {sorted(missing)}"
-        )
+        assert not missing, f"KnxStats-Views ohne Registrierung -> 404 im Panel: {sorted(missing)}"
 
     def test_known_endpoints_have_registered_view(self) -> None:
         """Spezifische, vom Panel benoetigte Endpunkte muessen registriert sein.

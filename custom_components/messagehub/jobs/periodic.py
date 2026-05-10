@@ -175,9 +175,7 @@ async def _run_findings_bus_wide_tick(hass: HomeAssistant, database: Any) -> Non
     period_to = now
     period_from = now - timedelta(days=DEFAULT_KNX_FINDINGS_BUS_WIDE_PERIOD_DAYS)
     domain_data = hass.data.get(DOMAIN, {})
-    bus_analysis_enabled = bool(
-        domain_data.get(HASS_KEY_KNX_BUS_ANALYSIS, True)
-    )
+    bus_analysis_enabled = bool(domain_data.get(HASS_KEY_KNX_BUS_ANALYSIS, True))
     try:
         recorded = await run_bus_wide_detectors(
             findings_repo=FindingsRepository(database),

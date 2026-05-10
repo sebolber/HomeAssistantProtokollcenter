@@ -11,7 +11,6 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-
 _SRC = (
     Path(__file__).resolve().parents[2]
     / "custom_components"
@@ -30,9 +29,7 @@ def _find_class(class_name: str) -> ast.ClassDef:
 
 
 def _get_method(cls: ast.ClassDef) -> ast.AsyncFunctionDef:
-    return next(
-        s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "get"
-    )
+    return next(s for s in cls.body if isinstance(s, ast.AsyncFunctionDef) and s.name == "get")
 
 
 def test_view_class_exists_with_correct_url() -> None:
@@ -45,9 +42,7 @@ def test_view_class_exists_with_correct_url() -> None:
         and isinstance(node.targets[0], ast.Name)
         and isinstance(node.value, ast.Constant)
     }
-    assert assigns.get("url") == (
-        "/api/messagehub/knx-stats/source/{dev_source}/recommendation"
-    )
+    assert assigns.get("url") == ("/api/messagehub/knx-stats/source/{dev_source}/recommendation")
     assert assigns.get("name") == "api:messagehub:knx-stats:source-recommendation"
 
 
@@ -107,15 +102,13 @@ def test_view_is_imported_and_registered_in_async_register_views() -> None:
     register-Tuple aufgefuehrt sein, sonst lebt sie tot."""
     messages_src = (_SRC.parent / "messages.py").read_text(encoding="utf-8")
     occurrences = messages_src.count("KnxStatsSourceRecommendationView")
-    assert occurrences >= 2, (
-        "Erwartet: 1x Import + 1x Register-Tuple-Eintrag in messages.py."
-    )
+    assert occurrences >= 2, "Erwartet: 1x Import + 1x Register-Tuple-Eintrag in messages.py."
 
 
 def test_view_is_in_register_knx_stats_views() -> None:
     """Konsistenz: auch im legacy ``register_knx_stats_views``-Tuple."""
     src = _SRC.read_text(encoding="utf-8")
-    register_section = src[src.index("def register_knx_stats_views"):]
+    register_section = src[src.index("def register_knx_stats_views") :]
     assert "KnxStatsSourceRecommendationView()" in register_section
 
 
@@ -125,7 +118,4 @@ def test_view_uses_counter_retention_for_max_days() -> None:
     koennen."""
     body_src = ast.unparse(_get_method(_find_class("KnxStatsSourceRecommendationView")))
     # Entweder als Konstante referenziert oder direkt 365.
-    assert (
-        "DEFAULT_KNX_COUNTER_RETENTION_DAYS" in body_src
-        or "365" in body_src
-    )
+    assert "DEFAULT_KNX_COUNTER_RETENTION_DAYS" in body_src or "365" in body_src

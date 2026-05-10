@@ -26,13 +26,8 @@ from custom_components.messagehub.storage import (
     Severity,
 )
 
-
 _API_FILE = (
-    Path(__file__).resolve().parents[2]
-    / "custom_components"
-    / "messagehub"
-    / "api"
-    / "messages.py"
+    Path(__file__).resolve().parents[2] / "custom_components" / "messagehub" / "api" / "messages.py"
 )
 
 

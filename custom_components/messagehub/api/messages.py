@@ -269,9 +269,7 @@ class WebhooksView(_RequireAdminView):
                 text=json.dumps(payload, indent=2, ensure_ascii=False),
                 content_type="application/json",
                 headers={
-                    "Content-Disposition": (
-                        'attachment; filename="messagehub-webhooks.json"'
-                    ),
+                    "Content-Disposition": ('attachment; filename="messagehub-webhooks.json"'),
                 },
             )
         return self.json({"webhooks": items})
@@ -1355,9 +1353,7 @@ class SavedFiltersView(_RequireAdminView):
             items = await SavedFiltersRepository(db).list_by_scope(scope)
         except ValueError as err:
             return self.json_message(str(err), status_code=400)
-        return self.json(
-            {"items": [saved_filter_to_dict(it) for it in items]}
-        )
+        return self.json({"items": [saved_filter_to_dict(it) for it in items]})
 
     async def post(self, request: web.Request) -> web.Response:
         from ..storage.saved_filters_repo import (  # noqa: PLC0415
@@ -1396,9 +1392,7 @@ class SavedFilterDetailView(_RequireAdminView):
     url = "/api/messagehub/saved-filters/{filter_id}"
     name = "api:messagehub:saved-filter-detail"
 
-    async def delete(
-        self, request: web.Request, filter_id: str
-    ) -> web.Response:
+    async def delete(self, request: web.Request, filter_id: str) -> web.Response:
         from ..storage.saved_filters_repo import SavedFiltersRepository  # noqa: PLC0415
 
         self._check_admin(request)
@@ -1451,9 +1445,7 @@ class MetricsView(_RequireAdminView):
         msg_repo, wh_repo = repos
         db = _get_database(hass)
 
-        cutoff_24h = (datetime.now(UTC) - timedelta(hours=24)).isoformat(
-            timespec="seconds"
-        )
+        cutoff_24h = (datetime.now(UTC) - timedelta(hours=24)).isoformat(timespec="seconds")
         # Per Severity all-time + 24h: 4 + 4 = 8 SELECTs. Bei
         # Scrape-Frequenz typisch alle 30-60 s ist das vertretbar.
         # Wer Prometheus-Last ernsthaft skalieren will, kann die Counts
@@ -1463,9 +1455,7 @@ class MetricsView(_RequireAdminView):
         severity_24h: dict[str, int] = {}
         for sev in ("debug", "info", "warning", "error"):
             severity_total[sev] = await msg_repo.count_by_severity(sev)
-            severity_24h[sev] = await msg_repo.count_by_severity_since(
-                sev, cutoff_24h
-            )
+            severity_24h[sev] = await msg_repo.count_by_severity_since(sev, cutoff_24h)
         total = await msg_repo.count_total()
 
         # KNX-Telegramme im Logbuch (whitelist-gefiltert).

@@ -64,22 +64,16 @@ async def test_increment_counter_batch_aggregates(repo: KnxStatsRepository) -> N
         ("1/2/3", "2026-05-08T11:00:00"),  # andere Bucket
     ]
     await repo.increment_counter_batch(items)
-    total_3 = await repo.counter_total_for_ga(
-        "1/2/3", "2026-05-08T00:00:00", "2026-05-09T00:00:00"
-    )
+    total_3 = await repo.counter_total_for_ga("1/2/3", "2026-05-08T00:00:00", "2026-05-09T00:00:00")
     assert total_3 == 3
-    total_4 = await repo.counter_total_for_ga(
-        "1/2/4", "2026-05-08T00:00:00", "2026-05-09T00:00:00"
-    )
+    total_4 = await repo.counter_total_for_ga("1/2/4", "2026-05-08T00:00:00", "2026-05-09T00:00:00")
     assert total_4 == 1
 
 
 @pytest.mark.asyncio
 async def test_increment_counter_batch_handles_empty(repo: KnxStatsRepository) -> None:
     await repo.increment_counter_batch([])
-    total = await repo.counter_total_for_ga(
-        "1/2/3", "2026-05-08T00:00:00", "2026-05-09T00:00:00"
-    )
+    total = await repo.counter_total_for_ga("1/2/3", "2026-05-08T00:00:00", "2026-05-09T00:00:00")
     assert total == 0
 
 
@@ -99,8 +93,6 @@ async def test_insert_raw_batch_serialises_value_as_json(
         }
     ]
     await repo.insert_raw_batch(rows)
-    samples = await repo.ga_samples(
-        "1/2/3", "2026-05-08T00:00:00", "2026-05-09T00:00:00"
-    )
+    samples = await repo.ga_samples("1/2/3", "2026-05-08T00:00:00", "2026-05-09T00:00:00")
     assert len(samples) == 1
     assert samples[0]["value"] == {"red": 100, "green": 50, "blue": 0}

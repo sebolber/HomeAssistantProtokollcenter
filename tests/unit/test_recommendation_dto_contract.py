@@ -26,10 +26,7 @@ from custom_components.messagehub.storage.database import Database
 from custom_components.messagehub.storage.knx_stats_repo import KnxStatsRepository
 from custom_components.messagehub.storage.migrations import MigrationRunner
 
-
-_FRONTEND_SRC_DIR = (
-    Path(__file__).resolve().parents[2] / "frontend" / "src"
-)
+_FRONTEND_SRC_DIR = Path(__file__).resolve().parents[2] / "frontend" / "src"
 
 
 def _concat_frontend_dto_source() -> str:
@@ -45,6 +42,7 @@ def _concat_frontend_dto_source() -> str:
             parts.append(path.read_text(encoding="utf-8"))
     return "\n".join(parts)
 
+
 _NOW = datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC)
 
 
@@ -53,9 +51,7 @@ _NOW = datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC)
 # ---------------------------------------------------------------------------
 
 
-def _extract_interface_fields(
-    src: str, interface_name: str
-) -> set[str]:
+def _extract_interface_fields(src: str, interface_name: str) -> set[str]:
     """Extrahiert Top-Level-Felder eines TS-Interface aus dem Source.
 
     Robust gegen Kommentare, optionale Felder (``?:``), Zeilen-Whitespace.
@@ -67,10 +63,7 @@ def _extract_interface_fields(
         re.DOTALL,
     )
     match = pattern.search(src)
-    assert match, (
-        f"Interface {interface_name} nicht in api-client.ts oder "
-        "types/*.ts gefunden"
-    )
+    assert match, f"Interface {interface_name} nicht in api-client.ts oder types/*.ts gefunden"
     body = match.group(1)
     fields: set[str] = set()
     for raw_line in body.splitlines():
@@ -91,9 +84,7 @@ def _extract_interface_fields(
 
 def test_top_level_dto_fields_match_frontend() -> None:
     src = _concat_frontend_dto_source()
-    frontend_fields = _extract_interface_fields(
-        src, "KnxStatsSourceRecommendationDto"
-    )
+    frontend_fields = _extract_interface_fields(src, "KnxStatsSourceRecommendationDto")
     # ``from``/``to`` sind optional und werden vom View extra angefuegt
     # — Backend-Helper schreibt nur die Pflichtfelder.
     expected_required = {
@@ -106,18 +97,22 @@ def test_top_level_dto_fields_match_frontend() -> None:
         "ga_recommendations",
     }
     missing = expected_required - frontend_fields
-    assert not missing, (
-        f"Frontend-DTO fehlen Pflichtfelder: {missing}"
-    )
+    assert not missing, f"Frontend-DTO fehlen Pflichtfelder: {missing}"
 
 
 def test_ga_dto_fields_match_frontend() -> None:
     src = _concat_frontend_dto_source()
     fields = _extract_interface_fields(src, "KnxRecommendationGaDto")
     expected = {
-        "ga", "label", "dpt", "observed", "recommended_mode",
-        "recommended_cycle_minutes", "recommended_hysteresis",
-        "severity", "rationale",
+        "ga",
+        "label",
+        "dpt",
+        "observed",
+        "recommended_mode",
+        "recommended_cycle_minutes",
+        "recommended_hysteresis",
+        "severity",
+        "rationale",
     }
     missing = expected - fields
     assert not missing, f"Frontend-GA-DTO fehlen Felder: {missing}"
@@ -127,8 +122,13 @@ def test_observed_dto_fields_match_frontend() -> None:
     src = _concat_frontend_dto_source()
     fields = _extract_interface_fields(src, "KnxRecommendationObservedDto")
     expected = {
-        "mode", "confidence", "sample_count", "value_changes",
-        "median_interval_s", "median_interval_minutes", "stdev_interval_s",
+        "mode",
+        "confidence",
+        "sample_count",
+        "value_changes",
+        "median_interval_s",
+        "median_interval_minutes",
+        "stdev_interval_s",
     }
     missing = expected - fields
     assert not missing, f"Frontend-Observed-DTO fehlen Felder: {missing}"
@@ -169,8 +169,12 @@ async def _seed_recommendation_data(db: Database) -> None:
             "(timestamp, destination, source, telegramtype, value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
-                _ts(-3600 + i * 60), "1/2/3", "1.1.10",
-                "GroupValueWrite", json.dumps(21.5), 0,
+                _ts(-3600 + i * 60),
+                "1/2/3",
+                "1.1.10",
+                "GroupValueWrite",
+                json.dumps(21.5),
+                0,
             ),
         )
 
@@ -183,9 +187,7 @@ async def test_backend_dto_keys_satisfy_frontend_contract(
     der Frontend-Interfaces enthaelt — JSON-encoded round-trip."""
     await _seed_recommendation_data(db)
     repo = KnxStatsRepository(db)
-    reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60)
-    )
+    reco = await compute_device_recommendation(repo, "1.1.10", _ts(-3700), _ts(60))
     assert reco is not None
 
     payload = device_recommendation_to_dict(reco)
@@ -193,8 +195,13 @@ async def test_backend_dto_keys_satisfy_frontend_contract(
 
     src = _concat_frontend_dto_source()
     top_required = {
-        "dev_source", "headline_mode", "headline_recommendation",
-        "confidence", "reasoning", "generated_at", "ga_recommendations",
+        "dev_source",
+        "headline_mode",
+        "headline_recommendation",
+        "confidence",
+        "reasoning",
+        "generated_at",
+        "ga_recommendations",
     }
     assert top_required.issubset(encoded.keys())
 
@@ -202,9 +209,7 @@ async def test_backend_dto_keys_satisfy_frontend_contract(
     obs_fields = _extract_interface_fields(src, "KnxRecommendationObservedDto")
     assert encoded["ga_recommendations"], "GAs sollten im Test gefuellt sein"
     for ga in encoded["ga_recommendations"]:
-        assert ga_fields.issubset(ga.keys()), (
-            f"GA-Eintrag fehlen Felder: {ga_fields - ga.keys()}"
-        )
+        assert ga_fields.issubset(ga.keys()), f"GA-Eintrag fehlen Felder: {ga_fields - ga.keys()}"
         assert obs_fields.issubset(ga["observed"].keys()), (
             f"observed fehlen Felder: {obs_fields - ga['observed'].keys()}"
         )
@@ -217,9 +222,7 @@ async def test_dto_roundtrip_through_json_does_not_lose_fields(
     """Schaerferer Roundtrip: encode + decode + Felder-Vollzaehligkeit."""
     await _seed_recommendation_data(db)
     repo = KnxStatsRepository(db)
-    reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60)
-    )
+    reco = await compute_device_recommendation(repo, "1.1.10", _ts(-3700), _ts(60))
     assert reco is not None
 
     payload = device_recommendation_to_dict(reco)
@@ -230,7 +233,11 @@ async def test_dto_roundtrip_through_json_does_not_lose_fields(
     assert decoded["dev_source"] == "1.1.10"
     assert isinstance(decoded["headline_recommendation"], str)
     assert decoded["headline_mode"] in (
-        "cyclic", "on_change", "hybrid", "silent", "insufficient",
+        "cyclic",
+        "on_change",
+        "hybrid",
+        "silent",
+        "insufficient",
     )
     assert decoded["confidence"] in ("high", "medium", "low")
     assert isinstance(decoded["reasoning"], list)
@@ -257,10 +264,8 @@ def test_bundle_contains_recommendation_card_marker() -> None:
     assert bundle.exists(), "Frontend-Bundle ist nicht im Repo committed"
     content = bundle.read_text(encoding="utf-8", errors="ignore")
     assert "recommendation-card" in content, (
-        "Card-CSS-Marker fehlt im Bundle — Card-Render wuerde kein "
-        "Styling bekommen."
+        "Card-CSS-Marker fehlt im Bundle — Card-Render wuerde kein Styling bekommen."
     )
     assert "/recommendation" in content, (
-        "API-Endpoint-Pfad fehlt im Bundle — Frontend kann den "
-        "Endpoint nicht aufrufen."
+        "API-Endpoint-Pfad fehlt im Bundle — Frontend kann den Endpoint nicht aufrufen."
     )

@@ -63,8 +63,10 @@ class TestSendToNowhere:
         samples = [
             _sample(offset_sec=0, value=1),
             _sample(
-                offset_sec=1, value=0,
-                telegramtype="GroupValueWrite", source="1.1.20",
+                offset_sec=1,
+                value=0,
+                telegramtype="GroupValueWrite",
+                source="1.1.20",
             ),
         ]
         finding = detect_send_to_nowhere(ga="1/2/3", samples=samples, now=_now())
@@ -75,8 +77,10 @@ class TestSendToNowhere:
         samples = [
             _sample(offset_sec=0, value=1),
             _sample(
-                offset_sec=1, value=1,
-                telegramtype="GroupValueResponse", source="1.1.20",
+                offset_sec=1,
+                value=1,
+                telegramtype="GroupValueResponse",
+                source="1.1.20",
             ),
         ]
         finding = detect_send_to_nowhere(ga="1/2/3", samples=samples, now=_now())
@@ -88,7 +92,9 @@ class TestSendToNowhere:
         # koennen, dass das Status nie kommt.
         samples = [_sample(offset_sec=3595, value=1)]  # 5 s vor _now()
         finding = detect_send_to_nowhere(
-            ga="1/2/3", samples=samples, now=_now(),
+            ga="1/2/3",
+            samples=samples,
+            now=_now(),
         )
         # Window ist 5 s; Write war exakt 5 s vor now; Window endet bei now.
         # Strenges > now bedeutet: nicht abgelaufen -> kein Finding.
@@ -98,7 +104,9 @@ class TestSendToNowhere:
         samples = [
             _sample(offset_sec=0, value=1, telegramtype="GroupValueRead"),
             _sample(
-                offset_sec=1, value=1, telegramtype="GroupValueResponse",
+                offset_sec=1,
+                value=1,
+                telegramtype="GroupValueResponse",
                 source="1.1.20",
             ),
         ]

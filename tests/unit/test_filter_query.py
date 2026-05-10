@@ -71,12 +71,12 @@ async def test_search_with_fts5_special_characters_no_syntax_error(
     queries = [
         '"',  # nackte Anführungszeichen
         'foo"bar',  # eingebettete
-        'NEAR(a b)',  # FTS5 NEAR-Operator
-        'a OR b',  # boolean
-        'col*',  # wildcard
-        'AND OR NOT',  # alle Keywords
-        '* hello',  # wildcard prefix
-        '',  # leerer String wird ignoriert
+        "NEAR(a b)",  # FTS5 NEAR-Operator
+        "a OR b",  # boolean
+        "col*",  # wildcard
+        "AND OR NOT",  # alle Keywords
+        "* hello",  # wildcard prefix
+        "",  # leerer String wird ignoriert
     ]
     for q in queries:
         # Soll keine Exception werfen; Treffer-Anzahl ist egal,

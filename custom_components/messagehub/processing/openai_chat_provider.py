@@ -111,9 +111,7 @@ _CODEFENCE_MIN_PARTS = 2
 _JSON_LANG_TAG_LEN = 4
 
 _DEFAULT_MAX_RATE_PER_MIN = 1.0
-_DEFAULT_RATIONALE_FALLBACK = (
-    "LLM-Empfehlung — keine Begruendung mitgeliefert."
-)
+_DEFAULT_RATIONALE_FALLBACK = "LLM-Empfehlung — keine Begruendung mitgeliefert."
 
 
 def _strip_codefences(raw: str) -> str:
@@ -145,7 +143,7 @@ def _coerce_optional_int(value: object) -> int | None:
     if isinstance(value, int) and not isinstance(value, bool):
         return value
     try:
-        return int(value)  # type: ignore[arg-type]
+        return int(value)  # type: ignore[call-overload, no-any-return]
     except (TypeError, ValueError):
         return None
 
@@ -245,7 +243,7 @@ def _parse_response(raw: str) -> DptRecommendation | None:
         return None
     cycle_min, cycle_max = _coerce_cycle_pair(payload)
     return DptRecommendation(
-        mode=mode,  # type: ignore[arg-type]
+        mode=mode,
         cycle_minutes_min=cycle_min,
         cycle_minutes_max=cycle_max,
         hysteresis=_coerce_hysteresis(payload.get("hysteresis")),
@@ -288,14 +286,9 @@ class OpenAIChatProvider:
         if not self._config.enabled:
             return None
         if not self._limiter.allow("openai_chat"):
-            _LOGGER.warning(
-                "knx_recommend_llm rate-limited — request dropped"
-            )
+            _LOGGER.warning("knx_recommend_llm rate-limited — request dropped")
             return None
-        system_prompt = (
-            self._config.system_prompt_override.strip()
-            or DEFAULT_SYSTEM_PROMPT
-        )
+        system_prompt = self._config.system_prompt_override.strip() or DEFAULT_SYSTEM_PROMPT
         user_prompt = _build_user_prompt(
             dpt=dpt,
             manufacturer=manufacturer,
@@ -315,12 +308,15 @@ class OpenAIChatProvider:
         return await self._post_and_parse(url, body)
 
     async def _post_and_parse(
-        self, url: str, body: dict[str, Any],
+        self,
+        url: str,
+        body: dict[str, Any],
     ) -> DptRecommendation | None:
         # Lokaler Import, weil aiohttp im Test-Pfad nicht verfuegbar
         # sein muss (Mock-client_factory uebernimmt).
         if self._client_factory is None:
             import aiohttp  # noqa: PLC0415
+
             timeout = aiohttp.ClientTimeout(total=self._config.timeout_s)
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 return await self._do_post(session, url, body)
@@ -329,7 +325,10 @@ class OpenAIChatProvider:
             return await self._do_post(session, url, body)
 
     async def _do_post(
-        self, session: Any, url: str, body: dict[str, Any],
+        self,
+        session: Any,
+        url: str,
+        body: dict[str, Any],
     ) -> DptRecommendation | None:
         headers = {
             "Authorization": f"Bearer {self._config.api_key}",
@@ -337,7 +336,9 @@ class OpenAIChatProvider:
         }
         try:
             async with session.post(
-                url, json=body, headers=headers,
+                url,
+                json=body,
+                headers=headers,
             ) as resp:
                 if resp.status >= _HTTP_BAD_REQUEST_STATUS:
                     _LOGGER.warning(

@@ -26,7 +26,10 @@ def _ts(seconds: float) -> datetime:
 
 def _r(source: str, t: float) -> TelegramSample:
     return TelegramSample(
-        ts=_ts(t), value=1, telegramtype="GroupValueResponse", source=source,
+        ts=_ts(t),
+        value=1,
+        telegramtype="GroupValueResponse",
+        source=source,
     )
 
 
@@ -36,9 +39,7 @@ class TestMultiResponderDetector:
     ) -> None:
         # Arrange — Read + zwei unterschiedliche Sources antworten innerhalb 200ms.
         samples = [
-            TelegramSample(
-                ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.10"
-            ),
+            TelegramSample(ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.10"),
             _r("1.1.5", 0.05),
             _r("1.1.6", 0.10),
         ]
@@ -104,12 +105,8 @@ class TestMultiResponderDetector:
     def test_only_response_telegrams_count(self) -> None:
         # Arrange — Reads + Writes von vielen Sources sollten nicht zaehlen.
         samples = [
-            TelegramSample(
-                ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"
-            ),
-            TelegramSample(
-                ts=_ts(0.05), value=1, telegramtype="GroupValueWrite", source="1.1.6"
-            ),
+            TelegramSample(ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"),
+            TelegramSample(ts=_ts(0.05), value=1, telegramtype="GroupValueWrite", source="1.1.6"),
         ]
 
         # Act

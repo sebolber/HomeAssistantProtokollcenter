@@ -57,19 +57,14 @@ def _hour_iso(dt: datetime) -> str:
     return floored.isoformat(timespec="seconds").split("+")[0]
 
 
-async def _seed_counter(
-    db: Database, *, ga: str, hour: datetime, count: int
-) -> None:
+async def _seed_counter(db: Database, *, ga: str, hour: datetime, count: int) -> None:
     await db.execute(
-        "INSERT INTO knx_telegram_counters (ga, hour_bucket, count) "
-        "VALUES (?, ?, ?)",
+        "INSERT INTO knx_telegram_counters (ga, hour_bucket, count) VALUES (?, ?, ?)",
         (ga, _hour_iso(hour), count),
     )
 
 
-async def _insert_ga(
-    db: Database, *, ga: str, dpt: str | None = None, label: str = "GA"
-) -> None:
+async def _insert_ga(db: Database, *, ga: str, dpt: str | None = None, label: str = "GA") -> None:
     now = _iso(_NOW)
     await db.execute(
         "INSERT INTO knx_group_addresses "
@@ -87,8 +82,12 @@ async def _insert_live_telegram(
         "(timestamp, destination, source, telegramtype, value, repeated) "
         "VALUES (?, ?, ?, ?, ?, ?)",
         (
-            _iso(ts), ga, source, "GroupValueWrite",
-            json.dumps(1, default=str), 0,
+            _iso(ts),
+            ga,
+            source,
+            "GroupValueWrite",
+            json.dumps(1, default=str),
+            0,
         ),
     )
 
@@ -98,15 +97,11 @@ class TestCounterTotalsForGas:
     async def test_empty_ga_list_returns_empty_dict(self, db: Database) -> None:
         """Leere GA-Liste darf nicht in `IN ()`-SQL muenden."""
         repo = KnxStatsRepository(db)
-        result = await repo.counter_totals_for_gas(
-            [], "2026-04-26T00:00:00", "2026-05-03T00:00:00"
-        )
+        result = await repo.counter_totals_for_gas([], "2026-04-26T00:00:00", "2026-05-03T00:00:00")
         assert result == {}
 
     @pytest.mark.asyncio
-    async def test_aggregates_counts_per_ga_in_window(
-        self, db: Database
-    ) -> None:
+    async def test_aggregates_counts_per_ga_in_window(self, db: Database) -> None:
         """Mehrere Hour-Buckets pro GA werden aufsummiert; GAs ausserhalb
         der Liste oder ausserhalb der Periode bleiben aussen vor."""
         # GA 1/2/3: 50 + 30 = 80 in Periode, 999 ausserhalb
@@ -121,9 +116,7 @@ class TestCounterTotalsForGas:
         repo = KnxStatsRepository(db)
         from_iso = _iso(_NOW - timedelta(days=7))
         to_iso = _iso(_NOW)
-        result = await repo.counter_totals_for_gas(
-            ["1/2/3", "1/2/4"], from_iso, to_iso
-        )
+        result = await repo.counter_totals_for_gas(["1/2/3", "1/2/4"], from_iso, to_iso)
         assert result == {"1/2/3": 80, "1/2/4": 100}
 
     @pytest.mark.asyncio
@@ -138,9 +131,7 @@ class TestCounterTotalsForGas:
 
 class TestComputeSourceDetailLongTerm:
     @pytest.mark.asyncio
-    async def test_long_term_period_uses_counter_for_per_ga_counts(
-        self, db: Database
-    ) -> None:
+    async def test_long_term_period_uses_counter_for_per_ga_counts(self, db: Database) -> None:
         """7-Tage-Periode: Per-GA-Counts kommen aus dem Counter, nicht
         aus den 48-h-Live-Daten."""
         await _insert_ga(db, ga="1/2/3", dpt="1.001", label="Schalter")
@@ -171,15 +162,11 @@ class TestComputeSourceDetailLongTerm:
         assert detail.total_count == 650
 
     @pytest.mark.asyncio
-    async def test_short_term_period_keeps_live_path(
-        self, db: Database
-    ) -> None:
+    async def test_short_term_period_keeps_live_path(self, db: Database) -> None:
         """1-h-Periode bleibt auf Raw/Live (Schwelle erst >= 48h)."""
         await _insert_ga(db, ga="1/2/3", dpt="1.001")
         for offset_min in range(1, 6):
-            await _insert_live_telegram(
-                db, ga="1/2/3", ts=_NOW - timedelta(minutes=offset_min)
-            )
+            await _insert_live_telegram(db, ga="1/2/3", ts=_NOW - timedelta(minutes=offset_min))
         # Counter-Wert grossartig hoch — sollte NICHT verwendet werden.
         await _seed_counter(db, ga="1/2/3", hour=_NOW - timedelta(hours=1), count=99999)
 
@@ -195,9 +182,7 @@ class TestComputeSourceDetailLongTerm:
         assert detail.gas[0].count == 5
 
     @pytest.mark.asyncio
-    async def test_long_term_share_pct_uses_counter_total(
-        self, db: Database
-    ) -> None:
+    async def test_long_term_share_pct_uses_counter_total(self, db: Database) -> None:
         """Im Long-Term-Modus muss auch der Periode-Total aus dem
         Counter kommen, sonst ist `share_pct = source / total`
         inkonsistent (Source aus Counter, Total aus 48h-Live)."""

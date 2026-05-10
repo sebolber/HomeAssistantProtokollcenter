@@ -27,9 +27,7 @@ def _ts(seconds: float) -> datetime:
 
 
 def _w(value: int, t: float) -> TelegramSample:
-    return TelegramSample(
-        ts=_ts(t), value=value, telegramtype="GroupValueWrite", source="1.1.5"
-    )
+    return TelegramSample(ts=_ts(t), value=value, telegramtype="GroupValueWrite", source="1.1.5")
 
 
 class TestToggleLoopDetector:
@@ -38,9 +36,7 @@ class TestToggleLoopDetector:
         samples = [_w(i % 2, i * 1.0) for i in range(8)]
 
         # Act
-        finding = detect_toggle_loop(
-            ga="1/2/3", dpt="1.001", samples=samples, now=_ts(8.0)
-        )
+        finding = detect_toggle_loop(ga="1/2/3", dpt="1.001", samples=samples, now=_ts(8.0))
 
         # Assert
         assert isinstance(finding, Finding)
@@ -55,9 +51,7 @@ class TestToggleLoopDetector:
         samples = [_w(0, i * 0.5) for i in range(20)]
 
         # Act
-        finding = detect_toggle_loop(
-            ga="1/2/3", dpt="1.001", samples=samples, now=_ts(10.0)
-        )
+        finding = detect_toggle_loop(ga="1/2/3", dpt="1.001", samples=samples, now=_ts(10.0))
 
         # Assert
         assert finding is None
@@ -67,9 +61,7 @@ class TestToggleLoopDetector:
         samples = [_w(i % 2, i * 1.0) for i in range(20)]
 
         # Act
-        finding = detect_toggle_loop(
-            ga="1/2/3", dpt="9.001", samples=samples, now=_ts(20.0)
-        )
+        finding = detect_toggle_loop(ga="1/2/3", dpt="9.001", samples=samples, now=_ts(20.0))
 
         # Assert
         assert finding is None
@@ -79,9 +71,7 @@ class TestToggleLoopDetector:
         samples = [_w(i % 2, i * 5.0) for i in range(20)]
 
         # Act
-        finding = detect_toggle_loop(
-            ga="1/2/3", dpt="1.001", samples=samples, now=_ts(100.0)
-        )
+        finding = detect_toggle_loop(ga="1/2/3", dpt="1.001", samples=samples, now=_ts(100.0))
 
         # Assert
         assert finding is None
@@ -91,9 +81,7 @@ class TestToggleLoopDetector:
         samples = [_w(i % 2, i * 1.0) for i in range(4)]
 
         # Act
-        finding = detect_toggle_loop(
-            ga="1/2/3", dpt="1.001", samples=samples, now=_ts(4.0)
-        )
+        finding = detect_toggle_loop(ga="1/2/3", dpt="1.001", samples=samples, now=_ts(4.0))
 
         # Assert
         assert finding is None
@@ -103,9 +91,7 @@ class TestToggleLoopDetector:
         samples = [_w(i % 2, i * 1.5) for i in range(8)]
 
         # Act
-        finding = detect_toggle_loop(
-            ga="1/2/3", dpt="1.001", samples=samples, now=_ts(12.0)
-        )
+        finding = detect_toggle_loop(ga="1/2/3", dpt="1.001", samples=samples, now=_ts(12.0))
 
         # Assert
         assert finding is not None

@@ -136,9 +136,7 @@ class KnxAddressRepository:
         """
         validate_address(address)
         if not 0.0 <= confidence <= 1.0:
-            raise ValueError(
-                f"confidence must be in [0.0, 1.0], got {confidence!r}"
-            )
+            raise ValueError(f"confidence must be in [0.0, 1.0], got {confidence!r}")
         now = datetime.now(UTC).isoformat(timespec="seconds")
         await self._db.execute(
             "INSERT INTO knx_group_addresses "
@@ -153,9 +151,7 @@ class KnxAddressRepository:
             (address, address, now, now, dpt_inferred, confidence, at),
         )
 
-    async def get_dpt_inferred(
-        self, address: str
-    ) -> tuple[str, float, str] | None:
+    async def get_dpt_inferred(self, address: str) -> tuple[str, float, str] | None:
         """Liefert (dpt_inferred, confidence, at) oder None."""
         row = await self._db.fetch_one(
             "SELECT dpt_inferred, dpt_inferred_confidence, dpt_inferred_at "

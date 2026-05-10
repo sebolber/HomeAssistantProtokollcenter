@@ -41,8 +41,7 @@ def _f(
         severity=severity,  # type: ignore[arg-type]
         ga=ga,
         source="1.1.5",
-        evidence=evidence
-        or {"project_dpt": "9.001", "inferred_dpt": "1.001"},
+        evidence=evidence or {"project_dpt": "9.001", "inferred_dpt": "1.001"},
         first_seen=base,
         last_seen=base,
         occurrence_count=1,
@@ -65,10 +64,18 @@ class TestMarkdownFormatter:
     def test_findings_markdown_export_renders_table_with_evidence(self) -> None:
         # Arrange
         findings = [
-            _f(code="DPT_MISMATCH", ga="1/2/3", severity="error",
-               evidence={"project_dpt": "9.001", "inferred_dpt": "1.001"}),
-            _f(code="MULTI_RESPONDER", ga="1/2/4", severity="warning",
-               evidence={"responding_sources": ["1.1.5", "1.1.6"]}),
+            _f(
+                code="DPT_MISMATCH",
+                ga="1/2/3",
+                severity="error",
+                evidence={"project_dpt": "9.001", "inferred_dpt": "1.001"},
+            ),
+            _f(
+                code="MULTI_RESPONDER",
+                ga="1/2/4",
+                severity="warning",
+                evidence={"responding_sources": ["1.1.5", "1.1.6"]},
+            ),
         ]
 
         # Act
@@ -92,11 +99,13 @@ class TestMarkdownFormatter:
 
     def test_evidence_dict_serialized_compactly(self) -> None:
         # Arrange — Evidence mit verschiedenen Wertetypen.
-        finding = _f(evidence={
-            "project_dpt": "9.001",
-            "confidence": 0.94,
-            "samples": 52,
-        })
+        finding = _f(
+            evidence={
+                "project_dpt": "9.001",
+                "confidence": 0.94,
+                "samples": 52,
+            }
+        )
         # Act
         md = format_findings_markdown([finding])
         # Assert — Werte erscheinen, Reihenfolge alphabetisch (sortable).

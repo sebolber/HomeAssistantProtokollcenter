@@ -7,6 +7,7 @@ Fuer unbekannte DPTs Fallback auf `str(value)`.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any, Final
 
 # Boolean-DPTs: (dpt-Family, on-Label, off-Label).
@@ -124,9 +125,7 @@ def _try_decode_byte_tuple_as_string(value: Any) -> str | None:
         return None
 
     printable = sum(
-        1
-        for b in bytes_list
-        if b == 0 or _PRINTABLE_ASCII_MIN <= b <= _PRINTABLE_ASCII_MAX
+        1 for b in bytes_list if b == 0 or _PRINTABLE_ASCII_MIN <= b <= _PRINTABLE_ASCII_MAX
     )
     if printable / len(bytes_list) < _ASCII_PRINTABLE_THRESHOLD:
         return None
@@ -190,7 +189,7 @@ def _format_default_numeric(dpt: str, value: Any) -> str:
 
 
 # Prefix → Handler. Reihenfolge irrelevant, weil unique Prefixes.
-_DPT_HANDLERS: list[tuple[str, Any]] = [
+_DPT_HANDLERS: list[tuple[str, Callable[[str, Any], str]]] = [
     ("1.", _format_dpt_1),
     ("16.", _format_dpt_16),
     ("232.", _format_dpt_232),

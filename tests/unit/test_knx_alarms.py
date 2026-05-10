@@ -38,19 +38,16 @@ async def _insert(
     dev_source: str = "1.1.5",
     repeated: bool = False,
 ) -> None:
-    await insert_raw_telegram(
-        db, ts=ts, ga=ga, dev_source=dev_source, repeated=repeated
-    )
+    await insert_raw_telegram(db, ts=ts, ga=ga, dev_source=dev_source, repeated=repeated)
 
 
 class TestEvaluateAlarms:
     @pytest.mark.asyncio
-    async def test_empty_returns_three_rules_none_triggered(
-        self, db: Database
-    ) -> None:
+    async def test_empty_returns_three_rules_none_triggered(self, db: Database) -> None:
         svc = KnxStatsService(KnxStatsRepository(db))
         out = await svc.evaluate_alarms(
-            _ts(0), _ts(60),
+            _ts(0),
+            _ts(60),
             busload_pct_threshold=25.0,
             repeat_rate_pct_threshold=0.5,
             silence_count_threshold=1,
@@ -70,7 +67,8 @@ class TestEvaluateAlarms:
             await _insert(db, ts=_ts(50 + i / 2), ga="1/2/3", repeated=True)
         svc = KnxStatsService(KnxStatsRepository(db))
         out = await svc.evaluate_alarms(
-            _ts(0), _ts(60),
+            _ts(0),
+            _ts(60),
             busload_pct_threshold=99.0,
             repeat_rate_pct_threshold=1.0,
             silence_count_threshold=99,
@@ -88,7 +86,8 @@ class TestEvaluateAlarms:
         await _insert(db, ts=_ts(-1000), ga="1/2/3", dev_source="1.1.5")
         svc = KnxStatsService(KnxStatsRepository(db))
         out = await svc.evaluate_alarms(
-            _ts(-2000), _ts(0),  # Periode beinhaltet das Insert
+            _ts(-2000),
+            _ts(0),  # Periode beinhaltet das Insert
             busload_pct_threshold=99.0,
             repeat_rate_pct_threshold=99.0,
             silence_count_threshold=1,

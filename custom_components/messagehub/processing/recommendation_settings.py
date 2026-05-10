@@ -46,15 +46,11 @@ def _has_allowed_url_scheme(url: str) -> bool:
     if not url:
         return False
     lower = url.lower()
-    return any(
-        lower.startswith(f"{scheme}://") for scheme in ALLOWED_LLM_URL_SCHEMES
-    )
+    return any(lower.startswith(f"{scheme}://") for scheme in ALLOWED_LLM_URL_SCHEMES)
 
 
 def _raise_for_bad_url_scheme() -> None:
-    raise ValueError(
-        f"base_url scheme must be one of {sorted(ALLOWED_LLM_URL_SCHEMES)}"
-    )
+    raise ValueError(f"base_url scheme must be one of {sorted(ALLOWED_LLM_URL_SCHEMES)}")
 
 
 def _validate_url(value: str) -> str:
@@ -97,9 +93,7 @@ async def load_provider_config(
     Pflichtfeldern (base_url/model/api_key leer) wird der Provider als
     *disabled* zurueckgegeben + Reasoning-Eintrag im Service-Pfad.
     """
-    enabled = await settings_repo.get_bool(
-        SETTINGS_KEY_LLM_ENABLED, default=False
-    )
+    enabled = await settings_repo.get_bool(SETTINGS_KEY_LLM_ENABLED, default=False)
     base_url = (await settings_repo.get(SETTINGS_KEY_LLM_BASE_URL)) or ""
     model = (await settings_repo.get(SETTINGS_KEY_LLM_MODEL)) or ""
     api_key = (await settings_repo.get(SETTINGS_KEY_LLM_API_KEY)) or ""
@@ -111,16 +105,12 @@ async def load_provider_config(
         await settings_repo.get(SETTINGS_KEY_LLM_MAX_TOKENS),
         default=DEFAULT_LLM_MAX_TOKENS,
     )
-    system_prompt = (
-        await settings_repo.get(SETTINGS_KEY_LLM_SYSTEM_PROMPT)
-    ) or ""
+    system_prompt = (await settings_repo.get(SETTINGS_KEY_LLM_SYSTEM_PROMPT)) or ""
 
     # Self-Disable bei unvollstaendiger Konfig — Service muss nicht
     # selbst pruefen, der ProviderConfig.enabled=False liefert das
     # konsistente Verhalten.
-    effective_enabled = (
-        enabled and bool(base_url) and bool(model) and bool(api_key)
-    )
+    effective_enabled = enabled and bool(base_url) and bool(model) and bool(api_key)
     return ProviderConfig(
         enabled=effective_enabled,
         base_url=base_url,
@@ -160,17 +150,11 @@ async def save_provider_config(
     if api_key is not None:
         await settings_repo.set(SETTINGS_KEY_LLM_API_KEY, api_key)
     if timeout_s is not None:
-        await settings_repo.set(
-            SETTINGS_KEY_LLM_TIMEOUT_S, str(float(timeout_s))
-        )
+        await settings_repo.set(SETTINGS_KEY_LLM_TIMEOUT_S, str(float(timeout_s)))
     if max_tokens is not None:
-        await settings_repo.set(
-            SETTINGS_KEY_LLM_MAX_TOKENS, str(int(max_tokens))
-        )
+        await settings_repo.set(SETTINGS_KEY_LLM_MAX_TOKENS, str(int(max_tokens)))
     if system_prompt_override is not None:
-        await settings_repo.set(
-            SETTINGS_KEY_LLM_SYSTEM_PROMPT, system_prompt_override
-        )
+        await settings_repo.set(SETTINGS_KEY_LLM_SYSTEM_PROMPT, system_prompt_override)
 
 
 def redact_for_response(config: ProviderConfig) -> dict[str, Any]:
@@ -229,7 +213,9 @@ def stub_provider() -> RecommendationProvider:
 
 
 def _coerce_optional_str(
-    value: object, *, max_len: int,
+    value: object,
+    *,
+    max_len: int,
 ) -> str | None:
     """Robust gegen non-str (None passthrough, leerer String OK)."""
     if value is None:
@@ -259,7 +245,8 @@ def _merge_base_url(stored: str, override: dict[str, Any]) -> str:
     if "base_url" not in override:
         return stored
     raw = _coerce_optional_str(
-        override.get("base_url"), max_len=_TEST_OVERRIDE_MAX_LEN_BASE_URL,
+        override.get("base_url"),
+        max_len=_TEST_OVERRIDE_MAX_LEN_BASE_URL,
     )
     cleaned = (raw or "").strip()
     if cleaned and not _has_allowed_url_scheme(cleaned):
@@ -271,7 +258,8 @@ def _merge_model(stored: str, override: dict[str, Any]) -> str:
     if "model" not in override:
         return stored
     raw = _coerce_optional_str(
-        override.get("model"), max_len=_TEST_OVERRIDE_MAX_LEN_MODEL,
+        override.get("model"),
+        max_len=_TEST_OVERRIDE_MAX_LEN_MODEL,
     )
     return (raw or "").strip()
 
@@ -283,7 +271,8 @@ def _merge_api_key(stored: str, override: dict[str, Any]) -> str:
     if "api_key" not in override:
         return stored
     raw = _coerce_optional_str(
-        override.get("api_key"), max_len=_TEST_OVERRIDE_MAX_LEN_API_KEY,
+        override.get("api_key"),
+        max_len=_TEST_OVERRIDE_MAX_LEN_API_KEY,
     )
     return raw if raw is not None else ""
 
@@ -313,7 +302,8 @@ def _merge_system_prompt(stored: str, override: dict[str, Any]) -> str:
 
 
 def merge_test_config(
-    stored: ProviderConfig, override: dict[str, Any],
+    stored: ProviderConfig,
+    override: dict[str, Any],
 ) -> ProviderConfig:
     """Iter UX-4: mischt Override-Felder ueber die gespeicherte Konfig
     fuer den Test-Endpoint.
@@ -335,6 +325,7 @@ def merge_test_config(
         timeout_s=_merge_timeout(stored.timeout_s, override),
         max_tokens=_merge_max_tokens(stored.max_tokens, override),
         system_prompt_override=_merge_system_prompt(
-            stored.system_prompt_override, override,
+            stored.system_prompt_override,
+            override,
         ),
     )

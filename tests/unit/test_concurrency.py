@@ -115,9 +115,7 @@ async def test_iter82_high_volume_same_fingerprint_no_lost_count(
         ("stress-source",),
     )
     total = sum(int(r["count"]) for r in rows)
-    assert total == 1000, (
-        f"Erwartete count-Summe 1000, war {total} (Rows: {len(rows)})"
-    )
+    assert total == 1000, f"Erwartete count-Summe 1000, war {total} (Rows: {len(rows)})"
 
 
 @pytest.mark.asyncio
@@ -139,9 +137,7 @@ async def test_iter82_high_volume_distinct_fingerprints_all_persist(
         await repo.insert_or_aggregate(msg, window_minutes=10)
 
     await asyncio.gather(*[fire(i) for i in range(100)])
-    rows = await repo._db.fetch_all(
-        "SELECT id FROM messages WHERE source LIKE 'distinct-%'"
-    )
+    rows = await repo._db.fetch_all("SELECT id FROM messages WHERE source LIKE 'distinct-%'")
     assert len(rows) == 100
 
 
@@ -166,14 +162,10 @@ async def test_iter82_mixed_fingerprints_serialize_per_group(
     tasks = [fire(i % 5) for i in range(200)]
     await asyncio.gather(*tasks)
 
-    rows = await repo._db.fetch_all(
-        "SELECT source, count FROM messages WHERE source LIKE 'grp-%'"
-    )
+    rows = await repo._db.fetch_all("SELECT source, count FROM messages WHERE source LIKE 'grp-%'")
     by_source: dict[str, int] = {}
     for r in rows:
-        by_source[str(r["source"])] = (
-            by_source.get(str(r["source"]), 0) + int(r["count"])
-        )
+        by_source[str(r["source"])] = by_source.get(str(r["source"]), 0) + int(r["count"])
     # Jede Source-Gruppe hat exakt 40 Inserts gesehen.
     for group in range(5):
         assert by_source[f"grp-{group}"] == 40

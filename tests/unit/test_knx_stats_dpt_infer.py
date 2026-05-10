@@ -69,7 +69,5 @@ def test_int_outside_byte_range_falls_through_to_none() -> None:
         ([None], None),
     ],
 )
-def test_examples_from_docstring(
-    values: list[object], expected: str | None
-) -> None:
+def test_examples_from_docstring(values: list[object], expected: str | None) -> None:
     assert infer_dpt_from_samples(values) == expected

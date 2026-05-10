@@ -49,9 +49,7 @@ async def list_findings_response(
         offset: int       — angewandtes Offset
     """
     if severity is not None and severity not in FINDING_SEVERITIES:
-        raise ValueError(
-            f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}"
-        )
+        raise ValueError(f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}")
     capped_limit = max(1, min(limit, HARD_CAP_LIMIT))
     safe_offset = max(0, offset)
     items: list[Finding] = await repo.list_findings(
@@ -78,9 +76,7 @@ async def list_findings_response(
     serialized: list[dict[str, Any]] = []
     for item in items:
         item_dict = item.to_dict()
-        item_dict["severity"] = await _resolve_item_severity(
-            repo, item, severity_cache
-        )
+        item_dict["severity"] = await _resolve_item_severity(repo, item, severity_cache)
         # Bus-weite Findings (ga=None) haben keine eindeutige (ga,code)-
         # Identitaet im Ack-Schema; wir melden sie konsistent als nicht-acked.
         item_dict["acknowledged"] = bool(
@@ -95,9 +91,7 @@ async def list_findings_response(
     }
 
 
-async def _resolve_item_severity(
-    repo: Any, item: Finding, cache: dict[str, str]
-) -> str:
+async def _resolve_item_severity(repo: Any, item: Finding, cache: dict[str, str]) -> str:
     """Iter B4: Severity zur Laufzeit aus ``resolve_severity`` ziehen.
 
     Pro Code wird die Aufloesung gecacht (User-Override + Default).
@@ -107,6 +101,7 @@ async def _resolve_item_severity(
     """
     if item.code in cache:
         return cache[item.code]
+    sev: FindingSeverity
     try:
         sev = await repo.resolve_severity(item.code)
     except (KeyError, AttributeError):
@@ -223,13 +218,9 @@ async def list_severity_overrides_response(repo: Any) -> dict[str, Any]:
             {
                 "code": code,
                 "default_severity": KNX_FINDING_DEFAULT_SEVERITIES[code],
-                "override_severity": (
-                    override_row["severity"] if override_row else None
-                ),
+                "override_severity": (override_row["severity"] if override_row else None),
                 "note": override_row["note"] if override_row else None,
-                "updated_at": (
-                    override_row["updated_at"] if override_row else None
-                ),
+                "updated_at": (override_row["updated_at"] if override_row else None),
             }
         )
     return {"items": items, "total": len(items)}
@@ -246,11 +237,12 @@ async def set_severity_override_response(
     """Setzt einen Override + liefert eine API-Response."""
     _validate_code(code)
     if severity not in FINDING_SEVERITIES:
-        raise ValueError(
-            f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}"
-        )
+        raise ValueError(f"Invalid severity {severity!r}; expected one of {FINDING_SEVERITIES}")
     await repo.set_severity_override(
-        code=code, severity=severity, actor=actor, note=note,
+        code=code,
+        severity=severity,
+        actor=actor,
+        note=note,
     )
     return {"code": code, "severity": severity, "note": note}
 
@@ -286,8 +278,7 @@ async def aggregate_finding_total(repo: Any) -> dict[tuple[str, str], int]:
     Audit, Iter 28 partial wired).
     """
     rows = await repo._db.fetch_all(
-        "SELECT code, severity, COUNT(*) AS c "
-        "FROM knx_findings GROUP BY code, severity"
+        "SELECT code, severity, COUNT(*) AS c FROM knx_findings GROUP BY code, severity"
     )
     return {(str(r["code"]), str(r["severity"])): int(r["c"]) for r in rows}
 
@@ -322,6 +313,7 @@ async def refresh_findings_response(
     _validate_ga(ga)
     days = max(MIN_REFRESH_PERIOD_DAYS, min(int(period_days), MAX_REFRESH_PERIOD_DAYS))
     from datetime import timedelta as _td  # noqa: PLC0415
+
     period_to_dt = now
     period_from_dt = now - _td(days=days)
     count = await run_per_ga_detectors(

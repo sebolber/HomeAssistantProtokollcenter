@@ -25,7 +25,10 @@ class TestValueRangeDetector:
     def test_value_out_of_range_emits_finding_for_dpt_5001_above_100(self) -> None:
         # Arrange — DPT 5.001 (Prozent), Wert 200 -> ausserhalb [0, 100].
         finding = detect_value_out_of_range(
-            ga="1/2/3", dpt="5.001", value=200.0, now=_now(),
+            ga="1/2/3",
+            dpt="5.001",
+            value=200.0,
+            now=_now(),
         )
 
         # Assert
@@ -44,26 +47,38 @@ class TestValueRangeDetector:
     def test_no_finding_for_value_in_range(self) -> None:
         # Arrange — DPT 5.001, Wert 50 -> in [0, 100].
         finding = detect_value_out_of_range(
-            ga="1/2/3", dpt="5.001", value=50.0, now=_now(),
+            ga="1/2/3",
+            dpt="5.001",
+            value=50.0,
+            now=_now(),
         )
         assert finding is None
 
     def test_no_finding_for_value_at_lower_bound(self) -> None:
         finding = detect_value_out_of_range(
-            ga="1/2/3", dpt="5.001", value=0.0, now=_now(),
+            ga="1/2/3",
+            dpt="5.001",
+            value=0.0,
+            now=_now(),
         )
         assert finding is None
 
     def test_no_finding_for_value_at_upper_bound(self) -> None:
         finding = detect_value_out_of_range(
-            ga="1/2/3", dpt="5.001", value=100.0, now=_now(),
+            ga="1/2/3",
+            dpt="5.001",
+            value=100.0,
+            now=_now(),
         )
         assert finding is None
 
     def test_emits_finding_below_lower_bound(self) -> None:
         # Arrange — DPT 9.005 (Wind), Wert -3 -> unter [0, ...].
         finding = detect_value_out_of_range(
-            ga="1/2/3", dpt="9.005", value=-3.0, now=_now(),
+            ga="1/2/3",
+            dpt="9.005",
+            value=-3.0,
+            now=_now(),
         )
         assert finding is not None
         assert finding.evidence["value"] == -3.0
@@ -71,20 +86,29 @@ class TestValueRangeDetector:
     def test_no_finding_for_unknown_dpt(self) -> None:
         # Arrange — DPT, der nicht in KNX_DPT_VALUE_RANGES steht.
         finding = detect_value_out_of_range(
-            ga="1/2/3", dpt="99.999", value=42.0, now=_now(),
+            ga="1/2/3",
+            dpt="99.999",
+            value=42.0,
+            now=_now(),
         )
         assert finding is None
 
     def test_no_finding_for_none_dpt(self) -> None:
         finding = detect_value_out_of_range(
-            ga="1/2/3", dpt=None, value=42.0, now=_now(),
+            ga="1/2/3",
+            dpt=None,
+            value=42.0,
+            now=_now(),
         )
         assert finding is None
 
     def test_no_finding_for_non_numeric_value(self) -> None:
         # Arrange — String-Werte fuer DPT 16.x (ASCII) sind ueblich.
         finding = detect_value_out_of_range(
-            ga="1/2/3", dpt="5.001", value="abc", now=_now(),
+            ga="1/2/3",
+            dpt="5.001",
+            value="abc",
+            now=_now(),
         )
         assert finding is None
 

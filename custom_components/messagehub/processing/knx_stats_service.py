@@ -274,11 +274,7 @@ def _silent_minutes_from(
         last_seen = datetime.fromisoformat(last_seen_iso)
     except ValueError:
         return None
-    last_seen_naive = (
-        last_seen.replace(tzinfo=None)
-        if last_seen.tzinfo is not None
-        else last_seen
-    )
+    last_seen_naive = last_seen.replace(tzinfo=None) if last_seen.tzinfo is not None else last_seen
     now_naive = now.replace(tzinfo=None) if now.tzinfo is not None else now
     delta_seconds = (now_naive - last_seen_naive).total_seconds()
     if delta_seconds < 0:
@@ -422,9 +418,7 @@ class KnxStatsService:
             include_acknowledged=include_acknowledged,
             ack_set=ack_set,
         )
-        inferred_map, findings_set = await self._enrich_top_samples(
-            survivors, from_iso, to_iso
-        )
+        inferred_map, findings_set = await self._enrich_top_samples(survivors, from_iso, to_iso)
         return [
             self._build_top_row(
                 row,
@@ -621,7 +615,10 @@ class KnxStatsService:
         if not dev_source:
             return None
         ga_rows = await self._repo.gas_for_source(
-            dev_source, from_iso, to_iso, limit=ga_limit,
+            dev_source,
+            from_iso,
+            to_iso,
+            limit=ga_limit,
         )
         if not ga_rows:
             return None
@@ -640,7 +637,9 @@ class KnxStatsService:
             hour_floor, hour_ceil = _hour_align_period(from_iso, to_iso)
             ga_addresses = [str(row["ga"]) for row in ga_rows]
             counter_totals = await self._repo.counter_totals_for_gas(
-                ga_addresses, hour_floor, hour_ceil,
+                ga_addresses,
+                hour_floor,
+                hour_ceil,
             )
             for row in ga_rows:
                 row["count"] = counter_totals.get(str(row["ga"]), 0)
@@ -648,7 +647,9 @@ class KnxStatsService:
             period_total = await self._repo.counter_total(hour_floor, hour_ceil)
         else:
             total_count = await self._repo.count_for_source(
-                dev_source, from_iso, to_iso,
+                dev_source,
+                from_iso,
+                to_iso,
             )
             period_summary = await self._repo.summary(from_iso, to_iso)
             period_total = int(period_summary.get("total_telegrams", 0))
@@ -656,24 +657,23 @@ class KnxStatsService:
         # Bei >48h-Perioden zeigt das die Quote der letzten 48h des
         # Geraets, was praktisch dem "aktuellen Zustand" entspricht.
         repeat_ratio = await self._repo.repeat_ratio_for_source(
-            dev_source, from_iso, to_iso,
+            dev_source,
+            from_iso,
+            to_iso,
         )
         ack_set = await self._repo.ack_active_set()
 
         gas = [
             self._build_source_ga_summary(
-                row=row, minutes=minutes, ack_set=ack_set,
+                row=row,
+                minutes=minutes,
+                ack_set=ack_set,
             )
             for row in ga_rows
         ]
-        share_pct = (
-            (total_count / period_total * 100.0) if period_total > 0 else 0.0
-        )
+        share_pct = (total_count / period_total * 100.0) if period_total > 0 else 0.0
         silent_minutes = _silent_minutes_from(last_seen, now=datetime.now(UTC))
-        silent_alarm = (
-            silent_minutes is not None
-            and silent_minutes > max_silence_minutes
-        )
+        silent_alarm = silent_minutes is not None and silent_minutes > max_silence_minutes
         # Iter H (knx-detail-panes): Findings dieser Source mitliefern.
         # Limit 200 spiegelt das Default des Findings-Endpoints; bei
         # Geraeten mit >200 Findings ist die UI ohnehin ueberladen, der
@@ -681,7 +681,8 @@ class KnxStatsService:
         findings: list[PersistedFinding]
         if self._findings_repo is not None:
             findings = await self._findings_repo.list_findings(
-                source=dev_source, limit=200,
+                source=dev_source,
+                limit=200,
             )
         else:
             findings = []
@@ -726,7 +727,9 @@ class KnxStatsService:
         prev_to = from_dt
         prev_from = from_dt - (to_dt - from_dt)
         count_prev = await self._repo.count_for_source(
-            dev_source, prev_from.isoformat(), prev_to.isoformat(),
+            dev_source,
+            prev_from.isoformat(),
+            prev_to.isoformat(),
         )
         delta_abs = count_now - count_prev
         if count_prev == 0:
@@ -1045,12 +1048,8 @@ class KnxStatsService:
         if period_minutes >= _TREND_COUNTER_THRESHOLD_MIN:
             now_floor, now_ceil = _hour_align_period(from_iso, to_iso)
             prev_floor, prev_ceil = _hour_align_period(prev_from, prev_to)
-            rows_now = await self._repo.total_by_ga_for_period_from_counter(
-                now_floor, now_ceil
-            )
-            rows_prev = await self._repo.total_by_ga_for_period_from_counter(
-                prev_floor, prev_ceil
-            )
+            rows_now = await self._repo.total_by_ga_for_period_from_counter(now_floor, now_ceil)
+            rows_prev = await self._repo.total_by_ga_for_period_from_counter(prev_floor, prev_ceil)
         else:
             rows_now = await self._repo.total_by_ga_for_period(from_iso, to_iso)
             rows_prev = await self._repo.total_by_ga_for_period(prev_from, prev_to)
@@ -1068,9 +1067,7 @@ class KnxStatsService:
             count_prev = int(prev_by_ga.get(ga, 0))
             delta_abs = count_now - count_prev
             delta_pct: float | None = (
-                None
-                if count_prev == 0
-                else round((delta_abs / count_prev) * 100.0, 1)
+                None if count_prev == 0 else round((delta_abs / count_prev) * 100.0, 1)
             )
             trend_rows.append(
                 TrendRow(
@@ -1115,9 +1112,7 @@ class KnxStatsService:
         if prev_total == 0:
             total_delta_pct: float | None = None
         else:
-            total_delta_pct = round(
-                ((now_total - prev_total) / prev_total) * 100.0, 1
-            )
+            total_delta_pct = round(((now_total - prev_total) / prev_total) * 100.0, 1)
         return {
             "from": from_iso,
             "to": to_iso,
@@ -1255,17 +1250,11 @@ class KnxStatsService:
         for row in rows:
             dev_source = str(row.get("dev_source") or "")
             enriched = dict(row)
-            ets_entry = (
-                ets_devices.get(dev_source) if ets_devices else None
-            )
+            ets_entry = ets_devices.get(dev_source) if ets_devices else None
             if ets_entry is not None:
-                enriched["manufacturer"] = (
-                    str(ets_entry.get("manufacturer") or "").strip() or None
-                )
+                enriched["manufacturer"] = str(ets_entry.get("manufacturer") or "").strip() or None
                 enriched["device_name"] = (
-                    str(ets_entry.get("name")
-                        or ets_entry.get("product")
-                        or "").strip() or None
+                    str(ets_entry.get("name") or ets_entry.get("product") or "").strip() or None
                 )
             else:
                 enriched.setdefault("manufacturer", None)
@@ -1273,7 +1262,9 @@ class KnxStatsService:
             ga_rows: list[dict[str, Any]] = []
             if dev_source:
                 ga_rows = await self._repo.gas_for_source(
-                    dev_source, from_iso, to_iso,
+                    dev_source,
+                    from_iso,
+                    to_iso,
                     limit=ga_limit_per_source,
                 )
             enriched["gas"] = [

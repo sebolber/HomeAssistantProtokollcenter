@@ -15,8 +15,9 @@ Beide Endpoints sind admin-pflichtig und schreiben in den Audit-Log.
 from __future__ import annotations
 
 import ast
-import pytest
 from pathlib import Path
+
+import pytest
 
 from custom_components.messagehub.processing.heartbeat import (
     HeartbeatRepository,
@@ -82,9 +83,7 @@ class TestHeartbeatRepositorySetEnabled:
     @pytest.mark.asyncio
     async def test_set_enabled_true_reenables_source(self, db: Database) -> None:
         repo = HeartbeatRepository(db)
-        await repo.upsert(
-            HeartbeatSource(source="a", expected_interval_seconds=600, enabled=False)
-        )
+        await repo.upsert(HeartbeatSource(source="a", expected_interval_seconds=600, enabled=False))
 
         ok = await repo.set_enabled("a", True)
 
@@ -114,9 +113,7 @@ class TestHeartbeatDetailViewStatic:
 
     def test_heartbeat_detail_view_class_exists(self) -> None:
         src = self._api_src()
-        assert "HeartbeatDetailView" in src, (
-            "HeartbeatDetailView fehlt — F-005 nicht implementiert"
-        )
+        assert "HeartbeatDetailView" in src, "HeartbeatDetailView fehlt — F-005 nicht implementiert"
 
     def test_heartbeat_detail_view_url_template(self) -> None:
         tree = ast.parse(self._api_src())
@@ -140,9 +137,7 @@ class TestHeartbeatDetailViewStatic:
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef) and node.name == "HeartbeatDetailView":
                 method_names = {
-                    sub.name
-                    for sub in node.body
-                    if isinstance(sub, ast.AsyncFunctionDef)
+                    sub.name for sub in node.body if isinstance(sub, ast.AsyncFunctionDef)
                 }
                 assert "delete" in method_names, "DELETE-Handler fehlt"
                 assert "patch" in method_names, "PATCH-Handler fehlt"

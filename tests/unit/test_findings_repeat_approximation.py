@@ -28,9 +28,7 @@ def _ts(seconds: float) -> datetime:
 
 
 def _w(value: object, t: float) -> TelegramSample:
-    return TelegramSample(
-        ts=_ts(t), value=value, telegramtype="GroupValueWrite", source="1.1.5"
-    )
+    return TelegramSample(ts=_ts(t), value=value, telegramtype="GroupValueWrite", source="1.1.5")
 
 
 class TestRepeatApproximationDetector:
@@ -39,8 +37,8 @@ class TestRepeatApproximationDetector:
         # einzelnen Tag.
         samples: list[TelegramSample] = []
         for i in range(5):
-            samples.append(_w(1, i * 60.0))           # primary
-            samples.append(_w(1, i * 60.0 + 0.05))     # repeat <100ms
+            samples.append(_w(1, i * 60.0))  # primary
+            samples.append(_w(1, i * 60.0 + 0.05))  # repeat <100ms
         period_days = 1.0
 
         # Act
@@ -63,7 +61,10 @@ class TestRepeatApproximationDetector:
         # Arrange — nur 2 Doubles (unter Schwelle 5/Tag).
         samples = [_w(1, 0.0), _w(1, 0.05), _w(1, 60.0), _w(1, 60.05)]
         finding = detect_repeat_approximation(
-            ga="1/2/3", samples=samples, period_days=1.0, now=_ts(120.0),
+            ga="1/2/3",
+            samples=samples,
+            period_days=1.0,
+            now=_ts(120.0),
         )
         assert finding is None
 
@@ -72,17 +73,32 @@ class TestRepeatApproximationDetector:
         # Werten -> keine Wiederholung.
         samples = [_w(1, 0.0), _w(0, 0.05), _w(1, 0.10), _w(0, 0.15)]
         finding = detect_repeat_approximation(
-            ga="1/2/3", samples=samples, period_days=1.0, now=_ts(0.15),
+            ga="1/2/3",
+            samples=samples,
+            period_days=1.0,
+            now=_ts(0.15),
         )
         assert finding is None
 
     def test_no_finding_when_window_too_long(self) -> None:
         # Arrange — gleiche Werte, aber Δt = 200 ms (>100 ms Schwelle).
-        samples = [_w(1, 0.0), _w(1, 0.20), _w(1, 0.40), _w(1, 0.60),
-                   _w(1, 0.80), _w(1, 1.00), _w(1, 1.20), _w(1, 1.40),
-                   _w(1, 1.60), _w(1, 1.80)]
+        samples = [
+            _w(1, 0.0),
+            _w(1, 0.20),
+            _w(1, 0.40),
+            _w(1, 0.60),
+            _w(1, 0.80),
+            _w(1, 1.00),
+            _w(1, 1.20),
+            _w(1, 1.40),
+            _w(1, 1.60),
+            _w(1, 1.80),
+        ]
         finding = detect_repeat_approximation(
-            ga="1/2/3", samples=samples, period_days=1.0, now=_ts(1.80),
+            ga="1/2/3",
+            samples=samples,
+            period_days=1.0,
+            now=_ts(1.80),
         )
         assert finding is None
 
@@ -95,7 +111,10 @@ class TestRepeatApproximationDetector:
 
         # Act — period_days = 0.5 -> repeats_per_day = 10.
         finding = detect_repeat_approximation(
-            ga="1/2/3", samples=samples, period_days=0.5, now=_ts(500.0),
+            ga="1/2/3",
+            samples=samples,
+            period_days=0.5,
+            now=_ts(500.0),
         )
 
         # Assert
@@ -116,12 +135,13 @@ class TestRepeatApproximationDetector:
     def test_detector_only_inspects_writes(self) -> None:
         # Arrange — Reads zaehlen NICHT (sie haben keinen "Wert").
         samples = [
-            TelegramSample(ts=_ts(0), value=None,
-                           telegramtype="GroupValueRead", source="1.1.5"),
-            TelegramSample(ts=_ts(0.05), value=None,
-                           telegramtype="GroupValueRead", source="1.1.5"),
+            TelegramSample(ts=_ts(0), value=None, telegramtype="GroupValueRead", source="1.1.5"),
+            TelegramSample(ts=_ts(0.05), value=None, telegramtype="GroupValueRead", source="1.1.5"),
         ] * 10
         finding = detect_repeat_approximation(
-            ga="1/2/3", samples=samples, period_days=1.0, now=_ts(0.5),
+            ga="1/2/3",
+            samples=samples,
+            period_days=1.0,
+            now=_ts(0.5),
         )
         assert finding is None

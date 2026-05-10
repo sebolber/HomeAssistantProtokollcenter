@@ -45,9 +45,7 @@ def _from_to() -> tuple[str, str]:
     return _ts(-60), _ts(3600)
 
 
-async def _insert_ga(
-    db: Database, *, ga: str, dpt: str | None = None, label: str = "GA"
-) -> None:
+async def _insert_ga(db: Database, *, ga: str, dpt: str | None = None, label: str = "GA") -> None:
     now = _ts(0)
     await db.execute(
         "INSERT INTO knx_group_addresses "
@@ -71,27 +69,35 @@ async def _insert_telegram(
         "(timestamp, destination, source, telegramtype, value, repeated) "
         "VALUES (?, ?, ?, ?, ?, ?)",
         (
-            ts, ga, source, "GroupValueWrite",
-            json.dumps(value, default=str), 1 if repeated else 0,
+            ts,
+            ga,
+            source,
+            "GroupValueWrite",
+            json.dumps(value, default=str),
+            1 if repeated else 0,
         ),
     )
 
 
 class TestComputeSourceDetailHappyPath:
     @pytest.mark.asyncio
-    async def test_returns_source_detail_with_kpis_and_ga_list(
-        self, db: Database
-    ) -> None:
+    async def test_returns_source_detail_with_kpis_and_ga_list(self, db: Database) -> None:
         # Arrange — Geraet mit 2 GAs.
         await _insert_ga(db, ga="1/2/3", dpt="1.001", label="Schalter")
         await _insert_ga(db, ga="1/2/4", dpt="9.001", label="Temperatur")
         for i in range(5):
             await _insert_telegram(
-                db, ga="1/2/3", ts=_ts(i), source="1.1.10",
+                db,
+                ga="1/2/3",
+                ts=_ts(i),
+                source="1.1.10",
             )
         for i in range(2):
             await _insert_telegram(
-                db, ga="1/2/4", ts=_ts(60 + i), source="1.1.10",
+                db,
+                ga="1/2/4",
+                ts=_ts(60 + i),
+                source="1.1.10",
             )
 
         from_iso, to_iso = _from_to()
@@ -117,9 +123,7 @@ class TestComputeSourceDetailHappyPath:
         assert gas[1].count == 2
 
     @pytest.mark.asyncio
-    async def test_returns_none_for_source_without_telegrams_in_period(
-        self, db: Database
-    ) -> None:
+    async def test_returns_none_for_source_without_telegrams_in_period(self, db: Database) -> None:
         svc = KnxStatsService(KnxStatsRepository(db))
         from_iso, to_iso = _from_to()
         detail = await svc.compute_source_detail("9.9.9", from_iso, to_iso)
@@ -133,9 +137,7 @@ class TestComputeSourceDetailHappyPath:
         assert detail is None
 
     @pytest.mark.asyncio
-    async def test_share_pct_correct_with_other_sources_in_period(
-        self, db: Database
-    ) -> None:
+    async def test_share_pct_correct_with_other_sources_in_period(self, db: Database) -> None:
         await _insert_telegram(db, ga="1/1/1", ts=_ts(0), source="1.1.10")
         await _insert_telegram(db, ga="2/2/2", ts=_ts(0), source="1.1.20")
         await _insert_telegram(db, ga="2/2/2", ts=_ts(1), source="1.1.20")
@@ -152,16 +154,22 @@ class TestComputeSourceDetailHappyPath:
 
 class TestSourceDetailRepeats:
     @pytest.mark.asyncio
-    async def test_repeat_ratio_aggregated_per_source(
-        self, db: Database
-    ) -> None:
+    async def test_repeat_ratio_aggregated_per_source(self, db: Database) -> None:
         await _insert_telegram(db, ga="1/1/1", ts=_ts(0), source="1.1.10")
         await _insert_telegram(
-            db, ga="1/1/1", ts=_ts(60), source="1.1.10", repeated=True,
+            db,
+            ga="1/1/1",
+            ts=_ts(60),
+            source="1.1.10",
+            repeated=True,
         )
         # Andere Source darf nicht reinrutschen.
         await _insert_telegram(
-            db, ga="1/1/1", ts=_ts(120), source="1.1.20", repeated=True,
+            db,
+            ga="1/1/1",
+            ts=_ts(120),
+            source="1.1.20",
+            repeated=True,
         )
 
         svc = KnxStatsService(KnxStatsRepository(db))
@@ -176,9 +184,7 @@ class TestSourceDetailRepeats:
 
 class TestSourceDetailSilent:
     @pytest.mark.asyncio
-    async def test_silent_alarm_false_when_recently_active(
-        self, db: Database
-    ) -> None:
+    async def test_silent_alarm_false_when_recently_active(self, db: Database) -> None:
         # Telegramm in den letzten Minuten — Schwelle 24h, also kein Alarm.
         recent = (datetime.now(UTC) - timedelta(minutes=5)).isoformat(timespec="seconds")
         await _insert_ga(db, ga="1/1/1", dpt="1.001")
@@ -197,16 +203,15 @@ class TestSourceDetailSilent:
 
 class TestSourceDetailAck:
     @pytest.mark.asyncio
-    async def test_acknowledged_flag_propagates_per_ga(
-        self, db: Database
-    ) -> None:
+    async def test_acknowledged_flag_propagates_per_ga(self, db: Database) -> None:
         await _insert_ga(db, ga="1/1/1", dpt="1.001")
         await _insert_ga(db, ga="1/1/2", dpt="1.001")
         await _insert_telegram(db, ga="1/1/1", ts=_ts(0), source="1.1.10")
         await _insert_telegram(db, ga="1/1/2", ts=_ts(0), source="1.1.10")
         # Nur 1/1/1 acken (sticky -> expiry_days=None).
         await KnxStatsRepository(db).ack_set(
-            "1/1/1", note="testuser",
+            "1/1/1",
+            note="testuser",
         )
 
         svc = KnxStatsService(KnxStatsRepository(db))
@@ -227,13 +232,18 @@ class TestSourceDetailHardCap:
         for i in range(150):
             ga = f"7/0/{i}"
             await _insert_telegram(
-                db, ga=ga, ts=_ts(i), source="1.1.99",
+                db,
+                ga=ga,
+                ts=_ts(i),
+                source="1.1.99",
             )
 
         svc = KnxStatsService(KnxStatsRepository(db))
         from_iso, to_iso = _from_to()
         detail = await svc.compute_source_detail(
-            "1.1.99", from_iso, to_iso,
+            "1.1.99",
+            from_iso,
+            to_iso,
         )
 
         assert detail is not None
@@ -247,9 +257,7 @@ class TestSourceDetailHardCap:
 
 class TestSourceDetailSerialisation:
     @pytest.mark.asyncio
-    async def test_source_detail_to_dict_round_trip(
-        self, db: Database
-    ) -> None:
+    async def test_source_detail_to_dict_round_trip(self, db: Database) -> None:
         await _insert_ga(db, ga="1/1/1", dpt="1.001", label="Test")
         await _insert_telegram(db, ga="1/1/1", ts=_ts(0), source="1.1.10")
 
@@ -261,9 +269,15 @@ class TestSourceDetailSerialisation:
         result = source_detail_to_dict(detail)
         # JSON-Schluessel-Existenz pro DTO-Feld.
         for key in (
-            "dev_source", "total_count", "ga_count", "share_pct",
-            "last_seen", "silent_minutes", "silent_alarm",
-            "repeat_ratio_pct", "gas",
+            "dev_source",
+            "total_count",
+            "ga_count",
+            "share_pct",
+            "last_seen",
+            "silent_minutes",
+            "silent_alarm",
+            "repeat_ratio_pct",
+            "gas",
         ):
             assert key in result
         assert result["dev_source"] == "1.1.10"

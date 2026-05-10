@@ -59,9 +59,7 @@ async def _seed(db: Database, *, ga: str, source: str = "1.1.10") -> None:
 
 class TestSourceDetailViewIntegration:
     @pytest.mark.asyncio
-    async def test_view_response_contains_required_fields(
-        self, db: Database
-    ) -> None:
+    async def test_view_response_contains_required_fields(self, db: Database) -> None:
         """Spiegelt den View-Body: compute_source_detail + dict-Wrap +
         device/manufacturer_hints. Wir testen den Service-Pfad direkt,
         weil der HA-aiohttp-Stack im Unit-Test nicht aktiv ist.
@@ -81,10 +79,19 @@ class TestSourceDetailViewIntegration:
         result["manufacturer_hints"] = None
 
         for key in (
-            "dev_source", "total_count", "ga_count", "share_pct",
-            "last_seen", "silent_minutes", "silent_alarm",
-            "repeat_ratio_pct", "gas",
-            "from", "to", "device", "manufacturer_hints",
+            "dev_source",
+            "total_count",
+            "ga_count",
+            "share_pct",
+            "last_seen",
+            "silent_minutes",
+            "silent_alarm",
+            "repeat_ratio_pct",
+            "gas",
+            "from",
+            "to",
+            "device",
+            "manufacturer_hints",
         ):
             assert key in result, f"missing key {key} in API response"
 
@@ -101,18 +108,19 @@ class TestSourceDetailViewStaticContract:
     def test_view_url_includes_dev_source_path_param(self) -> None:
         view_src = (
             Path(__file__).resolve().parents[2]
-            / "custom_components" / "messagehub" / "api" / "knx_stats.py"
+            / "custom_components"
+            / "messagehub"
+            / "api"
+            / "knx_stats.py"
         ).read_text(encoding="utf-8")
         tree = ast.parse(view_src)
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef) and node.name == "KnxStatsSourceDetailView":
                 url_assigns = [
-                    s for s in node.body
+                    s
+                    for s in node.body
                     if isinstance(s, ast.Assign)
-                    and any(
-                        isinstance(t, ast.Name) and t.id == "url"
-                        for t in s.targets
-                    )
+                    and any(isinstance(t, ast.Name) and t.id == "url" for t in s.targets)
                 ]
                 assert url_assigns, "KnxStatsSourceDetailView muss `url` setzen"
                 url_value = url_assigns[0].value
@@ -127,20 +135,22 @@ class TestSourceDetailViewStaticContract:
         """
         view_src = (
             Path(__file__).resolve().parents[2]
-            / "custom_components" / "messagehub" / "api" / "knx_stats.py"
+            / "custom_components"
+            / "messagehub"
+            / "api"
+            / "knx_stats.py"
         ).read_text(encoding="utf-8")
         tree = ast.parse(view_src)
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef) and node.name == "KnxStatsSourceDetailView":
                 methods = {
-                    m.name: m for m in node.body
+                    m.name: m
+                    for m in node.body
                     if isinstance(m, (ast.AsyncFunctionDef, ast.FunctionDef))
                 }
                 assert "get" in methods
                 args = methods["get"].args
-                names = {a.arg for a in args.args} | {
-                    a.arg for a in args.kwonlyargs
-                }
+                names = {a.arg for a in args.args} | {a.arg for a in args.kwonlyargs}
                 assert "dev_source" in names, names
                 return
         raise AssertionError("KnxStatsSourceDetailView nicht gefunden")
@@ -151,6 +161,9 @@ class TestSourceDetailViewStaticContract:
         """
         msg_src = (
             Path(__file__).resolve().parents[2]
-            / "custom_components" / "messagehub" / "api" / "messages.py"
+            / "custom_components"
+            / "messagehub"
+            / "api"
+            / "messages.py"
         ).read_text(encoding="utf-8")
         assert "KnxStatsSourceDetailView" in msg_src

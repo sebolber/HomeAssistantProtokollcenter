@@ -561,12 +561,17 @@ async def _async_register_panel(hass: HomeAssistant) -> None:
             [StaticPathConfig("/messagehub-panel", str(frontend_path), False)]
         )
     else:
-        await hass.async_add_executor_job(
-            hass.http.register_static_path,
-            "/messagehub-panel",
-            str(frontend_path),
-            False,
-        )
+        # Aelteres HA (<2024.7) nutzt sync register_static_path.
+        # getattr-Lookup, weil der Type-Hint das Attribut in neueren HA
+        # nicht mehr exposed; mypy wuerde es sonst als attr-defined melden.
+        legacy_register = getattr(hass.http, "register_static_path", None)
+        if legacy_register is not None:
+            await hass.async_add_executor_job(
+                legacy_register,
+                "/messagehub-panel",
+                str(frontend_path),
+                False,
+            )
     if "messagehub" in hass.data.get("frontend_panels", {}):
         return
     try:
@@ -584,10 +589,10 @@ async def _async_register_panel(hass: HomeAssistant) -> None:
         # Fallback fuer aeltere/neuere HA: nur statisch + frontend.async_register
         frontend.async_register_built_in_panel(
             hass,
-            "custom",
-            "Messages",
-            "mdi:message-alert",
-            "messagehub",
+            component_name="custom",
+            sidebar_title="Messages",
+            sidebar_icon="mdi:message-alert",
+            frontend_url_path="messagehub",
             config={
                 "_panel_custom": {
                     "name": "messagehub-panel",

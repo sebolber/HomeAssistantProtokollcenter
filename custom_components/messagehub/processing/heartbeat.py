@@ -105,9 +105,7 @@ class HeartbeatRepository:
         """
         if not await self._exists(source):
             return False
-        await self._db.execute(
-            "DELETE FROM heartbeat_sources WHERE source = ?", (source,)
-        )
+        await self._db.execute("DELETE FROM heartbeat_sources WHERE source = ?", (source,))
         return True
 
     async def set_enabled(self, source: str, enabled: bool) -> bool:

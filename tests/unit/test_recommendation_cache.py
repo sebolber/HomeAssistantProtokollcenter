@@ -66,4 +66,4 @@ class TestRecommendationCache:
     def test_default_ttl_is_5_minutes(self) -> None:
         cache = RecommendationCache()
         # Pinning-Test: 300 s = 5 Min Default
-        assert cache._ttl_s == 300.0  # noqa: SLF001 — bewusster White-Box-Test
+        assert cache._ttl_s == 300.0

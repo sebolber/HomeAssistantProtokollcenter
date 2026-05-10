@@ -43,9 +43,7 @@ class TestSilenceDetect:
     @pytest.mark.asyncio
     async def test_empty_returns_empty(self, db: Database) -> None:
         repo = KnxStatsRepository(db)
-        out = await repo.silence_detect(
-            _ts(0), _ts(60), now_iso=_ts(60), max_silence_minutes=10
-        )
+        out = await repo.silence_detect(_ts(0), _ts(60), now_iso=_ts(60), max_silence_minutes=10)
         assert out == []
 
     @pytest.mark.asyncio
@@ -53,9 +51,7 @@ class TestSilenceDetect:
         # last seen vor 1 Min (in einer 60-Min-Periode)
         await _insert(db, ts=_ts(59), ga="1/2/3", dev_source="1.1.5")
         repo = KnxStatsRepository(db)
-        out = await repo.silence_detect(
-            _ts(0), _ts(60), now_iso=_ts(60), max_silence_minutes=10
-        )
+        out = await repo.silence_detect(_ts(0), _ts(60), now_iso=_ts(60), max_silence_minutes=10)
         assert len(out) == 1
         assert out[0]["dev_source"] == "1.1.5"
         assert out[0]["alarm"] is False
@@ -66,9 +62,7 @@ class TestSilenceDetect:
         # last seen vor 30 Min, max_silence = 10 Min → alarm
         await _insert(db, ts=_ts(30), ga="1/2/3", dev_source="1.1.5")
         repo = KnxStatsRepository(db)
-        out = await repo.silence_detect(
-            _ts(0), _ts(60), now_iso=_ts(60), max_silence_minutes=10
-        )
+        out = await repo.silence_detect(_ts(0), _ts(60), now_iso=_ts(60), max_silence_minutes=10)
         assert len(out) == 1
         assert out[0]["alarm"] is True
         assert out[0]["silent_minutes"] == pytest.approx(30.0, rel=0.1)
@@ -79,9 +73,7 @@ class TestSilenceDetect:
         await _insert(db, ts=_ts(40), ga="1/2/3", dev_source="1.1.5")
         await _insert(db, ts=_ts(20), ga="2/2/2", dev_source="1.1.7")
         repo = KnxStatsRepository(db)
-        out = await repo.silence_detect(
-            _ts(0), _ts(60), now_iso=_ts(60), max_silence_minutes=10
-        )
+        out = await repo.silence_detect(_ts(0), _ts(60), now_iso=_ts(60), max_silence_minutes=10)
         assert len(out) == 2
         sources = {row["dev_source"] for row in out}
         assert sources == {"1.1.5", "1.1.7"}
@@ -92,8 +84,6 @@ class TestSilenceDetect:
         await _insert(db, ts=_ts(55), ga="1/2/3", dev_source="1.1.5")
         await _insert(db, ts=_ts(30), ga="2/2/2", dev_source="1.1.7")
         repo = KnxStatsRepository(db)
-        out = await repo.silence_detect(
-            _ts(0), _ts(60), now_iso=_ts(60), max_silence_minutes=10
-        )
+        out = await repo.silence_detect(_ts(0), _ts(60), now_iso=_ts(60), max_silence_minutes=10)
         assert out[0]["dev_source"] == "1.1.7"
         assert out[1]["dev_source"] == "1.1.5"

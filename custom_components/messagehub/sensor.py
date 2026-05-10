@@ -9,9 +9,10 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import async_track_time_interval
 
 from .const import DOMAIN, EVENT_MESSAGE_ADDED, EVENT_MESSAGE_DELETED, build_device_info
@@ -88,7 +89,7 @@ class _BaseMessageSensor(SensorEntity):
         self._entry_id = entry_id
         self._repo = repo
         self._attr_unique_id = f"{DOMAIN}_{entry_id}_{key}"
-        self._attr_device_info = build_device_info(entry_id)
+        self._attr_device_info = cast(DeviceInfo, build_device_info(entry_id))
         self._unsub_listeners: list[Callable[[], None]] = []
         self._refresh_pending = False
         self._refresh_handle: asyncio.TimerHandle | None = None

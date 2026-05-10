@@ -223,11 +223,7 @@ def classify_send_mode(
         )
 
     median = statistics.median(intervals)
-    stdev = (
-        statistics.stdev(intervals)
-        if len(intervals) >= STDEV_MIN_SAMPLES
-        else 0.0
-    )
+    stdev = statistics.stdev(intervals) if len(intervals) >= STDEV_MIN_SAMPLES else 0.0
     sorted_intervals = sorted(intervals)
     p95 = _percentile(sorted_intervals, 0.95)
 
@@ -394,7 +390,7 @@ def _severity_for(
         return "info"
     # Cast hilft mypy: nach dem ``in``-Filter ist observed garantiert
     # eines aus on_change / cyclic / hybrid.
-    return _SEVERITY_TABLE.get((recommended, observed), "warn")  # type: ignore[arg-type]
+    return _SEVERITY_TABLE.get((recommended, observed), "warn")
 
 
 def _ga_recommendation(
@@ -416,14 +412,8 @@ def _ga_recommendation(
     Match — der LLM-Fallback (L4) setzt dann sein eigenes ``llm``.
     """
     dpt_reco: DptRecommendation | None = recommend_for_dpt(dpt)
-    source: RecommendationSource | None = (
-        "dpt_standard" if dpt_reco is not None else None
-    )
-    if (
-        model_override is not None
-        and dpt is not None
-        and dpt in model_override.dpt_overrides
-    ):
+    source: RecommendationSource | None = "dpt_standard" if dpt_reco is not None else None
+    if model_override is not None and dpt is not None and dpt in model_override.dpt_overrides:
         dpt_reco = model_override.dpt_overrides[dpt]
         source = "device_model"
     severity = _severity_for(
@@ -442,9 +432,7 @@ def _ga_recommendation(
         observed=observation,
         recommended_mode=dpt_reco.mode if dpt_reco is not None else None,
         recommended_cycle_minutes=cycle,
-        recommended_hysteresis=(
-            dpt_reco.hysteresis if dpt_reco is not None else None
-        ),
+        recommended_hysteresis=(dpt_reco.hysteresis if dpt_reco is not None else None),
         severity=severity,
         rationale=dpt_reco.rationale if dpt_reco is not None else None,
         source=source,
@@ -469,9 +457,7 @@ def _aggregate_headline(
     if all(r.observed.mode == "insufficient" for r in ga_recos):
         return "insufficient", "low"
 
-    countable = [
-        r for r in ga_recos if r.observed.mode not in ("silent", "insufficient")
-    ]
+    countable = [r for r in ga_recos if r.observed.mode not in ("silent", "insufficient")]
     if not countable:
         return "insufficient", "low"
 
@@ -514,9 +500,7 @@ def _build_headline_text(
             "Zu wenig Telegramme fuer eine belastbare Klassifikation "
             f"(< {SEND_MODE_INSUFFICIENT_THRESHOLD} pro GA)."
         )
-    countable = [
-        r for r in ga_recos if r.observed.mode not in ("silent", "insufficient")
-    ]
+    countable = [r for r in ga_recos if r.observed.mode not in ("silent", "insufficient")]
     if not countable:
         return f"Aktuell {headline_mode}, keine Empfehlung verfuegbar."
 
@@ -534,9 +518,7 @@ def _build_headline_text(
     if not deviating:
         return f"Aktuell {headline_mode}{median_text} — passt zur Empfehlung."
 
-    rec_modes = sorted(
-        {r.recommended_mode for r in deviating if r.recommended_mode is not None}
-    )
+    rec_modes = sorted({r.recommended_mode for r in deviating if r.recommended_mode is not None})
     if not rec_modes:
         return f"Aktuell {headline_mode}{median_text} — keine DPT-Empfehlung verfuegbar."
     rec_text = " / ".join(rec_modes)
@@ -558,7 +540,8 @@ BUSLOAD_OVERRIDE_FACTOR: Final[float] = 1.5
 
 
 def _apply_busload_override(
-    ga_recos: list[GaRecommendation], avg_busload_pct: float,
+    ga_recos: list[GaRecommendation],
+    avg_busload_pct: float,
 ) -> tuple[list[GaRecommendation], bool]:
     """Layer-3-Override: bei hoher Buslast cycle_minutes-Korridor
     nach oben strecken (cycles werden seltener).
@@ -577,19 +560,19 @@ def _apply_busload_override(
             continue
         new_min = max(1, round(ga.recommended_cycle_minutes[0] * factor))
         new_max = max(new_min, round(ga.recommended_cycle_minutes[1] * factor))
-        overridden.append(
-            replace(ga, recommended_cycle_minutes=(new_min, new_max))
-        )
+        overridden.append(replace(ga, recommended_cycle_minutes=(new_min, new_max)))
         any_override = True
     return overridden, any_override
 
 
-RELEVANT_FINDING_CODES_FOR_RECOMMENDATIONS: Final[frozenset[str]] = frozenset({
-    "SEND_CYCLE_DRIFT",
-    "REPEAT_APPROXIMATION",
-    "TOGGLE_LOOP",
-    "MULTI_RESPONDER",
-})
+RELEVANT_FINDING_CODES_FOR_RECOMMENDATIONS: Final[frozenset[str]] = frozenset(
+    {
+        "SEND_CYCLE_DRIFT",
+        "REPEAT_APPROXIMATION",
+        "TOGGLE_LOOP",
+        "MULTI_RESPONDER",
+    }
+)
 """Iter L3.1: Findings-Codes, die die Empfehlung schaerfen. Die Liste
 ist bewusst eng — nur Phaenomene, die direkt mit Sende-Modus oder
 Sende-Frequenz zu tun haben. Andere Codes (DPT_MISMATCH, ORPHAN_GA,
@@ -610,15 +593,10 @@ def _apply_findings_override(
     """
     if not active_findings:
         return ga_recos
-    affected_gas: set[str] = {
-        str(f.ga) for f in active_findings if f.ga is not None
-    }
+    affected_gas: set[str] = {str(f.ga) for f in active_findings if f.ga is not None}
     if not affected_gas:
         return ga_recos
-    return [
-        replace(ga, severity="deviation") if ga.ga in affected_gas else ga
-        for ga in ga_recos
-    ]
+    return [replace(ga, severity="deviation") if ga.ga in affected_gas else ga for ga in ga_recos]
 
 
 async def _fetch_active_findings_for_source(
@@ -631,7 +609,8 @@ async def _fetch_active_findings_for_source(
     fallback liefert alle Findings, sodass die Pipeline nicht abbricht.
     """
     items = await findings_repo.list_findings(
-        source=dev_source, limit=200,
+        source=dev_source,
+        limit=200,
     )
     if not items:
         return []
@@ -641,7 +620,8 @@ async def _fetch_active_findings_for_source(
     else:
         acked = set()
     return [
-        f for f in items
+        f
+        for f in items
         if f.code in RELEVANT_FINDING_CODES_FOR_RECOMMENDATIONS
         and (f.ga is None or (f.ga, f.code) not in acked)
     ]
@@ -673,15 +653,9 @@ async def _apply_llm_fallback(
     )
 
     manufacturer = (
-        str(device_profile.get("manufacturer") or "")
-        if device_profile is not None
-        else ""
+        str(device_profile.get("manufacturer") or "") if device_profile is not None else ""
     )
-    device_model = (
-        str(device_profile.get("model") or "")
-        if device_profile is not None
-        else ""
-    )
+    device_model = str(device_profile.get("model") or "") if device_profile is not None else ""
 
     new_recos: list[GaRecommendation] = []
     filled = 0
@@ -707,9 +681,7 @@ async def _apply_llm_fallback(
             if cached is not None:
                 cached_response = cached["response"]
                 if isinstance(cached_response, dict):
-                    dpt_reco = _dpt_recommendation_from_dict(
-                        cached_response
-                    )
+                    dpt_reco = _dpt_recommendation_from_dict(cached_response)
         if dpt_reco is None:
             dpt_reco = await provider.fetch(
                 dpt=ga.dpt,
@@ -717,9 +689,7 @@ async def _apply_llm_fallback(
                 model=device_model or None,
                 context={
                     "observed_mode": ga.observed.mode,
-                    "median_interval_minutes": (
-                        ga.observed.median_interval_minutes or 0.0
-                    ),
+                    "median_interval_minutes": (ga.observed.median_interval_minutes or 0.0),
                     "sample_count": ga.observed.sample_count,
                 },
             )
@@ -772,7 +742,7 @@ def _dpt_recommendation_from_dict(
     if mode not in {"on_change", "cyclic", "hybrid"}:
         return None
     return DptRecommendation(
-        mode=mode,  # type: ignore[arg-type]
+        mode=mode,
         cycle_minutes_min=payload.get("cycle_minutes_min"),
         cycle_minutes_max=payload.get("cycle_minutes_max"),
         hysteresis=payload.get("hysteresis"),
@@ -782,7 +752,9 @@ def _dpt_recommendation_from_dict(
 
 
 async def _avg_busload_pct(
-    repo: KnxStatsRepository, from_iso: str, to_iso: str,
+    repo: KnxStatsRepository,
+    from_iso: str,
+    to_iso: str,
 ) -> float:
     """Hilfsfunktion: durchschnittliche Buslast ueber die Periode.
 
@@ -796,7 +768,7 @@ async def _avg_busload_pct(
     return sum(pcts) / len(pcts)
 
 
-async def compute_device_recommendation(
+async def compute_device_recommendation(  # noqa: PLR0912, PLR0915
     repo: KnxStatsRepository,
     dev_source: str,
     from_iso: str,
@@ -825,7 +797,10 @@ async def compute_device_recommendation(
     if not dev_source:
         return None
     ga_rows = await repo.gas_for_source(
-        dev_source, from_iso, to_iso, limit=100,
+        dev_source,
+        from_iso,
+        to_iso,
+        limit=100,
     )
     if not ga_rows:
         return None
@@ -847,15 +822,9 @@ async def compute_device_recommendation(
             device_profile = dict(user_profile)
             profile_source = "user_override"
             manufacturer = (
-                str(device_profile["manufacturer"])
-                if device_profile.get("manufacturer")
-                else None
+                str(device_profile["manufacturer"]) if device_profile.get("manufacturer") else None
             )
-            device_model = (
-                str(device_profile["model"])
-                if device_profile.get("model")
-                else None
-            )
+            device_model = str(device_profile["model"]) if device_profile.get("model") else None
     if manufacturer is None and ets_devices is not None:
         ets_entry = ets_devices.get(dev_source)
         if ets_entry is not None:
@@ -875,7 +844,9 @@ async def compute_device_recommendation(
     for row in ga_rows:
         ga = str(row["ga"])
         samples = await repo.samples_for_ga_classification(
-            ga, from_iso, to_iso,
+            ga,
+            from_iso,
+            to_iso,
         )
         timestamps = [s["timestamp"] for s in samples]
         values = [s["value"] for s in samples]
@@ -922,11 +893,13 @@ async def compute_device_recommendation(
     active_findings: list[Finding] = []
     if findings_repo is not None:
         active_findings = await _fetch_active_findings_for_source(
-            findings_repo, dev_source,
+            findings_repo,
+            dev_source,
         )
         if active_findings:
             ga_recos = _apply_findings_override(
-                ga_recos, active_findings=active_findings,
+                ga_recos,
+                active_findings=active_findings,
             )
 
     headline_mode, confidence = _aggregate_headline(ga_recos)
@@ -941,25 +914,15 @@ async def compute_device_recommendation(
     if model_override is not None:
         # Layer-2-Marker mit Hersteller-/Modell-Begruendung + Doc-URL +
         # Quellen-Marker (ETS oder User-Override).
-        source_label = (
-            "User-Override" if profile_source == "user_override"
-            else "ETS-Projekt"
-        )
+        source_label = "User-Override" if profile_source == "user_override" else "ETS-Projekt"
         reasoning.append(
             f"Layer 2 ({model_reasoning_source()}, {source_label}) — "
             f"{model_override.manufacturer}/{model_override.model_glob}: "
             f"{model_override.rationale}"
-            + (
-                f" ({model_override.doc_url})"
-                if model_override.doc_url
-                else ""
-            )
+            + (f" ({model_override.doc_url})" if model_override.doc_url else "")
         )
     elif device_profile is not None and manufacturer:
-        source_label = (
-            "User-Override" if profile_source == "user_override"
-            else "ETS-Projekt"
-        )
+        source_label = "User-Override" if profile_source == "user_override" else "ETS-Projekt"
         reasoning.append(
             f"Layer 2 (device_model, {source_label}) — Hersteller "
             f"'{manufacturer}' (Modell: {device_model or 'unbekannt'}) "
@@ -977,26 +940,20 @@ async def compute_device_recommendation(
             f"Zyklen um Faktor {BUSLOAD_OVERRIDE_FACTOR} verlaengert."
         )
     for finding in active_findings:
-        ga_label = (
-            f"auf {finding.ga}" if finding.ga is not None else "(bus-weit)"
-        )
+        ga_label = f"auf {finding.ga}" if finding.ga is not None else "(bus-weit)"
         # Iter B6: title kommt nicht mehr aus dem Finding selbst —
         # die UI rendert die Translation zur Laufzeit. Im Reasoning-
         # Text reicht der Code als maschinenlesbarer Marker; das
         # Frontend (oder ein nachgelagerter Service) ersetzt ihn ggf.
         # mit dem lokalisierten Titel.
-        reasoning.append(
-            f"Layer 3 (live_anomaly) — Finding {finding.code} {ga_label} aktiv"
-        )
+        reasoning.append(f"Layer 3 (live_anomaly) — Finding {finding.code} {ga_label} aktiv")
     silent_count = sum(1 for r in ga_recos if r.observed.mode == "silent")
     if silent_count:
         reasoning.append(
             f"{silent_count} GA(s) stumm in der Periode — "
             "Klassifikation als 'silent' ohne weitere Wertung."
         )
-    insufficient_count = sum(
-        1 for r in ga_recos if r.observed.mode == "insufficient"
-    )
+    insufficient_count = sum(1 for r in ga_recos if r.observed.mode == "insufficient")
     if insufficient_count:
         reasoning.append(
             f"{insufficient_count} GA(s) mit zu wenig Telegrammen — "

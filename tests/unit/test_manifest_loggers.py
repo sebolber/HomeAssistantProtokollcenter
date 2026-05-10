@@ -20,10 +20,7 @@ import json
 from pathlib import Path
 
 _MANIFEST_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "custom_components"
-    / "messagehub"
-    / "manifest.json"
+    Path(__file__).resolve().parents[2] / "custom_components" / "messagehub" / "manifest.json"
 )
 
 

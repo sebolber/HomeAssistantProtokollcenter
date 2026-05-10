@@ -36,7 +36,6 @@ from custom_components.messagehub.storage.recommendation_cache_repo import (
     RecommendationCacheRepository,
 )
 
-
 _NOW = datetime(2026, 5, 3, 8, 0, 0, tzinfo=UTC)
 
 
@@ -102,8 +101,12 @@ async def _seed_unknown_dpt_telegrams(db: Database) -> None:
             "(timestamp, destination, source, telegramtype, value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
-                _ts(-3600 + i * 60), "1/2/3", "1.1.10",
-                "GroupValueWrite", json.dumps(42), 0,
+                _ts(-3600 + i * 60),
+                "1/2/3",
+                "1.1.10",
+                "GroupValueWrite",
+                json.dumps(42),
+                0,
             ),
         )
 
@@ -128,7 +131,10 @@ async def test_layer4_provider_called_when_layers_1_2_have_no_match(
     )
 
     reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         llm_provider=provider,
         llm_cache_repo=cache_repo,
         llm_provider_name="test_provider",
@@ -180,7 +186,10 @@ async def test_layer4_cache_hit_skips_provider(db: Database) -> None:
 
     # 1. Aufruf
     await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         llm_provider=provider,
         llm_cache_repo=cache_repo,
         llm_provider_name="test_provider",
@@ -190,7 +199,10 @@ async def test_layer4_cache_hit_skips_provider(db: Database) -> None:
 
     # 2. Aufruf — gleiche Inputs
     reco_2 = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         llm_provider=provider,
         llm_cache_repo=cache_repo,
         llm_provider_name="test_provider",
@@ -221,8 +233,12 @@ async def test_layer4_skipped_when_layer1_has_match(db: Database) -> None:
             "(timestamp, destination, source, telegramtype, value, repeated) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
-                _ts(-3600 + i * 60), "1/2/3", "1.1.10",
-                "GroupValueWrite", json.dumps(21.5), 0,
+                _ts(-3600 + i * 60),
+                "1/2/3",
+                "1.1.10",
+                "GroupValueWrite",
+                json.dumps(21.5),
+                0,
             ),
         )
 
@@ -231,7 +247,10 @@ async def test_layer4_skipped_when_layer1_has_match(db: Database) -> None:
     provider = _CountingProvider(None)  # wuerde nichts liefern
 
     reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         llm_provider=provider,
         llm_cache_repo=cache_repo,
         llm_provider_name="test_provider",
@@ -257,7 +276,10 @@ async def test_layer4_provider_returns_none_no_recommendation(
     provider = _CountingProvider(None)
 
     reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         llm_provider=provider,
         llm_cache_repo=cache_repo,
         llm_provider_name="test_provider",
@@ -299,7 +321,10 @@ async def test_layer4_with_device_profile_passes_manufacturer_and_model(
     )
 
     await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         devices_repo=devices,
         llm_provider=provider,
         llm_cache_repo=cache_repo,
@@ -331,7 +356,10 @@ async def test_layer4_dto_round_trip(db: Database) -> None:
     )
 
     reco = await compute_device_recommendation(
-        repo, "1.1.10", _ts(-3700), _ts(60),
+        repo,
+        "1.1.10",
+        _ts(-3700),
+        _ts(60),
         llm_provider=provider,
         llm_cache_repo=cache_repo,
         llm_provider_name="test_provider",

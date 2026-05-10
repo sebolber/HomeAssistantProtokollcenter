@@ -39,7 +39,11 @@ def _ts(dt: datetime) -> str:
 
 
 async def _insert_telegram(
-    db: Database, *, ga: str, ts: str, source: str = "1.1.10",
+    db: Database,
+    *,
+    ga: str,
+    ts: str,
+    source: str = "1.1.10",
 ) -> None:
     await db.execute(
         "INSERT INTO knx_raw_telegrams "
@@ -51,9 +55,7 @@ async def _insert_telegram(
 
 class TestSourceTrendLongPeriod:
     @pytest.mark.asyncio
-    async def test_source_detail_includes_trend_when_period_long_enough(
-        self, db: Database
-    ) -> None:
+    async def test_source_detail_includes_trend_when_period_long_enough(self, db: Database) -> None:
         # 24h-Period: now - 24h ... now. Vorperiode: now - 48h ... now - 24h.
         now = datetime(2026, 5, 3, 12, 0, 0, tzinfo=UTC)
         from_dt = now - timedelta(hours=24)
@@ -61,7 +63,8 @@ class TestSourceTrendLongPeriod:
         # Aktuelle Periode: 5 Telegramme
         for i in range(5):
             await _insert_telegram(
-                db, ga="1/1/1",
+                db,
+                ga="1/1/1",
                 ts=_ts(from_dt + timedelta(minutes=i + 1)),
                 source="1.1.10",
             )
@@ -69,14 +72,17 @@ class TestSourceTrendLongPeriod:
         prev_from = from_dt - timedelta(hours=24)
         for i in range(2):
             await _insert_telegram(
-                db, ga="1/1/1",
+                db,
+                ga="1/1/1",
                 ts=_ts(prev_from + timedelta(minutes=i + 1)),
                 source="1.1.10",
             )
 
         svc = KnxStatsService(KnxStatsRepository(db))
         detail = await svc.compute_source_detail(
-            "1.1.10", _ts(from_dt), _ts(to_dt),
+            "1.1.10",
+            _ts(from_dt),
+            _ts(to_dt),
         )
 
         assert detail is not None
@@ -88,23 +94,24 @@ class TestSourceTrendLongPeriod:
         assert detail.trend.delta_pct == 150.0
 
     @pytest.mark.asyncio
-    async def test_source_trend_delta_pct_is_none_when_prev_zero(
-        self, db: Database
-    ) -> None:
+    async def test_source_trend_delta_pct_is_none_when_prev_zero(self, db: Database) -> None:
         # Aktuelle Periode hat Telegramme, Vorperiode leer => delta_pct=None.
         now = datetime(2026, 5, 3, 12, 0, 0, tzinfo=UTC)
         from_dt = now - timedelta(hours=24)
         to_dt = now
         for i in range(3):
             await _insert_telegram(
-                db, ga="1/1/1",
+                db,
+                ga="1/1/1",
                 ts=_ts(from_dt + timedelta(minutes=i + 1)),
                 source="1.1.10",
             )
 
         svc = KnxStatsService(KnxStatsRepository(db))
         detail = await svc.compute_source_detail(
-            "1.1.10", _ts(from_dt), _ts(to_dt),
+            "1.1.10",
+            _ts(from_dt),
+            _ts(to_dt),
         )
         assert detail is not None
         assert detail.trend is not None
@@ -117,21 +124,23 @@ class TestSourceTrendLongPeriod:
 
 class TestSourceTrendShortPeriod:
     @pytest.mark.asyncio
-    async def test_source_detail_trend_none_for_short_period(
-        self, db: Database
-    ) -> None:
+    async def test_source_detail_trend_none_for_short_period(self, db: Database) -> None:
         # 6h-Period: zu kurz fuer Trend-Compare (Schwelle 24h).
         now = datetime(2026, 5, 3, 12, 0, 0, tzinfo=UTC)
         from_dt = now - timedelta(hours=6)
         to_dt = now
         await _insert_telegram(
-            db, ga="1/1/1", ts=_ts(from_dt + timedelta(minutes=1)),
+            db,
+            ga="1/1/1",
+            ts=_ts(from_dt + timedelta(minutes=1)),
             source="1.1.10",
         )
 
         svc = KnxStatsService(KnxStatsRepository(db))
         detail = await svc.compute_source_detail(
-            "1.1.10", _ts(from_dt), _ts(to_dt),
+            "1.1.10",
+            _ts(from_dt),
+            _ts(to_dt),
         )
         assert detail is not None
         assert detail.trend is None
@@ -139,21 +148,22 @@ class TestSourceTrendShortPeriod:
 
 class TestSourceTrendSerialisation:
     @pytest.mark.asyncio
-    async def test_source_detail_to_dict_includes_trend_key(
-        self, db: Database
-    ) -> None:
+    async def test_source_detail_to_dict_includes_trend_key(self, db: Database) -> None:
         now = datetime(2026, 5, 3, 12, 0, 0, tzinfo=UTC)
         from_dt = now - timedelta(hours=24)
         to_dt = now
         await _insert_telegram(
-            db, ga="1/1/1",
+            db,
+            ga="1/1/1",
             ts=_ts(from_dt + timedelta(minutes=1)),
             source="1.1.10",
         )
 
         svc = KnxStatsService(KnxStatsRepository(db))
         detail = await svc.compute_source_detail(
-            "1.1.10", _ts(from_dt), _ts(to_dt),
+            "1.1.10",
+            _ts(from_dt),
+            _ts(to_dt),
         )
         assert detail is not None
         result = source_detail_to_dict(detail)

@@ -36,17 +36,17 @@ from .const import (
 )
 
 if TYPE_CHECKING:
-    from homeassistant.data_entry_flow import FlowResult
+    from homeassistant.config_entries import ConfigFlowResult
 
 LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"]
 
 
-class MessageHubConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[misc, call-arg]
+class MessageHubConfigFlow(ConfigFlow, domain=DOMAIN):
     """Erstinstallation: Single-Instance ohne Pflichtfelder."""
 
     VERSION = 1
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
         if user_input is not None:
@@ -64,7 +64,7 @@ class MessageHubOptionsFlow(OptionsFlow):
     def __init__(self, entry: ConfigEntry) -> None:
         self._entry = entry
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 

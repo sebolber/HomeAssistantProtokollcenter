@@ -87,7 +87,5 @@ class TestCleanupCounters:
         await repo.increment_counter("1/2/3", "2026-05-02T00:00:00")
         deleted = await repo.cleanup_counters_older_than("2026-01-01T00:00:00")
         assert deleted == 1
-        n = await repo.counter_total_for_ga(
-            "1/2/3", "2025-01-01T00:00:00", "2027-01-01T00:00:00"
-        )
+        n = await repo.counter_total_for_ga("1/2/3", "2025-01-01T00:00:00", "2027-01-01T00:00:00")
         assert n == 1

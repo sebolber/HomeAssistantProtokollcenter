@@ -51,14 +51,10 @@ class TestAcknowledge:
         repo = FindingsRepository(db)
 
         # Act
-        await repo.acknowledge(
-            ga="1/2/3", code="DPT_MISMATCH", actor="user_x", note="Bekannt"
-        )
+        await repo.acknowledge(ga="1/2/3", code="DPT_MISMATCH", actor="user_x", note="Bekannt")
 
         # Assert — Audit-Log-Eintrag mit action "ack-finding"
-        audit = await db.fetch_all(
-            "SELECT * FROM audit_log WHERE target_type = 'knx_finding_ack'"
-        )
+        audit = await db.fetch_all("SELECT * FROM audit_log WHERE target_type = 'knx_finding_ack'")
         assert len(audit) == 1
         assert str(audit[0]["actor"]) == "user_x"
         assert "DPT_MISMATCH" in str(audit[0]["target_id"])
@@ -73,9 +69,7 @@ class TestAcknowledge:
         await repo.acknowledge(ga="1/2/3", code="DPT_MISMATCH", actor="user_x")
 
         # Assert
-        row = await db.fetch_one(
-            "SELECT expires_at FROM knx_finding_acknowledgements"
-        )
+        row = await db.fetch_one("SELECT expires_at FROM knx_finding_acknowledgements")
         assert row is not None
         assert row["expires_at"] is not None
         expires = datetime.fromisoformat(str(row["expires_at"]))
@@ -93,23 +87,17 @@ class TestAcknowledge:
         repo = FindingsRepository(db)
 
         # Act
-        await repo.acknowledge(
-            ga="1/2/3", code="DPT_MISMATCH", actor="user_x", sticky=True
-        )
+        await repo.acknowledge(ga="1/2/3", code="DPT_MISMATCH", actor="user_x", sticky=True)
 
         # Assert
-        row = await db.fetch_one(
-            "SELECT expires_at FROM knx_finding_acknowledgements"
-        )
+        row = await db.fetch_one("SELECT expires_at FROM knx_finding_acknowledgements")
         assert row is not None
         assert row["expires_at"] is None
 
 
 class TestUnacknowledge:
     @pytest.mark.asyncio
-    async def test_unacknowledge_removes_ack_row_and_writes_audit(
-        self, db: Database
-    ) -> None:
+    async def test_unacknowledge_removes_ack_row_and_writes_audit(self, db: Database) -> None:
         # Arrange
         repo = FindingsRepository(db)
         await repo.acknowledge(ga="1/2/3", code="DPT_MISMATCH", actor="u")
@@ -120,23 +108,17 @@ class TestUnacknowledge:
         # Assert
         rows = await repo.list_acknowledgements()
         assert len(rows) == 0
-        audit_unack = await db.fetch_all(
-            "SELECT * FROM audit_log WHERE action = 'unack-finding'"
-        )
+        audit_unack = await db.fetch_all("SELECT * FROM audit_log WHERE action = 'unack-finding'")
         assert len(audit_unack) == 1
 
 
 class TestIsAcknowledged:
     @pytest.mark.asyncio
-    async def test_finding_ack_filters_when_expires_at_in_past(
-        self, db: Database
-    ) -> None:
+    async def test_finding_ack_filters_when_expires_at_in_past(self, db: Database) -> None:
         # Arrange — Ack mit expires_at in der Vergangenheit ist nicht mehr aktiv.
         repo = FindingsRepository(db)
         past = datetime.now(UTC) - timedelta(days=1)
-        await repo.acknowledge(
-            ga="1/2/3", code="DPT_MISMATCH", actor="u", expires_at=past
-        )
+        await repo.acknowledge(ga="1/2/3", code="DPT_MISMATCH", actor="u", expires_at=past)
 
         # Act
         active = await repo.is_acknowledged(ga="1/2/3", code="DPT_MISMATCH")
@@ -145,15 +127,11 @@ class TestIsAcknowledged:
         assert active is False
 
     @pytest.mark.asyncio
-    async def test_is_acknowledged_returns_true_when_ack_active(
-        self, db: Database
-    ) -> None:
+    async def test_is_acknowledged_returns_true_when_ack_active(self, db: Database) -> None:
         # Arrange
         repo = FindingsRepository(db)
         future = datetime.now(UTC) + timedelta(days=10)
-        await repo.acknowledge(
-            ga="1/2/3", code="DPT_MISMATCH", actor="u", expires_at=future
-        )
+        await repo.acknowledge(ga="1/2/3", code="DPT_MISMATCH", actor="u", expires_at=future)
 
         # Act
         active = await repo.is_acknowledged(ga="1/2/3", code="DPT_MISMATCH")
@@ -174,9 +152,7 @@ class TestIsAcknowledged:
         assert active is True
 
     @pytest.mark.asyncio
-    async def test_is_acknowledged_returns_false_when_no_ack(
-        self, db: Database
-    ) -> None:
+    async def test_is_acknowledged_returns_false_when_no_ack(self, db: Database) -> None:
         # Arrange
         repo = FindingsRepository(db)
 
