@@ -399,7 +399,7 @@ def _make_provider(
         enabled=enabled,
         base_url="https://api.openai.com/v1",
         model="gpt-4o-mini",
-        api_key="sk-test-DO-NOT-USE",
+        api_key="sk-test-DO-NOT-USE",  # NOSONAR test fixture, not a real key
         timeout_s=15.0,
         max_tokens=800,
     )
