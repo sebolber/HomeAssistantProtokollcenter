@@ -36,6 +36,44 @@ def _bad_request(reason: str) -> Response:
     return Response(status=400, text=reason)
 
 
+def _build_field_mapping(
+    config: WebhookConfig | None,
+    default_severity: Severity,
+    default_source: str,
+) -> tuple[dict[str, str], dict[str, str], dict[str, Any]]:
+    """Bauft Field-Mapping, Severity-Map und Defaults aus Webhook-Config.
+
+    Ausgelagert aus async_handle_webhook, um dessen Cognitive Complexity
+    (Sonar-Limit 15) zu reduzieren.
+    """
+    mapping: dict[str, str] = {
+        "severity": "$.severity",
+        "source": "$.source",
+        "text": "$.text",
+        "timestamp": "$.timestamp",
+        "metadata": "$.metadata",
+    }
+    severity_map: dict[str, str] = {}
+    defaults: dict[str, Any] = {
+        "severity": (config.default_severity if config else default_severity),
+        "source": (config.default_source if config else default_source),
+    }
+    if config and config.field_map:
+        mapping.update(config.field_map)
+        smap = config.field_map.get("_severity_map")
+        if isinstance(smap, dict):
+            # Reservierter Sub-Key in field_map fuer per-Webhook Severity-Tabelle
+            severity_map = smap
+    return mapping, severity_map, defaults
+
+
+def _parse_payload(raw: bytes) -> Any:
+    try:
+        return json.loads(raw)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return raw.decode("utf-8", errors="replace")
+
+
 async def async_handle_webhook(  # noqa: PLR0911
     hass: HomeAssistant,
     webhook_id: str,
@@ -61,33 +99,8 @@ async def async_handle_webhook(  # noqa: PLR0911
         await _self_diagnose(hass, webhook_id, "empty body")
         return _bad_request("empty body")
 
-    # Mapping aus persistierter Config oder Default-Pfaden zusammenbauen
-    mapping: dict[str, str] = {
-        "severity": "$.severity",
-        "source": "$.source",
-        "text": "$.text",
-        "timestamp": "$.timestamp",
-        "metadata": "$.metadata",
-    }
-    severity_map: dict[str, str] = {}
-    defaults: dict[str, Any] = {
-        "severity": (config.default_severity if config else default_severity),
-        "source": (config.default_source if config else default_source),
-    }
-    if config and config.field_map:
-        mapping.update(config.field_map)
-    if config and config.field_map and "_severity_map" in config.field_map:
-        # Reservierter Sub-Key in field_map fuer per-Webhook Severity-Tabelle
-        smap = config.field_map.get("_severity_map")
-        if isinstance(smap, dict):
-            severity_map = smap
-
-    payload: Any
-    try:
-        payload = json.loads(raw)
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        payload = raw.decode("utf-8", errors="replace")
-
+    mapping, severity_map, defaults = _build_field_mapping(config, default_severity, default_source)
+    payload = _parse_payload(raw)
     mapped = FieldMapper(mapping=mapping, severity_map=severity_map, defaults=defaults).map_payload(
         payload
     )

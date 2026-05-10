@@ -224,5 +224,6 @@ describe("renderRecommendationCycle", () => {
 });
 
 
-// Hilft Lit, die Helper-Imports nicht als unused zu killen.
-void html`unused-anchor`;
+// Hilft Lit, die Helper-Imports nicht als unused zu killen — der
+// Export-Anker zwingt den TS-Compiler/Bundler, `html` zu behalten.
+export const _LIT_HTML_KEEPALIVE_ANCHOR = html`unused-anchor`;

@@ -95,7 +95,9 @@ test.describe("Settings-Tab", () => {
 
   // F-005 — Heartbeat-Delete + Pause-Toggle in Iter +4 hinzugefuegt.
   test("F-005: Heartbeat-Zeilen haben 'Loeschen'-Knopf, der DELETE /heartbeats/{source} ausloest", async ({ page }) => {
-    page.on("dialog", (d) => void d.accept());
+    page.on("dialog", (d) => {
+      d.accept().catch(() => undefined);
+    });
     const settings = page.locator("messagehub-panel >> settings-view");
     await settings.locator("button.tab", { hasText: "Heartbeats" }).click();
     const firstRow = settings.locator("heartbeats-view tbody tr").first();
