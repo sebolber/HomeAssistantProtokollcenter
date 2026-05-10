@@ -5,6 +5,13 @@ import { resolve } from "node:path";
 // custom_components/messagehub/frontend_dist/.
 export default defineConfig({
   build: {
+    // esnext verhindert, dass esbuild Optional-Chaining (`?.`) zu
+    // `var t; (t = X) == null || t.method(...)` herabstuft. HA laeuft
+    // ausschliesslich in modernen Browsern (Chrome 87+, Firefox 78+,
+    // Safari 14+), die ES2020 nativ unterstuetzen — keine Notwendigkeit
+    // fuer Lowering. Spart Bundle-Size und eliminiert Sonar-Findings
+    // (var, comma operator, "consider moving declaration") im Bundle.
+    target: "esnext",
     outDir: resolve(__dirname, "../custom_components/messagehub/frontend_dist"),
     emptyOutDir: true,
     sourcemap: false,
