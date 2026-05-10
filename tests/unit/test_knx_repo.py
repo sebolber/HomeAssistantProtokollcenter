@@ -10,6 +10,7 @@ import pytest
 from custom_components.messagehub.processing.knx_repo import (
     KnxAddress,
     KnxAddressRepository,
+    resolve_severity,
     validate_address,
 )
 from custom_components.messagehub.storage import Database, MigrationRunner
@@ -160,3 +161,77 @@ def test_to_dict_covers_all_dataclass_fields() -> None:
     extra = actual_keys - expected_keys
     assert not missing, f"to_dict() fehlt Felder: {missing}"
     assert not extra, f"to_dict() hat unbekannte Felder: {extra}"
+
+
+class TestResolveSeverity:
+    """Verhaltens-Charakterisierung fuer ``resolve_severity``.
+
+    Der Test schreibt das aktuelle Mapping fest, bevor die Funktion in
+    benannte Helfer zerlegt wird (CC-Reduktion). Jede Zeile bildet einen
+    der Branches im Original ab.
+    """
+
+    @staticmethod
+    def _cfg(
+        log_severity: str = "auto",
+        on_true: str | None = None,
+        on_false: str | None = None,
+    ) -> KnxAddress:
+        return KnxAddress(
+            address="1/1/1",
+            label="x",
+            log_severity=log_severity,
+            severity_on_true=on_true,
+            severity_on_false=on_false,
+        )
+
+    def test_non_auto_valid_severity_returned_unchanged(self) -> None:
+        for sev in ("debug", "info", "warning", "error"):
+            assert resolve_severity(self._cfg(log_severity=sev), value=None) == sev
+
+    def test_non_auto_invalid_severity_falls_back_to_info(self) -> None:
+        assert resolve_severity(self._cfg(log_severity="bogus"), value=True) == "info"
+
+    def test_auto_with_python_true_uses_on_true_or_warning_default(self) -> None:
+        assert resolve_severity(self._cfg(), value=True) == "warning"
+        assert resolve_severity(self._cfg(on_true="error"), value=True) == "error"
+
+    def test_auto_with_python_false_uses_on_false_or_info_default(self) -> None:
+        assert resolve_severity(self._cfg(), value=False) == "info"
+        assert resolve_severity(self._cfg(on_false="warning"), value=False) == "warning"
+
+    @pytest.mark.parametrize("truthy", ["true", "TRUE", "True", "on", "ON", "1"])
+    def test_auto_truthy_strings_map_to_on_true(self, truthy: str) -> None:
+        assert resolve_severity(self._cfg(on_true="error"), value=truthy) == "error"
+
+    @pytest.mark.parametrize("falsy", ["false", "FALSE", "False", "off", "OFF", "0"])
+    def test_auto_falsy_strings_map_to_on_false(self, falsy: str) -> None:
+        assert resolve_severity(self._cfg(on_false="warning"), value=falsy) == "warning"
+
+    def test_auto_unknown_string_falls_back_to_info(self) -> None:
+        assert resolve_severity(self._cfg(on_true="error"), value="hello") == "info"
+        assert resolve_severity(self._cfg(on_true="error"), value="") == "info"
+
+    @pytest.mark.parametrize("truthy_num", [1, 2, -1, 1.5, -0.1])
+    def test_auto_nonzero_numbers_map_to_on_true(self, truthy_num: int | float) -> None:
+        assert resolve_severity(self._cfg(on_true="error"), value=truthy_num) == "error"
+
+    @pytest.mark.parametrize("falsy_num", [0, 0.0])
+    def test_auto_zero_numbers_map_to_on_false(self, falsy_num: int | float) -> None:
+        assert resolve_severity(self._cfg(on_false="warning"), value=falsy_num) == "warning"
+
+    def test_auto_none_falls_back_to_info(self) -> None:
+        assert resolve_severity(self._cfg(on_true="error"), value=None) == "info"
+
+    def test_auto_uses_warning_default_when_on_true_unset(self) -> None:
+        assert resolve_severity(self._cfg(), value="on") == "warning"
+        assert resolve_severity(self._cfg(), value=1) == "warning"
+
+    def test_auto_uses_info_default_when_on_false_unset(self) -> None:
+        assert resolve_severity(self._cfg(), value="off") == "info"
+        assert resolve_severity(self._cfg(), value=0) == "info"
+
+    def test_auto_unknown_object_falls_back_to_info(self) -> None:
+        # Listen, dicts, etc. — keine Bool-/String-/Zahl-Semantik
+        assert resolve_severity(self._cfg(on_true="error"), value=[1, 2]) == "info"
+        assert resolve_severity(self._cfg(on_true="error"), value={"k": "v"}) == "info"

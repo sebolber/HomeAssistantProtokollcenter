@@ -24,6 +24,9 @@ _GA_PATTERN = re.compile(r"^\d{1,2}/\d{1,2}/\d{1,3}$")
 _VALID_SEVERITIES = Severity.values()
 _VALID_LOG_SEVERITIES = _VALID_SEVERITIES | frozenset({"auto"})
 
+_TRUTHY_STRINGS: frozenset[str] = frozenset({"true", "on", "1"})
+_FALSY_STRINGS: frozenset[str] = frozenset({"false", "off", "0"})
+
 # Iter 56: Sentinel fuer "Feld unveraendert lassen" in bulk_patch.
 # None bedeutet "auf SQL-NULL setzen" (gueltiger Severity-Wert), hier
 # brauchen wir ein drittes Signal: "Feld nicht aendern".
@@ -335,6 +338,34 @@ class KnxAddressRepository:
         return counts
 
 
+def _classify_etssync_entry(
+    addr: str,
+    ets: dict[str, Any],
+    db: dict[str, Any] | None,
+) -> tuple[str, dict[str, Any] | str]:
+    """Klassifiziert einen ETS-Eintrag relativ zum DB-Stand.
+
+    Liefert ``(bucket, payload)`` mit ``bucket`` aus ``{"add", "update",
+    "keep"}``. Fuer ``"keep"`` ist ``payload`` die GA-Adresse, sonst der
+    Diff-Datensatz.
+    """
+    ets_label = str(ets.get("name") or "")
+    ets_dpt = ets.get("dpt") or None
+    if db is None:
+        return "add", {"address": addr, "label": ets_label, "dpt": ets_dpt}
+    db_label = str(db.get("label") or "")
+    db_dpt = db.get("dpt") or None
+    if db_label == ets_label and (db_dpt or "") == (ets_dpt or ""):
+        return "keep", addr
+    return "update", {
+        "address": addr,
+        "label": ets_label,
+        "dpt": ets_dpt,
+        "old_label": db_label,
+        "old_dpt": db_dpt,
+    }
+
+
 def compute_etssync_plan(
     *,
     db_addresses: list[dict[str, Any]],
@@ -356,38 +387,17 @@ def compute_etssync_plan(
     db_by_addr = {str(a["address"]): a for a in db_addresses}
     ets_by_addr = {str(e["address"]): e for e in ets_items}
 
-    add: list[dict[str, Any]] = []
-    update: list[dict[str, Any]] = []
-    delete: list[dict[str, Any]] = []
-    keep: list[str] = []
+    buckets: dict[str, list[Any]] = {"add": [], "update": [], "delete": [], "keep": []}
 
     for addr, ets in ets_by_addr.items():
-        ets_label = str(ets.get("name") or "")
-        ets_dpt = ets.get("dpt") or None
-        db = db_by_addr.get(addr)
-        if db is None:
-            add.append({"address": addr, "label": ets_label, "dpt": ets_dpt})
-            continue
-        db_label = str(db.get("label") or "")
-        db_dpt = db.get("dpt") or None
-        if db_label == ets_label and (db_dpt or "") == (ets_dpt or ""):
-            keep.append(addr)
-        else:
-            update.append(
-                {
-                    "address": addr,
-                    "label": ets_label,
-                    "dpt": ets_dpt,
-                    "old_label": db_label,
-                    "old_dpt": db_dpt,
-                }
-            )
+        bucket, payload = _classify_etssync_entry(addr, ets, db_by_addr.get(addr))
+        buckets[bucket].append(payload)
 
     for addr, db in db_by_addr.items():
         if addr not in ets_by_addr:
-            delete.append({"address": addr, "label": str(db.get("label") or "")})
+            buckets["delete"].append({"address": addr, "label": str(db.get("label") or "")})
 
-    return {"add": add, "update": update, "delete": delete, "keep": keep}
+    return buckets
 
 
 def _row_to_address(row: Any) -> KnxAddress:
@@ -403,6 +413,35 @@ def _row_to_address(row: Any) -> KnxAddress:
     )
 
 
+def _coerce_to_bool(value: Any) -> bool | None:
+    """Bringt KNX-Telegrammwerte auf eine Boolean-Aussage oder ``None``.
+
+    None bedeutet "weder wahr noch falsch interpretierbar" — Caller faellt
+    dann auf eine Default-Severity zurueck.
+    """
+    if value is True or value is False:
+        return value
+    if isinstance(value, str):
+        lo = value.lower()
+        if lo in _TRUTHY_STRINGS:
+            return True
+        if lo in _FALSY_STRINGS:
+            return False
+        return None
+    if isinstance(value, int | float):
+        return bool(value)
+    return None
+
+
+def _auto_severity(cfg: KnxAddress, value: Any) -> str:
+    flag = _coerce_to_bool(value)
+    if flag is True:
+        return cfg.severity_on_true or "warning"
+    if flag is False:
+        return cfg.severity_on_false or "info"
+    return "info"
+
+
 def resolve_severity(cfg: KnxAddress, value: Any) -> str:
     """Iter 48: bestimmt die Severity fuer einen KNX-Telegrammwert basierend auf der GA-Konfig.
 
@@ -411,13 +450,7 @@ def resolve_severity(cfg: KnxAddress, value: Any) -> str:
     - sonst: log_severity (Default 'info')
     """
     if cfg.log_severity == "auto":
-        if value is True or (isinstance(value, str) and value.lower() in {"true", "on", "1"}):
-            return cfg.severity_on_true or "warning"
-        if value is False or (isinstance(value, str) and value.lower() in {"false", "off", "0"}):
-            return cfg.severity_on_false or "info"
-        if isinstance(value, int | float):
-            return cfg.severity_on_true or "warning" if value else (cfg.severity_on_false or "info")
-        return "info"
+        return _auto_severity(cfg, value)
     return cfg.log_severity if cfg.log_severity in _VALID_SEVERITIES else "info"
 
 
