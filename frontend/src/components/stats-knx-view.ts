@@ -533,7 +533,9 @@ export class StatsKnxView extends LitElement {
   // immer failen. So bleibt der User nicht im Dunkeln, kann aber kurz
   // wegklicken um die anderen Cards sauber zu sehen.
   private _renderApiErrorBanner(): TemplateResult {
-    const failed = Array.from(this._apiErrors.keys()).sort();
+    const failed = Array.from(this._apiErrors.keys()).sort((a, b) =>
+      a.localeCompare(b),
+    );
     // Iter E5: Labels per i18n-Hook — fuer jetzt nur DE/EN-Inline,
     // kuenftig kann _labelForEndpoint aus translations/ zogen werden
     // (gleiche Pipeline wie findings-i18n.generated.ts).

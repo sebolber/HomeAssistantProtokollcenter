@@ -109,7 +109,10 @@ describe("findings-view Iter 26: Projekt-Filter", () => {
       (item) =>
         item.querySelector("[data-test='item-code']")?.getAttribute("title")
     );
-    expect(codes.sort()).toEqual(["DPT_MISMATCH", "ORPHAN_GA"]);
+    expect(codes.sort((a, b) => (a ?? "").localeCompare(b ?? ""))).toEqual([
+      "DPT_MISMATCH",
+      "ORPHAN_GA",
+    ]);
   });
 
   it("Filter aus -> alle Findings sichtbar", async () => {

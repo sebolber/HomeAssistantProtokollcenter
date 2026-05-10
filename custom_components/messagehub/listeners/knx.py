@@ -268,7 +268,7 @@ class KnxIngestWorker:
                 self._wake.clear()
                 await self._flush_once()
             except asyncio.CancelledError:
-                break
+                raise
             except (RuntimeError, ValueError, TypeError, KeyError) as err:
                 _LOGGER.debug("knx ingest worker tick failed: %s", err)
 
