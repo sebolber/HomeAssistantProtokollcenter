@@ -16,6 +16,8 @@ from . import queries
 from .models import Message, Severity, WebhookConfig
 
 if TYPE_CHECKING:
+    import aiosqlite
+
     from .database import Database
 
 
@@ -595,31 +597,31 @@ class WebhookConfigRepository:
         return [_row_to_webhook(row) for row in rows]
 
 
-def _row_to_webhook(row: object) -> WebhookConfig:
-    field_map_str: str | None = row["field_map_json"]  # type: ignore[index]
+def _row_to_webhook(row: aiosqlite.Row) -> WebhookConfig:
+    field_map_str: str | None = row["field_map_json"]
     return WebhookConfig(
-        id=int(row["id"]),  # type: ignore[index]
-        name=row["name"],  # type: ignore[index]
-        webhook_id=row["webhook_id"],  # type: ignore[index]
-        default_severity=Severity(row["default_severity"]),  # type: ignore[index]
-        default_source=row["default_source"],  # type: ignore[index]
+        id=int(row["id"]),
+        name=row["name"],
+        webhook_id=row["webhook_id"],
+        default_severity=Severity(row["default_severity"]),
+        default_source=row["default_source"],
         field_map=json.loads(field_map_str) if field_map_str else None,
-        enabled=bool(row["enabled"]),  # type: ignore[index]
-        created_at=datetime.fromisoformat(row["created_at"]).astimezone(UTC),  # type: ignore[index]
+        enabled=bool(row["enabled"]),
+        created_at=datetime.fromisoformat(row["created_at"]).astimezone(UTC),
     )
 
 
-def _row_to_message(row: object) -> Message:
+def _row_to_message(row: aiosqlite.Row) -> Message:
     """Konvertiert eine aiosqlite.Row in ein Message-Dataclass."""
-    timestamp_str: str = row["timestamp"]  # type: ignore[index]
-    metadata_str: str | None = row["metadata"]  # type: ignore[index]
+    timestamp_str: str = row["timestamp"]
+    metadata_str: str | None = row["metadata"]
     msg = Message(
-        id=int(row["id"]),  # type: ignore[index]
+        id=int(row["id"]),
         timestamp=datetime.fromisoformat(timestamp_str).astimezone(UTC),
-        severity=Severity(row["severity"]),  # type: ignore[index]
-        source=row["source"],  # type: ignore[index]
-        text=row["text"],  # type: ignore[index]
+        severity=Severity(row["severity"]),
+        source=row["source"],
+        text=row["text"],
         metadata=json.loads(metadata_str) if metadata_str else None,
-        webhook_id=row["webhook_id"],  # type: ignore[index]
+        webhook_id=row["webhook_id"],
     )
     return msg
