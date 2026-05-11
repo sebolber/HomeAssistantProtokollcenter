@@ -287,7 +287,9 @@ def invalidate_knx_devices_cache() -> None:
     _knx_devices_cache.clear()
 
 
-async def discover_knx_devices(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
+async def discover_knx_devices(  # NOSONAR Async-Symmetrie mit discover_knx_project
+    hass: HomeAssistant,
+) -> dict[str, dict[str, Any]]:
     """Iter 34: Liefert ein Mapping `individual_address -> {manufacturer, name, product}`.
 
     Leeres Dict bei nicht verfuegbarem Projekt — robust gegen fehlende

@@ -196,7 +196,7 @@ class StubRecommendationProvider:
 
     name = "stub"
 
-    async def fetch(
+    async def fetch(  # NOSONAR Protocol-Signatur RecommendationProvider erzwingt async
         self,
         *,
         dpt: str | None,
