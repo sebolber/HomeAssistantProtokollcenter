@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 const Le = globalThis, Ze = Le.ShadowRoot && (Le.ShadyCSS === void 0 || Le.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, Qe = Symbol(), lt = /* @__PURE__ */ new WeakMap();
-let Bt = class {
+let Ut = class {
   constructor(t, s, r) {
     if (this._$cssResult$ = !0, r !== Qe) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
     this.cssText = t, this.t = s;
@@ -22,13 +22,13 @@ let Bt = class {
     return this.cssText;
   }
 };
-const as = (e) => new Bt(typeof e == "string" ? e : e + "", void 0, Qe), x = (e, ...t) => {
+const as = (e) => new Ut(typeof e == "string" ? e : e + "", void 0, Qe), x = (e, ...t) => {
   const s = e.length === 1 ? e[0] : t.reduce((r, a, n) => r + ((o) => {
     if (o._$cssResult$ === !0) return o.cssText;
     if (typeof o == "number") return o;
     throw Error("Value passed to 'css' function must be a 'css' function result: " + o + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
   })(a) + e[n + 1], e[0]);
-  return new Bt(s, e, Qe);
+  return new Ut(s, e, Qe);
 }, is = (e, t) => {
   if (Ze) e.adoptedStyleSheets = t.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
   else for (const s of t) {
@@ -1664,7 +1664,7 @@ const { I: Ms } = $s, bt = (e) => e, wt = () => document.createComment(""), be =
     }
   }
   return s;
-}, J = (e, t, s = e) => (e._$AI(t, s), e), Hs = {}, Us = (e, t = Hs) => e._$AH = t, Bs = (e) => e._$AH, Ve = (e) => {
+}, J = (e, t, s = e) => (e._$AI(t, s), e), Hs = {}, Bs = (e, t = Hs) => e._$AH = t, Us = (e) => e._$AH, Ve = (e) => {
   e._$AR(), e._$AA.remove();
 };
 /**
@@ -1692,7 +1692,7 @@ const yt = (e, t, s) => {
     return this.dt(e, t, s).values;
   }
   update(e, [t, s, r]) {
-    const a = Bs(e), { values: n, keys: o } = this.dt(t, s, r);
+    const a = Us(e), { values: n, keys: o } = this.dt(t, s, r);
     if (!Array.isArray(a)) return this.ut = o, n;
     const c = this.ut ??= [], h = [];
     let v, f, u = 0, p = a.length - 1, w = 0, m = n.length - 1;
@@ -1719,7 +1719,7 @@ const yt = (e, t, s) => {
       const T = a[u++];
       T !== null && Ve(T);
     }
-    return this.ut = o, Us(e, h), Q;
+    return this.ut = o, Bs(e, h), Q;
   }
 }), js = new Intl.RelativeTimeFormat("de", { numeric: "auto" }), Ks = [
   { unit: "year", seconds: 31536e3 },
@@ -2777,7 +2777,7 @@ q([
 M = q([
   k("detail-pane")
 ], M);
-var rr = Object.defineProperty, ar = Object.getOwnPropertyDescriptor, U = (e, t, s, r) => {
+var rr = Object.defineProperty, ar = Object.getOwnPropertyDescriptor, B = (e, t, s, r) => {
   for (var a = r > 1 ? void 0 : r ? ar(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
   return r && a && rr(t, s, a), a;
@@ -3094,34 +3094,34 @@ N.styles = x`
       margin-top: 4px;
     }
   `;
-U([
+B([
   b({ attribute: !1 })
 ], N.prototype, "api", 2);
-U([
+B([
   b({ attribute: !1 })
 ], N.prototype, "editing", 2);
-U([
+B([
   l()
 ], N.prototype, "_name", 2);
-U([
+B([
   l()
 ], N.prototype, "_source", 2);
-U([
+B([
   l()
 ], N.prototype, "_severity", 2);
-U([
+B([
   l()
 ], N.prototype, "_enabled", 2);
-U([
+B([
   l()
 ], N.prototype, "_mappingText", 2);
-U([
+B([
   l()
 ], N.prototype, "_error", 2);
-U([
+B([
   l()
 ], N.prototype, "_saving", 2);
-N = U([
+N = B([
   k("webhook-form")
 ], N);
 var lr = Object.defineProperty, dr = Object.getOwnPropertyDescriptor, E = (e, t, s, r) => {
@@ -6878,7 +6878,7 @@ const Tt = {
   info: "var(--mh-info)",
   debug: "var(--mh-debug)"
 }, At = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], Tr = [1, 2, 3, 4, 5, 6, 0];
-let B = class extends y {
+let U = class extends y {
   constructor() {
     super(...arguments), this._stats = null, this._sources = [], this._heatmap = [], this._topSources = [], this._loading = !1;
   }
@@ -7082,7 +7082,7 @@ let B = class extends y {
     `;
   }
 };
-B.styles = [
+U.styles = [
   L,
   ge,
   ae,
@@ -7152,25 +7152,25 @@ B.styles = [
 ];
 ie([
   b({ attribute: !1 })
-], B.prototype, "api", 2);
+], U.prototype, "api", 2);
 ie([
   l()
-], B.prototype, "_stats", 2);
+], U.prototype, "_stats", 2);
 ie([
   l()
-], B.prototype, "_sources", 2);
+], U.prototype, "_sources", 2);
 ie([
   l()
-], B.prototype, "_heatmap", 2);
+], U.prototype, "_heatmap", 2);
 ie([
   l()
-], B.prototype, "_topSources", 2);
+], U.prototype, "_topSources", 2);
 ie([
   l()
-], B.prototype, "_loading", 2);
-B = ie([
+], U.prototype, "_loading", 2);
+U = ie([
   k("stats-live-view")
-], B);
+], U);
 const Er = {
   cyclic: "zyklisch",
   on_change: "bei Änderung",
@@ -7255,10 +7255,10 @@ function Hr(e) {
       <span class="muted small">zyklisch</span>` : i`<strong>${n}</strong>
     <span class="muted small">Heartbeat (zusaetzlich zu Aenderung)</span>`;
 }
-var Ur = Object.defineProperty, Br = Object.getOwnPropertyDescriptor, Ue = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Br(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Br = Object.defineProperty, Ur = Object.getOwnPropertyDescriptor, Be = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Ur(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Ur(t, s, a), a;
+  return r && a && Br(t, s, a), a;
 };
 const De = [
   "var(--mh-error)",
@@ -7414,19 +7414,19 @@ he.styles = [
       }
     `
 ];
-Ue([
+Be([
   b({ attribute: !1 })
 ], he.prototype, "items", 2);
-Ue([
+Be([
   b({ type: Number })
 ], he.prototype, "width", 2);
-Ue([
+Be([
   b({ type: Number })
 ], he.prototype, "height", 2);
-he = Ue([
+he = Be([
   k("knx-timeline-chart")
 ], he);
-var Gr = Object.defineProperty, jr = Object.getOwnPropertyDescriptor, Be = (e, t, s, r) => {
+var Gr = Object.defineProperty, jr = Object.getOwnPropertyDescriptor, Ue = (e, t, s, r) => {
   for (var a = r > 1 ? void 0 : r ? jr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
   return r && a && Gr(t, s, a), a;
@@ -7526,16 +7526,16 @@ pe.styles = [
       }
     `
 ];
-Be([
+Ue([
   b({ attribute: !1 })
 ], pe.prototype, "points", 2);
-Be([
+Ue([
   b({ type: Number })
 ], pe.prototype, "width", 2);
-Be([
+Ue([
   b({ type: Number })
 ], pe.prototype, "height", 2);
-pe = Be([
+pe = Ue([
   k("knx-value-sparkline")
 ], pe);
 const Vr = "";
@@ -13688,6 +13688,56 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
       >${t}</span
     >`;
   }
+  _renderEmpty() {
+    const e = this._items.length === 0 ? "Noch keine Audit-Einträge." : "Keine Treffer für aktuelle Suche.";
+    return i`<div class="empty">${e}</div>`;
+  }
+  _renderTable(e) {
+    return i`
+      <div class="table">
+        <div class="table-head">
+          <span>Zeit</span>
+          <span>Wer</span>
+          <span>Aktion</span>
+          <span>Ziel</span>
+          <span>Details</span>
+        </div>
+        ${e.map((t, s) => {
+      const r = this._expanded.has(s), a = String(t.timestamp);
+      return i`
+            <div class=${`table-row ${r ? "expanded" : ""}`}>
+              <button
+                class="row-toggle"
+                @click=${() => this._toggle(s)}
+                aria-expanded=${r}
+                aria-label=${r ? "Details verbergen" : "Details anzeigen"}
+              >
+                <span class="ts" title=${Xt(a, this._now)}>
+                  ${qt(a, this._now)}
+                </span>
+                <span class="actor">${t.actor}</span>
+                <span>${this._renderActionPill(t.action)}</span>
+                <span class="target">
+                  <code class="target-type">${t.target_type}</code>
+                  ${t.target_id !== null && t.target_id !== void 0 ? i`<code class="target-id">#${t.target_id}</code>` : d}
+                </span>
+                <span class="details-inline">
+                  ${this._renderDetailsSummary(t.details)}
+                  <span class="chevron" aria-hidden="true">${r ? "▾" : "▸"}</span>
+                </span>
+              </button>
+              ${r ? i`<div class="details-panel">
+                    ${this._renderDetails(t.details)}
+                  </div>` : d}
+            </div>
+          `;
+    })}
+      </div>
+    `;
+  }
+  _renderBody(e) {
+    return this._loading ? i`<p class="status">lade…</p>` : e.length === 0 ? this._renderEmpty() : this._renderTable(e);
+  }
   render() {
     const e = this._filtered();
     return i`
@@ -13728,49 +13778,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
           >
         </div>
 
-        ${this._loading ? i`<p class="status">lade…</p>` : e.length === 0 ? i`<div class="empty">
-                ${this._items.length === 0 ? "Noch keine Audit-Einträge." : "Keine Treffer für aktuelle Suche."}
-              </div>` : i`
-                <div class="table">
-                  <div class="table-head">
-                    <span>Zeit</span>
-                    <span>Wer</span>
-                    <span>Aktion</span>
-                    <span>Ziel</span>
-                    <span>Details</span>
-                  </div>
-                  ${e.map((t, s) => {
-      const r = this._expanded.has(s), a = String(t.timestamp);
-      return i`
-                      <div class=${`table-row ${r ? "expanded" : ""}`}>
-                        <button
-                          class="row-toggle"
-                          @click=${() => this._toggle(s)}
-                          aria-expanded=${r}
-                          aria-label=${r ? "Details verbergen" : "Details anzeigen"}
-                        >
-                          <span class="ts" title=${Xt(a, this._now)}>
-                            ${qt(a, this._now)}
-                          </span>
-                          <span class="actor">${t.actor}</span>
-                          <span>${this._renderActionPill(t.action)}</span>
-                          <span class="target">
-                            <code class="target-type">${t.target_type}</code>
-                            ${t.target_id !== null && t.target_id !== void 0 ? i`<code class="target-id">#${t.target_id}</code>` : d}
-                          </span>
-                          <span class="details-inline">
-                            ${this._renderDetailsSummary(t.details)}
-                            <span class="chevron" aria-hidden="true">${r ? "▾" : "▸"}</span>
-                          </span>
-                        </button>
-                        ${r ? i`<div class="details-panel">
-                              ${this._renderDetails(t.details)}
-                            </div>` : d}
-                      </div>
-                    `;
-    })}
-                </div>
-              `}
+        ${this._renderBody(e)}
       </div>
     `;
   }
@@ -14050,7 +14058,7 @@ var za = Object.defineProperty, Oa = Object.getOwnPropertyDescriptor, D = (e, t,
 function Na(e) {
   return e.source === "knx-bus" && e.text.includes("(GroupValueRead)");
 }
-const Ht = "messagehub.filters", Ut = "messagehub.filters.version", qe = "v1", oe = {
+const Ht = "messagehub.filters", Bt = "messagehub.filters.version", qe = "v1", oe = {
   severity: ["error", "warning", "info"],
   source: "",
   search: "",
@@ -14159,7 +14167,7 @@ let P = class extends y {
   _loadFilters() {
     return zs({
       key: Ht,
-      versionKey: Ut,
+      versionKey: Bt,
       currentVersion: qe,
       defaults: oe
     });
@@ -14168,7 +14176,7 @@ let P = class extends y {
     Os(
       {
         key: Ht,
-        versionKey: Ut,
+        versionKey: Bt,
         currentVersion: qe
       },
       this._filters
