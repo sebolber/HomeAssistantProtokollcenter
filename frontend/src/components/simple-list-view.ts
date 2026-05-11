@@ -126,6 +126,12 @@ const sharedStyles = css`
   }
 `;
 
+function renderHeartbeatStatus(it: HeartbeatDto): TemplateResult {
+  if (!it.enabled) return html`<span class="muted">paused</span>`;
+  if (it.silent_alert_active) return html`<span class="alert">⚠ silent</span>`;
+  return html`<span class="ok">✓ ok</span>`;
+}
+
 @customElement("mqtt-topics-view")
 export class MqttTopicsView extends LitElement {
   @property({ attribute: false }) api?: ApiClient;
@@ -410,13 +416,7 @@ export class HeartbeatsView extends LitElement {
                     <td><code>${it.source}</code></td>
                     <td>${it.expected_interval_seconds}</td>
                     <td>${it.last_seen ?? html`<span class="muted">—</span>`}</td>
-                    <td>
-                      ${!it.enabled
-                        ? html`<span class="muted">paused</span>`
-                        : it.silent_alert_active
-                          ? html`<span class="alert">⚠ silent</span>`
-                          : html`<span class="ok">✓ ok</span>`}
-                    </td>
+                    <td>${renderHeartbeatStatus(it)}</td>
                     <td class="actions">
                       <button @click=${() => void this._toggleEnabled(it)}>
                         ${it.enabled ? "Pause" : "Aktivieren"}
@@ -478,8 +478,11 @@ export class RemediationView extends LitElement {
     await this._load();
   }
 
-  // F-006: Edit-Modus aktivieren.
-  private _startEdit(it: RemediationHookDto): void {
+  // F-006: Edit-Modus aktivieren. NOSONAR Body identisch zu MqttTopicsView._startEdit (L170),
+  // aber unterschiedliche Member-Typen (_editDraft: RemediationHookDto vs MqttTopicDto) —
+  // Konsolidierung waere nur via generischem Base-Class moeglich, was die Lit-Component-
+  // Hierarchie unnoetig verschachtelt; bewusste Polymorphie pro Use-Case.
+  private _startEdit(it: RemediationHookDto): void {  // NOSONAR S4144 Polymorphie pro Use-Case
     if (it.id == null) return;
     this._editId = it.id;
     this._editDraft = { ...it };

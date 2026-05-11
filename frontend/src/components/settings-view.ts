@@ -370,13 +370,15 @@ export class SettingsView extends LitElement {
             ></webhook-form>`
           : null}
 
-        ${this._loading
-          ? html`<p class="status">lade…</p>`
-          : this._items.length === 0 && !this._showForm
-            ? this._renderEmpty()
-            : html`<div class="grid">${this._items.map((item) => this._renderItem(item))}</div>`}
+        ${this._renderWebhooksList()}
       </section>
     `;
+  }
+
+  private _renderWebhooksList(): TemplateResult {
+    if (this._loading) return html`<p class="status">lade…</p>`;
+    if (this._items.length === 0 && !this._showForm) return this._renderEmpty();
+    return html`<div class="grid">${this._items.map((item) => this._renderItem(item))}</div>`;
   }
 
   static override styles = [

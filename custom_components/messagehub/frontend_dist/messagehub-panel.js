@@ -5726,6 +5726,9 @@ const it = x`
     color: var(--secondary-text-color, #666);
   }
 `;
+function yr(e) {
+  return e.enabled ? e.silent_alert_active ? i`<span class="alert">⚠ silent</span>` : i`<span class="ok">✓ ok</span>` : i`<span class="muted">paused</span>`;
+}
 let H = class extends y {
   constructor() {
     super(...arguments), this._items = [], this._newPattern = "", this._newSource = "", this._newSeverity = "info", this._editId = null, this._editDraft = null;
@@ -5964,9 +5967,7 @@ let te = class extends y {
                     <td><code>${e.source}</code></td>
                     <td>${e.expected_interval_seconds}</td>
                     <td>${e.last_seen ?? i`<span class="muted">—</span>`}</td>
-                    <td>
-                      ${e.enabled ? e.silent_alert_active ? i`<span class="alert">⚠ silent</span>` : i`<span class="ok">✓ ok</span>` : i`<span class="muted">paused</span>`}
-                    </td>
+                    <td>${yr(e)}</td>
                     <td class="actions">
                       <button @click=${() => void this._toggleEnabled(e)}>
                         ${e.enabled ? "Pause" : "Aktivieren"}
@@ -6021,7 +6022,10 @@ let I = class extends y {
   async _delete(e) {
     !this.api || e.id == null || window.confirm(`Hook '${e.name}' löschen?`) && (await this.api.deleteRemediationHook(e.id), await this._load());
   }
-  // F-006: Edit-Modus aktivieren.
+  // F-006: Edit-Modus aktivieren. NOSONAR Body identisch zu MqttTopicsView._startEdit (L170),
+  // aber unterschiedliche Member-Typen (_editDraft: RemediationHookDto vs MqttTopicDto) —
+  // Konsolidierung waere nur via generischem Base-Class moeglich, was die Lit-Component-
+  // Hierarchie unnoetig verschachtelt; bewusste Polymorphie pro Use-Case.
   _startEdit(e) {
     e.id != null && (this._editId = e.id, this._editDraft = { ...e });
   }
@@ -6205,10 +6209,10 @@ S([
 I = S([
   k("remediation-view")
 ], I);
-var yr = Object.defineProperty, xr = Object.getOwnPropertyDescriptor, j = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? xr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var xr = Object.defineProperty, $r = Object.getOwnPropertyDescriptor, j = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? $r(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && yr(t, s, a), a;
+  return r && a && xr(t, s, a), a;
 };
 const Re = [
   { id: "webhooks", label: "Webhooks" },
@@ -6219,7 +6223,7 @@ const Re = [
   { id: "remediation", label: "Auto-Remediation" },
   { id: "recommend-llm", label: "KI-Empfehlungen" }
 ], Zt = "messagehub.settings.tab";
-function $r() {
+function kr() {
   if (typeof window < "u" && window.location?.hash) {
     const e = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
     if (e.startsWith("settings/")) {
@@ -6236,7 +6240,7 @@ function $r() {
 }
 let F = class extends y {
   constructor() {
-    super(...arguments), this._items = [], this._loading = !1, this._showForm = !1, this._editing = null, this._toast = "", this._menuOpenId = null, this._activeTab = $r(), this._closeMenu = () => {
+    super(...arguments), this._items = [], this._loading = !1, this._showForm = !1, this._editing = null, this._toast = "", this._menuOpenId = null, this._activeTab = kr(), this._closeMenu = () => {
       this._menuOpenId !== null && (this._menuOpenId = null);
     }, this._onHashChange = () => {
       const e = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
@@ -6475,9 +6479,12 @@ let F = class extends y {
               @cancel=${this._onCancel}
             ></webhook-form>` : null}
 
-        ${this._loading ? i`<p class="status">lade…</p>` : this._items.length === 0 && !this._showForm ? this._renderEmpty() : i`<div class="grid">${this._items.map((e) => this._renderItem(e))}</div>`}
+        ${this._renderWebhooksList()}
       </section>
     `;
+  }
+  _renderWebhooksList() {
+    return this._loading ? i`<p class="status">lade…</p>` : this._items.length === 0 && !this._showForm ? this._renderEmpty() : i`<div class="grid">${this._items.map((e) => this._renderItem(e))}</div>`;
   }
 };
 F.styles = [
@@ -6862,10 +6869,10 @@ j([
 F = j([
   k("settings-view")
 ], F);
-var kr = Object.defineProperty, Sr = Object.getOwnPropertyDescriptor, ie = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Sr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Sr = Object.defineProperty, Tr = Object.getOwnPropertyDescriptor, ie = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Tr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && kr(t, s, a), a;
+  return r && a && Sr(t, s, a), a;
 };
 const Tt = {
   error: "Errors",
@@ -6877,7 +6884,7 @@ const Tt = {
   warning: "var(--mh-warning)",
   info: "var(--mh-info)",
   debug: "var(--mh-debug)"
-}, At = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], Tr = [1, 2, 3, 4, 5, 6, 0];
+}, At = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], Er = [1, 2, 3, 4, 5, 6, 0];
 let U = class extends y {
   constructor() {
     super(...arguments), this._stats = null, this._sources = [], this._heatmap = [], this._topSources = [], this._loading = !1;
@@ -6915,7 +6922,7 @@ let U = class extends y {
       (s, r) => i`<span class="hour-label">${r % 3 === 0 ? r : ""}</span>`
     )}
           </div>
-          ${Tr.map((s, r) => {
+          ${Er.map((s, r) => {
       const a = e[s];
       return i`
               <div class="heatmap-row">
@@ -7171,75 +7178,75 @@ ie([
 U = ie([
   k("stats-live-view")
 ], U);
-const Er = {
+const Ar = {
   cyclic: "zyklisch",
   on_change: "bei Änderung",
   hybrid: "hybrid",
   silent: "stumm",
   insufficient: "zu wenig Daten"
-}, Ar = {
+}, Pr = {
   cyclic: "mh-pill--info",
   on_change: "mh-pill--info",
   hybrid: "mh-pill--caution",
   silent: "mh-pill--neutral",
   insufficient: "mh-pill--neutral"
 };
-function Pr(e) {
-  return i`<span class=${`mh-pill ${Ar[e]}`}
-    >${Er[e]}</span
+function Dr(e) {
+  return i`<span class=${`mh-pill ${Pr[e]}`}
+    >${Ar[e]}</span
   >`;
 }
-const Dr = {
+const Lr = {
   high: "hohe Konfidenz",
   medium: "mittlere Konfidenz",
   low: "niedrige Konfidenz"
-}, Lr = {
+}, zr = {
   high: "mh-pill--neutral",
   medium: "mh-pill--neutral",
   low: "mh-pill--caution"
 };
-function zr(e) {
-  return i`<span class=${`mh-pill ${Lr[e]}`}
-    >${Dr[e]}</span
+function Or(e) {
+  return i`<span class=${`mh-pill ${zr[e]}`}
+    >${Lr[e]}</span
   >`;
 }
-const Or = {
+const Nr = {
   dpt_standard: "DPT",
   device_model: "Modell",
   llm: "KI"
-}, Nr = {
+}, Rr = {
   dpt_standard: "Quelle: DPT-Standard-Tabelle (Layer 1)",
   device_model: "Quelle: Modell-Override (Layer 2)",
   llm: "Quelle: LLM-Vorschlag (Layer 4) — bitte manuell pruefen"
-}, Rr = {
+}, Cr = {
   dpt_standard: "mh-pill--neutral",
   device_model: "mh-pill--info",
   llm: "mh-pill--caution"
 };
-function Cr(e) {
+function Ir(e) {
   return e == null ? i`` : i`<span
-    class=${`mh-pill ${Rr[e]} recommendation-source-pill`}
-    title=${Nr[e]}
-    >${Or[e]}</span
+    class=${`mh-pill ${Cr[e]} recommendation-source-pill`}
+    title=${Rr[e]}
+    >${Nr[e]}</span
   >`;
 }
-const Ir = {
+const Fr = {
   ok: "ok",
   info: "info",
   warn: "abweichend",
   deviation: "Abweichung"
-}, Fr = {
+}, Mr = {
   ok: "mh-pill--success",
   info: "mh-pill--neutral",
   warn: "mh-pill--caution",
   deviation: "mh-pill--error"
 };
-function Mr(e) {
-  return i`<span class=${`mh-pill ${Fr[e]}`}
-    >${Ir[e]}</span
+function Hr(e) {
+  return i`<span class=${`mh-pill ${Mr[e]}`}
+    >${Fr[e]}</span
   >`;
 }
-function Hr(e) {
+function Br(e) {
   const t = e.recommended_cycle_minutes, s = e.recommended_mode;
   if (s === null) return i`<span class="muted">—</span>`;
   if (s === "on_change")
@@ -7255,10 +7262,10 @@ function Hr(e) {
       <span class="muted small">zyklisch</span>` : i`<strong>${n}</strong>
     <span class="muted small">Heartbeat (zusaetzlich zu Aenderung)</span>`;
 }
-var Br = Object.defineProperty, Ur = Object.getOwnPropertyDescriptor, Be = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Ur(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Ur = Object.defineProperty, Gr = Object.getOwnPropertyDescriptor, Be = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Gr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Br(t, s, a), a;
+  return r && a && Ur(t, s, a), a;
 };
 const De = [
   "var(--mh-error)",
@@ -7426,12 +7433,12 @@ Be([
 he = Be([
   k("knx-timeline-chart")
 ], he);
-var Gr = Object.defineProperty, jr = Object.getOwnPropertyDescriptor, Ue = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? jr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var jr = Object.defineProperty, Kr = Object.getOwnPropertyDescriptor, Ue = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Kr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Gr(t, s, a), a;
+  return r && a && jr(t, s, a), a;
 };
-function Kr(e) {
+function Vr(e) {
   if (typeof e == "number" && Number.isFinite(e)) return e;
   if (typeof e == "boolean") return e ? 1 : 0;
   if (typeof e == "string") {
@@ -7448,7 +7455,7 @@ let pe = class extends y {
     super(...arguments), this.points = [], this.width = 600, this.height = 80;
   }
   render() {
-    const e = this.points.map((m) => ({ ts: m.ts, value: Kr(m.value) })).filter((m) => m.value !== null);
+    const e = this.points.map((m) => ({ ts: m.ts, value: Vr(m.value) })).filter((m) => m.value !== null);
     if (e.length < 2)
       return i`<p class="muted">
         Wertverlauf: zu wenige numerische Datenpunkte
@@ -7480,7 +7487,7 @@ let pe = class extends y {
         <p class="muted small">
           ${e.length} Punkte • Min ${s.toFixed(1)} • Max ${r.toFixed(1)} •
           Median Δ ${w.toFixed(2)}
-          ${w < 0.1 && a > 0 ? i` <span class="hint">→ enge Hysterese</span>` : Vr}
+          ${w < 0.1 && a > 0 ? i` <span class="hint">→ enge Hysterese</span>` : Wr}
         </p>
       </div>
     `;
@@ -7538,16 +7545,16 @@ Ue([
 pe = Ue([
   k("knx-value-sparkline")
 ], pe);
-const Vr = "";
-var Wr = Object.defineProperty, qr = Object.getOwnPropertyDescriptor, _ = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? qr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+const Wr = "";
+var qr = Object.defineProperty, Xr = Object.getOwnPropertyDescriptor, _ = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Xr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Wr(t, s, a), a;
+  return r && a && qr(t, s, a), a;
 };
-const Qt = "messagehub.knx-stats.filters", Pt = "messagehub.knx-stats.filters.defaults-version", Dt = "v3", Xr = 1, Jr = 25, Yr = /^[\s\-_=]*$/;
-function Zr(e, t) {
+const Qt = "messagehub.knx-stats.filters", Pt = "messagehub.knx-stats.filters.defaults-version", Dt = "v3", Jr = 1, Yr = 25, Zr = /^[\s\-_=]*$/;
+function Qr(e, t) {
   const s = (t ?? "").trim();
-  return !!(s === "" || Yr.test(s) || s === e);
+  return !!(s === "" || Zr.test(s) || s === e);
 }
 const Lt = 25, zt = 100, Ot = 300, Je = [
   { id: "1h", label: "1 Std", days: 1 / 24 },
@@ -7557,7 +7564,7 @@ const Lt = 25, zt = 100, Ot = 300, Je = [
   { id: "7d", label: "7 Tage", days: 7 },
   { id: "30d", label: "30 Tage", days: 30 },
   { id: "365d", label: "365 Tage", days: 365 }
-], Qr = /* @__PURE__ */ new Set(["7d", "30d", "365d"]), ea = {
+], ea = /* @__PURE__ */ new Set(["7d", "30d", "365d"]), ta = {
   "health-score": "Bus-Health-Score",
   busload: "Buslast-KPI",
   "long-term": "Long-Term-Sicht",
@@ -7568,10 +7575,10 @@ const Lt = 25, zt = 100, Ot = 300, Je = [
   trend: "Trend-Vergleich",
   heatmap: "Aktivitäts-Heatmap"
 };
-function ta(e) {
-  return ea[e] ?? e;
+function sa(e) {
+  return ta[e] ?? e;
 }
-const sa = [10, 25, 50, 100, 200], ra = [10, 15, 20, 25, 30], Ce = {
+const ra = [10, 25, 50, 100, 200], aa = [10, 15, 20, 25, 30], Ce = {
   periodId: "24h",
   topN: 10,
   topNDevices: 10,
@@ -7590,7 +7597,7 @@ const sa = [10, 25, 50, 100, 200], ra = [10, 15, 20, 25, 30], Ce = {
   topNGaFindings: 10,
   minRate: 0,
   includeAck: !0
-}, aa = [
+}, ia = [
   "topN",
   "topNDevices",
   "topNAudit",
@@ -7603,7 +7610,7 @@ const sa = [10, 25, 50, 100, 200], ra = [10, 15, 20, 25, 30], Ce = {
   "topNBusHealth",
   "topNSiblings"
 ];
-function ia() {
+function na() {
   let e = null;
   try {
     const s = localStorage.getItem(Qt);
@@ -7611,9 +7618,9 @@ function ia() {
   } catch {
   }
   const t = e ? { ...Ce, ...e } : { ...Ce };
-  return na(t, e);
+  return oa(t, e);
 }
-function na(e, t) {
+function oa(e, t) {
   let s = !1;
   try {
     s = localStorage.getItem(Pt) === Dt;
@@ -7622,10 +7629,10 @@ function na(e, t) {
   if (s)
     return e;
   let r = e, a = !1;
-  if (t !== null && t.minRate === Xr && (r = { ...r, minRate: Ce.minRate }, a = !0), t !== null) {
+  if (t !== null && t.minRate === Jr && (r = { ...r, minRate: Ce.minRate }, a = !0), t !== null) {
     const n = {};
-    for (const o of aa)
-      t[o] === Jr && (n[o] = Ce[o]);
+    for (const o of ia)
+      t[o] === Yr && (n[o] = Ce[o]);
     Object.keys(n).length > 0 && (r = { ...r, ...n }, a = !0);
   }
   a && A(r);
@@ -7645,10 +7652,10 @@ function Nt(e) {
   const t = Je.find((a) => a.id === e) ?? Je[2], s = /* @__PURE__ */ new Date();
   return { from: new Date(s.getTime() - t.days * 864e5).toISOString(), to: s.toISOString() };
 }
-const oa = 48;
-function la() {
+const la = 48;
+function da() {
   const e = /* @__PURE__ */ new Date();
-  return { from: new Date(e.getTime() - oa * 3600 * 1e3).toISOString(), to: e.toISOString() };
+  return { from: new Date(e.getTime() - la * 3600 * 1e3).toISOString(), to: e.toISOString() };
 }
 function Rt(e) {
   switch (e) {
@@ -7668,7 +7675,7 @@ const Ct = {
   orange: 2,
   red: 3
 };
-function da(e, t, s) {
+function ca(e, t, s) {
   return [...e].sort((a, n) => {
     let o;
     switch (t) {
@@ -7700,7 +7707,7 @@ function da(e, t, s) {
 }
 let g = class extends y {
   constructor() {
-    super(...arguments), this._filters = ia(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._heatmap = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansHidePlaceholders = !0, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._selectedSource = null, this._sourceDetail = null, this._sourceDetailLoading = !1, this._recommendation = null, this._recommendationLoading = !1, this._recommendationError = "", this._recommendationExpanded = !1, this._device = null, this._deviceEditing = !1, this._deviceSaving = !1, this._deviceError = "", this._deviceDraft = {}, this._loading = !1, this._error = "", this._toast = "", this._loadToken = 0, this._onWindowKeyDown = (e) => {
+    super(...arguments), this._filters = na(), this._summary = null, this._busHealth = null, this._busload = null, this._health = null, this._longTerm = null, this._bursts = null, this._sensitiveLog = null, this._trend = null, this._heatmap = null, this._busAnalysisEnabled = !0, this._busAnalysisLoaded = !1, this._devicesSortKey = "count", this._devicesSortDir = "desc", this._topSortKey = "rate_per_min", this._topSortDir = "desc", this._orphansMissingFilter = "", this._orphansExtraFilter = "", this._orphansHidePlaceholders = !0, this._apiErrors = /* @__PURE__ */ new Map(), this._apiErrorsDismissed = !1, this._silence = null, this._orphans = null, this._alarms = null, this._top = [], this._topBySource = [], this._timeline = null, this._selectedGa = null, this._detail = null, this._detailLoading = !1, this._selectedSource = null, this._sourceDetail = null, this._sourceDetailLoading = !1, this._recommendation = null, this._recommendationLoading = !1, this._recommendationError = "", this._recommendationExpanded = !1, this._device = null, this._deviceEditing = !1, this._deviceSaving = !1, this._deviceError = "", this._deviceDraft = {}, this._loading = !1, this._error = "", this._toast = "", this._loadToken = 0, this._onWindowKeyDown = (e) => {
       if (e.key === "Escape") {
         if (this._detail !== null || this._detailLoading) {
           this._closeDetail();
@@ -7745,7 +7752,7 @@ let g = class extends y {
   _renderApiErrorBanner() {
     const t = Array.from(this._apiErrors.keys()).sort(
       (s, r) => s.localeCompare(r)
-    ).map((s) => ta(s)).join(", ");
+    ).map((s) => sa(s)).join(", ");
     return i`
       <div class="api-error-banner" role="alert">
         <div class="api-error-banner__head">
@@ -7802,14 +7809,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     };
   }
   _isLongTermMode() {
-    return Qr.has(this._filters.periodId);
+    return ea.has(this._filters.periodId);
   }
   // Im Long-Term-Modus laufen die Raw-Endpunkte auf die letzten 48h —
   // alles dahinter liegt in der Counter-Tabelle und wird ueber den
   // Long-Term-Endpoint geliefert.
   _liveFiltersForRaw() {
     if (!this._isLongTermMode()) return this._apiFilters();
-    const { from: e, to: t } = la();
+    const { from: e, to: t } = da();
     return {
       from: e,
       to: t,
@@ -8177,7 +8184,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   _onTopNGaFindings(e) {
     this._filters = { ...this._filters, topNGaFindings: e }, A(this._filters), this.requestUpdate();
   }
-  _renderInlineTopN(e, t, s = sa) {
+  _renderInlineTopN(e, t, s = ra) {
     return i`
       <span class="inline-topn-wrap">
         <span class="inline-topn-label">zeige</span>
@@ -8716,7 +8723,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       return i`<p class="muted">lade…</p>`;
     if (this._top.length === 0)
       return i`<p class="muted">Keine Telegramme in diesem Zeitraum.</p>`;
-    const e = this._topSortKey, t = this._topSortDir, s = da(this._top, e, t), a = e !== "rate_per_min" || t !== "desc" ? i`<p
+    const e = this._topSortKey, t = this._topSortDir, s = ca(this._top, e, t), a = e !== "rate_per_min" || t !== "desc" ? i`<p
           class="muted small"
           data-test="sort-hint"
           title="Top-N wird vom Backend nach Tel/Min ausgewaehlt — die Sortierung wirkt nur auf diese Auswahl, nicht auf alle GAs."
@@ -9139,10 +9146,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   // Bezug zur ``KnxStatsSourceRecommendationDto``-Typisierung bleibt
   // hier zentral.
   _renderRecommendationModePill(e) {
-    return Pr(e);
+    return Dr(e);
   }
   _renderRecommendationConfidencePill(e) {
-    return zr(e);
+    return Or(e);
   }
   _renderRecommendationBody() {
     if (this._recommendationLoading)
@@ -9317,13 +9324,13 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
   // ohne Kontext, was die Zahl bedeutet (Heartbeat? Maximalrate?
   // Periode?).
   _renderRecommendationCycle(e) {
-    return Hr(e);
+    return Br(e);
   }
   _renderRecommendationSourcePill(e) {
-    return Cr(e ?? null);
+    return Ir(e ?? null);
   }
   _renderRecommendationSeverityPill(e) {
-    return Mr(e);
+    return Hr(e);
   }
   // Iter I (knx-detail-panes): Trend-Compare-Block. Severity-Klassi-
   // fikation analog zur globalen Trend-Card (`_classifyTrendSeverity`).
@@ -9882,7 +9889,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             ${this._renderInlineTopN(
       this._filters.topNHeatmap,
       (r) => this._onTopNHeatmap(r),
-      ra
+      aa
     )}
             <span class="muted small">
               Top-${e.gas.length} GAs × ${e.buckets.length} ${e.bucket_minutes}-Min-Buckets · Maximum ${t} Telegramme/Bucket
@@ -9930,7 +9937,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _renderOrphans() {
-    const e = this._orphans, t = (p, w) => this._orphansHidePlaceholders ? p.filter((m) => !Zr(m.address, w(m))) : p, s = t(e.missing_in_log, (p) => p.name), r = t(e.extra_in_log, (p) => p.label), a = s.filter(
+    const e = this._orphans, t = (p, w) => this._orphansHidePlaceholders ? p.filter((m) => !Qr(m.address, w(m))) : p, s = t(e.missing_in_log, (p) => p.name), r = t(e.extra_in_log, (p) => p.label), a = s.filter(
       (p) => this._matchesOrphanFilter(this._orphansMissingFilter, [p.address, p.name, p.dpt])
     ), n = r.filter(
       (p) => this._matchesOrphanFilter(this._orphansExtraFilter, [p.address, p.label])
@@ -11982,7 +11989,7 @@ _([
 g = _([
   k("stats-knx-view")
 ], g);
-const ca = {
+const ha = {
   de: {
     DPT_MISMATCH: {
       title: "Erkannter Datentyp widerspricht Projekt-DPT",
@@ -12385,17 +12392,17 @@ const ca = {
       help_url: ""
     }
   }
-}, ha = ["de", "en", "es", "fr", "it", "nl"], nt = ca, pa = /* @__PURE__ */ new Set([
+}, pa = ["de", "en", "es", "fr", "it", "nl"], nt = ha, ua = /* @__PURE__ */ new Set([
   "DPT_MISMATCH",
   "ORPHAN_GA",
   "STALE_GA"
 ]);
-function ua(e) {
-  return pa.has(e);
+function ma(e) {
+  return ua.has(e);
 }
 function es(e) {
   const t = (e || "").toLowerCase();
-  for (const s of ha)
+  for (const s of pa)
     if (t === s || t.startsWith(s + "-"))
       return s;
   return "en";
@@ -12403,22 +12410,22 @@ function es(e) {
 function Ye(e, t) {
   return nt[es(t)][e]?.title ?? "";
 }
-function ma(e) {
+function ga(e) {
   return nt.en[e]?.help_url ?? "";
 }
-function ga(e, t, s) {
+function fa(e, t, s) {
   const r = nt[es(t)][e];
-  return r === void 0 ? "" : fa(r.description, s);
+  return r === void 0 ? "" : va(r.description, s);
 }
-function fa(e, t) {
+function va(e, t) {
   return e.replace(/\{(\w+)\}/g, (s, r) => r in t ? String(t[r]) : s);
 }
-var va = Object.defineProperty, _a = Object.getOwnPropertyDescriptor, Ee = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? _a(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var _a = Object.defineProperty, ba = Object.getOwnPropertyDescriptor, Ee = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? ba(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && va(t, s, a), a;
+  return r && a && _a(t, s, a), a;
 };
-const ba = [
+const wa = [
   "debug",
   "info",
   "warning",
@@ -12505,7 +12512,7 @@ let se = class extends y {
             @change=${(a) => this._onSelectChange(a, e.code)}
           >
             <option value="_default">— Default —</option>
-            ${ba.map(
+            ${wa.map(
       (a) => i`<option value=${a}>${a}</option>`
     )}
           </select>
@@ -12572,10 +12579,10 @@ Ee([
 se = Ee([
   k("severity-override-form")
 ], se);
-var wa = Object.defineProperty, ya = Object.getOwnPropertyDescriptor, Ge = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? ya(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var ya = Object.defineProperty, xa = Object.getOwnPropertyDescriptor, Ge = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? xa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && wa(t, s, a), a;
+  return r && a && ya(t, s, a), a;
 };
 let ue = class extends y {
   constructor() {
@@ -12746,12 +12753,12 @@ Ge([
 ue = Ge([
   k("mh-drawer")
 ], ue);
-var xa = Object.defineProperty, $a = Object.getOwnPropertyDescriptor, C = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? $a(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var $a = Object.defineProperty, ka = Object.getOwnPropertyDescriptor, C = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? ka(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && xa(t, s, a), a;
+  return r && a && $a(t, s, a), a;
 };
-const ka = [
+const Sa = [
   { value: "", label: "Alle Severities" },
   { value: "error", label: "Error" },
   { value: "warning", label: "Warning" },
@@ -12802,7 +12809,7 @@ let O = class extends y {
     this._projectOnly = t.checked;
   }
   _filteredItems() {
-    return this._projectOnly ? this._items.filter((e) => ua(e.code)) : this._items;
+    return this._projectOnly ? this._items.filter((e) => ma(e.code)) : this._items;
   }
   _itemKey(e) {
     return `${e.code}::${e.ga ?? ""}::${e.source ?? ""}::${e.first_seen}`;
@@ -12957,7 +12964,7 @@ let O = class extends y {
               .value=${this._severityFilter}
               @change=${this._onSeverityChange}
             >
-              ${ka.map(
+              ${Sa.map(
       (e) => i`<option value=${e.value}>${e.label}</option>`
     )}
             </select>
@@ -13044,11 +13051,11 @@ let O = class extends y {
         .open=${!1}
         @mh-drawer-close=${this._onDrawerClose}
       ></mh-drawer>`;
-    const r = Ye(e.code, t) || e.code, a = ga(
+    const r = Ye(e.code, t) || e.code, a = fa(
       e.code,
       t,
       e.evidence
-    ), n = ma(e.code);
+    ), n = ga(e.code);
     return i`
       <mh-drawer
         .open=${!0}
@@ -13419,12 +13426,12 @@ C([
 O = C([
   k("findings-view")
 ], O);
-var Sa = Object.defineProperty, Ta = Object.getOwnPropertyDescriptor, Ae = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Ta(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Ta = Object.defineProperty, Ea = Object.getOwnPropertyDescriptor, Ae = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Ea(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Sa(t, s, a), a;
+  return r && a && Ta(t, s, a), a;
 };
-const Ft = "messagehub.stats.subtab", Ea = /* @__PURE__ */ new Set(["live", "knx", "findings"]);
+const Ft = "messagehub.stats.subtab", Aa = /* @__PURE__ */ new Set(["live", "knx", "findings"]);
 let re = class extends y {
   constructor() {
     super(...arguments), this._tab = this._loadTab(), this._findingsSourceFilter = null, this._onHashChange = () => {
@@ -13434,7 +13441,7 @@ let re = class extends y {
   _loadTab() {
     try {
       const e = localStorage.getItem(Ft);
-      if (e && Ea.has(e)) return e;
+      if (e && Aa.has(e)) return e;
     } catch {
     }
     return "live";
@@ -13577,17 +13584,17 @@ Ae([
 re = Ae([
   k("stats-view")
 ], re);
-var Aa = Object.defineProperty, Pa = Object.getOwnPropertyDescriptor, ne = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Pa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Pa = Object.defineProperty, Da = Object.getOwnPropertyDescriptor, ne = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Da(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Aa(t, s, a), a;
+  return r && a && Pa(t, s, a), a;
 };
-function Da(e) {
+function La(e) {
   const t = e.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean), s = new Set(t), r = (...a) => a.some((n) => s.has(n));
   return r("delete", "remove", "removed", "deleted") ? "delete" : r("upsert", "create", "created", "add", "added", "import", "imported") ? "create" : r("update", "updated", "edit", "edited", "set") ? "update" : r("status", "ack", "acknowledge", "toggle", "enable", "enabled", "disable", "disabled") ? "status" : "other";
 }
 const Mt = 60;
-function La(e) {
+function za(e) {
   if (!e || typeof e != "object" || Array.isArray(e))
     return "";
   const t = e;
@@ -13660,7 +13667,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     }) : this._items;
   }
   _renderActionPill(e) {
-    const t = Da(e);
+    const t = La(e);
     return i`<span class=${`action-pill action-${t}`} title=${e}>${e}</span>`;
   }
   _renderDetails(e) {
@@ -13681,7 +13688,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     return i`<code>${String(e)}</code>`;
   }
   _renderDetailsSummary(e) {
-    const t = La(e);
+    const t = za(e);
     if (t === "") return i`<span class="muted">—</span>`;
     const s = typeof e == "object" && e !== null && (e.label !== void 0 || e.name !== void 0);
     return i`<span class=${`summary ${s ? "" : "muted"}`}
@@ -14050,12 +14057,12 @@ ne([
 G = ne([
   k("audit-view")
 ], G);
-var za = Object.defineProperty, Oa = Object.getOwnPropertyDescriptor, D = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Oa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Oa = Object.defineProperty, Na = Object.getOwnPropertyDescriptor, D = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Na(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && za(t, s, a), a;
+  return r && a && Oa(t, s, a), a;
 };
-function Na(e) {
+function Ra(e) {
   return e.source === "knx-bus" && e.text.includes("(GroupValueRead)");
 }
 const Ht = "messagehub.filters", Bt = "messagehub.filters.version", qe = "v1", oe = {
@@ -14162,7 +14169,7 @@ let P = class extends y {
     ), await this._liveSub.start());
   }
   _matchesFilters(e) {
-    return !(this._filters.severity.length && !this._filters.severity.includes(e.severity) || this._filters.source && e.source !== this._filters.source || this._filters.search && !e.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && Na(e));
+    return !(this._filters.severity.length && !this._filters.severity.includes(e.severity) || this._filters.source && e.source !== this._filters.source || this._filters.search && !e.text.toLowerCase().includes(this._filters.search.toLowerCase()) || this._filters.hideKnxRead && Ra(e));
   }
   _loadFilters() {
     return zs({
@@ -14985,5 +14992,5 @@ P = D([
 ], P);
 export {
   P as MessageHubPanel,
-  Na as isKnxReadMessage
+  Ra as isKnxReadMessage
 };
