@@ -8586,6 +8586,95 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         return "kritisch";
     }
   }
+  // Iter 07-Refactor: render() hatte CC=32 (Sonar-Limit 15) durch
+  // ~20 Conditional-Sections (`X !== null && X.foo.length > 0 ? this._renderX() : nothing`).
+  // Aufgeteilt in vier thematische Render-Helfer plus einen
+  // Bus-Analysis-Banner-Helfer. CC verteilt sich damit auf mehrere
+  // Methoden, jede unter 15.
+  _renderBusAnalysisOffBanner() {
+    return this._busAnalysisLoaded && !this._busAnalysisEnabled ? i`<div class="bus-analysis-banner">
+      <strong>Bus-Analyse ist aus.</strong>
+      Es werden keine neuen Telegramme erfasst — bestehende Daten bleiben
+      sichtbar, altern aber raus (Raw 48 h, Counter 365 Tage). Toggle in der
+      Filter-Leiste oben rechts schaltet sie wieder ein.
+    </div>` : d;
+  }
+  _renderTopBanners() {
+    const e = this._apiErrors.size > 0 && !this._apiErrorsDismissed ? this._renderApiErrorBanner() : d, t = this._error ? i`<div class="error">${this._error}</div>` : d, s = this._alarms !== null && this._alarms.triggered_count > 0 ? this._renderAlarmBanner() : d, r = this._isLongTermMode() ? this._renderLongTermBanner() : d;
+    return i`
+      ${e}
+      ${this._renderBusAnalysisOffBanner()}
+      ${t}
+      ${s}
+      ${r}
+    `;
+  }
+  _renderTopSenderSection() {
+    return i`<section class="mh-card">
+      <header class="card-head">
+        <h3>Top-Sender (Gruppenadressen)</h3>
+        <div class="card-head__meta">
+          ${this._renderInlineTopN(this._filters.topN, (e) => this._onTopN(e))}
+          <span class="muted small">
+            Welche GA sendet am häufigsten? · ${this._top.length} sichtbar
+          </span>
+        </div>
+      </header>
+      ${this._renderTopTable()}
+    </section>`;
+  }
+  _renderTopDevicesSection() {
+    return this._topBySource.length === 0 ? d : i`<section class="mh-card">
+      <header class="card-head">
+        <h3>Top-Geräte (Source-Adressen)</h3>
+        <div class="card-head__meta">
+          ${this._renderInlineTopN(this._filters.topNDevices, (e) => this._onTopNDevices(e))}
+          <span class="muted small">
+            Welches physische Gerät erzeugt am meisten Last?
+          </span>
+        </div>
+      </header>
+      ${this._renderTopBySource()}
+    </section>`;
+  }
+  _hasDetailToShow() {
+    return this._detail !== null || this._detailLoading || this._sourceDetail !== null || this._sourceDetailLoading;
+  }
+  _renderVisualSections() {
+    const e = this._timeline !== null && this._timeline.items.length > 0 ? i`<section class="mh-card">
+            <header class="card-head">
+              <h3>Tagesverlauf (Top-5, ${this._timeline.bucket_minutes}-Min-Buckets)</h3>
+            </header>
+            <knx-timeline-chart
+              .items=${this._timeline.items}
+              .width=${800}
+              .height=${140}
+            ></knx-timeline-chart>
+          </section>` : d, t = this._heatmap !== null && this._heatmap.gas.length > 0 ? this._renderHeatmap() : d, s = this._trend !== null && (this._trend.total_now > 0 || this._trend.total_prev > 0) ? this._renderTrend() : d;
+    return i`${e}${t}${s}`;
+  }
+  _renderAnomalySections() {
+    const e = this._bursts !== null && this._bursts.bursts.length > 0 ? this._renderBursts() : d, t = this._silence !== null && this._silence.alarm_count > 0 ? this._renderSilenceAlarms() : d, s = this._busHealth !== null && this._busHealth.summary.total > 0 ? this._renderBusHealth() : d;
+    return i`${e}${t}${s}`;
+  }
+  _hasOrphansToShow() {
+    return this._orphans !== null && (this._orphans.missing_in_log.length > 0 || this._orphans.extra_in_log.length > 0);
+  }
+  _renderAuditSections() {
+    const e = this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0 ? this._renderSensitiveLog() : d, t = this._hasOrphansToShow() ? this._renderOrphans() : d;
+    return i`${e}${t}`;
+  }
+  _renderOverview() {
+    return i`<section class="mh-card kpi-card">
+      <header class="card-head">
+        <h3>
+          ${this._isLongTermMode() ? "Live-Snapshot (letzte 48 Std)" : "Uebersicht"}
+        </h3>
+        <span class="muted small">letzte ${this._filters.periodId}</span>
+      </header>
+      ${this._loading && this._summary === null ? i`<p class="muted">lade…</p>` : this._renderKpis()}
+    </section>`;
+  }
   render() {
     return i`
       <div class="root">
@@ -8597,17 +8686,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           landen zusaetzlich im Logbuch (Tab „Nachrichten").
         </div>
         ${this._renderFilterBar()}
-        ${this._apiErrors.size > 0 && !this._apiErrorsDismissed ? this._renderApiErrorBanner() : d}
-        ${this._busAnalysisLoaded && !this._busAnalysisEnabled ? i`<div class="bus-analysis-banner">
-              <strong>Bus-Analyse ist aus.</strong>
-              Es werden keine neuen Telegramme erfasst — bestehende Daten bleiben
-              sichtbar, altern aber raus (Raw 48 h, Counter 365 Tage). Toggle in
-              der Filter-Leiste oben rechts schaltet sie wieder ein.
-            </div>` : d}
-        ${this._error ? i`<div class="error">${this._error}</div>` : d}
-        ${this._alarms !== null && this._alarms.triggered_count > 0 ? this._renderAlarmBanner() : d}
-
-        ${this._isLongTermMode() ? this._renderLongTermBanner() : d}
+        ${this._renderTopBanners()}
 
         <!--
           Iter aiohttp-error-ZU9UA: Reihenfolge nach mentalem User-Modell:
@@ -8619,71 +8698,15 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           6. Long-Term-Sicht (cond.) ans Ende
         -->
 
-        <section class="mh-card kpi-card">
-          <header class="card-head">
-            <h3>${this._isLongTermMode() ? "Live-Snapshot (letzte 48 Std)" : "Uebersicht"}</h3>
-            <span class="muted small">letzte ${this._filters.periodId}</span>
-          </header>
-          ${this._loading && this._summary === null ? i`<p class="muted">lade…</p>` : this._renderKpis()}
-        </section>
-
+        ${this._renderOverview()}
         ${this._health !== null ? this._renderHealthScore() : d}
-
-        <section class="mh-card">
-          <header class="card-head">
-            <h3>Top-Sender (Gruppenadressen)</h3>
-            <div class="card-head__meta">
-              ${this._renderInlineTopN(this._filters.topN, (e) => this._onTopN(e))}
-              <span class="muted small">
-                Welche GA sendet am häufigsten? · ${this._top.length} sichtbar
-              </span>
-            </div>
-          </header>
-          ${this._renderTopTable()}
-        </section>
-
-        ${this._topBySource.length > 0 ? i`<section class="mh-card">
-              <header class="card-head">
-                <h3>Top-Geräte (Source-Adressen)</h3>
-                <div class="card-head__meta">
-                  ${this._renderInlineTopN(
-      this._filters.topNDevices,
-      (e) => this._onTopNDevices(e)
-    )}
-                  <span class="muted small">
-                    Welches physische Gerät erzeugt am meisten Last?
-                  </span>
-                </div>
-              </header>
-              ${this._renderTopBySource()}
-            </section>` : d}
-
-        ${this._detail !== null || this._detailLoading || this._sourceDetail !== null || this._sourceDetailLoading ? this._renderDetailPane() : d}
-
-        ${this._timeline !== null && this._timeline.items.length > 0 ? i`<section class="mh-card">
-              <header class="card-head">
-                <h3>Tagesverlauf (Top-5, ${this._timeline.bucket_minutes}-Min-Buckets)</h3>
-              </header>
-              <knx-timeline-chart
-                .items=${this._timeline.items}
-                .width=${800}
-                .height=${140}
-              ></knx-timeline-chart>
-            </section>` : d}
-
-        ${this._heatmap !== null && this._heatmap.gas.length > 0 ? this._renderHeatmap() : d}
-
-        ${this._trend !== null && (this._trend.total_now > 0 || this._trend.total_prev > 0) ? this._renderTrend() : d}
-
-        ${this._bursts !== null && this._bursts.bursts.length > 0 ? this._renderBursts() : d}
-        ${this._silence !== null && this._silence.alarm_count > 0 ? this._renderSilenceAlarms() : d}
-        ${this._busHealth !== null && this._busHealth.summary.total > 0 ? this._renderBusHealth() : d}
-
-        ${this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0 ? this._renderSensitiveLog() : d}
-        ${this._orphans !== null && (this._orphans.missing_in_log.length > 0 || this._orphans.extra_in_log.length > 0) ? this._renderOrphans() : d}
-
+        ${this._renderTopSenderSection()}
+        ${this._renderTopDevicesSection()}
+        ${this._hasDetailToShow() ? this._renderDetailPane() : d}
+        ${this._renderVisualSections()}
+        ${this._renderAnomalySections()}
+        ${this._renderAuditSections()}
         ${this._longTerm !== null ? this._renderLongTerm() : d}
-
         ${this._toast ? i`<div class="toast">${this._toast}</div>` : d}
       </div>
     `;

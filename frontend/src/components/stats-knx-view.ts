@@ -1673,6 +1673,153 @@ export class StatsKnxView extends LitElement {
     }
   }
 
+  // Iter 07-Refactor: render() hatte CC=32 (Sonar-Limit 15) durch
+  // ~20 Conditional-Sections (`X !== null && X.foo.length > 0 ? this._renderX() : nothing`).
+  // Aufgeteilt in vier thematische Render-Helfer plus einen
+  // Bus-Analysis-Banner-Helfer. CC verteilt sich damit auf mehrere
+  // Methoden, jede unter 15.
+  private _renderBusAnalysisOffBanner(): TemplateResult | typeof nothing {
+    if (!(this._busAnalysisLoaded && !this._busAnalysisEnabled)) return nothing;
+    return html`<div class="bus-analysis-banner">
+      <strong>Bus-Analyse ist aus.</strong>
+      Es werden keine neuen Telegramme erfasst — bestehende Daten bleiben
+      sichtbar, altern aber raus (Raw 48 h, Counter 365 Tage). Toggle in der
+      Filter-Leiste oben rechts schaltet sie wieder ein.
+    </div>`;
+  }
+
+  private _renderTopBanners(): TemplateResult {
+    const apiBanner =
+      this._apiErrors.size > 0 && !this._apiErrorsDismissed
+        ? this._renderApiErrorBanner()
+        : nothing;
+    const errBanner = this._error ? html`<div class="error">${this._error}</div>` : nothing;
+    const alarmBanner =
+      this._alarms !== null && this._alarms.triggered_count > 0
+        ? this._renderAlarmBanner()
+        : nothing;
+    const longTermBanner = this._isLongTermMode() ? this._renderLongTermBanner() : nothing;
+    return html`
+      ${apiBanner}
+      ${this._renderBusAnalysisOffBanner()}
+      ${errBanner}
+      ${alarmBanner}
+      ${longTermBanner}
+    `;
+  }
+
+  private _renderTopSenderSection(): TemplateResult {
+    return html`<section class="mh-card">
+      <header class="card-head">
+        <h3>Top-Sender (Gruppenadressen)</h3>
+        <div class="card-head__meta">
+          ${this._renderInlineTopN(this._filters.topN, (n) => this._onTopN(n))}
+          <span class="muted small">
+            Welche GA sendet am häufigsten? · ${this._top.length} sichtbar
+          </span>
+        </div>
+      </header>
+      ${this._renderTopTable()}
+    </section>`;
+  }
+
+  private _renderTopDevicesSection(): TemplateResult | typeof nothing {
+    if (this._topBySource.length === 0) return nothing;
+    return html`<section class="mh-card">
+      <header class="card-head">
+        <h3>Top-Geräte (Source-Adressen)</h3>
+        <div class="card-head__meta">
+          ${this._renderInlineTopN(this._filters.topNDevices, (n) => this._onTopNDevices(n))}
+          <span class="muted small">
+            Welches physische Gerät erzeugt am meisten Last?
+          </span>
+        </div>
+      </header>
+      ${this._renderTopBySource()}
+    </section>`;
+  }
+
+  private _hasDetailToShow(): boolean {
+    return (
+      this._detail !== null ||
+      this._detailLoading ||
+      this._sourceDetail !== null ||
+      this._sourceDetailLoading
+    );
+  }
+
+  private _renderVisualSections(): TemplateResult {
+    const timeline =
+      this._timeline !== null && this._timeline.items.length > 0
+        ? html`<section class="mh-card">
+            <header class="card-head">
+              <h3>Tagesverlauf (Top-5, ${this._timeline.bucket_minutes}-Min-Buckets)</h3>
+            </header>
+            <knx-timeline-chart
+              .items=${this._timeline.items}
+              .width=${800}
+              .height=${140}
+            ></knx-timeline-chart>
+          </section>`
+        : nothing;
+    const heatmap =
+      this._heatmap !== null && this._heatmap.gas.length > 0
+        ? this._renderHeatmap()
+        : nothing;
+    const trend =
+      this._trend !== null &&
+      (this._trend.total_now > 0 || this._trend.total_prev > 0)
+        ? this._renderTrend()
+        : nothing;
+    return html`${timeline}${heatmap}${trend}`;
+  }
+
+  private _renderAnomalySections(): TemplateResult {
+    const bursts =
+      this._bursts !== null && this._bursts.bursts.length > 0
+        ? this._renderBursts()
+        : nothing;
+    const silence =
+      this._silence !== null && this._silence.alarm_count > 0
+        ? this._renderSilenceAlarms()
+        : nothing;
+    const busHealth =
+      this._busHealth !== null && this._busHealth.summary.total > 0
+        ? this._renderBusHealth()
+        : nothing;
+    return html`${bursts}${silence}${busHealth}`;
+  }
+
+  private _hasOrphansToShow(): boolean {
+    return (
+      this._orphans !== null &&
+      (this._orphans.missing_in_log.length > 0 || this._orphans.extra_in_log.length > 0)
+    );
+  }
+
+  private _renderAuditSections(): TemplateResult {
+    const sensitive =
+      this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0
+        ? this._renderSensitiveLog()
+        : nothing;
+    const orphans = this._hasOrphansToShow() ? this._renderOrphans() : nothing;
+    return html`${sensitive}${orphans}`;
+  }
+
+  private _renderOverview(): TemplateResult {
+    return html`<section class="mh-card kpi-card">
+      <header class="card-head">
+        <h3>
+          ${this._isLongTermMode() ? "Live-Snapshot (letzte 48 Std)" : "Uebersicht"}
+        </h3>
+        <span class="muted small">letzte ${this._filters.periodId}</span>
+      </header>
+      ${this._loading && this._summary === null
+        ? html`<p class="muted">lade…</p>`
+        : this._renderKpis()}
+    </section>`;
+  }
+
   override render(): TemplateResult {
     return html`
       <div class="root">
@@ -1684,25 +1831,7 @@ export class StatsKnxView extends LitElement {
           landen zusaetzlich im Logbuch (Tab „Nachrichten").
         </div>
         ${this._renderFilterBar()}
-        ${this._apiErrors.size > 0 && !this._apiErrorsDismissed
-          ? this._renderApiErrorBanner()
-          : nothing}
-        ${this._busAnalysisLoaded && !this._busAnalysisEnabled
-          ? html`<div class="bus-analysis-banner">
-              <strong>Bus-Analyse ist aus.</strong>
-              Es werden keine neuen Telegramme erfasst — bestehende Daten bleiben
-              sichtbar, altern aber raus (Raw 48 h, Counter 365 Tage). Toggle in
-              der Filter-Leiste oben rechts schaltet sie wieder ein.
-            </div>`
-          : nothing}
-        ${this._error
-          ? html`<div class="error">${this._error}</div>`
-          : nothing}
-        ${this._alarms !== null && this._alarms.triggered_count > 0
-          ? this._renderAlarmBanner()
-          : nothing}
-
-        ${this._isLongTermMode() ? this._renderLongTermBanner() : nothing}
+        ${this._renderTopBanners()}
 
         <!--
           Iter aiohttp-error-ZU9UA: Reihenfolge nach mentalem User-Modell:
@@ -1714,98 +1843,15 @@ export class StatsKnxView extends LitElement {
           6. Long-Term-Sicht (cond.) ans Ende
         -->
 
-        <section class="mh-card kpi-card">
-          <header class="card-head">
-            <h3>${this._isLongTermMode() ? "Live-Snapshot (letzte 48 Std)" : "Uebersicht"}</h3>
-            <span class="muted small">letzte ${this._filters.periodId}</span>
-          </header>
-          ${this._loading && this._summary === null
-            ? html`<p class="muted">lade…</p>`
-            : this._renderKpis()}
-        </section>
-
+        ${this._renderOverview()}
         ${this._health !== null ? this._renderHealthScore() : nothing}
-
-        <section class="mh-card">
-          <header class="card-head">
-            <h3>Top-Sender (Gruppenadressen)</h3>
-            <div class="card-head__meta">
-              ${this._renderInlineTopN(this._filters.topN, (n) => this._onTopN(n))}
-              <span class="muted small">
-                Welche GA sendet am häufigsten? · ${this._top.length} sichtbar
-              </span>
-            </div>
-          </header>
-          ${this._renderTopTable()}
-        </section>
-
-        ${this._topBySource.length > 0
-          ? html`<section class="mh-card">
-              <header class="card-head">
-                <h3>Top-Geräte (Source-Adressen)</h3>
-                <div class="card-head__meta">
-                  ${this._renderInlineTopN(this._filters.topNDevices, (n) =>
-                    this._onTopNDevices(n)
-                  )}
-                  <span class="muted small">
-                    Welches physische Gerät erzeugt am meisten Last?
-                  </span>
-                </div>
-              </header>
-              ${this._renderTopBySource()}
-            </section>`
-          : nothing}
-
-        ${this._detail !== null
-        || this._detailLoading
-        || this._sourceDetail !== null
-        || this._sourceDetailLoading
-          ? this._renderDetailPane()
-          : nothing}
-
-        ${this._timeline !== null && this._timeline.items.length > 0
-          ? html`<section class="mh-card">
-              <header class="card-head">
-                <h3>Tagesverlauf (Top-5, ${this._timeline.bucket_minutes}-Min-Buckets)</h3>
-              </header>
-              <knx-timeline-chart
-                .items=${this._timeline.items}
-                .width=${800}
-                .height=${140}
-              ></knx-timeline-chart>
-            </section>`
-          : nothing}
-
-        ${this._heatmap !== null && this._heatmap.gas.length > 0
-          ? this._renderHeatmap()
-          : nothing}
-
-        ${this._trend !== null &&
-        (this._trend.total_now > 0 || this._trend.total_prev > 0)
-          ? this._renderTrend()
-          : nothing}
-
-        ${this._bursts !== null && this._bursts.bursts.length > 0
-          ? this._renderBursts()
-          : nothing}
-        ${this._silence !== null && this._silence.alarm_count > 0
-          ? this._renderSilenceAlarms()
-          : nothing}
-        ${this._busHealth !== null && this._busHealth.summary.total > 0
-          ? this._renderBusHealth()
-          : nothing}
-
-        ${this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0
-          ? this._renderSensitiveLog()
-          : nothing}
-        ${this._orphans !== null &&
-        (this._orphans.missing_in_log.length > 0 ||
-          this._orphans.extra_in_log.length > 0)
-          ? this._renderOrphans()
-          : nothing}
-
+        ${this._renderTopSenderSection()}
+        ${this._renderTopDevicesSection()}
+        ${this._hasDetailToShow() ? this._renderDetailPane() : nothing}
+        ${this._renderVisualSections()}
+        ${this._renderAnomalySections()}
+        ${this._renderAuditSections()}
         ${this._longTerm !== null ? this._renderLongTerm() : nothing}
-
         ${this._toast ? html`<div class="toast">${this._toast}</div>` : nothing}
       </div>
     `;
