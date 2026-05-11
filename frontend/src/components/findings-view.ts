@@ -525,7 +525,7 @@ export class FindingsView extends LitElement {
     `;
   }
 
-  private _onDrawerClose = (): void => {
+  private readonly _onDrawerClose = (): void => {
     this._selectedKey = null;
   };
 

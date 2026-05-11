@@ -26,7 +26,7 @@ function toNumber(value: unknown): number | null {
     const v = value.trim().toLowerCase();
     if (v === "true" || v === "on") return 1;
     if (v === "false" || v === "off") return 0;
-    const n = parseFloat(v);
+    const n = Number.parseFloat(v);
     if (Number.isFinite(n)) return n;
   }
   return null;

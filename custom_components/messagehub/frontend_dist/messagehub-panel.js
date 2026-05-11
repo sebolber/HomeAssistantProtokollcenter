@@ -7438,7 +7438,7 @@ function Kr(e) {
     const t = e.trim().toLowerCase();
     if (t === "true" || t === "on") return 1;
     if (t === "false" || t === "off") return 0;
-    const s = parseFloat(t);
+    const s = Number.parseFloat(t);
     if (Number.isFinite(s)) return s;
   }
   return null;
@@ -8225,7 +8225,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             step="0.5"
             class="mh-input narrow"
             .value=${String(this._filters.minRate)}
-            @change=${(e) => this._onMinRate(parseFloat(e.target.value) || 0)}
+            @change=${(e) => this._onMinRate(Number.parseFloat(e.target.value) || 0)}
           />
         </label>
 
@@ -8904,7 +8904,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </div>
           <div class="detail-stat">
             <span class="muted small">Verhaeltnis</span>
-            <strong>${isFinite(t.ratio) ? t.ratio.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "x" : "∞"}</strong>
+            <strong>${Number.isFinite(t.ratio) ? t.ratio.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "x" : "∞"}</strong>
           </div>
           ${t.estimated_reduction_pct !== null ? i`<div class="detail-stat">
                 <span class="muted small">Geschaetzte Reduktion</span>

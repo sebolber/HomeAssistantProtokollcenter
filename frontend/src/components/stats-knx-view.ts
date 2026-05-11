@@ -478,7 +478,7 @@ export class StatsKnxView extends LitElement {
     super.disconnectedCallback();
   }
 
-  private _onWindowKeyDown = (e: KeyboardEvent): void => {
+  private readonly _onWindowKeyDown = (e: KeyboardEvent): void => {
     if (e.key !== "Escape") return;
     if (this._detail !== null || this._detailLoading) {
       this._closeDetail();
@@ -1243,7 +1243,7 @@ export class StatsKnxView extends LitElement {
             class="mh-input narrow"
             .value=${String(this._filters.minRate)}
             @change=${(e: Event) =>
-              this._onMinRate(parseFloat((e.target as HTMLInputElement).value) || 0)}
+              this._onMinRate(Number.parseFloat((e.target as HTMLInputElement).value) || 0)}
           />
         </label>
 
@@ -2116,7 +2116,7 @@ export class StatsKnxView extends LitElement {
           <div class="detail-stat">
             <span class="muted small">Verhaeltnis</span>
             <strong>${
-              isFinite(rec.ratio)
+              Number.isFinite(rec.ratio)
                 ? rec.ratio.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "x"
                 : "∞"
             }</strong>
