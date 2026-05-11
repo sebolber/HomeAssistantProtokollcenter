@@ -337,6 +337,64 @@ export class ChannelsView extends LitElement {
     `;
   }
 
+  // Iter 04-Refactor: Row-Rendering aus render() extrahiert. Vorher
+  // hatte render() CC=19 (Sonar-Limit 15) durch verschachtelte Ternaries
+  // ueber Channel-Typ, Quiet-Hours, Test-Button-Status. Aufgeteilt in:
+  // _renderRow / _renderTypeDetail / _renderQuiet / _renderTestButton.
+  private _renderTypeDetail(it: ChannelDto): TemplateResult | string {
+    const cfg = it.config;
+    if (it.channel_type === "telegram") {
+      return html` → <small>${cfg?.chat_id ?? "?"}</small>`;
+    }
+    if (it.channel_type === "pushover") {
+      const key = (cfg?.user_key as string | undefined)?.slice(0, 8) ?? "?";
+      return html` → <small>${key}…</small>`;
+    }
+    if (it.channel_type === "ntfy") {
+      return html` → <small>${cfg?.topic ?? "?"}</small>`;
+    }
+    if (cfg?.service) {
+      return html` → <code>notify.${cfg.service}</code>`;
+    }
+    return html`<span class="muted">— unkonfiguriert</span>`;
+  }
+
+  private _renderQuiet(it: ChannelDto): TemplateResult {
+    if (!(it.quiet_start && it.quiet_end)) {
+      return html`<span class="muted">—</span>`;
+    }
+    const bypass = it.quiet_bypass_error ? html` <small>(Err bypass)</small>` : "";
+    return html`${it.quiet_start}–${it.quiet_end}${bypass}`;
+  }
+
+  private _renderTestButton(it: ChannelDto): TemplateResult {
+    const testing = it.id != null && this._testingIds.has(it.id);
+    const title = it.enabled
+      ? "Sendet Test-Nachricht ueber diesen Channel"
+      : "Channel ist deaktiviert — Test sendet trotzdem (ignoriert Quiet/Threshold)";
+    return html`
+      <button ?disabled=${testing} title=${title} @click=${() => void this._test(it)}>
+        ${testing ? "…" : "Test"}
+      </button>
+    `;
+  }
+
+  private _renderRow(it: ChannelDto): TemplateResult {
+    return html`<tr>
+      <td>${it.name}</td>
+      <td><code>${it.channel_type}</code>${this._renderTypeDetail(it)}</td>
+      <td>${it.severity_threshold}</td>
+      <td>${this._renderQuiet(it)}</td>
+      <td>${it.throttle_seconds}s</td>
+      <td>${it.enabled ? "✓" : "—"}</td>
+      <td class="actions">
+        ${this._renderTestButton(it)}
+        <button @click=${() => this._edit(it)}>Edit</button>
+        <button class="danger" @click=${() => void this._delete(it)}>Löschen</button>
+      </td>
+    </tr>`;
+  }
+
   override render(): TemplateResult {
     return html`
       <section>
@@ -366,48 +424,7 @@ export class ChannelsView extends LitElement {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map(
-                  (it) => html`<tr>
-                    <td>${it.name}</td>
-                    <td>
-                      <code>${it.channel_type}</code>
-                      ${it.channel_type === "telegram"
-                        ? html` → <small>${it.config?.chat_id ?? "?"}</small>`
-                        : it.channel_type === "pushover"
-                          ? html` → <small>${(it.config?.user_key as string)?.slice(0, 8) ?? "?"}…</small>`
-                          : it.channel_type === "ntfy"
-                            ? html` → <small>${it.config?.topic ?? "?"}</small>`
-                            : it.config?.service
-                              ? html` → <code>notify.${it.config.service}</code>`
-                              : html`<span class="muted">— unkonfiguriert</span>`}
-                    </td>
-                    <td>${it.severity_threshold}</td>
-                    <td>
-                      ${it.quiet_start && it.quiet_end
-                        ? html`${it.quiet_start}–${it.quiet_end}${it.quiet_bypass_error
-                            ? html` <small>(Err bypass)</small>`
-                            : ""}`
-                        : html`<span class="muted">—</span>`}
-                    </td>
-                    <td>${it.throttle_seconds}s</td>
-                    <td>${it.enabled ? "✓" : "—"}</td>
-                    <td class="actions">
-                      <button
-                        ?disabled=${it.id != null && this._testingIds.has(it.id)}
-                        title=${it.enabled
-                          ? "Sendet Test-Nachricht ueber diesen Channel"
-                          : "Channel ist deaktiviert — Test sendet trotzdem (ignoriert Quiet/Threshold)"}
-                        @click=${() => void this._test(it)}
-                      >
-                        ${it.id != null && this._testingIds.has(it.id) ? "…" : "Test"}
-                      </button>
-                      <button @click=${() => this._edit(it)}>Edit</button>
-                      <button class="danger" @click=${() => void this._delete(it)}>
-                        Löschen
-                      </button>
-                    </td>
-                  </tr>`
-                )}
+                ${this._items.map((it) => this._renderRow(it))}
               </tbody>
             </table>`}
         ${this._editing ? this._renderEditor() : null}

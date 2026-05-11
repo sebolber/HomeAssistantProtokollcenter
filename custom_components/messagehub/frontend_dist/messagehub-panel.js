@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 const Le = globalThis, Ze = Le.ShadowRoot && (Le.ShadyCSS === void 0 || Le.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, Qe = Symbol(), lt = /* @__PURE__ */ new WeakMap();
-let Gt = class {
+let Bt = class {
   constructor(t, s, r) {
     if (this._$cssResult$ = !0, r !== Qe) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
     this.cssText = t, this.t = s;
@@ -22,13 +22,13 @@ let Gt = class {
     return this.cssText;
   }
 };
-const as = (e) => new Gt(typeof e == "string" ? e : e + "", void 0, Qe), x = (e, ...t) => {
+const as = (e) => new Bt(typeof e == "string" ? e : e + "", void 0, Qe), x = (e, ...t) => {
   const s = e.length === 1 ? e[0] : t.reduce((r, a, n) => r + ((o) => {
     if (o._$cssResult$ === !0) return o.cssText;
     if (typeof o == "number") return o;
     throw Error("Value passed to 'css' function must be a 'css' function result: " + o + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
   })(a) + e[n + 1], e[0]);
-  return new Gt(s, e, Qe);
+  return new Bt(s, e, Qe);
 }, is = (e, t) => {
   if (Ze) e.adoptedStyleSheets = t.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
   else for (const s of t) {
@@ -262,7 +262,7 @@ le.elementStyles = [], le.shadowRootOptions = { mode: "open" }, le[ye("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const tt = globalThis, pt = (e) => e, Oe = tt.trustedTypes, ut = Oe ? Oe.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Bt = "$lit$", K = `lit$${Math.random().toFixed(9).slice(2)}$`, jt = "?" + K, ms = `<${jt}>`, Z = document, xe = () => Z.createComment(""), $e = (e) => e === null || typeof e != "object" && typeof e != "function", st = Array.isArray, gs = (e) => st(e) || typeof e?.[Symbol.iterator] == "function", Ke = `[ 	
+const tt = globalThis, pt = (e) => e, Oe = tt.trustedTypes, ut = Oe ? Oe.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Gt = "$lit$", K = `lit$${Math.random().toFixed(9).slice(2)}$`, jt = "?" + K, ms = `<${jt}>`, Z = document, xe = () => Z.createComment(""), $e = (e) => e === null || typeof e != "object" && typeof e != "function", st = Array.isArray, gs = (e) => st(e) || typeof e?.[Symbol.iterator] == "function", Ke = `[ 	
 \f\r]`, _e = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, mt = /-->/g, gt = />/g, X = RegExp(`>|${Ke}(?:([^\\s"'>=/]+)(${Ke}*=${Ke}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), ft = /'/g, vt = /"/g, Kt = /^(?:script|style|textarea|title)$/i, fs = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), i = fs(1), Q = Symbol.for("lit-noChange"), d = Symbol.for("lit-nothing"), _t = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
 function Vt(e, t) {
@@ -277,7 +277,7 @@ const vs = (e, t) => {
     let v, f, u = -1, p = 0;
     for (; p < h.length && (o.lastIndex = p, f = o.exec(h), f !== null); ) p = o.lastIndex, o === _e ? f[1] === "!--" ? o = mt : f[1] !== void 0 ? o = gt : f[2] !== void 0 ? (Kt.test(f[2]) && (a = RegExp("</" + f[2], "g")), o = X) : f[3] !== void 0 && (o = X) : o === X ? f[0] === ">" ? (o = a ?? _e, u = -1) : f[1] === void 0 ? u = -2 : (u = o.lastIndex - f[2].length, v = f[1], o = f[3] === void 0 ? X : f[3] === '"' ? vt : ft) : o === vt || o === ft ? o = X : o === mt || o === gt ? o = _e : (o = X, a = void 0);
     const w = o === X && e[c + 1].startsWith("/>") ? " " : "";
-    n += o === _e ? h + ms : u >= 0 ? (r.push(v), h.slice(0, u) + Bt + h.slice(u) + K + w) : h + K + (u === -2 ? c : w);
+    n += o === _e ? h + ms : u >= 0 ? (r.push(v), h.slice(0, u) + Gt + h.slice(u) + K + w) : h + K + (u === -2 ? c : w);
   }
   return [Vt(e, n + (e[s] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
 };
@@ -293,7 +293,7 @@ class ke {
     }
     for (; (a = Y.nextNode()) !== null && h.length < c; ) {
       if (a.nodeType === 1) {
-        if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Bt)) {
+        if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(Gt)) {
           const p = f[o++], w = a.getAttribute(u).split(K), m = /([.?@])?(.*)/.exec(p);
           h.push({ type: 1, index: n, name: m[2], strings: w, ctor: m[1] === "." ? bs : m[1] === "?" ? ws : m[1] === "@" ? ys : Fe }), a.removeAttribute(u);
         } else u.startsWith(K) && (h.push({ type: 6, index: n }), a.removeAttribute(u));
@@ -1606,12 +1606,12 @@ const Ns = /* @__PURE__ */ new Set([
   "settings",
   "stats",
   "audit"
-]), Cs = /* @__PURE__ */ new Map([
+]), Rs = /* @__PURE__ */ new Map([
   // Backwards-Compat: ``#findings`` ist Alias fuer ``#stats/findings``.
   ["findings", { top: "stats", sub: "findings" }]
 ]);
 function Wt(e) {
-  const t = e.startsWith("#") ? e.slice(1) : e, s = t.indexOf("?"), r = s === -1 ? t : t.slice(0, s), a = s === -1 ? "" : t.slice(s + 1), n = new URLSearchParams(a), o = Cs.get(r);
+  const t = e.startsWith("#") ? e.slice(1) : e, s = t.indexOf("?"), r = s === -1 ? t : t.slice(0, s), a = s === -1 ? "" : t.slice(s + 1), n = new URLSearchParams(a), o = Rs.get(r);
   if (o !== void 0)
     return { top: o.top, sub: o.sub, query: n };
   const c = r.indexOf("/"), h = c === -1 ? r : r.slice(0, c), v = c === -1 ? "" : r.slice(c + 1);
@@ -1622,7 +1622,7 @@ function Wt(e) {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const Rs = { CHILD: 2 }, Is = (e) => (...t) => ({ _$litDirective$: e, values: t });
+const Cs = { CHILD: 2 }, Is = (e) => (...t) => ({ _$litDirective$: e, values: t });
 let Fs = class {
   constructor(t) {
   }
@@ -1664,7 +1664,7 @@ const { I: Ms } = $s, bt = (e) => e, wt = () => document.createComment(""), be =
     }
   }
   return s;
-}, J = (e, t, s = e) => (e._$AI(t, s), e), Hs = {}, Us = (e, t = Hs) => e._$AH = t, Gs = (e) => e._$AH, Ve = (e) => {
+}, J = (e, t, s = e) => (e._$AI(t, s), e), Hs = {}, Us = (e, t = Hs) => e._$AH = t, Bs = (e) => e._$AH, Ve = (e) => {
   e._$AR(), e._$AA.remove();
 };
 /**
@@ -1676,9 +1676,9 @@ const yt = (e, t, s) => {
   const r = /* @__PURE__ */ new Map();
   for (let a = t; a <= s; a++) r.set(e[a], a);
   return r;
-}, Bs = Is(class extends Fs {
+}, Gs = Is(class extends Fs {
   constructor(e) {
-    if (super(e), e.type !== Rs.CHILD) throw Error("repeat() can only be used in text expressions");
+    if (super(e), e.type !== Cs.CHILD) throw Error("repeat() can only be used in text expressions");
   }
   dt(e, t, s) {
     let r;
@@ -1692,7 +1692,7 @@ const yt = (e, t, s) => {
     return this.dt(e, t, s).values;
   }
   update(e, [t, s, r]) {
-    const a = Gs(e), { values: n, keys: o } = this.dt(t, s, r);
+    const a = Bs(e), { values: n, keys: o } = this.dt(t, s, r);
     if (!Array.isArray(a)) return this.ut = o, n;
     const c = this.ut ??= [], h = [];
     let v, f, u = 0, p = a.length - 1, w = 0, m = n.length - 1;
@@ -1851,7 +1851,7 @@ let ee = class extends y {
       <div class="root">
         ${this._renderHeader()}
         <div class="scroll" role="list">
-          ${Bs(
+          ${Gs(
       this.items,
       (e) => e.id,
       (e) => {
@@ -4407,7 +4407,7 @@ E([
 $ = E([
   k("knx-addresses-view")
 ], $);
-var ur = Object.defineProperty, mr = Object.getOwnPropertyDescriptor, C = (e, t, s, r) => {
+var ur = Object.defineProperty, mr = Object.getOwnPropertyDescriptor, R = (e, t, s, r) => {
   for (var a = r > 1 ? void 0 : r ? mr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
   return r && a && ur(t, s, a), a;
@@ -5033,40 +5033,40 @@ z.styles = [
       }
     `
 ];
-C([
+R([
   b({ attribute: !1 })
 ], z.prototype, "api", 2);
-C([
+R([
   l()
 ], z.prototype, "_settings", 2);
-C([
+R([
   l()
 ], z.prototype, "_loading", 2);
-C([
+R([
   l()
 ], z.prototype, "_saving", 2);
-C([
+R([
   l()
 ], z.prototype, "_error", 2);
-C([
+R([
   l()
 ], z.prototype, "_draft", 2);
-C([
+R([
   l()
 ], z.prototype, "_apiKeyEdit", 2);
-C([
+R([
   l()
 ], z.prototype, "_info", 2);
-C([
+R([
   l()
 ], z.prototype, "_testing", 2);
-C([
+R([
   l()
 ], z.prototype, "_testResult", 2);
-C([
+R([
   l()
 ], z.prototype, "_testError", 2);
-z = C([
+z = R([
   k("knx-recommend-llm-view")
 ], z);
 var gr = Object.defineProperty, fr = Object.getOwnPropertyDescriptor, fe = (e, t, s, r) => {
@@ -5322,6 +5322,49 @@ let V = class extends y {
       </div>
     `;
   }
+  // Iter 04-Refactor: Row-Rendering aus render() extrahiert. Vorher
+  // hatte render() CC=19 (Sonar-Limit 15) durch verschachtelte Ternaries
+  // ueber Channel-Typ, Quiet-Hours, Test-Button-Status. Aufgeteilt in:
+  // _renderRow / _renderTypeDetail / _renderQuiet / _renderTestButton.
+  _renderTypeDetail(e) {
+    const t = e.config;
+    if (e.channel_type === "telegram")
+      return i` → <small>${t?.chat_id ?? "?"}</small>`;
+    if (e.channel_type === "pushover") {
+      const s = t?.user_key?.slice(0, 8) ?? "?";
+      return i` → <small>${s}…</small>`;
+    }
+    return e.channel_type === "ntfy" ? i` → <small>${t?.topic ?? "?"}</small>` : t?.service ? i` → <code>notify.${t.service}</code>` : i`<span class="muted">— unkonfiguriert</span>`;
+  }
+  _renderQuiet(e) {
+    if (!(e.quiet_start && e.quiet_end))
+      return i`<span class="muted">—</span>`;
+    const t = e.quiet_bypass_error ? i` <small>(Err bypass)</small>` : "";
+    return i`${e.quiet_start}–${e.quiet_end}${t}`;
+  }
+  _renderTestButton(e) {
+    const t = e.id != null && this._testingIds.has(e.id), s = e.enabled ? "Sendet Test-Nachricht ueber diesen Channel" : "Channel ist deaktiviert — Test sendet trotzdem (ignoriert Quiet/Threshold)";
+    return i`
+      <button ?disabled=${t} title=${s} @click=${() => void this._test(e)}>
+        ${t ? "…" : "Test"}
+      </button>
+    `;
+  }
+  _renderRow(e) {
+    return i`<tr>
+      <td>${e.name}</td>
+      <td><code>${e.channel_type}</code>${this._renderTypeDetail(e)}</td>
+      <td>${e.severity_threshold}</td>
+      <td>${this._renderQuiet(e)}</td>
+      <td>${e.throttle_seconds}s</td>
+      <td>${e.enabled ? "✓" : "—"}</td>
+      <td class="actions">
+        ${this._renderTestButton(e)}
+        <button @click=${() => this._edit(e)}>Edit</button>
+        <button class="danger" @click=${() => void this._delete(e)}>Löschen</button>
+      </td>
+    </tr>`;
+  }
   render() {
     return i`
       <section>
@@ -5349,34 +5392,7 @@ let V = class extends y {
                 </tr>
               </thead>
               <tbody>
-                ${this._items.map(
-      (e) => i`<tr>
-                    <td>${e.name}</td>
-                    <td>
-                      <code>${e.channel_type}</code>
-                      ${e.channel_type === "telegram" ? i` → <small>${e.config?.chat_id ?? "?"}</small>` : e.channel_type === "pushover" ? i` → <small>${e.config?.user_key?.slice(0, 8) ?? "?"}…</small>` : e.channel_type === "ntfy" ? i` → <small>${e.config?.topic ?? "?"}</small>` : e.config?.service ? i` → <code>notify.${e.config.service}</code>` : i`<span class="muted">— unkonfiguriert</span>`}
-                    </td>
-                    <td>${e.severity_threshold}</td>
-                    <td>
-                      ${e.quiet_start && e.quiet_end ? i`${e.quiet_start}–${e.quiet_end}${e.quiet_bypass_error ? i` <small>(Err bypass)</small>` : ""}` : i`<span class="muted">—</span>`}
-                    </td>
-                    <td>${e.throttle_seconds}s</td>
-                    <td>${e.enabled ? "✓" : "—"}</td>
-                    <td class="actions">
-                      <button
-                        ?disabled=${e.id != null && this._testingIds.has(e.id)}
-                        title=${e.enabled ? "Sendet Test-Nachricht ueber diesen Channel" : "Channel ist deaktiviert — Test sendet trotzdem (ignoriert Quiet/Threshold)"}
-                        @click=${() => void this._test(e)}
-                      >
-                        ${e.id != null && this._testingIds.has(e.id) ? "…" : "Test"}
-                      </button>
-                      <button @click=${() => this._edit(e)}>Edit</button>
-                      <button class="danger" @click=${() => void this._delete(e)}>
-                        Löschen
-                      </button>
-                    </td>
-                  </tr>`
-    )}
+                ${this._items.map((e) => this._renderRow(e))}
               </tbody>
             </table>`}
         ${this._editing ? this._renderEditor() : null}
@@ -6178,7 +6194,7 @@ var yr = Object.defineProperty, xr = Object.getOwnPropertyDescriptor, j = (e, t,
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
   return r && a && yr(t, s, a), a;
 };
-const Ce = [
+const Re = [
   { id: "webhooks", label: "Webhooks" },
   { id: "knx", label: "KNX-Bus" },
   { id: "channels", label: "Channels" },
@@ -6192,12 +6208,12 @@ function $r() {
     const e = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
     if (e.startsWith("settings/")) {
       const t = e.slice(9);
-      if (Ce.some((s) => s.id === t)) return t;
+      if (Re.some((s) => s.id === t)) return t;
     }
   }
   try {
     const e = localStorage.getItem(Zt);
-    if (e && Ce.some((t) => t.id === e)) return e;
+    if (e && Re.some((t) => t.id === e)) return e;
   } catch {
   }
   return "webhooks";
@@ -6210,7 +6226,7 @@ let F = class extends y {
       const e = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
       if (!e.startsWith("settings/")) return;
       const t = e.slice(9);
-      Ce.some((s) => s.id === t) && t !== this._activeTab && (this._activeTab = t);
+      Re.some((s) => s.id === t) && t !== this._activeTab && (this._activeTab = t);
     };
   }
   async firstUpdated() {
@@ -6381,7 +6397,7 @@ let F = class extends y {
     return i`
       <div class="root" @click=${this._closeMenu}>
         <nav class="tabs" role="tablist" aria-label="Einstellungs-Bereiche">
-          ${Ce.map(
+          ${Re.map(
       (e) => i`<button
               role="tab"
               aria-selected=${this._activeTab === e.id}
@@ -6846,7 +6862,7 @@ const Tt = {
   info: "var(--mh-info)",
   debug: "var(--mh-debug)"
 }, At = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], Tr = [1, 2, 3, 4, 5, 6, 0];
-let G = class extends y {
+let B = class extends y {
   constructor() {
     super(...arguments), this._stats = null, this._sources = [], this._heatmap = [], this._topSources = [], this._loading = !1;
   }
@@ -7050,7 +7066,7 @@ let G = class extends y {
     `;
   }
 };
-G.styles = [
+B.styles = [
   L,
   ge,
   ae,
@@ -7120,25 +7136,25 @@ G.styles = [
 ];
 ie([
   b({ attribute: !1 })
-], G.prototype, "api", 2);
+], B.prototype, "api", 2);
 ie([
   l()
-], G.prototype, "_stats", 2);
+], B.prototype, "_stats", 2);
 ie([
   l()
-], G.prototype, "_sources", 2);
+], B.prototype, "_sources", 2);
 ie([
   l()
-], G.prototype, "_heatmap", 2);
+], B.prototype, "_heatmap", 2);
 ie([
   l()
-], G.prototype, "_topSources", 2);
+], B.prototype, "_topSources", 2);
 ie([
   l()
-], G.prototype, "_loading", 2);
-G = ie([
+], B.prototype, "_loading", 2);
+B = ie([
   k("stats-live-view")
-], G);
+], B);
 const Er = {
   cyclic: "zyklisch",
   on_change: "bei Änderung",
@@ -7179,14 +7195,14 @@ const Or = {
   dpt_standard: "Quelle: DPT-Standard-Tabelle (Layer 1)",
   device_model: "Quelle: Modell-Override (Layer 2)",
   llm: "Quelle: LLM-Vorschlag (Layer 4) — bitte manuell pruefen"
-}, Cr = {
+}, Rr = {
   dpt_standard: "mh-pill--neutral",
   device_model: "mh-pill--info",
   llm: "mh-pill--caution"
 };
-function Rr(e) {
+function Cr(e) {
   return e == null ? i`` : i`<span
-    class=${`mh-pill ${Cr[e]} recommendation-source-pill`}
+    class=${`mh-pill ${Rr[e]} recommendation-source-pill`}
     title=${Nr[e]}
     >${Or[e]}</span
   >`;
@@ -7223,8 +7239,8 @@ function Hr(e) {
       <span class="muted small">zyklisch</span>` : i`<strong>${n}</strong>
     <span class="muted small">Heartbeat (zusaetzlich zu Aenderung)</span>`;
 }
-var Ur = Object.defineProperty, Gr = Object.getOwnPropertyDescriptor, Ue = (e, t, s, r) => {
-  for (var a = r > 1 ? void 0 : r ? Gr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
+var Ur = Object.defineProperty, Br = Object.getOwnPropertyDescriptor, Ue = (e, t, s, r) => {
+  for (var a = r > 1 ? void 0 : r ? Br(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
   return r && a && Ur(t, s, a), a;
 };
@@ -7394,10 +7410,10 @@ Ue([
 he = Ue([
   k("knx-timeline-chart")
 ], he);
-var Br = Object.defineProperty, jr = Object.getOwnPropertyDescriptor, Ge = (e, t, s, r) => {
+var Gr = Object.defineProperty, jr = Object.getOwnPropertyDescriptor, Be = (e, t, s, r) => {
   for (var a = r > 1 ? void 0 : r ? jr(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
-  return r && a && Br(t, s, a), a;
+  return r && a && Gr(t, s, a), a;
 };
 function Kr(e) {
   if (typeof e == "number" && Number.isFinite(e)) return e;
@@ -7494,16 +7510,16 @@ pe.styles = [
       }
     `
 ];
-Ge([
+Be([
   b({ attribute: !1 })
 ], pe.prototype, "points", 2);
-Ge([
+Be([
   b({ type: Number })
 ], pe.prototype, "width", 2);
-Ge([
+Be([
   b({ type: Number })
 ], pe.prototype, "height", 2);
-pe = Ge([
+pe = Be([
   k("knx-value-sparkline")
 ], pe);
 const Vr = "";
@@ -7539,7 +7555,7 @@ const Lt = 25, zt = 100, Ot = 300, Je = [
 function ta(e) {
   return ea[e] ?? e;
 }
-const sa = [10, 25, 50, 100, 200], ra = [10, 15, 20, 25, 30], Re = {
+const sa = [10, 25, 50, 100, 200], ra = [10, 15, 20, 25, 30], Ce = {
   periodId: "24h",
   topN: 10,
   topNDevices: 10,
@@ -7578,7 +7594,7 @@ function ia() {
     s && (e = JSON.parse(s));
   } catch {
   }
-  const t = e ? { ...Re, ...e } : { ...Re };
+  const t = e ? { ...Ce, ...e } : { ...Ce };
   return na(t, e);
 }
 function na(e, t) {
@@ -7590,10 +7606,10 @@ function na(e, t) {
   if (s)
     return e;
   let r = e, a = !1;
-  if (t !== null && t.minRate === Xr && (r = { ...r, minRate: Re.minRate }, a = !0), t !== null) {
+  if (t !== null && t.minRate === Xr && (r = { ...r, minRate: Ce.minRate }, a = !0), t !== null) {
     const n = {};
     for (const o of aa)
-      t[o] === Jr && (n[o] = Re[o]);
+      t[o] === Jr && (n[o] = Ce[o]);
     Object.keys(n).length > 0 && (r = { ...r, ...n }, a = !0);
   }
   a && A(r);
@@ -7618,7 +7634,7 @@ function la() {
   const e = /* @__PURE__ */ new Date();
   return { from: new Date(e.getTime() - oa * 3600 * 1e3).toISOString(), to: e.toISOString() };
 }
-function Ct(e) {
+function Rt(e) {
   switch (e) {
     case "red":
       return "mh-pill--error";
@@ -7630,7 +7646,7 @@ function Ct(e) {
       return "mh-pill--success";
   }
 }
-const Rt = {
+const Ct = {
   green: 0,
   yellow: 1,
   orange: 2,
@@ -7660,7 +7676,7 @@ function da(e, t, s) {
         o = a.recommended_rate - n.recommended_rate;
         break;
       case "severity":
-        o = Rt[a.severity] - Rt[n.severity];
+        o = Ct[a.severity] - Ct[n.severity];
         break;
     }
     return s === "desc" ? -o : o;
@@ -8281,7 +8297,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       </div>
       <div class="severity-counts">
         ${["red", "orange", "yellow", "green"].map(
-      (o) => i`<span class=${`mh-pill ${Ct(o)}`}>
+      (o) => i`<span class=${`mh-pill ${Rt(o)}`}>
             <span class="mh-pill__dot"></span>
             ${this._severityLabel(o)}: ${t[o] ?? 0}
           </span>`
@@ -9265,7 +9281,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     return Hr(e);
   }
   _renderRecommendationSourcePill(e) {
-    return Rr(e ?? null);
+    return Cr(e ?? null);
   }
   _renderRecommendationSeverityPill(e) {
     return Mr(e);
@@ -10096,7 +10112,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     `;
   }
   _severityPillClass(e) {
-    return Ct(e);
+    return Rt(e);
   }
   /**
    * Iter aiohttp-error-ZU9UA / P2: konsolidierte Status-Spalte fuer
@@ -12517,7 +12533,7 @@ Ee([
 se = Ee([
   k("severity-override-form")
 ], se);
-var wa = Object.defineProperty, ya = Object.getOwnPropertyDescriptor, Be = (e, t, s, r) => {
+var wa = Object.defineProperty, ya = Object.getOwnPropertyDescriptor, Ge = (e, t, s, r) => {
   for (var a = r > 1 ? void 0 : r ? ya(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
   return r && a && wa(t, s, a), a;
@@ -12679,19 +12695,19 @@ ue.styles = [
       }
     `
 ];
-Be([
+Ge([
   b({ type: Boolean })
 ], ue.prototype, "open", 2);
-Be([
+Ge([
   b({ type: String })
 ], ue.prototype, "label", 2);
-Be([
+Ge([
   b({ type: String, attribute: "data-test-id" })
 ], ue.prototype, "dataTestId", 2);
-ue = Be([
+ue = Ge([
   k("mh-drawer")
 ], ue);
-var xa = Object.defineProperty, $a = Object.getOwnPropertyDescriptor, R = (e, t, s, r) => {
+var xa = Object.defineProperty, $a = Object.getOwnPropertyDescriptor, C = (e, t, s, r) => {
   for (var a = r > 1 ? void 0 : r ? $a(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
   return r && a && xa(t, s, a), a;
@@ -13328,40 +13344,40 @@ O.styles = [
       }
     `
 ];
-R([
+C([
   b({ attribute: !1 })
 ], O.prototype, "api", 2);
-R([
+C([
   b({ attribute: !1 })
 ], O.prototype, "sourceFilter", 2);
-R([
+C([
   b({ attribute: !1 })
 ], O.prototype, "hass", 2);
-R([
+C([
   l()
 ], O.prototype, "_items", 2);
-R([
+C([
   l()
 ], O.prototype, "_total", 2);
-R([
+C([
   l()
 ], O.prototype, "_loading", 2);
-R([
+C([
   l()
 ], O.prototype, "_error", 2);
-R([
+C([
   l()
 ], O.prototype, "_severityFilter", 2);
-R([
+C([
   l()
 ], O.prototype, "_projectOnly", 2);
-R([
+C([
   l()
 ], O.prototype, "_selectedKey", 2);
-R([
+C([
   l()
 ], O.prototype, "_showOverrides", 2);
-O = R([
+O = C([
   k("findings-view")
 ], O);
 var Sa = Object.defineProperty, Ta = Object.getOwnPropertyDescriptor, Ae = (e, t, s, r) => {
@@ -13549,7 +13565,7 @@ function La(e) {
   }
   return `{${s.slice(0, 3).map(([a]) => a).join(", ")}${s.length > 3 ? ", …" : ""}}`;
 }
-let B = class extends y {
+let G = class extends y {
   constructor() {
     super(...arguments), this._items = [], this._loading = !1, this._filter = "", this._expanded = /* @__PURE__ */ new Set(), this._now = /* @__PURE__ */ new Date();
   }
@@ -13720,7 +13736,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     `;
   }
 };
-B.styles = [
+G.styles = [
   L,
   W,
   Me,
@@ -13968,25 +13984,25 @@ B.styles = [
 ];
 ne([
   b({ attribute: !1 })
-], B.prototype, "api", 2);
+], G.prototype, "api", 2);
 ne([
   l()
-], B.prototype, "_items", 2);
+], G.prototype, "_items", 2);
 ne([
   l()
-], B.prototype, "_loading", 2);
+], G.prototype, "_loading", 2);
 ne([
   l()
-], B.prototype, "_filter", 2);
+], G.prototype, "_filter", 2);
 ne([
   l()
-], B.prototype, "_expanded", 2);
+], G.prototype, "_expanded", 2);
 ne([
   l()
-], B.prototype, "_now", 2);
-B = ne([
+], G.prototype, "_now", 2);
+G = ne([
   k("audit-view")
-], B);
+], G);
 var za = Object.defineProperty, Oa = Object.getOwnPropertyDescriptor, D = (e, t, s, r) => {
   for (var a = r > 1 ? void 0 : r ? Oa(t, s) : t, n = e.length - 1, o; n >= 0; n--)
     (o = e[n]) && (a = (r ? o(t, s, a) : o(a)) || a);
