@@ -158,7 +158,8 @@ export class AuditView extends LitElement {
 
   private _renderActionPill(action: string): TemplateResult {
     const cat = categorizeAction(action);
-    return html`<span class=${`action-pill action-${cat}`} title=${action}>${action}</span>`;
+    const cls = `action-pill action-${cat}`;
+    return html`<span class=${cls} title=${action}>${action}</span>`;
   }
 
   private _renderDetails(details: unknown): TemplateResult {
@@ -189,9 +190,71 @@ export class AuditView extends LitElement {
       details !== null &&
       ((details as Record<string, unknown>).label !== undefined ||
         (details as Record<string, unknown>).name !== undefined);
-    return html`<span class=${`summary ${isLabel ? "" : "muted"}`}
-      >${summary}</span
-    >`;
+    const cls = `summary ${isLabel ? "" : "muted"}`;
+    return html`<span class=${cls}>${summary}</span>`;
+  }
+
+  private _renderEmpty(): TemplateResult {
+    const emptyText =
+      this._items.length === 0
+        ? "Noch keine Audit-Einträge."
+        : "Keine Treffer für aktuelle Suche.";
+    return html`<div class="empty">${emptyText}</div>`;
+  }
+
+  private _renderTable(items: AuditEntry[]): TemplateResult {
+    return html`
+      <div class="table">
+        <div class="table-head">
+          <span>Zeit</span>
+          <span>Wer</span>
+          <span>Aktion</span>
+          <span>Ziel</span>
+          <span>Details</span>
+        </div>
+        ${items.map((item, idx) => {
+          const expanded = this._expanded.has(idx);
+          const ts = String(item.timestamp);
+          return html`
+            <div class=${`table-row ${expanded ? "expanded" : ""}`}>
+              <button
+                class="row-toggle"
+                @click=${() => this._toggle(idx)}
+                aria-expanded=${expanded}
+                aria-label=${expanded ? "Details verbergen" : "Details anzeigen"}
+              >
+                <span class="ts" title=${formatAbsolute(ts, this._now)}>
+                  ${formatRelative(ts, this._now)}
+                </span>
+                <span class="actor">${item.actor}</span>
+                <span>${this._renderActionPill(item.action)}</span>
+                <span class="target">
+                  <code class="target-type">${item.target_type}</code>
+                  ${item.target_id !== null && item.target_id !== undefined
+                    ? html`<code class="target-id">#${item.target_id}</code>`
+                    : nothing}
+                </span>
+                <span class="details-inline">
+                  ${this._renderDetailsSummary(item.details)}
+                  <span class="chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span>
+                </span>
+              </button>
+              ${expanded
+                ? html`<div class="details-panel">
+                    ${this._renderDetails(item.details)}
+                  </div>`
+                : nothing}
+            </div>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  private _renderBody(items: AuditEntry[]): TemplateResult {
+    if (this._loading) return html`<p class="status">lade…</p>`;
+    if (items.length === 0) return this._renderEmpty();
+    return this._renderTable(items);
   }
 
   override render(): TemplateResult {
@@ -234,60 +297,7 @@ export class AuditView extends LitElement {
           >
         </div>
 
-        ${this._loading
-          ? html`<p class="status">lade…</p>`
-          : items.length === 0
-            ? html`<div class="empty">
-                ${this._items.length === 0
-                  ? "Noch keine Audit-Einträge."
-                  : "Keine Treffer für aktuelle Suche."}
-              </div>`
-            : html`
-                <div class="table">
-                  <div class="table-head">
-                    <span>Zeit</span>
-                    <span>Wer</span>
-                    <span>Aktion</span>
-                    <span>Ziel</span>
-                    <span>Details</span>
-                  </div>
-                  ${items.map((item, idx) => {
-                    const expanded = this._expanded.has(idx);
-                    const ts = String(item.timestamp);
-                    return html`
-                      <div class=${`table-row ${expanded ? "expanded" : ""}`}>
-                        <button
-                          class="row-toggle"
-                          @click=${() => this._toggle(idx)}
-                          aria-expanded=${expanded}
-                          aria-label=${expanded ? "Details verbergen" : "Details anzeigen"}
-                        >
-                          <span class="ts" title=${formatAbsolute(ts, this._now)}>
-                            ${formatRelative(ts, this._now)}
-                          </span>
-                          <span class="actor">${item.actor}</span>
-                          <span>${this._renderActionPill(item.action)}</span>
-                          <span class="target">
-                            <code class="target-type">${item.target_type}</code>
-                            ${item.target_id !== null && item.target_id !== undefined
-                              ? html`<code class="target-id">#${item.target_id}</code>`
-                              : nothing}
-                          </span>
-                          <span class="details-inline">
-                            ${this._renderDetailsSummary(item.details)}
-                            <span class="chevron" aria-hidden="true">${expanded ? "▾" : "▸"}</span>
-                          </span>
-                        </button>
-                        ${expanded
-                          ? html`<div class="details-panel">
-                              ${this._renderDetails(item.details)}
-                            </div>`
-                          : nothing}
-                      </div>
-                    `;
-                  })}
-                </div>
-              `}
+        ${this._renderBody(items)}
       </div>
     `;
   }

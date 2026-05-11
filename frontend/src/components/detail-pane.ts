@@ -141,7 +141,8 @@ export class DetailPane extends LitElement {
       resolved: "Gelöst",
       expired: "Abgelaufen",
     };
-    return html`<span class=${`status-badge status-${this._status}`}>
+    const cls = `status-badge status-${this._status}`;
+    return html`<span class=${cls}>
       ${labels[this._status] ?? this._status}
     </span>`;
   }

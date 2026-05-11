@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    import aiosqlite
+
     from ..storage import Database
 
 
@@ -74,11 +76,11 @@ class RunbookRepository:
         return None
 
 
-def _row_to_runbook(row: object) -> Runbook:
+def _row_to_runbook(row: aiosqlite.Row) -> Runbook:
     return Runbook(
-        id=int(row["id"]),  # type: ignore[index]
-        source_pattern=str(row["source_pattern"]),  # type: ignore[index]
-        fingerprint=row["fingerprint"],  # type: ignore[index]
-        title=str(row["title"]),  # type: ignore[index]
-        markdown=str(row["markdown"]),  # type: ignore[index]
+        id=int(row["id"]),
+        source_pattern=str(row["source_pattern"]),
+        fingerprint=row["fingerprint"],
+        title=str(row["title"]),
+        markdown=str(row["markdown"]),
     )

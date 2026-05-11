@@ -82,6 +82,28 @@ const TREND_DELTA_PCT_GREEN_MAX = 25;
 const TREND_DELTA_PCT_YELLOW_MAX = 100;
 const TREND_DELTA_PCT_ORANGE_MAX = 300;
 
+// Buslast-Schwellen fuer KPI-Einfaerbung (in Prozent).
+const BUSLOAD_DANGER_PCT = 30;
+const BUSLOAD_WARNING_PCT = 20;
+const BUSLOAD_ELEVATED_PCT = 10;
+
+function busloadSeverityClass(refPct: number): "danger" | "warning" | "elevated" | "ok" {
+  if (refPct >= BUSLOAD_DANGER_PCT) return "danger";
+  if (refPct >= BUSLOAD_WARNING_PCT) return "warning";
+  if (refPct >= BUSLOAD_ELEVATED_PCT) return "elevated";
+  return "ok";
+}
+
+function formatTotalDelta(totalDeltaPct: number | null): string {
+  if (totalDeltaPct === null) return "neu";
+  const sign = totalDeltaPct > 0 ? "+" : "";
+  const formatted = totalDeltaPct.toLocaleString("de-DE", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  return `${sign}${formatted} %`;
+}
+
 // Periode-Presets in Tagen.
 // Iter 22: Raw-Telegramm-Tabelle hat 48h Retention.
 // Iter 39: > 48h sind Long-Term-Perioden — die UI wechselt in den
@@ -1289,14 +1311,7 @@ export class StatsKnxView extends LitElement {
     // Endpoint (current/max/avg). Fallback auf den Period-Avg im Summary.
     const bl = this._busload;
     const refPct = bl !== null ? bl.summary.max_pct : s.estimated_busload_pct;
-    const busloadClass =
-      refPct >= 30
-        ? "danger"
-        : refPct >= 20
-          ? "warning"
-          : refPct >= 10
-            ? "elevated"
-            : "ok";
+    const busloadClass = busloadSeverityClass(refPct);
     const fmtPct = (p: number) =>
       p.toLocaleString("de-DE", {
         minimumFractionDigits: 1,
@@ -1348,12 +1363,13 @@ export class StatsKnxView extends LitElement {
         </div>
       </div>
       <div class="severity-counts">
-        ${(["red", "orange", "yellow", "green"] as const).map(
-          (sev) => html`<span class=${`mh-pill ${severityPillClass(sev)}`}>
+        ${(["red", "orange", "yellow", "green"] as const).map((sev) => {
+          const cls = `mh-pill ${severityPillClass(sev)}`;
+          return html`<span class=${cls}>
             <span class="mh-pill__dot"></span>
             ${this._severityLabel(sev)}: ${counts[sev] ?? 0}
-          </span>`
-        )}
+          </span>`;
+        })}
       </div>
     `;
   }
@@ -1401,12 +1417,13 @@ export class StatsKnxView extends LitElement {
           </div>
           ${h.findings.length > 0
             ? html`<ul class="health-score__findings">
-                ${h.findings.map(
-                  (f) => html`<li class=${`health-finding health-finding--${f.severity}`}>
+                ${h.findings.map((f) => {
+                  const cls = `health-finding health-finding--${f.severity}`;
+                  return html`<li class=${cls}>
                     <span class="health-finding__dot"></span>
                     <span>${f.message}</span>
-                  </li>`
-                )}
+                  </li>`;
+                })}
               </ul>`
             : html`<p class="muted small">Alle Indikatoren im gruenen Bereich.</p>`}
         </div>
@@ -1857,6 +1874,21 @@ export class StatsKnxView extends LitElement {
     `;
   }
 
+  private _renderDptCell(
+    dpt: string | null | undefined,
+    inferred: boolean | null | undefined,
+  ): TemplateResult {
+    if (!dpt) return html`<span class="muted">—</span>`;
+    const cellClass = inferred ? "dpt dpt--inferred" : "dpt";
+    const title = inferred
+      ? "DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)"
+      : "";
+    const hint = inferred
+      ? html`<span class="dpt__hint" aria-hidden="true">?</span>`
+      : nothing;
+    return html`<code class=${cellClass} title=${title}>${dpt}${hint}</code>`;
+  }
+
   private _renderTopTable(): TemplateResult {
     if (this._loading && this._top.length === 0) {
       return html`<p class="muted">lade…</p>`;
@@ -1943,19 +1975,7 @@ export class StatsKnxView extends LitElement {
                 <td class="label-cell" title=${row.label ?? ""}>
                   ${row.label ?? html`<span class="muted">—</span>`}
                 </td>
-                <td>
-                  ${row.dpt
-                    ? html`<code
-                        class=${`dpt ${row.dpt_inferred ? "dpt--inferred" : ""}`}
-                        title=${row.dpt_inferred
-                          ? "DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)"
-                          : ""}
-                        >${row.dpt}${row.dpt_inferred
-                          ? html`<span class="dpt__hint" aria-hidden="true">?</span>`
-                          : nothing}</code
-                      >`
-                    : html`<span class="muted">—</span>`}
-                </td>
+                <td>${this._renderDptCell(row.dpt, row.dpt_inferred)}</td>
                 <td class="num strong">${row.rate_per_min.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
                 <td class="num muted">${row.recommended_rate.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
                 <td>${this._renderTopRowStatus(row)}</td>
@@ -2183,14 +2203,14 @@ export class StatsKnxView extends LitElement {
         )}
       </div>
       <ul>
-        ${shown.map(
-          (f) => html`<li class=${`finding-${f.severity}`}>
-            <span class=${`mh-pill ${this._severityPillClass(f.severity)}`}>
-              ${f.kind}
-            </span>
+        ${shown.map((f) => {
+          const liCls = `finding-${f.severity}`;
+          const pillCls = `mh-pill ${this._severityPillClass(f.severity)}`;
+          return html`<li class=${liCls}>
+            <span class=${pillCls}>${f.kind}</span>
             <span>${f.text}</span>
-          </li>`,
-        )}
+          </li>`;
+        })}
       </ul>
       ${remaining > 0
         ? html`<p class="muted small">… und ${remaining} weitere</p>`
@@ -2663,13 +2683,7 @@ export class StatsKnxView extends LitElement {
       return html``;
     }
     const severity = this._classifySourceTrendSeverity(trend.delta_pct);
-    const formattedDelta =
-      trend.delta_pct === null
-        ? "neu"
-        : `${trend.delta_pct > 0 ? "+" : ""}${trend.delta_pct.toLocaleString(
-            "de-DE",
-            { minimumFractionDigits: 1, maximumFractionDigits: 1 },
-          )} %`;
+    const formattedDelta = formatTotalDelta(trend.delta_pct);
     return html`<div
       class=${`source-detail-trend source-detail-trend--${severity}`}
     >
@@ -2730,10 +2744,10 @@ export class StatsKnxView extends LitElement {
     f: KnxStatsSourcePersistedFindingDto,
     devSource: string,
   ): TemplateResult {
-    return html`<li class=${`source-detail-finding finding-${f.severity}`}>
-      <span class=${`mh-pill ${this._findingPillClass(f.severity)}`}>
-        ${f.severity}
-      </span>
+    const liCls = `source-detail-finding finding-${f.severity}`;
+    const pillCls = `mh-pill ${this._findingPillClass(f.severity)}`;
+    return html`<li class=${liCls}>
+      <span class=${pillCls}>${f.severity}</span>
       <a
         href="#findings?source=${encodeURIComponent(devSource)}"
         class="source-detail-finding__link"
@@ -3206,13 +3220,7 @@ export class StatsKnxView extends LitElement {
    */
   private _renderTrend(): TemplateResult {
     const t = this._trend!;
-    const totalDelta =
-      t.total_delta_pct !== null
-        ? `${t.total_delta_pct > 0 ? "+" : ""}${t.total_delta_pct.toLocaleString(
-            "de-DE",
-            { minimumFractionDigits: 1, maximumFractionDigits: 1 },
-          )} %`
-        : "neu";
+    const totalDelta = formatTotalDelta(t.total_delta_pct);
     const fmtRowPct = (row: { delta_pct: number | null; delta_abs: number }): string => {
       if (row.delta_pct === null) {
         return row.delta_abs > 0 ? "neu" : "verstummt";

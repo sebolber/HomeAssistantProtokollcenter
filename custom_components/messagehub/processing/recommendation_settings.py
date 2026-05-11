@@ -196,7 +196,7 @@ class StubRecommendationProvider:
 
     name = "stub"
 
-    async def fetch(
+    async def fetch(  # NOSONAR Protocol-Signatur RecommendationProvider erzwingt async
         self,
         *,
         dpt: str | None,
@@ -204,6 +204,9 @@ class StubRecommendationProvider:
         model: str | None,
         context: dict[str, Any],
     ) -> DptRecommendation | None:
+        # Protocol-Signatur erzwingt die Parameter; der Stub nutzt sie nicht
+        # (Layer 4 disabled / Settings unvollstaendig => keine Empfehlung).
+        del dpt, manufacturer, model, context
         return None
 
 
