@@ -544,66 +544,7 @@ export class KnxAddressesView extends LitElement {
             </label>
           </div>
 
-          ${e.log_enabled
-            ? html`
-                <label>
-                  <span>Severity</span>
-                  <select
-                    .value=${e.log_severity}
-                    @change=${(ev: Event) => {
-                      const v = (ev.target as HTMLSelectElement).value as
-                        | "debug"
-                        | "info"
-                        | "warning"
-                        | "error"
-                        | "auto";
-                      update({ log_severity: v });
-                    }}
-                  >
-                    ${LOG_SEVERITY_OPTIONS.map(
-                      (s) => html`<option value=${s}>${s}</option>`
-                    )}
-                  </select>
-                  <small>
-                    <code>auto</code> nutzt für Boolean-DPTs (1.x) die
-                    Severity-Map unten — z. B. für Stör-Bits, die bei
-                    <code>True</code> einen Fehler bedeuten.
-                  </small>
-                </label>
-                ${e.log_severity === "auto"
-                  ? html`<div class="row-2">
-                      <label>
-                        <span>Severity bei <code>True</code></span>
-                        <select
-                          .value=${e.severity_on_true ?? "warning"}
-                          @change=${(ev: Event) =>
-                            update({
-                              severity_on_true: (ev.target as HTMLSelectElement).value,
-                            })}
-                        >
-                          ${SEVERITY_OPTIONS.map(
-                            (s) => html`<option value=${s}>${s}</option>`
-                          )}
-                        </select>
-                      </label>
-                      <label>
-                        <span>Severity bei <code>False</code></span>
-                        <select
-                          .value=${e.severity_on_false ?? "info"}
-                          @change=${(ev: Event) =>
-                            update({
-                              severity_on_false: (ev.target as HTMLSelectElement).value,
-                            })}
-                        >
-                          ${SEVERITY_OPTIONS.map(
-                            (s) => html`<option value=${s}>${s}</option>`
-                          )}
-                        </select>
-                      </label>
-                    </div>`
-                  : nothing}
-              `
-            : nothing}
+          ${this._renderEditorSeverityBlock(e, update)}
 
           <div class="modal-actions">
             <button class="mh-btn" @click=${() => (this._editing = null)}>Abbrechen</button>
@@ -613,6 +554,78 @@ export class KnxAddressesView extends LitElement {
           </div>
         </div>
       </div>
+    `;
+  }
+
+  private _renderAutoSeverityRow(
+    e: KnxAddressDto,
+    update: (patch: Partial<KnxAddressDto>) => void,
+  ): TemplateResult {
+    return html`<div class="row-2">
+      <label>
+        <span>Severity bei <code>True</code></span>
+        <select
+          .value=${e.severity_on_true ?? "warning"}
+          @change=${(ev: Event) =>
+            update({
+              severity_on_true: (ev.target as HTMLSelectElement).value,
+            })}
+        >
+          ${SEVERITY_OPTIONS.map(
+            (s) => html`<option value=${s}>${s}</option>`,
+          )}
+        </select>
+      </label>
+      <label>
+        <span>Severity bei <code>False</code></span>
+        <select
+          .value=${e.severity_on_false ?? "info"}
+          @change=${(ev: Event) =>
+            update({
+              severity_on_false: (ev.target as HTMLSelectElement).value,
+            })}
+        >
+          ${SEVERITY_OPTIONS.map(
+            (s) => html`<option value=${s}>${s}</option>`,
+          )}
+        </select>
+      </label>
+    </div>`;
+  }
+
+  private _renderEditorSeverityBlock(
+    e: KnxAddressDto,
+    update: (patch: Partial<KnxAddressDto>) => void,
+  ): TemplateResult | typeof nothing {
+    if (!e.log_enabled) return nothing;
+    return html`
+      <label>
+        <span>Severity</span>
+        <select
+          .value=${e.log_severity}
+          @change=${(ev: Event) => {
+            const v = (ev.target as HTMLSelectElement).value as
+              | "debug"
+              | "info"
+              | "warning"
+              | "error"
+              | "auto";
+            update({ log_severity: v });
+          }}
+        >
+          ${LOG_SEVERITY_OPTIONS.map(
+            (s) => html`<option value=${s}>${s}</option>`,
+          )}
+        </select>
+        <small>
+          <code>auto</code> nutzt für Boolean-DPTs (1.x) die
+          Severity-Map unten — z. B. für Stör-Bits, die bei
+          <code>True</code> einen Fehler bedeuten.
+        </small>
+      </label>
+      ${e.log_severity === "auto"
+        ? this._renderAutoSeverityRow(e, update)
+        : nothing}
     `;
   }
 

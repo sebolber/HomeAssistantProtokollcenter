@@ -3490,55 +3490,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
             </label>
           </div>
 
-          ${e.log_enabled ? i`
-                <label>
-                  <span>Severity</span>
-                  <select
-                    .value=${e.log_severity}
-                    @change=${(s) => {
-      const r = s.target.value;
-      t({ log_severity: r });
-    }}
-                  >
-                    ${St.map(
-      (s) => i`<option value=${s}>${s}</option>`
-    )}
-                  </select>
-                  <small>
-                    <code>auto</code> nutzt für Boolean-DPTs (1.x) die
-                    Severity-Map unten — z. B. für Stör-Bits, die bei
-                    <code>True</code> einen Fehler bedeuten.
-                  </small>
-                </label>
-                ${e.log_severity === "auto" ? i`<div class="row-2">
-                      <label>
-                        <span>Severity bei <code>True</code></span>
-                        <select
-                          .value=${e.severity_on_true ?? "warning"}
-                          @change=${(s) => t({
-      severity_on_true: s.target.value
-    })}
-                        >
-                          ${Xe.map(
-      (s) => i`<option value=${s}>${s}</option>`
-    )}
-                        </select>
-                      </label>
-                      <label>
-                        <span>Severity bei <code>False</code></span>
-                        <select
-                          .value=${e.severity_on_false ?? "info"}
-                          @change=${(s) => t({
-      severity_on_false: s.target.value
-    })}
-                        >
-                          ${Xe.map(
-      (s) => i`<option value=${s}>${s}</option>`
-    )}
-                        </select>
-                      </label>
-                    </div>` : d}
-              ` : d}
+          ${this._renderEditorSeverityBlock(e, t)}
 
           <div class="modal-actions">
             <button class="mh-btn" @click=${() => this._editing = null}>Abbrechen</button>
@@ -3549,6 +3501,60 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
         </div>
       </div>
     `;
+  }
+  _renderAutoSeverityRow(e, t) {
+    return i`<div class="row-2">
+      <label>
+        <span>Severity bei <code>True</code></span>
+        <select
+          .value=${e.severity_on_true ?? "warning"}
+          @change=${(s) => t({
+      severity_on_true: s.target.value
+    })}
+        >
+          ${Xe.map(
+      (s) => i`<option value=${s}>${s}</option>`
+    )}
+        </select>
+      </label>
+      <label>
+        <span>Severity bei <code>False</code></span>
+        <select
+          .value=${e.severity_on_false ?? "info"}
+          @change=${(s) => t({
+      severity_on_false: s.target.value
+    })}
+        >
+          ${Xe.map(
+      (s) => i`<option value=${s}>${s}</option>`
+    )}
+        </select>
+      </label>
+    </div>`;
+  }
+  _renderEditorSeverityBlock(e, t) {
+    return e.log_enabled ? i`
+      <label>
+        <span>Severity</span>
+        <select
+          .value=${e.log_severity}
+          @change=${(s) => {
+      const r = s.target.value;
+      t({ log_severity: r });
+    }}
+        >
+          ${St.map(
+      (s) => i`<option value=${s}>${s}</option>`
+    )}
+        </select>
+        <small>
+          <code>auto</code> nutzt für Boolean-DPTs (1.x) die
+          Severity-Map unten — z. B. für Stör-Bits, die bei
+          <code>True</code> einen Fehler bedeuten.
+        </small>
+      </label>
+      ${e.log_severity === "auto" ? this._renderAutoSeverityRow(e, t) : d}
+    ` : d;
   }
   async _saveEdit() {
     if (!(!this.api || !this._editing))
