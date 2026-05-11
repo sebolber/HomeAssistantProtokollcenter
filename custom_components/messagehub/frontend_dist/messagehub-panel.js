@@ -95,8 +95,8 @@ let le = class extends HTMLElement {
       this[s] = o;
     } };
     return { get: a, set(o) {
-      const c = a?.call(this);
-      n?.call(this, o), this.requestUpdate(t, c, r);
+      const d = a?.call(this);
+      n?.call(this, o), this.requestUpdate(t, d, r);
     }, configurable: !0, enumerable: !0 };
   }
   static getPropertyOptions(t) {
@@ -181,8 +181,8 @@ let le = class extends HTMLElement {
     if (a !== void 0 && this._$Em !== a) {
       const n = r.getPropertyOptions(a), o = typeof n.converter == "function" ? { fromAttribute: n.converter } : n.converter?.fromAttribute !== void 0 ? n.converter : ze;
       this._$Em = a;
-      const c = o.fromAttribute(s, n.type);
-      this[a] = c ?? this._$Ej?.get(a) ?? c, this._$Em = null;
+      const d = o.fromAttribute(s, n.type);
+      this[a] = d ?? this._$Ej?.get(a) ?? d, this._$Em = null;
     }
   }
   requestUpdate(t, s, r, a = !1, n) {
@@ -218,8 +218,8 @@ let le = class extends HTMLElement {
       }
       const r = this.constructor.elementProperties;
       if (r.size > 0) for (const [a, n] of r) {
-        const { wrapped: o } = n, c = this[a];
-        o !== !0 || this._$AL.has(a) || c === void 0 || this.C(a, void 0, n, c);
+        const { wrapped: o } = n, d = this[a];
+        o !== !0 || this._$AL.has(a) || d === void 0 || this.C(a, void 0, n, d);
       }
     }
     let t = !1;
@@ -264,7 +264,7 @@ le.elementStyles = [], le.shadowRootOptions = { mode: "open" }, le[ye("elementPr
  */
 const tt = globalThis, pt = (e) => e, Oe = tt.trustedTypes, ut = Oe ? Oe.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, jt = "$lit$", K = `lit$${Math.random().toFixed(9).slice(2)}$`, Kt = "?" + K, gs = `<${Kt}>`, Z = document, xe = () => Z.createComment(""), $e = (e) => e === null || typeof e != "object" && typeof e != "function", st = Array.isArray, fs = (e) => st(e) || typeof e?.[Symbol.iterator] == "function", Ke = `[ 	
 \f\r]`, _e = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, mt = /-->/g, gt = />/g, X = RegExp(`>|${Ke}(?:([^\\s"'>=/]+)(${Ke}*=${Ke}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), ft = /'/g, vt = /"/g, Vt = /^(?:script|style|textarea|title)$/i, vs = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), i = vs(1), Q = Symbol.for("lit-noChange"), d = Symbol.for("lit-nothing"), _t = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), ft = /'/g, vt = /"/g, Vt = /^(?:script|style|textarea|title)$/i, vs = (e) => (t, ...s) => ({ _$litType$: e, strings: t, values: s }), i = vs(1), Q = Symbol.for("lit-noChange"), c = Symbol.for("lit-nothing"), _t = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
 function Wt(e, t) {
   if (!st(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return ut !== void 0 ? ut.createHTML(t) : t;
@@ -272,12 +272,12 @@ function Wt(e, t) {
 const _s = (e, t) => {
   const s = e.length - 1, r = [];
   let a, n = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = _e;
-  for (let c = 0; c < s; c++) {
-    const h = e[c];
+  for (let d = 0; d < s; d++) {
+    const h = e[d];
     let v, f, u = -1, p = 0;
     for (; p < h.length && (o.lastIndex = p, f = o.exec(h), f !== null); ) p = o.lastIndex, o === _e ? f[1] === "!--" ? o = mt : f[1] !== void 0 ? o = gt : f[2] !== void 0 ? (Vt.test(f[2]) && (a = RegExp("</" + f[2], "g")), o = X) : f[3] !== void 0 && (o = X) : o === X ? f[0] === ">" ? (o = a ?? _e, u = -1) : f[1] === void 0 ? u = -2 : (u = o.lastIndex - f[2].length, v = f[1], o = f[3] === void 0 ? X : f[3] === '"' ? vt : ft) : o === vt || o === ft ? o = X : o === mt || o === gt ? o = _e : (o = X, a = void 0);
-    const w = o === X && e[c + 1].startsWith("/>") ? " " : "";
-    n += o === _e ? h + gs : u >= 0 ? (r.push(v), h.slice(0, u) + jt + h.slice(u) + K + w) : h + K + (u === -2 ? c : w);
+    const w = o === X && e[d + 1].startsWith("/>") ? " " : "";
+    n += o === _e ? h + gs : u >= 0 ? (r.push(v), h.slice(0, u) + jt + h.slice(u) + K + w) : h + K + (u === -2 ? d : w);
   }
   return [Wt(e, n + (e[s] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
 };
@@ -286,12 +286,12 @@ class ke {
     let a;
     this.parts = [];
     let n = 0, o = 0;
-    const c = t.length - 1, h = this.parts, [v, f] = _s(t, s);
+    const d = t.length - 1, h = this.parts, [v, f] = _s(t, s);
     if (this.el = ke.createElement(v, r), Y.currentNode = this.el.content, s === 2 || s === 3) {
       const u = this.el.content.firstChild;
       u.replaceWith(...u.childNodes);
     }
-    for (; (a = Y.nextNode()) !== null && h.length < c; ) {
+    for (; (a = Y.nextNode()) !== null && h.length < d; ) {
       if (a.nodeType === 1) {
         if (a.hasAttributes()) for (const u of a.getAttributeNames()) if (u.endsWith(jt)) {
           const p = f[o++], w = a.getAttribute(u).split(K), m = /([.?@])?(.*)/.exec(p);
@@ -337,11 +337,11 @@ class bs {
   u(t) {
     const { el: { content: s }, parts: r } = this._$AD, a = (t?.creationScope ?? Z).importNode(s, !0);
     Y.currentNode = a;
-    let n = Y.nextNode(), o = 0, c = 0, h = r[0];
+    let n = Y.nextNode(), o = 0, d = 0, h = r[0];
     for (; h !== void 0; ) {
       if (o === h.index) {
         let v;
-        h.type === 2 ? v = new me(n, n.nextSibling, this, t) : h.type === 1 ? v = new h.ctor(n, h.name, h.strings, this, t) : h.type === 6 && (v = new $s(n, this, t)), this._$AV.push(v), h = r[++c];
+        h.type === 2 ? v = new me(n, n.nextSibling, this, t) : h.type === 1 ? v = new h.ctor(n, h.name, h.strings, this, t) : h.type === 6 && (v = new $s(n, this, t)), this._$AV.push(v), h = r[++d];
       }
       o !== h?.index && (n = Y.nextNode(), o++);
     }
@@ -357,7 +357,7 @@ class me {
     return this._$AM?._$AU ?? this._$Cv;
   }
   constructor(t, s, r, a) {
-    this.type = 2, this._$AH = d, this._$AN = void 0, this._$AA = t, this._$AB = s, this._$AM = r, this.options = a, this._$Cv = a?.isConnected ?? !0;
+    this.type = 2, this._$AH = c, this._$AN = void 0, this._$AA = t, this._$AB = s, this._$AM = r, this.options = a, this._$Cv = a?.isConnected ?? !0;
   }
   get parentNode() {
     let t = this._$AA.parentNode;
@@ -371,7 +371,7 @@ class me {
     return this._$AB;
   }
   _$AI(t, s = this) {
-    t = de(this, t, s), $e(t) ? t === d || t == null || t === "" ? (this._$AH !== d && this._$AR(), this._$AH = d) : t !== this._$AH && t !== Q && this._(t) : t._$litType$ !== void 0 ? this.$(t) : t.nodeType !== void 0 ? this.T(t) : fs(t) ? this.k(t) : this._(t);
+    t = de(this, t, s), $e(t) ? t === c || t == null || t === "" ? (this._$AH !== c && this._$AR(), this._$AH = c) : t !== this._$AH && t !== Q && this._(t) : t._$litType$ !== void 0 ? this.$(t) : t.nodeType !== void 0 ? this.T(t) : fs(t) ? this.k(t) : this._(t);
   }
   O(t) {
     return this._$AA.parentNode.insertBefore(t, this._$AB);
@@ -380,7 +380,7 @@ class me {
     this._$AH !== t && (this._$AR(), this._$AH = this.O(t));
   }
   _(t) {
-    this._$AH !== d && $e(this._$AH) ? this._$AA.nextSibling.data = t : this.T(Z.createTextNode(t)), this._$AH = t;
+    this._$AH !== c && $e(this._$AH) ? this._$AA.nextSibling.data = t : this.T(Z.createTextNode(t)), this._$AH = t;
   }
   $(t) {
     const { values: s, _$litType$: r } = t, a = typeof r == "number" ? this._$AC(t) : (r.el === void 0 && (r.el = ke.createElement(Wt(r.h, r.h[0]), this.options)), r);
@@ -419,21 +419,21 @@ class Fe {
     return this._$AM._$AU;
   }
   constructor(t, s, r, a, n) {
-    this.type = 1, this._$AH = d, this._$AN = void 0, this.element = t, this.name = s, this._$AM = a, this.options = n, r.length > 2 || r[0] !== "" || r[1] !== "" ? (this._$AH = Array(r.length - 1).fill(new String()), this.strings = r) : this._$AH = d;
+    this.type = 1, this._$AH = c, this._$AN = void 0, this.element = t, this.name = s, this._$AM = a, this.options = n, r.length > 2 || r[0] !== "" || r[1] !== "" ? (this._$AH = Array(r.length - 1).fill(new String()), this.strings = r) : this._$AH = c;
   }
   _$AI(t, s = this, r, a) {
     const n = this.strings;
     let o = !1;
     if (n === void 0) t = de(this, t, s, 0), o = !$e(t) || t !== this._$AH && t !== Q, o && (this._$AH = t);
     else {
-      const c = t;
+      const d = t;
       let h, v;
-      for (t = n[0], h = 0; h < n.length - 1; h++) v = de(this, c[r + h], s, h), v === Q && (v = this._$AH[h]), o ||= !$e(v) || v !== this._$AH[h], v === d ? t = d : t !== d && (t += (v ?? "") + n[h + 1]), this._$AH[h] = v;
+      for (t = n[0], h = 0; h < n.length - 1; h++) v = de(this, d[r + h], s, h), v === Q && (v = this._$AH[h]), o ||= !$e(v) || v !== this._$AH[h], v === c ? t = c : t !== c && (t += (v ?? "") + n[h + 1]), this._$AH[h] = v;
     }
     o && !a && this.j(t);
   }
   j(t) {
-    t === d ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
+    t === c ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
   }
 }
 class ws extends Fe {
@@ -441,7 +441,7 @@ class ws extends Fe {
     super(...arguments), this.type = 3;
   }
   j(t) {
-    this.element[this.name] = t === d ? void 0 : t;
+    this.element[this.name] = t === c ? void 0 : t;
   }
 }
 class ys extends Fe {
@@ -449,7 +449,7 @@ class ys extends Fe {
     super(...arguments), this.type = 4;
   }
   j(t) {
-    this.element.toggleAttribute(this.name, !!t && t !== d);
+    this.element.toggleAttribute(this.name, !!t && t !== c);
   }
 }
 class xs extends Fe {
@@ -457,8 +457,8 @@ class xs extends Fe {
     super(t, s, r, a, n), this.type = 5;
   }
   _$AI(t, s = this) {
-    if ((t = de(this, t, s, 0) ?? d) === Q) return;
-    const r = this._$AH, a = t === d && r !== d || t.capture !== r.capture || t.once !== r.once || t.passive !== r.passive, n = t !== d && (r === d || a);
+    if ((t = de(this, t, s, 0) ?? c) === Q) return;
+    const r = this._$AH, a = t === c && r !== c || t.capture !== r.capture || t.once !== r.once || t.passive !== r.passive, n = t !== c && (r === c || a);
     a && this.element.removeEventListener(this.name, this, r), n && this.element.addEventListener(this.name, this, t), this._$AH = t;
   }
   handleEvent(t) {
@@ -539,18 +539,18 @@ const Ps = { attribute: !0, type: String, converter: ze, reflect: !1, hasChanged
   let n = globalThis.litPropertyMetadata.get(a);
   if (n === void 0 && globalThis.litPropertyMetadata.set(a, n = /* @__PURE__ */ new Map()), r === "setter" && ((e = Object.create(e)).wrapped = !0), n.set(s.name, e), r === "accessor") {
     const { name: o } = s;
-    return { set(c) {
+    return { set(d) {
       const h = t.get.call(this);
-      t.set.call(this, c), this.requestUpdate(o, h, e, !0, c);
-    }, init(c) {
-      return c !== void 0 && this.C(o, void 0, e, c), c;
+      t.set.call(this, d), this.requestUpdate(o, h, e, !0, d);
+    }, init(d) {
+      return d !== void 0 && this.C(o, void 0, e, d), d;
     } };
   }
   if (r === "setter") {
     const { name: o } = s;
-    return function(c) {
+    return function(d) {
       const h = this[o];
-      t.call(this, c), this.requestUpdate(o, h, e, !0, c);
+      t.call(this, d), this.requestUpdate(o, h, e, !0, d);
     };
   }
   throw Error("Unsupported decorator location: " + r);
@@ -705,12 +705,12 @@ class Ls {
   async bulkPatchKnxAddresses(t, s) {
     let a = 0, n = 0;
     for (let o = 0; o < t.length; o += 200) {
-      const c = t.slice(o, o + 200), h = await fetch(
+      const d = t.slice(o, o + 200), h = await fetch(
         `${this.baseUrl}/api/messagehub/knx-addresses/bulk`,
         {
           method: "POST",
           headers: this.headers(),
-          body: JSON.stringify({ addresses: c, patch: s })
+          body: JSON.stringify({ addresses: d, patch: s })
         }
       );
       if (!h.ok) throw new Error(`HTTP ${h.status}: ${await h.text()}`);
@@ -1571,23 +1571,23 @@ class zs {
 }
 function Os(e) {
   const { key: t, versionKey: s, currentVersion: r, defaults: a, migrate: n } = e;
-  let o = null, c = null;
+  let o = null, d = null;
   try {
     const v = localStorage.getItem(t);
-    v && (o = JSON.parse(v)), c = localStorage.getItem(s);
+    v && (o = JSON.parse(v)), d = localStorage.getItem(s);
   } catch {
     return { ...a };
   }
   if (o === null)
     return { ...a };
   let h = o;
-  if (n && c !== r) {
-    h = n(o, c);
+  if (n && d !== r) {
+    h = n(o, d);
     try {
       localStorage.setItem(t, JSON.stringify({ ...a, ...h })), localStorage.setItem(s, r);
     } catch {
     }
-  } else if (c !== r)
+  } else if (d !== r)
     try {
       localStorage.setItem(s, r);
     } catch {
@@ -1614,7 +1614,7 @@ function qt(e) {
   const t = e.startsWith("#") ? e.slice(1) : e, s = t.indexOf("?"), r = s === -1 ? t : t.slice(0, s), a = s === -1 ? "" : t.slice(s + 1), n = new URLSearchParams(a), o = Rs.get(r);
   if (o !== void 0)
     return { top: o.top, sub: o.sub, query: n };
-  const c = r.indexOf("/"), h = c === -1 ? r : r.slice(0, c), v = c === -1 ? "" : r.slice(c + 1);
+  const d = r.indexOf("/"), h = d === -1 ? r : r.slice(0, d), v = d === -1 ? "" : r.slice(d + 1);
   return Cs.has(h) ? { top: h, sub: v, query: n } : { top: "messages", sub: "", query: n };
 }
 /**
@@ -1650,12 +1650,12 @@ const { I: Hs } = ks, bt = (e) => e, wt = () => document.createComment(""), be =
     const n = r.insertBefore(wt(), a), o = r.insertBefore(wt(), a);
     s = new Hs(n, o, e, e.options);
   } else {
-    const n = s._$AB.nextSibling, o = s._$AM, c = o !== e;
-    if (c) {
+    const n = s._$AB.nextSibling, o = s._$AM, d = o !== e;
+    if (d) {
       let h;
       s._$AQ?.(e), s._$AM = e, s._$AP !== void 0 && (h = e._$AU) !== o._$AU && s._$AP(h);
     }
-    if (n !== a || c) {
+    if (n !== a || d) {
       let h = s._$AA;
       for (; h !== n; ) {
         const v = bt(h).nextSibling;
@@ -1685,7 +1685,7 @@ const yt = (e, t, s) => {
     s === void 0 ? s = t : t !== void 0 && (r = t);
     const a = [], n = [];
     let o = 0;
-    for (const c of e) a[o] = r ? r(c, o) : o, n[o] = s(c, o), o++;
+    for (const d of e) a[o] = r ? r(d, o) : o, n[o] = s(d, o), o++;
     return { values: n, keys: a };
   }
   render(e, t, s) {
@@ -1694,15 +1694,15 @@ const yt = (e, t, s) => {
   update(e, [t, s, r]) {
     const a = Gs(e), { values: n, keys: o } = this.dt(t, s, r);
     if (!Array.isArray(a)) return this.ut = o, n;
-    const c = this.ut ??= [], h = [];
+    const d = this.ut ??= [], h = [];
     let v, f, u = 0, p = a.length - 1, w = 0, m = n.length - 1;
     for (; u <= p && w <= m; ) if (a[u] === null) u++;
     else if (a[p] === null) p--;
-    else if (c[u] === o[w]) h[w] = J(a[u], n[w]), u++, w++;
-    else if (c[p] === o[m]) h[m] = J(a[p], n[m]), p--, m--;
-    else if (c[u] === o[m]) h[m] = J(a[u], n[m]), be(e, h[m + 1], a[u]), u++, m--;
-    else if (c[p] === o[w]) h[w] = J(a[p], n[w]), be(e, a[u], a[p]), p--, w++;
-    else if (v === void 0 && (v = yt(o, w, m), f = yt(c, u, p)), v.has(c[u])) if (v.has(c[p])) {
+    else if (d[u] === o[w]) h[w] = J(a[u], n[w]), u++, w++;
+    else if (d[p] === o[m]) h[m] = J(a[p], n[m]), p--, m--;
+    else if (d[u] === o[m]) h[m] = J(a[u], n[m]), be(e, h[m + 1], a[u]), u++, m--;
+    else if (d[p] === o[w]) h[w] = J(a[p], n[w]), be(e, a[u], a[p]), p--, w++;
+    else if (v === void 0 && (v = yt(o, w, m), f = yt(d, u, p)), v.has(d[u])) if (v.has(d[p])) {
       const T = f.get(o[w]), ve = T !== void 0 ? a[T] : null;
       if (ve === null) {
         const Pe = be(e, a[u]);
@@ -1737,8 +1737,8 @@ function Xt(e, t = /* @__PURE__ */ new Date()) {
   if (a < 5) return "gerade eben";
   for (const { unit: n, seconds: o } of Vs)
     if (a >= o) {
-      const c = Math.round(r / o);
-      return Ks.format(c, n);
+      const d = Math.round(r / o);
+      return Ks.format(d, n);
     }
   return "gerade eben";
 }
@@ -1830,7 +1830,7 @@ let ee = class extends y {
               <span class="sev-icon" aria-hidden="true">${xt[r]}</span>
               ${$t[r]}
             </span>
-            ${r === t ? i`<span class="check" aria-hidden="true">✓</span>` : d}
+            ${r === t ? i`<span class="check" aria-hidden="true">✓</span>` : c}
           </button>`
     )}
       </div>
@@ -2440,8 +2440,8 @@ let M = class extends y {
       acknowledged: "Bestätigt",
       resolved: "Gelöst",
       expired: "Abgelaufen"
-    };
-    return i`<span class=${`status-badge status-${this._status}`}>
+    }, t = `status-badge status-${this._status}`;
+    return i`<span class=${t}>
       ${e[this._status] ?? this._status}
     </span>`;
   }
@@ -2492,7 +2492,7 @@ let M = class extends y {
         <pre class="text">${this.msg.text}</pre>
 
         ${this.msg.metadata ? i`<h3>Metadata</h3>
-              <pre class="meta">${JSON.stringify(this.msg.metadata, null, 2)}</pre>` : d}
+              <pre class="meta">${JSON.stringify(this.msg.metadata, null, 2)}</pre>` : c}
 
         <h3>Tags</h3>
         <div class="tags">
@@ -2525,7 +2525,7 @@ let M = class extends y {
         </div>
 
         ${this._runbook ? i`<h3>Runbook: ${this._runbook.title}</h3>
-              <pre class="runbook">${this._runbook.markdown}</pre>` : d}
+              <pre class="runbook">${this._runbook.markdown}</pre>` : c}
 
         <footer>
           <button class="del" @click=${this._delete}>Löschen</button>
@@ -3311,9 +3311,9 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
     }
   }
   _renderSevPopover() {
-    if (this._sevPopoverFor === null || this._sevPopoverPos === null) return d;
+    if (this._sevPopoverFor === null || this._sevPopoverPos === null) return c;
     const e = this._items.find((s) => s.address === this._sevPopoverFor);
-    if (!e) return d;
+    if (!e) return c;
     const t = e.log_severity;
     return i`
       <div class="sev-backdrop" @click=${() => this._closeSevPopover()}></div>
@@ -3333,7 +3333,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
             <span
               class=${`mh-pill mh-pill--${s === "auto" ? "neutral" : s}`}
             >${s}</span>
-            ${s === t ? i`<span class="sev-check" aria-hidden="true">✓</span>` : d}
+            ${s === t ? i`<span class="sev-check" aria-hidden="true">✓</span>` : c}
           </button>`
     )}
       </div>
@@ -3455,7 +3455,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
     ) : e;
   }
   _renderEditor() {
-    if (!this._editing) return d;
+    if (!this._editing) return c;
     const e = this._editing, t = (s) => {
       this._editing = { ...e, ...s };
     };
@@ -3553,8 +3553,8 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
           <code>True</code> einen Fehler bedeuten.
         </small>
       </label>
-      ${e.log_severity === "auto" ? this._renderAutoSeverityRow(e, t) : d}
-    ` : d;
+      ${e.log_severity === "auto" ? this._renderAutoSeverityRow(e, t) : c}
+    ` : c;
   }
   async _saveEdit() {
     if (!(!this.api || !this._editing))
@@ -3584,7 +3584,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
       return this._renderEmpty(r);
     const a = e.length > 0 && e.every((n) => this._selected.has(n.address));
     return i`
-      ${this._selected.size > 0 ? this._renderBulkToolbar() : d}
+      ${this._selected.size > 0 ? this._renderBulkToolbar() : c}
       <div class="table-wrap">
         <table>
           <thead>
@@ -3648,7 +3648,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
     const t = e.log_severity === "auto" ? "neutral" : e.log_severity, s = e.log_severity === "auto" ? i` <small class="auto-detail"
             >T:${e.severity_on_true ?? "warning"} /
             F:${e.severity_on_false ?? "info"}</small
-          >` : d;
+          >` : c;
     return i`<button
       class=${`mh-pill mh-pill--${t} sev-trigger`}
       title="Severity ändern"
@@ -3728,7 +3728,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
       >
         Alle ${t.length} zeigen
       </button>
-    </div>` : d;
+    </div>` : c;
   }
   render() {
     const e = this._filtered(), t = e.slice(0, this._displayedCount), s = e.length > t.length, r = this._items.filter((a) => a.log_enabled).length;
@@ -3807,7 +3807,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
               ETS-Projekt — Label und DPT werden dann automatisch vorbefüllt.
             </p>` : null}
         ${this._renderDiscoveryStatus()}
-        ${this._error ? i`<div class="error">${this._error}</div>` : d}
+        ${this._error ? i`<div class="error">${this._error}</div>` : c}
 
         <div class="filter-bar">
           <input
@@ -3847,7 +3847,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
             <span>Platzhalter ausblenden</span>
           </label>
           <span class="muted">
-            ${t.length} sichtbar${s ? i` von ${e.length}` : d}
+            ${t.length} sichtbar${s ? i` von ${e.length}` : c}
           </span>
         </div>
 
@@ -3855,7 +3855,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
 
         ${this._renderEditor()}
         ${this._renderSevPopover()}
-        ${this._toast ? i`<div class="toast">${this._toast}</div>` : d}
+        ${this._toast ? i`<div class="toast">${this._toast}</div>` : c}
       </section>
     `;
   }
@@ -4646,7 +4646,7 @@ let z = class extends y {
     return i`<div class="llm-test-result llm-test-result--err">
       <strong>✗ Test fehlgeschlagen</strong>
       ${e.error ? i`<p>${e.error}</p>` : i`<p>Keine Antwort vom Provider.</p>`}
-      ${e.error_category ? i`<p class="muted small">Kategorie: ${e.error_category}</p>` : d}
+      ${e.error_category ? i`<p class="muted small">Kategorie: ${e.error_category}</p>` : c}
     </div>`;
   }
   _applyPreset(e) {
@@ -4684,8 +4684,8 @@ let z = class extends y {
           </p>
         </header>
 
-        ${this._error ? i`<p class="mh-error">${this._error}</p>` : d}
-        ${this._info ? i`<p class="muted small">${this._info}</p>` : d}
+        ${this._error ? i`<p class="mh-error">${this._error}</p>` : c}
+        ${this._info ? i`<p class="muted small">${this._info}</p>` : c}
 
         <div class="llm-form">
           <div class="toggle-row">
@@ -4708,7 +4708,7 @@ let z = class extends y {
                 Bei jedem geoeffneten Source-Detail-Drawer kann der
                 Provider angefragt werden — das verursacht Kosten +
                 Latenz. Cache (30 Tage TTL) reduziert wiederholte Calls.
-              </div>` : d}
+              </div>` : c}
 
           <div class="llm-presets">
             <span class="help">Voreinstellung:</span>
@@ -6934,8 +6934,8 @@ let U = class extends y {
               <div class="heatmap-row">
                 <span class="day-label">${Et[r]}</span>
                 ${a.map((n, o) => {
-        const c = n === 0 ? 0 : Math.max(0.15, n / t), h = n === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(
-          c * 100
+        const d = n === 0 ? 0 : Math.max(0.15, n / t), h = n === 0 ? "transparent" : `color-mix(in srgb, var(--mh-accent) ${Math.round(
+          d * 100
         )}%, transparent)`;
         return i`
                     <div
@@ -7078,7 +7078,7 @@ let U = class extends y {
             </div>
             ${this._topSources.length === 0 ? i`<p class="muted">Keine Daten.</p>` : i`<ul class="top-sources">
                   ${this._topSources.map((n, o) => {
-      const c = this._topSources[0]?.count ?? 1, h = n.count / c * 100;
+      const d = this._topSources[0]?.count ?? 1, h = n.count / d * 100;
       return i`<li>
                       <span class="rank">${o + 1}</span>
                       <code class="source-name">${n.source}</code>
@@ -7198,9 +7198,8 @@ const Pr = {
   insufficient: "mh-pill--neutral"
 };
 function Lr(e) {
-  return i`<span class=${`mh-pill ${Dr[e]}`}
-    >${Pr[e]}</span
-  >`;
+  const t = `mh-pill ${Dr[e]}`;
+  return i`<span class=${t}>${Pr[e]}</span>`;
 }
 const zr = {
   high: "hohe Konfidenz",
@@ -7212,9 +7211,8 @@ const zr = {
   low: "mh-pill--caution"
 };
 function Nr(e) {
-  return i`<span class=${`mh-pill ${Or[e]}`}
-    >${zr[e]}</span
-  >`;
+  const t = `mh-pill ${Or[e]}`;
+  return i`<span class=${t}>${zr[e]}</span>`;
 }
 const Cr = {
   dpt_standard: "DPT",
@@ -7230,9 +7228,9 @@ const Cr = {
   llm: "mh-pill--caution"
 };
 function Fr(e) {
-  return e == null ? i`` : i`<span
-    class=${`mh-pill ${Ir[e]} recommendation-source-pill`}
-    title=${Rr[e]}
+  if (e == null) return i``;
+  const t = `mh-pill ${Ir[e]} recommendation-source-pill`;
+  return i`<span class=${t} title=${Rr[e]}
     >${Cr[e]}</span
   >`;
 }
@@ -7248,9 +7246,8 @@ const Mr = {
   deviation: "mh-pill--error"
 };
 function Br(e) {
-  return i`<span class=${`mh-pill ${Hr[e]}`}
-    >${Mr[e]}</span
-  >`;
+  const t = `mh-pill ${Hr[e]}`;
+  return i`<span class=${t}>${Mr[e]}</span>`;
 }
 function Ur(e) {
   const t = e.recommended_cycle_minutes, s = e.recommended_mode;
@@ -7289,7 +7286,7 @@ let he = class extends y {
       return i`<p class="muted">Keine Timeline-Daten.</p>`;
     if (this.items.reduce((f, u) => f + u.count, 0) === 0)
       return i`<p class="muted">Keine Telegramme im Zeitraum.</p>`;
-    const t = this._buildSeries(), s = this._allBuckets(), r = Math.max(1, ...this.items.map((f) => f.count)), a = { top: 8, right: 8, bottom: 18, left: 32 }, n = this.width - a.left - a.right, o = this.height - a.top - a.bottom, c = s.length === 1, h = (f) => c ? a.left + n / 2 : a.left + f / (s.length - 1) * n, v = (f) => a.top + (1 - f / r) * o;
+    const t = this._buildSeries(), s = this._allBuckets(), r = Math.max(1, ...this.items.map((f) => f.count)), a = { top: 8, right: 8, bottom: 18, left: 32 }, n = this.width - a.left - a.right, o = this.height - a.top - a.bottom, d = s.length === 1, h = (f) => d ? a.left + n / 2 : a.left + f / (s.length - 1) * n, v = (f) => a.top + (1 - f / r) * o;
     return i`
       <svg
         viewBox=${`0 0 ${this.width} ${this.height}`}
@@ -7315,7 +7312,7 @@ let he = class extends y {
         <!-- Series -->
         ${t.map((f, u) => {
       const p = De[u % De.length];
-      if (c) {
+      if (d) {
         const m = v(f.values[0] ?? 0);
         return i`<g class="series">
               <line
@@ -7467,7 +7464,7 @@ let pe = class extends y {
         Wertverlauf: zu wenige numerische Datenpunkte
         (${e.length} von ${this.points.length}).
       </p>`;
-    const t = e.map((m) => m.value), s = Math.min(...t), r = Math.max(...t), a = r - s || 1, n = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - n.left - n.right, c = this.height - n.top - n.bottom, h = (m) => n.left + m / Math.max(1, e.length - 1) * o, v = (m) => n.top + (1 - (m - s) / a) * c, f = e.map((m, T) => `${h(T)},${v(m.value)}`).join(" "), p = [...t.slice(1).map((m, T) => Math.abs(m - t[T]))].sort((m, T) => m - T), w = p[Math.floor(p.length / 2)];
+    const t = e.map((m) => m.value), s = Math.min(...t), r = Math.max(...t), a = r - s || 1, n = { top: 8, right: 8, bottom: 18, left: 40 }, o = this.width - n.left - n.right, d = this.height - n.top - n.bottom, h = (m) => n.left + m / Math.max(1, e.length - 1) * o, v = (m) => n.top + (1 - (m - s) / a) * d, f = e.map((m, T) => `${h(T)},${v(m.value)}`).join(" "), p = [...t.slice(1).map((m, T) => Math.abs(m - t[T]))].sort((m, T) => m - T), w = p[Math.floor(p.length / 2)];
     return i`
       <div class="wrap">
         <svg
@@ -7701,10 +7698,10 @@ function ga(e, t, s) {
         o = a.ga.localeCompare(n.ga);
         break;
       case "label": {
-        const c = !a.label, h = !n.label;
-        if (c && h) o = 0;
+        const d = !a.label, h = !n.label;
+        if (d && h) o = 0;
         else {
-          if (c) return 1;
+          if (d) return 1;
           if (h) return -1;
           o = a.label.localeCompare(n.label);
         }
@@ -7850,7 +7847,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     const t = /* @__PURE__ */ new Map(), s = (r, a) => a.catch((n) => (t.set(r, n.message), null));
     try {
       const r = this._isLongTermMode(), a = this._apiFilters(), n = this._liveFiltersForRaw(), o = { ...n, limit: this._filters.topNDevices }, [
-        c,
+        d,
         h,
         v,
         f,
@@ -7936,7 +7933,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       ]);
       if (e !== this._loadToken)
         return;
-      this._summary = c, this._top = h.items, this._topBySource = v.items, this._busHealth = f, this._silence = u, this._orphans = p, this._alarms = w, this._busload = m, this._health = T, this._longTerm = ve, this._bursts = Pe, this._sensitiveLog = ss, this._trend = rs, this._heatmap = as, this._apiErrors = t, this._apiErrorsDismissed = !1;
+      this._summary = d, this._top = h.items, this._topBySource = v.items, this._busHealth = f, this._silence = u, this._orphans = p, this._alarms = w, this._busload = m, this._health = T, this._longTerm = ve, this._bursts = Pe, this._sensitiveLog = ss, this._trend = rs, this._heatmap = as, this._apiErrors = t, this._apiErrorsDismissed = !1;
       const ot = h.items.slice(0, 5).map((je) => je.ga);
       if (ot.length > 0) {
         const je = await this.api.getKnxStatsTimeline({
@@ -8337,12 +8334,13 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         </div>
       </div>
       <div class="severity-counts">
-        ${["red", "orange", "yellow", "green"].map(
-      (o) => i`<span class=${`mh-pill ${Rt(o)}`}>
+        ${["red", "orange", "yellow", "green"].map((o) => {
+      const d = `mh-pill ${Rt(o)}`;
+      return i`<span class=${d}>
             <span class="mh-pill__dot"></span>
             ${this._severityLabel(o)}: ${t[o] ?? 0}
-          </span>`
-    )}
+          </span>`;
+    })}
       </div>
     `;
   }
@@ -8363,10 +8361,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <div class="health-score__components">
             ${["repeat", "busload", "silence", "alarms"].map(
       (t) => {
-        const s = e.components[t], r = this._componentSeverity(s), a = t === "repeat" && e.repeat_approximate === !0, n = this._componentLabel(t), o = a ? `${n} *` : n, c = a ? `${n}: ${s}/100 (${this._healthLabel(r)}) — Approximation: xknx liefert das Repeat-Bit nicht zuverlaessig (BL-D blocked)` : `${n}: ${s}/100 (${this._healthLabel(r)})`;
+        const s = e.components[t], r = this._componentSeverity(s), a = t === "repeat" && e.repeat_approximate === !0, n = this._componentLabel(t), o = a ? `${n} *` : n, d = a ? `${n}: ${s}/100 (${this._healthLabel(r)}) — Approximation: xknx liefert das Repeat-Bit nicht zuverlaessig (BL-D blocked)` : `${n}: ${s}/100 (${this._healthLabel(r)})`;
         return i`<div
                   class=${`health-score__badge health-score__badge--${r}`}
-                  title=${c}
+                  title=${d}
                   data-test="health-component"
                   data-key=${t}
                   data-approximate=${a ? "true" : "false"}
@@ -8378,12 +8376,13 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     )}
           </div>
           ${e.findings.length > 0 ? i`<ul class="health-score__findings">
-                ${e.findings.map(
-      (t) => i`<li class=${`health-finding health-finding--${t.severity}`}>
+                ${e.findings.map((t) => {
+      const s = `health-finding health-finding--${t.severity}`;
+      return i`<li class=${s}>
                     <span class="health-finding__dot"></span>
                     <span>${t.message}</span>
-                  </li>`
-    )}
+                  </li>`;
+    })}
               </ul>` : i`<p class="muted small">Alle Indikatoren im gruenen Bereich.</p>`}
         </div>
       </section>
@@ -8447,8 +8446,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             ${e.addresses.map(
       (a) => i`<li>
                 <code>${a.ga}</code>
-                ${a.label ? i`<span class="muted small">${a.label}</span>` : d}
-                ${a.dpt ? i`<span class="mh-pill mh-pill--neutral">${a.dpt}</span>` : d}
+                ${a.label ? i`<span class="muted small">${a.label}</span>` : c}
+                ${a.dpt ? i`<span class="mh-pill mh-pill--neutral">${a.dpt}</span>` : c}
               </li>`
     )}
           </ul>
@@ -8471,7 +8470,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                         <td class="bursts__ts">${t(a.ts)}</td>
                         <td>
                           <code>${a.ga}</code>
-                          ${a.label ? i`<span class="muted small">${a.label}</span>` : d}
+                          ${a.label ? i`<span class="muted small">${a.label}</span>` : c}
                         </td>
                         <td><code>${a.dev_source}</code></td>
                         <td><code>${a.value ?? "—"}</code></td>
@@ -8480,7 +8479,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   </tbody>
                 </table>
               </div>
-              ${e.telegrams.length > s ? i`<p class="muted small">… und ${e.telegrams.length - s} weitere</p>` : d}`}
+              ${e.telegrams.length > s ? i`<p class="muted small">… und ${e.telegrams.length - s} weitere</p>` : c}`}
         </div>
       </section>
     `;
@@ -8532,7 +8531,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             </tbody>
           </table>
         </div>
-        ${e.bursts.length > r ? i`<p class="muted small">… und ${e.bursts.length - r} weitere</p>` : d}
+        ${e.bursts.length > r ? i`<p class="muted small">… und ${e.bursts.length - r} weitere</p>` : c}
       </section>
     `;
   }
@@ -8586,7 +8585,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                   ${e.top_gas.slice(0, r).map(
       (a) => i`<li>
                       <code>${a.ga}</code>
-                      ${a.label ? i`<span class="muted small">${a.label}</span>` : d}
+                      ${a.label ? i`<span class="muted small">${a.label}</span>` : c}
                       <span class="long-term__top-count">${s(a.count)}</span>
                     </li>`
     )}
@@ -8622,10 +8621,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       Es werden keine neuen Telegramme erfasst — bestehende Daten bleiben
       sichtbar, altern aber raus (Raw 48 h, Counter 365 Tage). Toggle in der
       Filter-Leiste oben rechts schaltet sie wieder ein.
-    </div>` : d;
+    </div>` : c;
   }
   _renderTopBanners() {
-    const e = this._apiErrors.size > 0 && !this._apiErrorsDismissed ? this._renderApiErrorBanner() : d, t = this._error ? i`<div class="error">${this._error}</div>` : d, s = this._alarms !== null && this._alarms.triggered_count > 0 ? this._renderAlarmBanner() : d, r = this._isLongTermMode() ? this._renderLongTermBanner() : d;
+    const e = this._apiErrors.size > 0 && !this._apiErrorsDismissed ? this._renderApiErrorBanner() : c, t = this._error ? i`<div class="error">${this._error}</div>` : c, s = this._alarms !== null && this._alarms.triggered_count > 0 ? this._renderAlarmBanner() : c, r = this._isLongTermMode() ? this._renderLongTermBanner() : c;
     return i`
       ${e}
       ${this._renderBusAnalysisOffBanner()}
@@ -8649,7 +8648,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     </section>`;
   }
   _renderTopDevicesSection() {
-    return this._topBySource.length === 0 ? d : i`<section class="mh-card">
+    return this._topBySource.length === 0 ? c : i`<section class="mh-card">
       <header class="card-head">
         <h3>Top-Geräte (Source-Adressen)</h3>
         <div class="card-head__meta">
@@ -8675,18 +8674,18 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
               .width=${800}
               .height=${140}
             ></knx-timeline-chart>
-          </section>` : d, t = this._heatmap !== null && this._heatmap.gas.length > 0 ? this._renderHeatmap() : d, s = this._trend !== null && (this._trend.total_now > 0 || this._trend.total_prev > 0) ? this._renderTrend() : d;
+          </section>` : c, t = this._heatmap !== null && this._heatmap.gas.length > 0 ? this._renderHeatmap() : c, s = this._trend !== null && (this._trend.total_now > 0 || this._trend.total_prev > 0) ? this._renderTrend() : c;
     return i`${e}${t}${s}`;
   }
   _renderAnomalySections() {
-    const e = this._bursts !== null && this._bursts.bursts.length > 0 ? this._renderBursts() : d, t = this._silence !== null && this._silence.alarm_count > 0 ? this._renderSilenceAlarms() : d, s = this._busHealth !== null && this._busHealth.summary.total > 0 ? this._renderBusHealth() : d;
+    const e = this._bursts !== null && this._bursts.bursts.length > 0 ? this._renderBursts() : c, t = this._silence !== null && this._silence.alarm_count > 0 ? this._renderSilenceAlarms() : c, s = this._busHealth !== null && this._busHealth.summary.total > 0 ? this._renderBusHealth() : c;
     return i`${e}${t}${s}`;
   }
   _hasOrphansToShow() {
     return this._orphans !== null && (this._orphans.missing_in_log.length > 0 || this._orphans.extra_in_log.length > 0);
   }
   _renderAuditSections() {
-    const e = this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0 ? this._renderSensitiveLog() : d, t = this._hasOrphansToShow() ? this._renderOrphans() : d;
+    const e = this._sensitiveLog !== null && this._sensitiveLog.addresses.length > 0 ? this._renderSensitiveLog() : c, t = this._hasOrphansToShow() ? this._renderOrphans() : c;
     return i`${e}${t}`;
   }
   _renderOverview() {
@@ -8724,21 +8723,21 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         -->
 
         ${this._renderOverview()}
-        ${this._health !== null ? this._renderHealthScore() : d}
+        ${this._health !== null ? this._renderHealthScore() : c}
         ${this._renderTopSenderSection()}
         ${this._renderTopDevicesSection()}
-        ${this._hasDetailToShow() ? this._renderDetailPane() : d}
+        ${this._hasDetailToShow() ? this._renderDetailPane() : c}
         ${this._renderVisualSections()}
         ${this._renderAnomalySections()}
         ${this._renderAuditSections()}
-        ${this._longTerm !== null ? this._renderLongTerm() : d}
-        ${this._toast ? i`<div class="toast">${this._toast}</div>` : d}
+        ${this._longTerm !== null ? this._renderLongTerm() : c}
+        ${this._toast ? i`<div class="toast">${this._toast}</div>` : c}
       </div>
     `;
   }
   _renderDptCell(e, t) {
     if (!e) return i`<span class="muted">—</span>`;
-    const s = t ? "dpt dpt--inferred" : "dpt", r = t ? "DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)" : "", a = t ? i`<span class="dpt__hint" aria-hidden="true">?</span>` : d;
+    const s = t ? "dpt dpt--inferred" : "dpt", r = t ? "DPT geraten aus Werten (im ETS-Projekt nicht gepflegt)" : "", a = t ? i`<span class="dpt__hint" aria-hidden="true">?</span>` : c;
     return i`<code class=${s} title=${r}>${e}${a}</code>`;
   }
   _renderTopTable() {
@@ -8818,15 +8817,15 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 <td class="actions">
                   ${n.acknowledged ? i`<button
                         class="mh-btn mh-btn--sm mh-btn--ghost"
-                        @click=${(c) => {
-        c.stopPropagation(), this._unackGa(n.ga);
+                        @click=${(d) => {
+        d.stopPropagation(), this._unackGa(n.ga);
       }}
                       >
                         ✗ Ack entfernen
                       </button>` : i`<button
                         class="mh-btn mh-btn--sm mh-btn--ghost"
-                        @click=${(c) => {
-        c.stopPropagation(), this._ackGa(n.ga);
+                        @click=${(d) => {
+        d.stopPropagation(), this._ackGa(n.ga);
       }}
                       >
                         ✓ Bekannt
@@ -8883,7 +8882,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         <span class="muted small">
           Gerät:
           <code>${this._detail.dev_source || "?"}</code>
-          ${this._detail.dpt ? i` • DPT <code>${this._detail.dpt}</code>` : d}
+          ${this._detail.dpt ? i` • DPT <code>${this._detail.dpt}</code>` : c}
         </span>
       </div>`;
     if (this._sourceDetail !== null) {
@@ -8936,7 +8935,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       "de-DE",
       { maximumFractionDigits: 0 }
     )} %</strong>
-              </div>` : d}
+              </div>` : c}
         </div>
 
         <div class=${`recommendation rec-${t.severity}`}>
@@ -8944,7 +8943,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           <p>${t.text}</p>
         </div>
 
-        ${e.findings.length > 0 ? this._renderGaDetailFindings(e.findings) : d}
+        ${e.findings.length > 0 ? this._renderGaDetailFindings(e.findings) : c}
 
         ${e.value_history.length >= 2 ? i`<div class="value-history">
               <strong>Wertverlauf:</strong>
@@ -8953,11 +8952,11 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 .width=${800}
                 .height=${100}
               ></knx-value-sparkline>
-            </div>` : d}
+            </div>` : c}
 
-        ${e.device || e.manufacturer_hints ? this._renderDeviceInfo(e) : d}
+        ${e.device || e.manufacturer_hints ? this._renderDeviceInfo(e) : c}
 
-        ${e.sibling_gas.length > 0 ? this._renderSiblingGas(e) : d}
+        ${e.sibling_gas.length > 0 ? this._renderSiblingGas(e) : c}
 
         ${this._renderHaKnxLinks(e)}
     `;
@@ -8978,16 +8977,15 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     )}
       </div>
       <ul>
-        ${s.map(
-      (a) => i`<li class=${`finding-${a.severity}`}>
-            <span class=${`mh-pill ${this._severityPillClass(a.severity)}`}>
-              ${a.kind}
-            </span>
+        ${s.map((a) => {
+      const n = `finding-${a.severity}`, o = `mh-pill ${this._severityPillClass(a.severity)}`;
+      return i`<li class=${n}>
+            <span class=${o}>${a.kind}</span>
             <span>${a.text}</span>
-          </li>`
-    )}
+          </li>`;
+    })}
       </ul>
-      ${r > 0 ? i`<p class="muted small">… und ${r} weitere</p>` : d}
+      ${r > 0 ? i`<p class="muted small">… und ${r} weitere</p>` : c}
     </div>`;
   }
   /**
@@ -9050,18 +9048,18 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <div class="device-info">
         ${t ? i`<strong>
               Gerät: ${t.manufacturer || "?"}
-              ${t.name ? i` — ${t.name}` : d}
-              ${t.product ? i`<span class="muted small">(${t.product})</span>` : d}
+              ${t.name ? i` — ${t.name}` : c}
+              ${t.product ? i`<span class="muted small">(${t.product})</span>` : c}
             </strong>` : i`<strong>Hersteller-Hinweise</strong>`}
         ${s && s.tips.length > 0 ? i`<ul class="hints">
               ${s.tips.map((r) => i`<li>${r}</li>`)}
-            </ul>` : d}
+            </ul>` : c}
         ${s?.doc_url ? i`<p class="muted small">
               Hersteller-Doku:
               <a href=${s.doc_url} target="_blank" rel="noopener noreferrer">
                 ${s.doc_url}
               </a>
-            </p>` : d}
+            </p>` : c}
       </div>
     `;
   }
@@ -9119,7 +9117,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       ${e.device || e.manufacturer_hints ? this._renderDeviceInfo({
       device: e.device,
       manufacturer_hints: e.manufacturer_hints
-    }) : d}
+    }) : c}
     `;
   }
   // Iter L1.4: Recommendation-Card. Default: collapsed; aufklappen
@@ -9142,7 +9140,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </button>
           ${this._renderRecommendationHeadline()}
         </header>
-        ${this._recommendationExpanded ? this._renderRecommendationBody() : d}
+        ${this._recommendationExpanded ? this._renderRecommendationBody() : c}
       </section>
     `;
   }
@@ -9197,7 +9195,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       (t) => i`<li>${t}</li>`
     )}
             </ul>
-          </details>` : d}
+          </details>` : c}
       ${this._renderDeviceProfileEditor()}
       ${this._renderRecommendationGaTable(e)}
       <p class="muted small recommendation-card__footer">
@@ -9217,10 +9215,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     const t = e?.manufacturer ?? null, s = e?.model ?? null, r = e?.ets ?? null, a = !!(t || s), n = !!(r?.manufacturer || r?.model);
     let o;
     return a ? o = i`<span>
-        ${t ?? "—"}${s ? i` / ${s}` : d}
+        ${t ?? "—"}${s ? i` / ${s}` : c}
         <span class="muted small">(User-Override)</span>
       </span>` : n ? o = i`<span>
-        ${r.manufacturer ?? "—"}${r.model ? i` / ${r.model}` : d}
+        ${r.manufacturer ?? "—"}${r.model ? i` / ${r.model}` : c}
         <span class="muted small">(aus ETS-Projekt)</span>
       </span>` : o = i`<span class="muted">
         kein Geraete-Profil verfuegbar (weder ETS noch Override)
@@ -9228,7 +9226,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <div class="recommendation-card__device-profile">
         <strong>Geraet:</strong>
         ${o}
-        ${e?.notes ? i`<span class="muted small">"${e.notes}"</span>` : d}
+        ${e?.notes ? i`<span class="muted small">"${e.notes}"</span>` : c}
         <button
           type="button"
           class="mh-button mh-button--ghost"
@@ -9278,7 +9276,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     )}
           />
         </label>
-        ${this._deviceError ? i`<p class="mh-error">${this._deviceError}</p>` : d}
+        ${this._deviceError ? i`<p class="mh-error">${this._deviceError}</p>` : c}
         <div class="recommendation-card__device-form-actions">
           <button
             type="button"
@@ -9320,7 +9318,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
               class=${`recommendation-card__row recommendation-card__row--${t.severity}`}
               title=${t.rationale ?? ""}
             >
-              <td><code>${t.ga}</code> ${t.label ? i`<span class="muted small">${t.label}</span>` : d}</td>
+              <td><code>${t.ga}</code> ${t.label ? i`<span class="muted small">${t.label}</span>` : c}</td>
               <td>${t.dpt ?? "—"}</td>
               <td>${this._renderRecommendationModePill(t.observed.mode)}</td>
               <td>${t.recommended_mode === null ? i`<span class="muted">—</span>` : i`${this._renderRecommendationModePill(t.recommended_mode)}
@@ -9397,18 +9395,17 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       <ul class="source-detail-findings__list">
         ${r.map((n) => this._renderSourceDetailFinding(n, e.dev_source))}
       </ul>
-      ${a > 0 ? i`<p class="muted small">… und ${a} weitere</p>` : d}
+      ${a > 0 ? i`<p class="muted small">… und ${a} weitere</p>` : c}
     </div>`;
   }
   _renderSourceDetailFinding(e, t) {
-    return i`<li class=${`source-detail-finding finding-${e.severity}`}>
-      <span class=${`mh-pill ${this._findingPillClass(e.severity)}`}>
-        ${e.severity}
-      </span>
+    const s = `source-detail-finding finding-${e.severity}`, r = `mh-pill ${this._findingPillClass(e.severity)}`;
+    return i`<li class=${s}>
+      <span class=${r}>${e.severity}</span>
       <a
         href="#findings?source=${encodeURIComponent(t)}"
         class="source-detail-finding__link"
-        @click=${(s) => this._onSourceDetailFindingClick(s, t)}
+        @click=${(a) => this._onSourceDetailFindingClick(a, t)}
         title="Findings-Tab oeffnen, gefiltert auf diese Source"
       >
         <code>${e.code}</code>
@@ -9496,7 +9493,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </tbody>
         </table>
       </div>
-      ${r > 0 ? i`<p class="muted small">… und ${r} weitere</p>` : d}
+      ${r > 0 ? i`<p class="muted small">… und ${r} weitere</p>` : c}
     </div>`;
   }
   _renderSourceDetailGaRow(e) {
@@ -9560,7 +9557,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         </ul>
         ${e.sibling_gas.length > t ? i`<p class="muted small">
               … und ${e.sibling_gas.length - t} weitere
-            </p>` : d}
+            </p>` : c}
       </div>
     `;
   }
@@ -9577,7 +9574,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
     this._topSortKey === e ? this._topSortDir = this._topSortDir === "desc" ? "asc" : "desc" : (this._topSortKey = e, this._topSortDir = e === "ga" || e === "label" ? "asc" : "desc");
   }
   _sortArrow(e, t, s) {
-    return e !== t ? d : i`<span class="sort-arrow" aria-hidden="true">${s === "desc" ? "▼" : "▲"}</span>`;
+    return e !== t ? c : i`<span class="sort-arrow" aria-hidden="true">${s === "desc" ? "▼" : "▲"}</span>`;
   }
   _renderTopBySource() {
     const e = this._filters.topNDevices, t = this._devicesSortKey, s = this._devicesSortDir, r = [...this._topBySource].sort((a, n) => {
@@ -9618,7 +9615,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
           </thead>
           <tbody>
             ${r.slice(0, e).map((a, n) => {
-      const o = this._summary?.total_telegrams ?? 0, c = o > 0 ? a.count / o * 100 : 0, h = a.manufacturer ?? "", v = a.device_name ?? "", f = h && v ? `${h} — ${v}` : h || v, u = this._selectedSource === a.dev_source;
+      const o = this._summary?.total_telegrams ?? 0, d = o > 0 ? a.count / o * 100 : 0, h = a.manufacturer ?? "", v = a.device_name ?? "", f = h && v ? `${h} — ${v}` : h || v, u = this._selectedSource === a.dev_source;
       return i`<tr
                 class=${`top-device-row ${u ? "selected" : ""}`}
                 @click=${() => void this._loadSourceDetail(a.dev_source)}
@@ -9636,7 +9633,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 <td class="num">${a.ga_count}</td>
                 <td class="num strong">${a.count.toLocaleString("de-DE")}</td>
                 <td class="num muted">
-                  ${c.toLocaleString("de-DE", {
+                  ${d.toLocaleString("de-DE", {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1
       })} %
@@ -9714,7 +9711,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
               <details class="alarm-device__inner">
                 <summary>
                   <code class="ga">${s.dev_source}</code>
-                  ${r ? i`<span class="muted small">${r}</span>` : d}
+                  ${r ? i`<span class="muted small">${r}</span>` : c}
                   <span class="muted small">
                     · stumm seit ${this._formatSilence(s.silent_minutes)}
                     · ${s.ga_count} GA${s.ga_count === 1 ? "" : "s"}
@@ -9763,7 +9760,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
    * Vorperiode hat dieselbe Laenge unmittelbar davor.
    */
   _renderTrend() {
-    const e = this._trend, t = Nt(e.total_delta_pct), s = (c) => c.delta_pct === null ? c.delta_abs > 0 ? "neu" : "verstummt" : `${c.delta_pct > 0 ? "+" : ""}${c.delta_pct.toLocaleString("de-DE", {
+    const e = this._trend, t = Nt(e.total_delta_pct), s = (d) => d.delta_pct === null ? d.delta_abs > 0 ? "neu" : "verstummt" : `${d.delta_pct > 0 ? "+" : ""}${d.delta_pct.toLocaleString("de-DE", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 1
     })} %`, r = this._classifyTrendSeverity(e.total_delta_pct), a = this._filters.topNTrend, n = this._isShortTrendPeriod(), o = this._isLongRetentionGapPeriod() && e.total_prev === 0;
@@ -9772,9 +9769,9 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         <header class="card-head">
           <h3>Trend gegenüber Vorperiode</h3>
           <div class="card-head__meta">
-            ${o ? d : this._renderInlineTopN(
+            ${o ? c : this._renderInlineTopN(
       this._filters.topNTrend,
-      (c) => this._onTopNTrend(c)
+      (d) => this._onTopNTrend(d)
     )}
             <span class="muted small">
               Aktuell ${e.total_now.toLocaleString("de-DE")} Telegramme ·
@@ -9794,24 +9791,24 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                 03–04 Uhr — Tag/Nacht-Übergaenge und Automation-Trigger lassen
                 die %-Werte oft 4-stellig wirken. Fuer aussagekraeftige Trends
                 mind. 24 Std waehlen.
-              </p>` : d}
-        ${o ? d : i`<div class="trend-grid">
+              </p>` : c}
+        ${o ? c : i`<div class="trend-grid">
           <div class="trend-col">
             <strong>Größte Anstiege</strong>
             ${e.top_increase.length === 0 ? i`<p class="muted small">Keine signifikanten Anstiege.</p>` : i`<ul class="trend-list trend-list--up">
                   ${e.top_increase.slice(0, a).map(
-      (c) => i`<li
-                      class=${`trend-row ${this._selectedGa === c.ga ? "selected" : ""}`}
-                      @click=${() => void this._onSelectGa(c.ga)}
+      (d) => i`<li
+                      class=${`trend-row ${this._selectedGa === d.ga ? "selected" : ""}`}
+                      @click=${() => void this._onSelectGa(d.ga)}
                       title="GA-Detail oeffnen"
                     >
-                      <code class="ga">${c.ga}</code>
+                      <code class="ga">${d.ga}</code>
                       <span class="trend-label muted"
-                        >${c.label ?? "—"}</span
+                        >${d.label ?? "—"}</span
                       >
                       <span class="trend-delta trend-delta--up"
-                        >+${c.delta_abs.toLocaleString("de-DE")} ·
-                        ${s(c)}</span
+                        >+${d.delta_abs.toLocaleString("de-DE")} ·
+                        ${s(d)}</span
                       >
                     </li>`
     )}
@@ -9821,18 +9818,18 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             <strong>Größte Rückgänge</strong>
             ${e.top_decrease.length === 0 ? i`<p class="muted small">Keine signifikanten Rückgänge.</p>` : i`<ul class="trend-list trend-list--down">
                   ${e.top_decrease.slice(0, a).map(
-      (c) => i`<li
-                      class=${`trend-row ${this._selectedGa === c.ga ? "selected" : ""}`}
-                      @click=${() => void this._onSelectGa(c.ga)}
+      (d) => i`<li
+                      class=${`trend-row ${this._selectedGa === d.ga ? "selected" : ""}`}
+                      @click=${() => void this._onSelectGa(d.ga)}
                       title="GA-Detail oeffnen"
                     >
-                      <code class="ga">${c.ga}</code>
+                      <code class="ga">${d.ga}</code>
                       <span class="trend-label muted"
-                        >${c.label ?? "—"}</span
+                        >${d.label ?? "—"}</span
                       >
                       <span class="trend-delta trend-delta--down"
-                        >${c.delta_abs.toLocaleString("de-DE")} ·
-                        ${s(c)}</span
+                        >${d.delta_abs.toLocaleString("de-DE")} ·
+                        ${s(d)}</span
                       >
                     </li>`
     )}
@@ -9952,7 +9949,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       (p) => this._matchesOrphanFilter(this._orphansMissingFilter, [p.address, p.name, p.dpt])
     ), n = r.filter(
       (p) => this._matchesOrphanFilter(this._orphansExtraFilter, [p.address, p.label])
-    ), o = this._filters.topNOrphansMissing, c = this._filters.topNOrphansExtra, h = a.slice(0, o), v = n.slice(0, c), f = e.missing_in_log.length - s.length, u = e.extra_in_log.length - r.length;
+    ), o = this._filters.topNOrphansMissing, d = this._filters.topNOrphansExtra, h = a.slice(0, o), v = n.slice(0, d), f = e.missing_in_log.length - s.length, u = e.extra_in_log.length - r.length;
     return i`
       <section class="mh-card">
         <header class="card-head">
@@ -9966,7 +9963,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       this._orphansHidePlaceholders = p.target.checked;
     }}
               />
-              <span>Platzhalter ausblenden${this._orphansHidePlaceholders && f + u > 0 ? i` <span class="muted small">(${f + u})</span>` : d}</span>
+              <span>Platzhalter ausblenden${this._orphansHidePlaceholders && f + u > 0 ? i` <span class="muted small">(${f + u})</span>` : c}</span>
             </label>
             <span class="muted small">
               Projekt: ${e.project_total} • geloggt: ${e.log_total}
@@ -9998,14 +9995,14 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       (p) => i`<li>
                       <code>${p.address}</code>
                       <span>${p.name || "—"}</span>
-                      ${p.dpt ? i`<code class="dpt">${p.dpt}</code>` : d}
+                      ${p.dpt ? i`<code class="dpt">${p.dpt}</code>` : c}
                     </li>`
     )}
                 </ul>
                 ${a.length > o ? i`<p class="muted small">
                       … und ${a.length - o} weitere
-                    </p>` : d}
-              </div>` : d}
+                    </p>` : c}
+              </div>` : c}
           ${e.extra_in_log.length > 0 ? i`<div>
                 <div class="orphans-col-head">
                   <strong
@@ -10034,10 +10031,10 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
                     </li>`
     )}
                 </ul>
-                ${n.length > c ? i`<p class="muted small">
-                      … und ${n.length - c} weitere
-                    </p>` : d}
-              </div>` : d}
+                ${n.length > d ? i`<p class="muted small">
+                      … und ${n.length - d} weitere
+                    </p>` : c}
+              </div>` : c}
         </div>
       </section>
     `;
@@ -10098,7 +10095,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
         </div>
         ${t.length > s ? i`<p class="muted small">
               … und ${t.length - s} weitere
-            </p>` : d}
+            </p>` : c}
       </section>
     `;
   }
@@ -10122,7 +10119,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
             ${e.per_ga.length > 0 ? this._renderInlineTopN(
       this._filters.topNBusHealth,
       (a) => this._onTopNBusHealth(a)
-    ) : d}
+    ) : c}
             <span class="muted small">
               xknx-Repeated-Flag — hoher Wert deutet auf Verkabelung/EMV
             </span>
@@ -10163,8 +10160,8 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
               </ul>
               ${e.per_ga.length > r ? i`<p class="muted small">
                     … und ${e.per_ga.length - r} weitere
-                  </p>` : d}
-            </div>` : d}
+                  </p>` : c}
+            </div>` : c}
       </section>
     `;
   }
@@ -10193,7 +10190,7 @@ Solange aus, schreibt das Plugin keine neuen Telegramme mehr in die Raw- oder Co
       title=${e.has_findings ? "Anti-Pattern erkannt — Detail-Pane zeigt mehr (Konstant-Wert-Spam, Read-Burst, Heartbeat)" : ""}
     >
       <span class="mh-pill__dot"></span>
-      ${e.has_findings ? i`<span aria-hidden="true">⚠</span> ` : d}
+      ${e.has_findings ? i`<span aria-hidden="true">⚠</span> ` : c}
       ${r}
     </span>`;
   }
@@ -12645,7 +12642,7 @@ let ue = class extends y {
           <slot></slot>
         </div>
       </aside>
-    ` : d;
+    ` : c;
   }
 };
 ue.styles = [
@@ -12862,8 +12859,8 @@ let O = class extends y {
           if (o === void 0) return;
           try {
             await s.refreshFindings(o);
-          } catch (c) {
-            a.push(`${o}: ${c.message}`);
+          } catch (d) {
+            a.push(`${o}: ${d.message}`);
           }
         }
       };
@@ -12964,7 +12961,7 @@ let O = class extends y {
                 Default greift wieder, sobald du auf "— Default —" wechselst.
               </p>
               <severity-override-form .api=${this.api}></severity-override-form>
-            </section>` : d}
+            </section>` : c}
 
         <div class="filters mh-card mh-card--flat" data-test="findings-filters">
           <label class="filter-label">
@@ -13047,7 +13044,7 @@ let O = class extends y {
               data-test="item-acked-marker"
               title="Bereits acknowledged"
               >✓ acked</span
-            >` : d}
+            >` : c}
       </li>
     `;
   }
@@ -13086,14 +13083,14 @@ let O = class extends y {
                 data-test="findings-detail-description"
               >
                 ${a}
-              </p>` : d}
+              </p>` : c}
           ${n ? i`<a
                 class="detail-help"
                 href=${n}
                 target="_blank"
                 rel="noopener"
                 >Hilfe / Doku ↗</a
-              >` : d}
+              >` : c}
           <dl class="detail-evidence">
             <dt>Code</dt>
             <dd>${e.code}</dd>
@@ -13511,13 +13508,13 @@ let re = class extends y {
     )}
         </nav>
         <div class="body">
-          ${this._tab === "live" ? i`<stats-live-view .api=${this.api}></stats-live-view>` : d}
-          ${this._tab === "knx" ? i`<stats-knx-view .api=${this.api}></stats-knx-view>` : d}
+          ${this._tab === "live" ? i`<stats-live-view .api=${this.api}></stats-live-view>` : c}
+          ${this._tab === "knx" ? i`<stats-knx-view .api=${this.api}></stats-knx-view>` : c}
           ${this._tab === "findings" ? i`<findings-view
                 .api=${this.api}
                 .hass=${this.hass}
                 .sourceFilter=${this._findingsSourceFilter}
-              ></findings-view>` : d}
+              ></findings-view>` : c}
         </div>
       </div>
     `;
@@ -13615,8 +13612,8 @@ function Ia(e) {
   if (s.length === 1) {
     const [a, n] = s[0];
     if (typeof n == "string" || typeof n == "number" || typeof n == "boolean") {
-      const o = String(n), c = o.length > Ht ? `${o.slice(0, Ht)}…` : o;
-      return `${a}: ${c}`;
+      const o = String(n), d = o.length > Ht ? `${o.slice(0, Ht)}…` : o;
+      return `${a}: ${d}`;
     }
     return `{${a}}`;
   }
@@ -13678,8 +13675,8 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
     }) : this._items;
   }
   _renderActionPill(e) {
-    const t = Ra(e);
-    return i`<span class=${`action-pill action-${t}`} title=${e}>${e}</span>`;
+    const s = `action-pill action-${Ra(e)}`;
+    return i`<span class=${s} title=${e}>${e}</span>`;
   }
   _renderDetails(e) {
     if (!e) return i`<span class="muted">—</span>`;
@@ -13701,10 +13698,8 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
   _renderDetailsSummary(e) {
     const t = Ia(e);
     if (t === "") return i`<span class="muted">—</span>`;
-    const s = typeof e == "object" && e !== null && (e.label !== void 0 || e.name !== void 0);
-    return i`<span class=${`summary ${s ? "" : "muted"}`}
-      >${t}</span
-    >`;
+    const r = `summary ${typeof e == "object" && e !== null && (e.label !== void 0 || e.name !== void 0) ? "" : "muted"}`;
+    return i`<span class=${r}>${t}</span>`;
   }
   _renderEmpty() {
     const e = this._items.length === 0 ? "Noch keine Audit-Einträge." : "Keine Treffer für aktuelle Suche.";
@@ -13737,7 +13732,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
                 <span>${this._renderActionPill(t.action)}</span>
                 <span class="target">
                   <code class="target-type">${t.target_type}</code>
-                  ${t.target_id !== null && t.target_id !== void 0 ? i`<code class="target-id">#${t.target_id}</code>` : d}
+                  ${t.target_id !== null && t.target_id !== void 0 ? i`<code class="target-id">#${t.target_id}</code>` : c}
                 </span>
                 <span class="details-inline">
                   ${this._renderDetailsSummary(t.details)}
@@ -13746,7 +13741,7 @@ Diese Aktion kann nicht rückgängig gemacht werden. Ein neuer Eintrag 'audit_cl
               </button>
               ${r ? i`<div class="details-panel">
                     ${this._renderDetails(t.details)}
-                  </div>` : d}
+                  </div>` : c}
             </div>
           `;
     })}

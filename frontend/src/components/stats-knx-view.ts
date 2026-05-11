@@ -1363,12 +1363,13 @@ export class StatsKnxView extends LitElement {
         </div>
       </div>
       <div class="severity-counts">
-        ${(["red", "orange", "yellow", "green"] as const).map(
-          (sev) => html`<span class=${`mh-pill ${severityPillClass(sev)}`}>
+        ${(["red", "orange", "yellow", "green"] as const).map((sev) => {
+          const cls = `mh-pill ${severityPillClass(sev)}`;
+          return html`<span class=${cls}>
             <span class="mh-pill__dot"></span>
             ${this._severityLabel(sev)}: ${counts[sev] ?? 0}
-          </span>`
-        )}
+          </span>`;
+        })}
       </div>
     `;
   }
@@ -1416,12 +1417,13 @@ export class StatsKnxView extends LitElement {
           </div>
           ${h.findings.length > 0
             ? html`<ul class="health-score__findings">
-                ${h.findings.map(
-                  (f) => html`<li class=${`health-finding health-finding--${f.severity}`}>
+                ${h.findings.map((f) => {
+                  const cls = `health-finding health-finding--${f.severity}`;
+                  return html`<li class=${cls}>
                     <span class="health-finding__dot"></span>
                     <span>${f.message}</span>
-                  </li>`
-                )}
+                  </li>`;
+                })}
               </ul>`
             : html`<p class="muted small">Alle Indikatoren im gruenen Bereich.</p>`}
         </div>
@@ -2201,14 +2203,14 @@ export class StatsKnxView extends LitElement {
         )}
       </div>
       <ul>
-        ${shown.map(
-          (f) => html`<li class=${`finding-${f.severity}`}>
-            <span class=${`mh-pill ${this._severityPillClass(f.severity)}`}>
-              ${f.kind}
-            </span>
+        ${shown.map((f) => {
+          const liCls = `finding-${f.severity}`;
+          const pillCls = `mh-pill ${this._severityPillClass(f.severity)}`;
+          return html`<li class=${liCls}>
+            <span class=${pillCls}>${f.kind}</span>
             <span>${f.text}</span>
-          </li>`,
-        )}
+          </li>`;
+        })}
       </ul>
       ${remaining > 0
         ? html`<p class="muted small">… und ${remaining} weitere</p>`
@@ -2742,10 +2744,10 @@ export class StatsKnxView extends LitElement {
     f: KnxStatsSourcePersistedFindingDto,
     devSource: string,
   ): TemplateResult {
-    return html`<li class=${`source-detail-finding finding-${f.severity}`}>
-      <span class=${`mh-pill ${this._findingPillClass(f.severity)}`}>
-        ${f.severity}
-      </span>
+    const liCls = `source-detail-finding finding-${f.severity}`;
+    const pillCls = `mh-pill ${this._findingPillClass(f.severity)}`;
+    return html`<li class=${liCls}>
+      <span class=${pillCls}>${f.severity}</span>
       <a
         href="#findings?source=${encodeURIComponent(devSource)}"
         class="source-detail-finding__link"

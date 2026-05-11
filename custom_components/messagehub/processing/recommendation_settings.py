@@ -204,6 +204,9 @@ class StubRecommendationProvider:
         model: str | None,
         context: dict[str, Any],
     ) -> DptRecommendation | None:
+        # Protocol-Signatur erzwingt die Parameter; der Stub nutzt sie nicht
+        # (Layer 4 disabled / Settings unvollstaendig => keine Empfehlung).
+        del dpt, manufacturer, model, context
         return None
 
 

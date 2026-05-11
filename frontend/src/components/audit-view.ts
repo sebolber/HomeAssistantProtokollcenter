@@ -158,7 +158,8 @@ export class AuditView extends LitElement {
 
   private _renderActionPill(action: string): TemplateResult {
     const cat = categorizeAction(action);
-    return html`<span class=${`action-pill action-${cat}`} title=${action}>${action}</span>`;
+    const cls = `action-pill action-${cat}`;
+    return html`<span class=${cls} title=${action}>${action}</span>`;
   }
 
   private _renderDetails(details: unknown): TemplateResult {
@@ -189,9 +190,8 @@ export class AuditView extends LitElement {
       details !== null &&
       ((details as Record<string, unknown>).label !== undefined ||
         (details as Record<string, unknown>).name !== undefined);
-    return html`<span class=${`summary ${isLabel ? "" : "muted"}`}
-      >${summary}</span
-    >`;
+    const cls = `summary ${isLabel ? "" : "muted"}`;
+    return html`<span class=${cls}>${summary}</span>`;
   }
 
   private _renderEmpty(): TemplateResult {

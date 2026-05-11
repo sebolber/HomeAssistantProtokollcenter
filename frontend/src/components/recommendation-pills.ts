@@ -34,9 +34,8 @@ const MODE_VARIANTS: Record<KnxRecommendationMode, string> = {
 export function renderRecommendationModePill(
   mode: KnxRecommendationMode,
 ): TemplateResult {
-  return html`<span class=${`mh-pill ${MODE_VARIANTS[mode]}`}
-    >${MODE_LABELS[mode]}</span
-  >`;
+  const cls = `mh-pill ${MODE_VARIANTS[mode]}`;
+  return html`<span class=${cls}>${MODE_LABELS[mode]}</span>`;
 }
 
 
@@ -55,9 +54,8 @@ const CONFIDENCE_VARIANTS: Record<KnxRecommendationConfidence, string> = {
 export function renderRecommendationConfidencePill(
   confidence: KnxRecommendationConfidence,
 ): TemplateResult {
-  return html`<span class=${`mh-pill ${CONFIDENCE_VARIANTS[confidence]}`}
-    >${CONFIDENCE_LABELS[confidence]}</span
-  >`;
+  const cls = `mh-pill ${CONFIDENCE_VARIANTS[confidence]}`;
+  return html`<span class=${cls}>${CONFIDENCE_LABELS[confidence]}</span>`;
 }
 
 
@@ -86,9 +84,8 @@ export function renderRecommendationSourcePill(
   source: KnxRecommendationSource | null | undefined,
 ): TemplateResult {
   if (source === null || source === undefined) return html``;
-  return html`<span
-    class=${`mh-pill ${SOURCE_VARIANTS[source]} recommendation-source-pill`}
-    title=${SOURCE_TITLES[source]}
+  const cls = `mh-pill ${SOURCE_VARIANTS[source]} recommendation-source-pill`;
+  return html`<span class=${cls} title=${SOURCE_TITLES[source]}
     >${SOURCE_LABELS[source]}</span
   >`;
 }
@@ -111,9 +108,8 @@ const SEVERITY_VARIANTS: Record<KnxRecommendationSeverity, string> = {
 export function renderRecommendationSeverityPill(
   severity: KnxRecommendationSeverity,
 ): TemplateResult {
-  return html`<span class=${`mh-pill ${SEVERITY_VARIANTS[severity]}`}
-    >${SEVERITY_LABELS[severity]}</span
-  >`;
+  const cls = `mh-pill ${SEVERITY_VARIANTS[severity]}`;
+  return html`<span class=${cls}>${SEVERITY_LABELS[severity]}</span>`;
 }
 
 
