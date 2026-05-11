@@ -3567,6 +3567,163 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
         this._showToast(e.message);
       }
   }
+  // Iter 06-Refactor: render() hatte CC=24 (Sonar-Limit 15) durch
+  // tief verschachtelte Ternaries fuer Empty-State, Row-Rendering,
+  // Severity-Pille und Pagination. Aufgeteilt in _renderBody +
+  // _renderEmpty + _renderRow + _renderSeverityCell + _renderLoadMore.
+  _renderBody(e, t, s, r) {
+    if (this._loading)
+      return i`<p class="muted">lade…</p>`;
+    if (e.length === 0)
+      return this._renderEmpty(r);
+    const a = e.length > 0 && e.every((n) => this._selected.has(n.address));
+    return i`
+      ${this._selected.size > 0 ? this._renderBulkToolbar() : d}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-select">
+                <input
+                  type="checkbox"
+                  aria-label="Alle sichtbaren auswaehlen"
+                  .checked=${a}
+                  @change=${() => this._toggleSelectAllVisible(e.map((n) => n.address))}
+                />
+              </th>
+              <th>GA</th>
+              <th>Label</th>
+              <th>DPT</th>
+              <th>Severity</th>
+              <th class="col-toggle">Loggen</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${e.map((n) => this._renderRow(n))}
+          </tbody>
+        </table>
+        ${this._renderLoadMore(s, t, e)}
+      </div>
+    `;
+  }
+  _renderEmpty(e) {
+    return this._items.length === 0 ? i`<div class="empty">
+        <p>
+          Noch keine Adressen. Lege oben den ersten Eintrag an oder
+          importiere eine ETS-CSV.
+        </p>
+      </div>` : this._onlyEnabled && e === 0 ? i`<div class="empty">
+        <p><strong>Keine Adresse ist im Protokoll aktiv.</strong></p>
+        <p>
+          So aktivierst du eine: in der Liste den
+          <strong>Loggen-Switch</strong> einer Adresse umlegen — oder im
+          Edit-Dialog „Im Protokoll erfassen" anhaken und speichern.
+        </p>
+        <p class="muted small">
+          Falls du gerade aktiviert hast und es trotzdem nicht erscheint:
+          <strong>Browser-Cache leeren</strong> (Cmd+Shift+R) — sonst liegt
+          evtl. der alte Bundle mit dem API-Bug vom 2026-05-01 vor 21:14 vor.
+        </p>
+      </div>` : i`<div class="empty">
+      <p>
+        Keine Treffer für aktuelle Filter (${this._items.length} Adressen
+        total, ${e} davon aktiv).
+      </p>
+    </div>`;
+  }
+  _renderSeverityCell(e) {
+    if (!e.log_enabled)
+      return i`<span
+        class="mh-pill mh-pill--neutral sev-pill--inactive"
+        title="Severity beim Aktivieren (Loggen ist aus)"
+        >${e.log_severity || "warning"}</span
+      >`;
+    const t = e.log_severity === "auto" ? "neutral" : e.log_severity, s = e.log_severity === "auto" ? i` <small class="auto-detail"
+            >T:${e.severity_on_true ?? "warning"} /
+            F:${e.severity_on_false ?? "info"}</small
+          >` : d;
+    return i`<button
+      class=${`mh-pill mh-pill--${t} sev-trigger`}
+      title="Severity ändern"
+      aria-haspopup="menu"
+      aria-expanded=${this._sevPopoverFor === e.address}
+      @click=${(r) => this._onSeverityTrigger(r, e)}
+    >
+      <span class="mh-pill__dot"></span>
+      ${e.log_severity}${s}
+      <span class="sev-caret" aria-hidden="true">▾</span>
+    </button>`;
+  }
+  _renderRow(e) {
+    const t = e.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren";
+    return i`
+      <tr class=${e.log_enabled ? "enabled" : ""}>
+        <td class="col-select">
+          <input
+            type="checkbox"
+            aria-label=${`${e.address} auswaehlen`}
+            .checked=${this._selected.has(e.address)}
+            @change=${() => this._toggleSelect(e.address)}
+          />
+        </td>
+        <td><code class="ga">${e.address}</code></td>
+        <td class="label-cell">${e.label}</td>
+        <td>
+          ${e.dpt ? i`<code class="dpt">${e.dpt}</code>` : i`<span class="muted">—</span>`}
+        </td>
+        <td>${this._renderSeverityCell(e)}</td>
+        <td class="col-toggle">
+          <label class="switch" title=${t}>
+            <input
+              type="checkbox"
+              .checked=${e.log_enabled}
+              @change=${() => void this._toggleLog(e)}
+              aria-label=${t}
+            />
+            <span class="slider"></span>
+          </label>
+        </td>
+        <td class="col-actions">
+          <button
+            class="icon-btn"
+            title="Bearbeiten"
+            aria-label="Bearbeiten"
+            @click=${() => this._editing = e}
+          >
+            <span aria-hidden="true">✎</span>
+          </button>
+          <button
+            class="icon-btn danger"
+            title="Löschen"
+            aria-label="Löschen"
+            @click=${() => void this._delete(e.address)}
+          >
+            <span aria-hidden="true">🗑</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }
+  _renderLoadMore(e, t, s) {
+    return e ? i`<div class="load-more">
+      <button
+        class="mh-btn"
+        @click=${() => this._displayedCount = Math.min(
+      this._displayedCount + we,
+      t.length
+    )}
+      >
+        Mehr laden (${t.length - s.length} weitere)
+      </button>
+      <button
+        class="mh-btn mh-btn--ghost"
+        @click=${() => this._displayedCount = t.length}
+      >
+        Alle ${t.length} zeigen
+      </button>
+    </div>` : d;
+  }
   render() {
     const e = this._filtered(), t = e.slice(0, this._displayedCount), s = e.length > t.length, r = this._items.filter((a) => a.log_enabled).length;
     return i`
@@ -3688,148 +3845,7 @@ ${t.keep} unveränderte Einträge bleiben bestehen.`;
           </span>
         </div>
 
-        ${this._loading ? i`<p class="muted">lade…</p>` : t.length === 0 ? i`<div class="empty">
-                ${this._items.length === 0 ? i`<p>
-                      Noch keine Adressen. Lege oben den ersten Eintrag an oder
-                      importiere eine ETS-CSV.
-                    </p>` : this._onlyEnabled && r === 0 ? i`<p>
-                          <strong>Keine Adresse ist im Protokoll aktiv.</strong>
-                        </p>
-                        <p>
-                          So aktivierst du eine: in der Liste den
-                          <strong>Loggen-Switch</strong> einer Adresse umlegen
-                          — oder im Edit-Dialog „Im Protokoll erfassen"
-                          anhaken und speichern.
-                        </p>
-                        <p class="muted small">
-                          Falls du gerade aktiviert hast und es trotzdem nicht
-                          erscheint: <strong>Browser-Cache leeren</strong>
-                          (Cmd+Shift+R) — sonst liegt evtl. der alte Bundle
-                          mit dem API-Bug vom 2026-05-01 vor 21:14 vor.
-                        </p>` : i`<p>
-                        Keine Treffer für aktuelle Filter
-                        (${this._items.length} Adressen total,
-                        ${r} davon aktiv).
-                      </p>`}
-              </div>` : i`
-                ${this._selected.size > 0 ? this._renderBulkToolbar() : d}
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th class="col-select">
-                          <input
-                            type="checkbox"
-                            aria-label="Alle sichtbaren auswaehlen"
-                            .checked=${t.length > 0 && t.every((a) => this._selected.has(a.address))}
-                            @change=${() => this._toggleSelectAllVisible(
-      t.map((a) => a.address)
-    )}
-                          />
-                        </th>
-                        <th>GA</th>
-                        <th>Label</th>
-                        <th>DPT</th>
-                        <th>Severity</th>
-                        <th class="col-toggle">Loggen</th>
-                        <th class="col-actions"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${t.map(
-      (a) => i`
-                          <tr class=${a.log_enabled ? "enabled" : ""}>
-                            <td class="col-select">
-                              <input
-                                type="checkbox"
-                                aria-label=${`${a.address} auswaehlen`}
-                                .checked=${this._selected.has(a.address)}
-                                @change=${() => this._toggleSelect(a.address)}
-                              />
-                            </td>
-                            <td><code class="ga">${a.address}</code></td>
-                            <td class="label-cell">${a.label}</td>
-                            <td>
-                              ${a.dpt ? i`<code class="dpt">${a.dpt}</code>` : i`<span class="muted">—</span>`}
-                            </td>
-                            <td>
-                              ${a.log_enabled ? i`<button
-                                    class=${`mh-pill mh-pill--${a.log_severity === "auto" ? "neutral" : a.log_severity} sev-trigger`}
-                                    title="Severity ändern"
-                                    aria-haspopup="menu"
-                                    aria-expanded=${this._sevPopoverFor === a.address}
-                                    @click=${(n) => this._onSeverityTrigger(n, a)}
-                                  >
-                                    <span class="mh-pill__dot"></span>
-                                    ${a.log_severity}${a.log_severity === "auto" ? i` <small class="auto-detail"
-                                          >T:${a.severity_on_true ?? "warning"}
-                                          / F:${a.severity_on_false ?? "info"}</small
-                                        >` : d}
-                                    <span class="sev-caret" aria-hidden="true">▾</span>
-                                  </button>` : i`<!-- Iter 60 / U8: bei inaktiven GAs
-                                       Default-Severity in muted Pille
-                                       statt nur "—". User sieht direkt,
-                                       was beim Loggen-Aktivieren greifen
-                                       würde. -->
-                                  <span
-                                    class="mh-pill mh-pill--neutral sev-pill--inactive"
-                                    title="Severity beim Aktivieren (Loggen ist aus)"
-                                    >${a.log_severity || "warning"}</span
-                                  >`}
-                            </td>
-                            <td class="col-toggle">
-                              <label class="switch" title=${a.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}>
-                                <input
-                                  type="checkbox"
-                                  .checked=${a.log_enabled}
-                                  @change=${() => void this._toggleLog(a)}
-                                  aria-label=${a.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren"}
-                                />
-                                <span class="slider"></span>
-                              </label>
-                            </td>
-                            <td class="col-actions">
-                              <button
-                                class="icon-btn"
-                                title="Bearbeiten"
-                                aria-label="Bearbeiten"
-                                @click=${() => this._editing = a}
-                              >
-                                <span aria-hidden="true">✎</span>
-                              </button>
-                              <button
-                                class="icon-btn danger"
-                                title="Löschen"
-                                aria-label="Löschen"
-                                @click=${() => void this._delete(a.address)}
-                              >
-                                <span aria-hidden="true">🗑</span>
-                              </button>
-                            </td>
-                          </tr>
-                        `
-    )}
-                    </tbody>
-                  </table>
-                  ${s ? i`<div class="load-more">
-                        <button
-                          class="mh-btn"
-                          @click=${() => this._displayedCount = Math.min(
-      this._displayedCount + we,
-      e.length
-    )}
-                        >
-                          Mehr laden (${e.length - t.length} weitere)
-                        </button>
-                        <button
-                          class="mh-btn mh-btn--ghost"
-                          @click=${() => this._displayedCount = e.length}
-                        >
-                          Alle ${e.length} zeigen
-                        </button>
-                      </div>` : d}
-                </div>
-              `}
+        ${this._renderBody(t, e, s, r)}
 
         ${this._renderEditor()}
         ${this._renderSevPopover()}

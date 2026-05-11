@@ -637,6 +637,199 @@ export class KnxAddressesView extends LitElement {
     }
   }
 
+  // Iter 06-Refactor: render() hatte CC=24 (Sonar-Limit 15) durch
+  // tief verschachtelte Ternaries fuer Empty-State, Row-Rendering,
+  // Severity-Pille und Pagination. Aufgeteilt in _renderBody +
+  // _renderEmpty + _renderRow + _renderSeverityCell + _renderLoadMore.
+  private _renderBody(
+    items: KnxAddressDto[],
+    allFiltered: KnxAddressDto[],
+    hasMore: boolean,
+    enabledCount: number,
+  ): TemplateResult {
+    if (this._loading) {
+      return html`<p class="muted">lade…</p>`;
+    }
+    if (items.length === 0) {
+      return this._renderEmpty(enabledCount);
+    }
+    const allSelected =
+      items.length > 0 && items.every((it) => this._selected.has(it.address));
+    return html`
+      ${this._selected.size > 0 ? this._renderBulkToolbar() : nothing}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-select">
+                <input
+                  type="checkbox"
+                  aria-label="Alle sichtbaren auswaehlen"
+                  .checked=${allSelected}
+                  @change=${() =>
+                    this._toggleSelectAllVisible(items.map((it) => it.address))}
+                />
+              </th>
+              <th>GA</th>
+              <th>Label</th>
+              <th>DPT</th>
+              <th>Severity</th>
+              <th class="col-toggle">Loggen</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map((it) => this._renderRow(it))}
+          </tbody>
+        </table>
+        ${this._renderLoadMore(hasMore, allFiltered, items)}
+      </div>
+    `;
+  }
+
+  private _renderEmpty(enabledCount: number): TemplateResult {
+    if (this._items.length === 0) {
+      return html`<div class="empty">
+        <p>
+          Noch keine Adressen. Lege oben den ersten Eintrag an oder
+          importiere eine ETS-CSV.
+        </p>
+      </div>`;
+    }
+    if (this._onlyEnabled && enabledCount === 0) {
+      return html`<div class="empty">
+        <p><strong>Keine Adresse ist im Protokoll aktiv.</strong></p>
+        <p>
+          So aktivierst du eine: in der Liste den
+          <strong>Loggen-Switch</strong> einer Adresse umlegen — oder im
+          Edit-Dialog „Im Protokoll erfassen" anhaken und speichern.
+        </p>
+        <p class="muted small">
+          Falls du gerade aktiviert hast und es trotzdem nicht erscheint:
+          <strong>Browser-Cache leeren</strong> (Cmd+Shift+R) — sonst liegt
+          evtl. der alte Bundle mit dem API-Bug vom 2026-05-01 vor 21:14 vor.
+        </p>
+      </div>`;
+    }
+    return html`<div class="empty">
+      <p>
+        Keine Treffer für aktuelle Filter (${this._items.length} Adressen
+        total, ${enabledCount} davon aktiv).
+      </p>
+    </div>`;
+  }
+
+  private _renderSeverityCell(it: KnxAddressDto): TemplateResult {
+    if (!it.log_enabled) {
+      // Iter 60 / U8: bei inaktiven GAs Default-Severity in muted Pille
+      // statt nur "—". User sieht direkt, was beim Loggen-Aktivieren greifen
+      // wuerde.
+      return html`<span
+        class="mh-pill mh-pill--neutral sev-pill--inactive"
+        title="Severity beim Aktivieren (Loggen ist aus)"
+        >${it.log_severity || "warning"}</span
+      >`;
+    }
+    const variant = it.log_severity === "auto" ? "neutral" : it.log_severity;
+    const autoDetail =
+      it.log_severity === "auto"
+        ? html` <small class="auto-detail"
+            >T:${it.severity_on_true ?? "warning"} /
+            F:${it.severity_on_false ?? "info"}</small
+          >`
+        : nothing;
+    return html`<button
+      class=${`mh-pill mh-pill--${variant} sev-trigger`}
+      title="Severity ändern"
+      aria-haspopup="menu"
+      aria-expanded=${this._sevPopoverFor === it.address}
+      @click=${(e: Event) => this._onSeverityTrigger(e, it)}
+    >
+      <span class="mh-pill__dot"></span>
+      ${it.log_severity}${autoDetail}
+      <span class="sev-caret" aria-hidden="true">▾</span>
+    </button>`;
+  }
+
+  private _renderRow(it: KnxAddressDto): TemplateResult {
+    const toggleTitle = it.log_enabled ? "Loggen deaktivieren" : "Loggen aktivieren";
+    return html`
+      <tr class=${it.log_enabled ? "enabled" : ""}>
+        <td class="col-select">
+          <input
+            type="checkbox"
+            aria-label=${`${it.address} auswaehlen`}
+            .checked=${this._selected.has(it.address)}
+            @change=${() => this._toggleSelect(it.address)}
+          />
+        </td>
+        <td><code class="ga">${it.address}</code></td>
+        <td class="label-cell">${it.label}</td>
+        <td>
+          ${it.dpt
+            ? html`<code class="dpt">${it.dpt}</code>`
+            : html`<span class="muted">—</span>`}
+        </td>
+        <td>${this._renderSeverityCell(it)}</td>
+        <td class="col-toggle">
+          <label class="switch" title=${toggleTitle}>
+            <input
+              type="checkbox"
+              .checked=${it.log_enabled}
+              @change=${() => void this._toggleLog(it)}
+              aria-label=${toggleTitle}
+            />
+            <span class="slider"></span>
+          </label>
+        </td>
+        <td class="col-actions">
+          <button
+            class="icon-btn"
+            title="Bearbeiten"
+            aria-label="Bearbeiten"
+            @click=${() => (this._editing = it)}
+          >
+            <span aria-hidden="true">✎</span>
+          </button>
+          <button
+            class="icon-btn danger"
+            title="Löschen"
+            aria-label="Löschen"
+            @click=${() => void this._delete(it.address)}
+          >
+            <span aria-hidden="true">🗑</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }
+
+  private _renderLoadMore(
+    hasMore: boolean,
+    allFiltered: KnxAddressDto[],
+    items: KnxAddressDto[],
+  ): TemplateResult | typeof nothing {
+    if (!hasMore) return nothing;
+    return html`<div class="load-more">
+      <button
+        class="mh-btn"
+        @click=${() =>
+          (this._displayedCount = Math.min(
+            this._displayedCount + PAGE_SIZE,
+            allFiltered.length,
+          ))}
+      >
+        Mehr laden (${allFiltered.length - items.length} weitere)
+      </button>
+      <button
+        class="mh-btn mh-btn--ghost"
+        @click=${() => (this._displayedCount = allFiltered.length)}
+      >
+        Alle ${allFiltered.length} zeigen
+      </button>
+    </div>`;
+  }
+
   override render(): TemplateResult {
     // Iter 55: Pagination — wir filtern alle Items, schneiden auf
     // _displayedCount fuer das Render-Slicing. So bleibt das DOM bei
@@ -779,174 +972,7 @@ export class KnxAddressesView extends LitElement {
           </span>
         </div>
 
-        ${this._loading
-          ? html`<p class="muted">lade…</p>`
-          : items.length === 0
-            ? html`<div class="empty">
-                ${this._items.length === 0
-                  ? html`<p>
-                      Noch keine Adressen. Lege oben den ersten Eintrag an oder
-                      importiere eine ETS-CSV.
-                    </p>`
-                  : this._onlyEnabled && enabledCount === 0
-                    ? html`<p>
-                          <strong>Keine Adresse ist im Protokoll aktiv.</strong>
-                        </p>
-                        <p>
-                          So aktivierst du eine: in der Liste den
-                          <strong>Loggen-Switch</strong> einer Adresse umlegen
-                          — oder im Edit-Dialog „Im Protokoll erfassen"
-                          anhaken und speichern.
-                        </p>
-                        <p class="muted small">
-                          Falls du gerade aktiviert hast und es trotzdem nicht
-                          erscheint: <strong>Browser-Cache leeren</strong>
-                          (Cmd+Shift+R) — sonst liegt evtl. der alte Bundle
-                          mit dem API-Bug vom 2026-05-01 vor 21:14 vor.
-                        </p>`
-                    : html`<p>
-                        Keine Treffer für aktuelle Filter
-                        (${this._items.length} Adressen total,
-                        ${enabledCount} davon aktiv).
-                      </p>`}
-              </div>`
-            : html`
-                ${this._selected.size > 0 ? this._renderBulkToolbar() : nothing}
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th class="col-select">
-                          <input
-                            type="checkbox"
-                            aria-label="Alle sichtbaren auswaehlen"
-                            .checked=${items.length > 0 &&
-                            items.every((it) => this._selected.has(it.address))}
-                            @change=${() =>
-                              this._toggleSelectAllVisible(
-                                items.map((it) => it.address)
-                              )}
-                          />
-                        </th>
-                        <th>GA</th>
-                        <th>Label</th>
-                        <th>DPT</th>
-                        <th>Severity</th>
-                        <th class="col-toggle">Loggen</th>
-                        <th class="col-actions"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${items.map(
-                        (it) => html`
-                          <tr class=${it.log_enabled ? "enabled" : ""}>
-                            <td class="col-select">
-                              <input
-                                type="checkbox"
-                                aria-label=${`${it.address} auswaehlen`}
-                                .checked=${this._selected.has(it.address)}
-                                @change=${() => this._toggleSelect(it.address)}
-                              />
-                            </td>
-                            <td><code class="ga">${it.address}</code></td>
-                            <td class="label-cell">${it.label}</td>
-                            <td>
-                              ${it.dpt
-                                ? html`<code class="dpt">${it.dpt}</code>`
-                                : html`<span class="muted">—</span>`}
-                            </td>
-                            <td>
-                              ${it.log_enabled
-                                ? html`<button
-                                    class=${`mh-pill mh-pill--${
-                                      it.log_severity === "auto" ? "neutral" : it.log_severity
-                                    } sev-trigger`}
-                                    title="Severity ändern"
-                                    aria-haspopup="menu"
-                                    aria-expanded=${this._sevPopoverFor === it.address}
-                                    @click=${(e: Event) => this._onSeverityTrigger(e, it)}
-                                  >
-                                    <span class="mh-pill__dot"></span>
-                                    ${it.log_severity}${it.log_severity === "auto"
-                                      ? html` <small class="auto-detail"
-                                          >T:${it.severity_on_true ?? "warning"}
-                                          / F:${it.severity_on_false ?? "info"}</small
-                                        >`
-                                      : nothing}
-                                    <span class="sev-caret" aria-hidden="true">▾</span>
-                                  </button>`
-                                : html`<!-- Iter 60 / U8: bei inaktiven GAs
-                                       Default-Severity in muted Pille
-                                       statt nur "—". User sieht direkt,
-                                       was beim Loggen-Aktivieren greifen
-                                       würde. -->
-                                  <span
-                                    class="mh-pill mh-pill--neutral sev-pill--inactive"
-                                    title="Severity beim Aktivieren (Loggen ist aus)"
-                                    >${it.log_severity || "warning"}</span
-                                  >`}
-                            </td>
-                            <td class="col-toggle">
-                              <label class="switch" title=${it.log_enabled
-                                ? "Loggen deaktivieren"
-                                : "Loggen aktivieren"}>
-                                <input
-                                  type="checkbox"
-                                  .checked=${it.log_enabled}
-                                  @change=${() => void this._toggleLog(it)}
-                                  aria-label=${it.log_enabled
-                                    ? "Loggen deaktivieren"
-                                    : "Loggen aktivieren"}
-                                />
-                                <span class="slider"></span>
-                              </label>
-                            </td>
-                            <td class="col-actions">
-                              <button
-                                class="icon-btn"
-                                title="Bearbeiten"
-                                aria-label="Bearbeiten"
-                                @click=${() => (this._editing = it)}
-                              >
-                                <span aria-hidden="true">✎</span>
-                              </button>
-                              <button
-                                class="icon-btn danger"
-                                title="Löschen"
-                                aria-label="Löschen"
-                                @click=${() => void this._delete(it.address)}
-                              >
-                                <span aria-hidden="true">🗑</span>
-                              </button>
-                            </td>
-                          </tr>
-                        `
-                      )}
-                    </tbody>
-                  </table>
-                  ${hasMore
-                    ? html`<div class="load-more">
-                        <button
-                          class="mh-btn"
-                          @click=${() =>
-                            (this._displayedCount = Math.min(
-                              this._displayedCount + PAGE_SIZE,
-                              allFiltered.length
-                            ))}
-                        >
-                          Mehr laden (${allFiltered.length - items.length} weitere)
-                        </button>
-                        <button
-                          class="mh-btn mh-btn--ghost"
-                          @click=${() =>
-                            (this._displayedCount = allFiltered.length)}
-                        >
-                          Alle ${allFiltered.length} zeigen
-                        </button>
-                      </div>`
-                    : nothing}
-                </div>
-              `}
+        ${this._renderBody(items, allFiltered, hasMore, enabledCount)}
 
         ${this._renderEditor()}
         ${this._renderSevPopover()}
