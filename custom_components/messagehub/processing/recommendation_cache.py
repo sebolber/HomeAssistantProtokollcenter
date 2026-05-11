@@ -26,7 +26,7 @@ class RecommendationCache:
     def __init__(self, ttl_s: float = 300.0, max_entries: int = 200) -> None:
         self._ttl_s = ttl_s
         self._max_entries = max_entries
-        # value = (expires_at_monotonic, payload)
+        # Store-Tupel: (expires_at_monotonic_seconds, payload_dict)
         self._store: dict[str, tuple[float, dict[str, Any]]] = {}
 
     def get(self, key: str) -> dict[str, Any] | None:

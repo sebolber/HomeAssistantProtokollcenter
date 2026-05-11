@@ -64,7 +64,7 @@ export class StatsView extends LitElement {
     super.disconnectedCallback();
   }
 
-  private _onHashChange = (): void => {
+  private readonly _onHashChange = (): void => {
     this._handleHash(window.location.hash);
   };
 

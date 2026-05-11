@@ -175,6 +175,10 @@ elif [[ -f /etc/os-release ]]; then
       PKG_UPDATE="apk update"
       NEEDS_SUDO=1
       ;;
+    *)
+      # Unbekannte Distro: OS_FAMILY bleibt "unknown",
+      # Setup-Schritt warnt spaeter und bricht ggf. ab.
+      ;;
   esac
 fi
 
@@ -403,6 +407,9 @@ ensure_compose() {
       ;;
     macos)
       fail "Compose ist Teil von Docker Desktop — bitte sicherstellen, dass Desktop laeuft"
+      ;;
+    *)
+      fail "Compose-Auto-Install fuer OS_FAMILY=$OS_FAMILY nicht unterstuetzt"
       ;;
   esac
 

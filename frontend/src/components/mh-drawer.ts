@@ -40,7 +40,7 @@ export class MhDrawer extends LitElement {
     super.disconnectedCallback();
   }
 
-  private _onKeydown = (e: KeyboardEvent): void => {
+  private readonly _onKeydown = (e: KeyboardEvent): void => {
     if (!this.open) return;
     if (e.key === "Escape") {
       this._close();

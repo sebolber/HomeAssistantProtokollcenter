@@ -54,20 +54,20 @@ export class MessageTable extends LitElement {
     this._popoverPos = null;
   }
 
-  private _onClick = (msg: MessageDto): void => {
+  private readonly _onClick = (msg: MessageDto): void => {
     this.dispatchEvent(
       new CustomEvent("select", { detail: { msg }, bubbles: true, composed: true })
     );
   };
 
-  private _onKey = (e: KeyboardEvent, msg: MessageDto): void => {
+  private readonly _onKey = (e: KeyboardEvent, msg: MessageDto): void => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       this._onClick(msg);
     }
   };
 
-  private _onSeverityClick = (e: Event, msg: MessageDto): void => {
+  private readonly _onSeverityClick = (e: Event, msg: MessageDto): void => {
     // Verhindert dass die Row den Detail-Dialog oeffnet.
     e.stopPropagation();
     e.preventDefault();
@@ -89,7 +89,7 @@ export class MessageTable extends LitElement {
     this._editSeverityFor = msg.id;
   };
 
-  private _onSeverityPick = (e: Event, msgId: number, currentSev: string, severity: string): void => {
+  private readonly _onSeverityPick = (e: Event, msgId: number, currentSev: string, severity: string): void => {
     e.stopPropagation();
     this._closePopover();
     if (severity === currentSev) return;

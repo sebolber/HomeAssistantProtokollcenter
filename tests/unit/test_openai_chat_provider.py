@@ -54,7 +54,10 @@ class TestSafeStr:
 
     def test_strips_unicode(self) -> None:
         # Non-ASCII (Steuerzeichen oder Smileys) werden entfernt.
-        assert _safe_str("‮evil") == "evil"  # noqa: PLE2502
+        # U+202E (RIGHT-TO-LEFT OVERRIDE); bewusst escapt statt als Literal,
+        # weil das bidirektionale Zeichen in der Quelle Sonar (python:S6824)
+        # und Editoren irritiert. Funktional identisch.
+        assert _safe_str("\u202eevil") == "evil"
 
     def test_truncates_to_max_len(self) -> None:
         result = _safe_str("a" * 200, max_len=50)

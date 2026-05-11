@@ -116,7 +116,9 @@ async def test_repo_crash_does_not_propagate() -> None:
             raise RuntimeError("simulated DB lock")
 
         async def increment_counter_batch(self, items: list[tuple[str, str]]) -> None:
-            pass
+            # Counter-Pfad ist hier nicht im Fokus — Test prueft nur,
+            # dass insert_raw_batch-Crashes den Worker nicht killen.
+            return
 
     worker = KnxIngestWorker(_CrashingRepo(), max_batch_size=10, flush_interval_sec=0.05)
     await worker.start()

@@ -29,7 +29,8 @@ def test_xknx_callback_is_sync_not_coroutine() -> None:
             registered_cb.append(cb)
 
         def unregister_telegram_received_cb(self, cb: Any) -> None:
-            pass
+            # Stub fuer xknx-API-Symmetrie; im Test wird nichts entregistriert.
+            return
 
     fake_xknx = SimpleNamespace(telegram_queue=_FakeQueue())
 
@@ -69,7 +70,8 @@ def test_callback_scheduled_via_async_create_task() -> None:
             registered_cb.append(cb)
 
         def unregister_telegram_received_cb(self, cb: Any) -> None:
-            pass
+            # Stub fuer xknx-API-Symmetrie; im Test wird nichts entregistriert.
+            return
 
     fake_xknx = SimpleNamespace(telegram_queue=_FakeQueue())
 
@@ -88,6 +90,7 @@ def test_callback_scheduled_via_async_create_task() -> None:
             t.close()
     scheduled.clear()
 
+    assert len(registered_cb) == 1, "Listener sollte exakt 1 Callback registriert haben"
     cb = registered_cb[0]
 
     # Stub-Telegramm — wir interessieren uns nur dafuer, ob ein Task

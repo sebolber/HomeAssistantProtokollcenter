@@ -105,7 +105,7 @@ export class SettingsView extends LitElement {
     this._menuOpenId = this._menuOpenId === id ? null : id;
   }
 
-  private _closeMenu = (): void => {
+  private readonly _closeMenu = (): void => {
     if (this._menuOpenId !== null) this._menuOpenId = null;
   };
 
@@ -162,7 +162,7 @@ export class SettingsView extends LitElement {
 
   // F-010: Reagiere auf hashchange-Events (Browser-Back, manuelles
   // Editieren der URL, Cross-Tab-Navigation).
-  private _onHashChange = (): void => {
+  private readonly _onHashChange = (): void => {
     const hash = window.location.hash.startsWith("#")
       ? window.location.hash.slice(1)
       : window.location.hash;

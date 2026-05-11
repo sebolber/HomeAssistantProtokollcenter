@@ -99,7 +99,7 @@ class Forwarder:
         return (time_module.monotonic() - last) < ch.throttle_seconds
 
 
-# NOSONAR: Channel-Handler-Polymorphismus, gemeinsame async-Signatur
+# NOSONAR Channel-Handler-Polymorphismus, gemeinsame async-Signatur
 # mit pushover/ntfy/notify — die Signatur darf nicht geaendert werden.
 async def telegram_handler(ch: ChannelConfig, msg: Message) -> None:
     """Iter 30: Telegram via HA-notify.telegram. Stub fuer Tests; in HA wird

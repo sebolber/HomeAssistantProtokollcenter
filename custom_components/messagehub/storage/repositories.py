@@ -19,6 +19,9 @@ if TYPE_CHECKING:
     from .database import Database
 
 
+_INSERT_NO_LASTROWID_MSG = "INSERT did not produce a lastrowid"
+
+
 class MessageRepository:
     """CRUD-Operationen fuer die Tabelle `messages`."""
 
@@ -68,7 +71,7 @@ class MessageRepository:
         new_id = cursor.lastrowid
         await cursor.close()
         if new_id is None:
-            raise RuntimeError("INSERT did not produce a lastrowid")
+            raise RuntimeError(_INSERT_NO_LASTROWID_MSG)
         message.id = new_id
         return int(new_id)
 
@@ -146,7 +149,7 @@ class MessageRepository:
         await cursor.close()
         await self._db.connection.commit()
         if new_id is None:
-            raise RuntimeError("INSERT did not produce a lastrowid")
+            raise RuntimeError(_INSERT_NO_LASTROWID_MSG)
         return int(new_id)
 
     async def set_status(self, message_id: int, status: str) -> bool:
@@ -544,7 +547,7 @@ class WebhookConfigRepository:
         new_id = cursor.lastrowid
         await cursor.close()
         if new_id is None:
-            raise RuntimeError("INSERT did not produce a lastrowid")
+            raise RuntimeError(_INSERT_NO_LASTROWID_MSG)
         cfg.id = new_id
         return int(new_id)
 
