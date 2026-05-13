@@ -11,7 +11,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
 from datetime import time as dt_time
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, Any
 
 from ..storage import Severity
 from .quiet_hours import is_in_quiet_hours, parse_hhmm
@@ -35,7 +35,7 @@ class ChannelConfig:
     config: dict[str, Any] | None = None
 
 
-SendFn: TypeAlias = Callable[[ChannelConfig, "Message"], Awaitable[None]]  # noqa: UP040
+type SendFn = Callable[[ChannelConfig, "Message"], Awaitable[None]]
 
 
 class Forwarder:
