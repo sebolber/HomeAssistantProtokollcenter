@@ -12,6 +12,12 @@ name: SonarCloud
 #   2. GitHub: Settings -> Secrets and variables -> Actions ->
 #      "New repository secret" -> Name SONAR_TOKEN, Wert = dein Token
 #   3. dann: nichts weiter, der naechste Push auf main triggert den Scan
+#
+# Snapshot-Schritt: Nach dem Scan auf `main` schreibt der Workflow die
+# aktuell offenen SonarCloud-Issues in den Body eines GitHub-Issues mit
+# Label `sonar-snapshot`. Claude liest den Issue via
+# `mcp__github__list_issues --labels sonar-snapshot` und kann die Liste
+# ohne Manual-Paste nutzen.
 
 on:
   push:
@@ -23,11 +29,22 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  issues: write
+
+# Snapshot-Refresh pro main-Push reicht — concurrency vermeidet
+# konkurrierende Issue-Edits bei schnellen Folge-Pushes.
+concurrency:
+  group: sonar-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   scan:
     name: Scan with SonarCloud
     runs-on: ubuntu-latest
+    # Job-Level-env, damit der `if`-Guard des Snapshot-Steps env.SONAR_TOKEN
+    # auswerten kann (Step-Level-env ist im if-Kontext nicht sichtbar).
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
         with:
@@ -36,8 +53,6 @@ jobs:
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602  # v6.0.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         # Der Scanner liest sonar-project.properties aus dem Repo-Root
         # und beachtet damit:
         #   - sonar.exclusions (frontend_dist/, build/, cache/...)
@@ -45,3 +60,38 @@ jobs:
         #   - sonar.issue.ignore.multicriteria (Test-IPs, async-Tests)
         # SHA-Pinning entspricht der SonarCloud-Onboarding-Empfehlung
         # und Sonar-Regel S7637.
+
+      - name: Refresh sonar-snapshot GitHub Issue
+        # Nur auf push nach main: wir wollen den Snapshot-Issue genau einmal
+        # pro main-Stand aktualisieren, nicht pro PR-Run. Der env-Guard
+        # verhindert, dass der Step bei fehlendem Secret rot wird.
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SONAR_TOKEN != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WAIT_FOR_SCAN: "1"
+        run: |
+          set -euo pipefail
+          gh label create sonar-snapshot \
+            --description "Auto-managed: aktueller SonarCloud-Stand auf main" \
+            --color 0075ca \
+            --force || true
+
+          body_file="$(mktemp)"
+          trap 'rm -f "${body_file}"' EXIT
+          bash scripts/fetch-sonar-issues.sh > "${body_file}"
+
+          issue_number="$(gh issue list \
+            --label sonar-snapshot \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')"
+          if [ -n "${issue_number}" ]; then
+            echo "Updating sonar-snapshot issue #${issue_number}"
+            gh issue edit "${issue_number}" --body-file "${body_file}"
+          else
+            echo "Creating sonar-snapshot issue"
+            gh issue create \
+              --title "Sonar Issue Snapshot — main" \
+              --label sonar-snapshot \
+              --body-file "${body_file}"
+          fi
