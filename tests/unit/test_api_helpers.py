@@ -109,10 +109,7 @@ class TestParseIntParam:
         assert parse_int_param({"n": "-5"}, "n", default=10, min_value=0) == 0
 
     def test_clamp_ueber_max(self) -> None:
-        assert (
-            parse_int_param({"n": "9999"}, "n", default=10, min_value=0, max_value=100)
-            == 100
-        )
+        assert parse_int_param({"n": "9999"}, "n", default=10, min_value=0, max_value=100) == 100
 
     def test_invalid_wert_fuehrt_zu_default(self) -> None:
         assert parse_int_param({"n": "abc"}, "n", default=42) == 42
