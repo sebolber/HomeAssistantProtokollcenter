@@ -157,7 +157,7 @@ export class KnxTimelineChart extends LitElement {
     return Array.from(map.entries()).map(([ga, values]) => ({ ga, values }));
   }
 
-  static override styles = [
+  static override readonly styles = [
     tokens,
     css`
       :host {

@@ -433,7 +433,7 @@ export class ChannelsView extends LitElement {
     `;
   }
 
-  static override styles = css`
+  static override readonly styles = css`
     section {
       display: flex;
       flex-direction: column;

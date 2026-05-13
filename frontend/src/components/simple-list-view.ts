@@ -328,7 +328,7 @@ export class MqttTopicsView extends LitElement {
       </td>
     </tr>`;
   }
-  static override styles = sharedStyles;
+  static override readonly styles = sharedStyles;
 }
 
 @customElement("heartbeats-view")
@@ -432,7 +432,7 @@ export class HeartbeatsView extends LitElement {
       </section>
     `;
   }
-  static override styles = sharedStyles;
+  static override readonly styles = sharedStyles;
 }
 
 @customElement("remediation-view")
@@ -665,6 +665,6 @@ export class RemediationView extends LitElement {
       </td>
     </tr>`;
   }
-  static override styles = sharedStyles;
+  static override readonly styles = sharedStyles;
 }
 

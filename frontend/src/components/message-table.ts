@@ -207,7 +207,7 @@ export class MessageTable extends LitElement {
     `;
   }
 
-  static override styles = [
+  static override readonly styles = [
     tokens,
     pills,
     css`

@@ -994,7 +994,7 @@ export class KnxAddressesView extends LitElement {
     `;
   }
 
-  static override styles = [
+  static override readonly styles = [
     tokens,
     buttons,
     forms,

@@ -39,7 +39,7 @@ export class TimeRangeFilter extends LitElement {
     `;
   }
 
-  static override styles = css`
+  static override readonly styles = css`
     .presets {
       display: flex;
       gap: 4px;

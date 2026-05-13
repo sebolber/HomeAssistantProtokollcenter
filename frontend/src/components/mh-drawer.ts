@@ -93,7 +93,7 @@ export class MhDrawer extends LitElement {
     `;
   }
 
-  static override styles = [
+  static override readonly styles = [
     tokens,
     css`
       :host {

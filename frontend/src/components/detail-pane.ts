@@ -243,7 +243,7 @@ export class DetailPane extends LitElement {
     `;
   }
 
-  static override styles = css`
+  static override readonly styles = css`
     :host {
       position: fixed;
       top: 0;

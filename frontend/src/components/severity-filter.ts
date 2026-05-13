@@ -43,7 +43,7 @@ export class SeverityFilter extends LitElement {
     `;
   }
 
-  static override styles = [
+  static override readonly styles = [
     tokens,
     css`
       .chips {
