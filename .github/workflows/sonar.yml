@@ -37,6 +37,16 @@ concurrency:
   group: sonar-${{ github.ref }}
   cancel-in-progress: false
 
+# Node 20 wird in den GH-Actions-Runnern ab 2026-09 entfernt. Die hier
+# verwendeten SHA-pinned Actions (actions/checkout v4.3.1, SonarSource/
+# sonarqube-scan-action v6.0.0) laufen aktuell auf Node 20 — Opt-in auf
+# Node 24 via Env-Var, ohne dass wir die SHAs verlieren mussten. Bei
+# der naechsten Major-Bump-Runde (siehe Release-Workflow-Kommentar)
+# koennen die SHAs auf v5/v7 aktualisiert werden und die Variable
+# entfaellt.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   scan:
     name: Scan with SonarCloud
