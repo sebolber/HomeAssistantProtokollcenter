@@ -28,13 +28,19 @@ curl_api() {
 }
 
 if [ "${WAIT_FOR_SCAN:-0}" = "1" ]; then
-  echo "Polling ${SONAR_HOST}/api/ce/component (max 10 min)..." >&2
-  for _ in $(seq 1 60); do
+  echo "Polling ${SONAR_HOST}/api/ce/component (max 15 min)..." >&2
+  for _ in $(seq 1 90); do
     status_json="$(curl_api "${SONAR_HOST}/api/ce/component?component=${SONAR_PROJECT}")"
     queue_count="$(echo "${status_json}" | jq '.queue | length')"
     current_status="$(echo "${status_json}" | jq -r '.current.status // ""')"
     if [ "${queue_count}" = "0" ] && [[ "${current_status}" =~ ^(SUCCESS|FAILED|CANCELED)$ ]]; then
       echo "Scan status: ${current_status} (queue empty)." >&2
+      # Sonars Issue-Reindexierung laeuft async NACH dem Scan-COMPLETE.
+      # `api/issues/search` liefert sonst die Findings vom vorherigen
+      # Scan-State, was den Snapshot stale aussehen laesst. 90s Puffer
+      # ist empirisch genug fuer Projekte unserer Groesse (~10k LoC).
+      echo "Reindex-Puffer: warte 90s auf Server-seitige Issue-Aktualisierung." >&2
+      sleep 90
       break
     fi
     echo "Scan running (queue=${queue_count}, current=${current_status:-pending}). Sleep 10s..." >&2
