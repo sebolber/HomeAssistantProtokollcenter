@@ -111,10 +111,16 @@ export type {
   SeverityOverridesResponse,
 } from "./types/findings.js";
 
+// Iter 20: Severity-Union zentral. Sonar S4323 wollte den 4-Way-Literal-
+// Type nicht in jeder DTO inline duplizieren — auto-Variante separat fuer
+// log_severity, weil dort `auto` als Mapping-Modus zusaetzlich erlaubt ist.
+export type Severity = "debug" | "info" | "warning" | "error";
+export type LogSeverity = Severity | "auto";
+
 export interface MessageDto {
   id: number;
   timestamp: string;
-  severity: "debug" | "info" | "warning" | "error";
+  severity: Severity;
   source: string;
   text: string;
   metadata: Record<string, unknown> | null;
@@ -133,7 +139,7 @@ export interface ChannelDto {
   name: string;
   channel_type: "telegram" | "pushover" | "ntfy" | "signal" | "notify";
   enabled: boolean;
-  severity_threshold: "debug" | "info" | "warning" | "error";
+  severity_threshold: Severity;
   quiet_start: string | null;
   quiet_end: string | null;
   quiet_bypass_error: boolean;
@@ -145,7 +151,7 @@ export interface MqttTopicDto {
   id: number | null;
   topic_pattern: string;
   source: string;
-  severity: "debug" | "info" | "warning" | "error";
+  severity: Severity;
   enabled: boolean;
 }
 
@@ -173,7 +179,7 @@ export interface KnxAddressDto {
   dpt: string | null;
   description: string | null;
   log_enabled: boolean;
-  log_severity: "debug" | "info" | "warning" | "error" | "auto";
+  log_severity: LogSeverity;
   severity_on_true: string | null;
   severity_on_false: string | null;
 }
@@ -479,7 +485,7 @@ export class ApiClient {
     dpt?: string | null;
     description?: string | null;
     log_enabled?: boolean;
-    log_severity?: "debug" | "info" | "warning" | "error" | "auto";
+    log_severity?: LogSeverity;
     severity_on_true?: string | null;
     severity_on_false?: string | null;
   }): Promise<void> {

@@ -14,7 +14,7 @@ export class TimeRangeFilter extends LitElement {
   private _set(preset: Preset): void {
     let fromIso: string | undefined;
     const now = new Date();
-    if (preset === "1h") fromIso = new Date(now.getTime() - 3600_000).toISOString();
+    if (preset === "1h") fromIso = new Date(now.getTime() - 3_600_000).toISOString();
     else if (preset === "24h") fromIso = new Date(now.getTime() - 86_400_000).toISOString();
     else if (preset === "7d") fromIso = new Date(now.getTime() - 7 * 86_400_000).toISOString();
     else fromIso = undefined;
