@@ -68,12 +68,15 @@ export class WebhookForm extends LitElement {
     if (!this._mappingText.trim()) return null;
     try {
       const parsed = JSON.parse(this._mappingText);
+      // Sonar S7786: TypeError ist die spezifische Klasse fuer
+      // "falscher Typ"-Fehler — Aufrufer kann `err instanceof TypeError`
+      // testen statt Error.message zu parsen.
       if (typeof parsed !== "object" || Array.isArray(parsed)) {
-        throw new Error("muss ein JSON-Objekt sein");
+        throw new TypeError("muss ein JSON-Objekt sein");
       }
       return parsed as Record<string, unknown>;
     } catch (err) {
-      throw new Error(`Mapping-JSON ungueltig: ${(err as Error).message}`);
+      throw new TypeError(`Mapping-JSON ungueltig: ${(err as Error).message}`);
     }
   }
 

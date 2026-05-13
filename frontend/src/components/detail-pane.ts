@@ -19,7 +19,7 @@ export class DetailPane extends LitElement {
   override willUpdate(changed: Map<string, unknown>): void {
     if (changed.has("msg") && this.msg) {
       this._status =
-        ((this.msg as unknown as { status?: string }).status ?? "new") as string;
+        (this.msg as unknown as { status?: string }).status ?? "new";
       void this._loadTags();
       void this._loadRunbook();
     }

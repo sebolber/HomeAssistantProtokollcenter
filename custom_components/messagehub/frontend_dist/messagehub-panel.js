@@ -2813,10 +2813,10 @@ let N = class extends y {
     try {
       const e = JSON.parse(this._mappingText);
       if (typeof e != "object" || Array.isArray(e))
-        throw new Error("muss ein JSON-Objekt sein");
+        throw new TypeError("muss ein JSON-Objekt sein");
       return e;
     } catch (e) {
-      throw new Error(`Mapping-JSON ungueltig: ${e.message}`);
+      throw new TypeError(`Mapping-JSON ungueltig: ${e.message}`);
     }
   }
   async _save() {
