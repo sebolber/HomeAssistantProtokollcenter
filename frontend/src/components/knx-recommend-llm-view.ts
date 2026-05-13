@@ -23,7 +23,7 @@ import { tokens, cards, buttons } from "../styles/tokens.js";
 
 @customElement("knx-recommend-llm-view")
 export class KnxRecommendLlmView extends LitElement {
-  static override styles = [
+  static override readonly styles = [
     tokens,
     cards,
     buttons,

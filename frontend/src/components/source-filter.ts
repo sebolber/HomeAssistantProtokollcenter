@@ -41,7 +41,7 @@ export class SourceFilter extends LitElement {
     `;
   }
 
-  static override styles = css`
+  static override readonly styles = css`
     select {
       padding: 4px 8px;
       border: 1px solid var(--divider-color, #ccc);

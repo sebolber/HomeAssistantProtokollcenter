@@ -91,7 +91,7 @@ export class MessageHubPanel extends LitElement {
   @state() private _savedFilters: SavedFilterDto[] = [];
   @state() private _savedFiltersOpen = false;
 
-  private _api = new ApiClient();
+  private readonly _api = new ApiClient();
   private _liveSub?: LiveSubscription;
   private _initialized = false;
 
@@ -149,7 +149,7 @@ export class MessageHubPanel extends LitElement {
     return parseHashRoute(window.location.hash).top;
   }
 
-  private _onHashChange = (): void => {
+  private readonly _onHashChange = (): void => {
     const next = this._initialTabFromHash();
     if (next !== this._tab) this._tab = next;
   };
@@ -294,25 +294,25 @@ export class MessageHubPanel extends LitElement {
     }
   }
 
-  private _onSeverityChange = (e: CustomEvent<{ severities: string[] }>): void => {
+  private readonly _onSeverityChange = (e: CustomEvent<{ severities: string[] }>): void => {
     this._filters = { ...this._filters, severity: e.detail.severities };
     this._persistFilters();
     void this._reload();
   };
 
-  private _onSourceChange = (e: CustomEvent<{ source: string }>): void => {
+  private readonly _onSourceChange = (e: CustomEvent<{ source: string }>): void => {
     this._filters = { ...this._filters, source: e.detail.source };
     this._persistFilters();
     void this._reload();
   };
 
-  private _onTimeRange = (e: CustomEvent<{ fromIso?: string; toIso?: string }>): void => {
+  private readonly _onTimeRange = (e: CustomEvent<{ fromIso?: string; toIso?: string }>): void => {
     this._filters = { ...this._filters, fromIso: e.detail.fromIso, toIso: e.detail.toIso };
     this._persistFilters();
     void this._reload();
   };
 
-  private _onSelect = (e: CustomEvent<{ msg: MessageDto }>): void => {
+  private readonly _onSelect = (e: CustomEvent<{ msg: MessageDto }>): void => {
     this._selected = e.detail.msg;
   };
 
@@ -320,7 +320,7 @@ export class MessageHubPanel extends LitElement {
   // Wir patchen nur das eine Item in der Liste — vorher hat der
   // status-change-Listener die ganze Liste re-fetched, was bei 1000+
   // Eintraegen sichtbar laggte und den Scroll-Position verlor.
-  private _onMessageUpdated = (e: CustomEvent<{ msg: MessageDto }>): void => {
+  private readonly _onMessageUpdated = (e: CustomEvent<{ msg: MessageDto }>): void => {
     const fresh = e.detail.msg;
     this._items = this._items.map((m) => (m.id === fresh.id ? fresh : m));
     if (this._selected?.id === fresh.id) {
@@ -328,7 +328,7 @@ export class MessageHubPanel extends LitElement {
     }
   };
 
-  private _onSeverityChangeMessage = async (
+  private readonly _onSeverityChangeMessage = async (
     e: CustomEvent<{ id: number; severity: string; previous: string }>
   ): Promise<void> => {
     const { id, severity, previous } = e.detail;
@@ -357,7 +357,7 @@ export class MessageHubPanel extends LitElement {
     }
   };
 
-  private _onDelete = async (e: CustomEvent<{ id: number }>): Promise<void> => {
+  private readonly _onDelete = async (e: CustomEvent<{ id: number }>): Promise<void> => {
     try {
       await this._api.deleteMessage(e.detail.id);
       this._items = this._items.filter((m) => m.id !== e.detail.id);
@@ -451,11 +451,11 @@ export class MessageHubPanel extends LitElement {
     }, 300);
   }
 
-  private _toggleOverflow = (): void => {
+  private readonly _toggleOverflow = (): void => {
     this._overflowOpen = !this._overflowOpen;
   };
 
-  private _closeOverflow = (): void => {
+  private readonly _closeOverflow = (): void => {
     if (this._overflowOpen) this._overflowOpen = false;
   };
 
@@ -836,7 +836,7 @@ export class MessageHubPanel extends LitElement {
     `;
   }
 
-  static override styles = [
+  static override readonly styles = [
     tokens,
     buttons,
     css`

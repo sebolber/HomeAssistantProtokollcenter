@@ -228,7 +228,7 @@ export class WebhookForm extends LitElement {
     `;
   }
 
-  static override styles = css`
+  static override readonly styles = css`
     .card {
       background: var(--card-background-color, white);
       border: 1px solid var(--divider-color, #e0e0e0);

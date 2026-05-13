@@ -3788,7 +3788,7 @@ export class StatsKnxView extends LitElement {
     </span>`;
   }
 
-  static override styles = [
+  static override readonly styles = [
     tokens,
     cards,
     pills,

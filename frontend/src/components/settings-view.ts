@@ -381,7 +381,7 @@ export class SettingsView extends LitElement {
     return html`<div class="grid">${this._items.map((item) => this._renderItem(item))}</div>`;
   }
 
-  static override styles = [
+  static override readonly styles = [
     tokens,
     buttons,
     cards,

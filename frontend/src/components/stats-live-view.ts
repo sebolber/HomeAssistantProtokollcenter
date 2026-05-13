@@ -273,7 +273,7 @@ export class StatsLiveView extends LitElement {
     `;
   }
 
-  static override styles = [
+  static override readonly styles = [
     tokens,
     cards,
     pills,
