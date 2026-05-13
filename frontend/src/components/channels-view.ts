@@ -6,6 +6,17 @@ import { property, state } from "lit/decorators.js";
 import type { ApiClient, ChannelDto } from "../api-client.js";
 
 const TYPES = ["telegram", "pushover", "ntfy", "signal", "notify"] as const;
+
+// Iter 18: Hilfetext pro Channel-Typ als Lookup statt 5-Way-Ternary —
+// Sonar `typescript:S3358` flaggte die Ternary-Kette im Editor-Markup
+// als deeply-nested. Map-Lookup ist linear lesbar.
+const CHANNEL_TYPE_HELP_TEXT: Record<string, string> = {
+  telegram: "Direkt an Telegram-Bot-API. Bot-Token + Chat-ID unten.",
+  pushover: "Direkt an Pushover-API. App-Token + User-Key unten.",
+  ntfy: "Direkt an ntfy-Server (ntfy.sh oder selbst-gehostet).",
+  signal: "Ueber HA-Service notify.<service>. Trag Namen unten ein.",
+};
+const CHANNEL_TYPE_HELP_DEFAULT = "Ueber HA-Service notify.<service>.";
 const SEVS = ["debug", "info", "warning", "error"] as const;
 
 @customElement("channels-view")
@@ -247,15 +258,7 @@ export class ChannelsView extends LitElement {
               ${TYPES.map((t) => html`<option value=${t}>${t}</option>`)}
             </select>
             <small>
-              ${e.channel_type === "telegram"
-                ? "Direkt an Telegram-Bot-API. Bot-Token + Chat-ID unten."
-                : e.channel_type === "pushover"
-                  ? "Direkt an Pushover-API. App-Token + User-Key unten."
-                  : e.channel_type === "ntfy"
-                    ? "Direkt an ntfy-Server (ntfy.sh oder selbst-gehostet)."
-                    : e.channel_type === "signal"
-                      ? "Ueber HA-Service notify.<service>. Trag Namen unten ein."
-                      : "Ueber HA-Service notify.<service>."}
+              ${CHANNEL_TYPE_HELP_TEXT[e.channel_type] ?? CHANNEL_TYPE_HELP_DEFAULT}
             </small>
           </label>
 

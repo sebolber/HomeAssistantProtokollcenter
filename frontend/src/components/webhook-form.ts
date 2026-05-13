@@ -20,6 +20,11 @@ const EXAMPLE_MAPPING = JSON.stringify(
 
 const SOURCE_PATTERN = /^[a-z0-9._-]{1,64}$/;
 
+function saveButtonLabel(saving: boolean, isEdit: boolean): string {
+  if (saving) return "speichere…";
+  return isEdit ? "Speichern" : "Anlegen";
+}
+
 /** Konvertiert beliebige User-Eingaben in eine valide Source. */
 function sanitizeSource(input: string): string {
   return input
@@ -220,7 +225,7 @@ export class WebhookForm extends LitElement {
 
         <div class="actions">
           <button class="primary" ?disabled=${this._saving} @click=${this._save}>
-            ${this._saving ? "speichere…" : isEdit ? "Speichern" : "Anlegen"}
+            ${saveButtonLabel(this._saving, isEdit)}
           </button>
           <button @click=${this._cancel}>Abbrechen</button>
         </div>

@@ -181,7 +181,7 @@ export class DetailPane extends LitElement {
 
         <dl>
           <dt>Severity</dt>
-          <dd class=${`sev-${this.msg.severity}`}>${this.msg.severity}</dd>
+          <dd class=${"sev-" + this.msg.severity}>${this.msg.severity}</dd>
           <dt>Source</dt>
           <dd><code>${this.msg.source}</code></dd>
           <dt>Timestamp</dt>
@@ -208,7 +208,7 @@ export class DetailPane extends LitElement {
                     #${t}
                     <button
                       class="tag-remove"
-                      aria-label=${`Tag ${t} entfernen`}
+                      aria-label="Tag ${t} entfernen"
                       @click=${() => this._removeTag(t)}
                     >
                       ×
