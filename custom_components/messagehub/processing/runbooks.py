@@ -7,7 +7,7 @@ Spezifische Eintraege (mit fingerprint) ueberschreiben generische
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import aiosqlite
@@ -77,10 +77,13 @@ class RunbookRepository:
 
 
 def _row_to_runbook(row: aiosqlite.Row) -> Runbook:
+    # Sonar `python:S5864`: Flow-Analysis sieht `aiosqlite.Row.__getitem__`
+    # nicht (TYPE_CHECKING-Import). `dict(row)`-Materialisierung umgeht das.
+    d: dict[str, Any] = dict(row)
     return Runbook(
-        id=int(row["id"]),
-        source_pattern=str(row["source_pattern"]),
-        fingerprint=row["fingerprint"],
-        title=str(row["title"]),
-        markdown=str(row["markdown"]),
+        id=int(d["id"]),
+        source_pattern=str(d["source_pattern"]),
+        fingerprint=d["fingerprint"],
+        title=str(d["title"]),
+        markdown=str(d["markdown"]),
     )
