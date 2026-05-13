@@ -287,7 +287,9 @@ def invalidate_knx_devices_cache() -> None:
     _knx_devices_cache.clear()
 
 
-async def discover_knx_devices(  # NOSONAR Async-Symmetrie mit discover_knx_project
+# Async-Symmetrie mit discover_knx_project (das await benoetigt) — selbst
+# wenn der Cache-Hit-Pfad rein synchron ist. Sonar python:S7503 inline supprimieren.
+async def discover_knx_devices(  # NOSONAR
     hass: HomeAssistant,
 ) -> dict[str, dict[str, Any]]:
     """Iter 34: Liefert ein Mapping `individual_address -> {manufacturer, name, product}`.

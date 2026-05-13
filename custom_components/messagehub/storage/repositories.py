@@ -598,30 +598,35 @@ class WebhookConfigRepository:
 
 
 def _row_to_webhook(row: aiosqlite.Row) -> WebhookConfig:
-    field_map_str: str | None = row["field_map_json"]
+    # Sonar `python:S5864`: das Flow-Analysis-Backend kann `aiosqlite.Row.
+    # __getitem__` nicht aufloesen (TYPE_CHECKING-Import + __future__
+    # annotations). `dict(row)` materialisiert die Mapping-Sicht einmalig
+    # und Sonar versteht `dict[str, Any]` ohne Murren.
+    d: dict[str, Any] = dict(row)
+    field_map_str: str | None = d["field_map_json"]
     return WebhookConfig(
-        id=int(row["id"]),
-        name=row["name"],
-        webhook_id=row["webhook_id"],
-        default_severity=Severity(row["default_severity"]),
-        default_source=row["default_source"],
+        id=int(d["id"]),
+        name=d["name"],
+        webhook_id=d["webhook_id"],
+        default_severity=Severity(d["default_severity"]),
+        default_source=d["default_source"],
         field_map=json.loads(field_map_str) if field_map_str else None,
-        enabled=bool(row["enabled"]),
-        created_at=datetime.fromisoformat(row["created_at"]).astimezone(UTC),
+        enabled=bool(d["enabled"]),
+        created_at=datetime.fromisoformat(d["created_at"]).astimezone(UTC),
     )
 
 
 def _row_to_message(row: aiosqlite.Row) -> Message:
     """Konvertiert eine aiosqlite.Row in ein Message-Dataclass."""
-    timestamp_str: str = row["timestamp"]
-    metadata_str: str | None = row["metadata"]
-    msg = Message(
-        id=int(row["id"]),
+    d: dict[str, Any] = dict(row)
+    timestamp_str: str = d["timestamp"]
+    metadata_str: str | None = d["metadata"]
+    return Message(
+        id=int(d["id"]),
         timestamp=datetime.fromisoformat(timestamp_str).astimezone(UTC),
-        severity=Severity(row["severity"]),
-        source=row["source"],
-        text=row["text"],
+        severity=Severity(d["severity"]),
+        source=d["source"],
+        text=d["text"],
         metadata=json.loads(metadata_str) if metadata_str else None,
-        webhook_id=row["webhook_id"],
+        webhook_id=d["webhook_id"],
     )
-    return msg

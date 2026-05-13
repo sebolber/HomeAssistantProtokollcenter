@@ -46,7 +46,9 @@ class MessageHubConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_user(  # NOSONAR HA-ConfigFlow-Hook, Signatur vorgegeben
+    # HA-ConfigFlow-Hook, Signatur vorgegeben — kein await zur Single-Instance-
+    # Pruefung noetig. Sonar python:S7503 inline supprimieren.
+    async def async_step_user(  # NOSONAR
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if self._async_current_entries():
@@ -66,7 +68,9 @@ class MessageHubOptionsFlow(OptionsFlow):
     def __init__(self, entry: ConfigEntry) -> None:
         self._entry = entry
 
-    async def async_step_init(  # NOSONAR HA-OptionsFlow-Hook, Signatur vorgegeben
+    # HA-OptionsFlow-Hook, Signatur vorgegeben — Optionen-Schema rendern,
+    # kein await zur Setup-Zeit. Sonar python:S7503 inline supprimieren.
+    async def async_step_init(  # NOSONAR
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:

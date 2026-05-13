@@ -11,7 +11,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
 from datetime import time as dt_time
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, Any
 
 from ..storage import Severity
 from .quiet_hours import is_in_quiet_hours, parse_hhmm
@@ -35,7 +35,7 @@ class ChannelConfig:
     config: dict[str, Any] | None = None
 
 
-SendFn: TypeAlias = Callable[[ChannelConfig, "Message"], Awaitable[None]]  # noqa: UP040
+type SendFn = Callable[[ChannelConfig, "Message"], Awaitable[None]]
 
 
 class Forwarder:
@@ -101,7 +101,8 @@ class Forwarder:
 
 # Channel-Handler-Polymorphismus, gemeinsame async-Signatur
 # mit pushover/ntfy/notify — die Signatur darf nicht geaendert werden.
-async def telegram_handler(  # NOSONAR Channel-Handler-Polymorphismus, async-Signatur fix
+# Sonar python:S7503 (async ohne await) wird inline supprimiert.
+async def telegram_handler(  # NOSONAR
     ch: ChannelConfig, msg: Message
 ) -> None:
     """Iter 30: Telegram via HA-notify.telegram. Stub fuer Tests; in HA wird
