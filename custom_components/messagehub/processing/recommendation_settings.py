@@ -196,7 +196,9 @@ class StubRecommendationProvider:
 
     name = "stub"
 
-    async def fetch(  # NOSONAR Protocol-Signatur RecommendationProvider erzwingt async
+    # Protocol-Signatur RecommendationProvider erzwingt async — Stub gibt
+    # immer None. Sonar python:S7503 inline supprimieren.
+    async def fetch(  # NOSONAR
         self,
         *,
         dpt: str | None,

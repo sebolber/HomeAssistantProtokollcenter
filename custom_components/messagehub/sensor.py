@@ -33,7 +33,9 @@ TEXT_PREVIEW_MAX = 255
 TEXT_PREVIEW_TRUNCATE = 252
 
 
-async def async_setup_entry(  # NOSONAR HA-Plattform-Hook, Signatur durch HA-API vorgegeben
+# HA-Plattform-Hook: Signatur durch HA-API vorgegeben, kein `await`
+# zur Setup-Zeit noetig — Sonar python:S7503 inline supprimieren.
+async def async_setup_entry(  # NOSONAR
     hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,

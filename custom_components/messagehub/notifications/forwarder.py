@@ -101,7 +101,8 @@ class Forwarder:
 
 # Channel-Handler-Polymorphismus, gemeinsame async-Signatur
 # mit pushover/ntfy/notify — die Signatur darf nicht geaendert werden.
-async def telegram_handler(  # NOSONAR Channel-Handler-Polymorphismus, async-Signatur fix
+# Sonar python:S7503 (async ohne await) wird inline supprimiert.
+async def telegram_handler(  # NOSONAR
     ch: ChannelConfig, msg: Message
 ) -> None:
     """Iter 30: Telegram via HA-notify.telegram. Stub fuer Tests; in HA wird
